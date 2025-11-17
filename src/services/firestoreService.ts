@@ -53,16 +53,20 @@ export const getWorkSlots = async (userId?: string, date?: string) => {
   const slotsRef = collection(db, 'workSlots')
   let q: ReturnType<typeof query>
 
-  // Build query based on filters
+  // Build query based on filters - avoid composite index requirement
+  // Use only single-field filters to avoid needing composite indexes
   if (userId && date) {
     // Filter by userId first, then filter in memory
     q = query(slotsRef, where('userId', '==', userId))
   } else if (userId) {
-    q = query(slotsRef, where('userId', '==', userId), orderBy('date', 'asc'))
+    // Filter by userId only, sort in memory to avoid index requirement
+    q = query(slotsRef, where('userId', '==', userId))
   } else if (date) {
-    q = query(slotsRef, where('date', '==', date), orderBy('date', 'asc'))
+    // Filter by date only
+    q = query(slotsRef, where('date', '==', date))
   } else {
-    q = query(slotsRef, orderBy('date', 'asc'))
+    // No filters, get all
+    q = query(slotsRef)
   }
 
   const snapshot = await getDocs(q)
@@ -82,6 +86,9 @@ export const getWorkSlots = async (userId?: string, date?: string) => {
   if (userId && date) {
     results = results.filter((s) => s.date === date)
   }
+  
+  // Sort by date in memory to avoid index requirement
+  results.sort((a, b) => a.date.localeCompare(b.date))
   
   return results
 }
@@ -129,15 +136,19 @@ export const getDayStatuses = async (userId?: string, date?: string) => {
   let q: ReturnType<typeof query>
 
   // Build query based on filters - avoid composite index requirement
+  // Use only single-field filters to avoid needing composite indexes
   if (userId && date) {
     // Filter by userId first, then filter in memory
     q = query(statusesRef, where('userId', '==', userId))
   } else if (userId) {
-    q = query(statusesRef, where('userId', '==', userId), orderBy('date', 'asc'))
+    // Filter by userId only, sort in memory to avoid index requirement
+    q = query(statusesRef, where('userId', '==', userId))
   } else if (date) {
-    q = query(statusesRef, where('date', '==', date), orderBy('date', 'asc'))
+    // Filter by date only
+    q = query(statusesRef, where('date', '==', date))
   } else {
-    q = query(statusesRef, orderBy('date', 'asc'))
+    // No filters, get all
+    q = query(statusesRef)
   }
 
   const snapshot = await getDocs(q)
@@ -157,6 +168,9 @@ export const getDayStatuses = async (userId?: string, date?: string) => {
   if (userId && date) {
     results = results.filter((s) => s.date === date)
   }
+  
+  // Sort by date in memory to avoid index requirement
+  results.sort((a, b) => a.date.localeCompare(b.date))
   
   return results
 }
@@ -195,17 +209,35 @@ export const deleteDayStatus = async (id: string) => {
 // Earnings
 export const getEarnings = async (userId?: string, startDate?: string, endDate?: string) => {
   const earningsRef = collection(db, 'earnings')
-  let q = query(earningsRef, orderBy('date', 'desc'))
+  let q: ReturnType<typeof query>
 
-  if (userId) {
-    q = query(q, where('userId', '==', userId))
-  }
-  if (startDate && endDate) {
-    q = query(q, where('date', '>=', startDate), where('date', '<=', endDate))
+  // Build query to avoid composite index requirement
+  if (userId && startDate && endDate) {
+    // Filter by userId first, then filter by date in memory
+    q = query(earningsRef, where('userId', '==', userId))
+  } else if (userId) {
+    // Filter by userId only, sort in memory
+    q = query(earningsRef, where('userId', '==', userId))
+  } else if (startDate && endDate) {
+    // Filter by date range (this doesn't require index for range queries on single field)
+    q = query(earningsRef, where('date', '>=', startDate), where('date', '<=', endDate))
+  } else {
+    // No filters, get all
+    q = query(earningsRef)
   }
 
   const snapshot = await getDocs(q)
-  return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Earnings))
+  let results = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Earnings))
+  
+  // Filter by date range in memory if userId is also provided
+  if (userId && startDate && endDate) {
+    results = results.filter((e) => e.date >= startDate && e.date <= endDate)
+  }
+  
+  // Sort by date descending in memory to avoid index requirement
+  results.sort((a, b) => b.date.localeCompare(a.date))
+  
+  return results
 }
 
 export const addEarnings = async (earning: Omit<Earnings, 'id'>) => {
