@@ -227,7 +227,18 @@ export const getEarnings = async (userId?: string, startDate?: string, endDate?:
   }
 
   const snapshot = await getDocs(q)
-  let results = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Earnings))
+  let results = snapshot.docs.map((doc) => {
+    const data = doc.data() as any
+    return {
+      id: doc.id,
+      userId: data?.userId || '',
+      date: data?.date || '',
+      amount: data?.amount || 0,
+      poolAmount: data?.poolAmount || 0,
+      slotId: data?.slotId || '',
+      participants: data?.participants || [],
+    } as Earnings
+  })
   
   // Filter by date range in memory if userId is also provided
   if (userId && startDate && endDate) {
