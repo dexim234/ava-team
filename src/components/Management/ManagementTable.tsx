@@ -43,21 +43,44 @@ export const ManagementTable = ({ selectedUserId, onEditSlot, onEditStatus }: Ma
   const loadData = async () => {
     setLoading(true)
     try {
-      const weekStart = formatDate(weekDays[0], 'yyyy-MM-dd')
-      const weekEnd = formatDate(weekDays[6], 'yyyy-MM-dd')
+      // Format dates to ensure correct timezone handling
+      const weekStartDate = new Date(weekDays[0])
+      weekStartDate.setHours(0, 0, 0, 0)
+      const weekEndDate = new Date(weekDays[6])
+      weekEndDate.setHours(23, 59, 59, 999)
+      
+      const weekStart = formatDate(weekStartDate, 'yyyy-MM-dd')
+      const weekEnd = formatDate(weekEndDate, 'yyyy-MM-dd')
 
-      const results = await Promise.all(
-        displayUsers.map(async (user) => {
-          const [userSlots, userStatuses] = await Promise.all([getWorkSlots(user.id), getDayStatuses(user.id)])
-          return {
-            slots: userSlots.filter((s) => s.date >= weekStart && s.date <= weekEnd),
-            statuses: userStatuses.filter((s) => s.date >= weekStart && s.date <= weekEnd),
-          }
-        })
-      )
+      // Load all slots and statuses for the week, not filtered by user
+      const [allSlots, allStatuses] = await Promise.all([
+        getWorkSlots(),
+        getDayStatuses()
+      ])
 
-      setSlots(results.flatMap((result) => result.slots))
-      setStatuses(results.flatMap((result) => result.statuses))
+      // Filter by week range
+      const weekSlots = allSlots.filter((s) => s.date >= weekStart && s.date <= weekEnd)
+      const weekStatuses = allStatuses.filter((s) => s.date >= weekStart && s.date <= weekEnd)
+
+      // If user filter is selected, filter by user
+      const filteredSlots = selectedUserId 
+        ? weekSlots.filter((s) => s.userId === selectedUserId)
+        : weekSlots
+      const filteredStatuses = selectedUserId
+        ? weekStatuses.filter((s) => s.userId === selectedUserId)
+        : weekStatuses
+
+      console.log('Loaded slots:', {
+        weekStart,
+        weekEnd,
+        allSlotsCount: allSlots.length,
+        weekSlotsCount: weekSlots.length,
+        filteredSlotsCount: filteredSlots.length,
+        selectedUserId
+      })
+
+      setSlots(filteredSlots)
+      setStatuses(filteredStatuses)
     } catch (error) {
       console.error('Error loading data:', error)
     } finally {
