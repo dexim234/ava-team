@@ -2,10 +2,11 @@
 import { useState, useEffect } from 'react'
 import { useAuthStore } from '@/store/authStore'
 import { useThemeStore } from '@/store/themeStore'
+import { useAdminStore } from '@/store/adminStore'
 import { addDayStatus, updateDayStatus, getDayStatuses } from '@/services/firestoreService'
 import { formatDate, isSameDate } from '@/utils/dateUtils'
 import { X } from 'lucide-react'
-import { DayStatus } from '@/types'
+import { DayStatus, TEAM_MEMBERS } from '@/types'
 
 interface DayStatusFormProps {
   type: 'dayoff' | 'sick' | 'vacation'
@@ -17,7 +18,9 @@ interface DayStatusFormProps {
 export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormProps) => {
   const { user } = useAuthStore()
   const { theme } = useThemeStore()
+  const { isAdmin } = useAdminStore()
   const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
+  const [selectedUserId, setSelectedUserId] = useState(status?.userId || user?.id || '')
   const [date, setDate] = useState(
     status?.date || formatDate(new Date(), 'yyyy-MM-dd')
   )
@@ -137,6 +140,21 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
       return
     }
 
+    // Check if user can edit this status
+    if (status && !isAdmin && status.userId !== user.id) {
+      setError('Вы можете редактировать только свои статусы')
+      setLoading(false)
+      return
+    }
+
+    // Validate selected user for admin mode
+    const targetUserId = isAdmin && !status ? selectedUserId : (status?.userId || user.id)
+    if (!targetUserId) {
+      setError('Выберите участника')
+      setLoading(false)
+      return
+    }
+
     console.log('Starting save process...')
     setError('')
     setLoading(true)
@@ -150,7 +168,7 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
       }
 
       const statusData: Omit<DayStatus, 'id'> = {
-        userId: user.id,
+        userId: targetUserId,
         date,
         type,
         ...(comment && { comment }),
@@ -202,6 +220,30 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
           </div>
 
           <div className="space-y-4">
+            {/* User selection for admin when adding new status */}
+            {isAdmin && !status && (
+              <div>
+                <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                  Участник
+                </label>
+                <select
+                  value={selectedUserId}
+                  onChange={(e) => setSelectedUserId(e.target.value)}
+                  className={`w-full px-4 py-2 rounded-lg border ${
+                    theme === 'dark'
+                      ? 'bg-gray-700 border-gray-600 text-white'
+                      : 'bg-white border-gray-300 text-gray-900'
+                  } focus:outline-none focus:ring-2 focus:ring-green-500`}
+                >
+                  {TEAM_MEMBERS.map((member) => (
+                    <option key={member.id} value={member.id}>
+                      {member.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
             {/* Date */}
             <div>
               <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>

@@ -41,13 +41,24 @@ export const canSetSickLeave = (date: Date | string): boolean => {
   return !isAfter(targetDate, maxDate) && !isBefore(targetDate, today)
 }
 
-export const calculateHours = (slots: { start: string; end: string }[]): number => {
+export const calculateHours = (slots: { start: string; end: string; break?: { start: string; end: string } }[]): number => {
   return slots.reduce((total, slot) => {
     const [startHour, startMin] = slot.start.split(':').map(Number)
     const [endHour, endMin] = slot.end.split(':').map(Number)
     const startMinutes = startHour * 60 + startMin
     const endMinutes = endHour * 60 + endMin
-    const diff = (endMinutes - startMinutes) / 60
+    let diff = (endMinutes - startMinutes) / 60
+    
+    // Subtract break time if exists
+    if (slot.break) {
+      const [breakStartHour, breakStartMin] = slot.break.start.split(':').map(Number)
+      const [breakEndHour, breakEndMin] = slot.break.end.split(':').map(Number)
+      const breakStartMinutes = breakStartHour * 60 + breakStartMin
+      const breakEndMinutes = breakEndHour * 60 + breakEndMin
+      const breakDiff = (breakEndMinutes - breakStartMinutes) / 60
+      diff -= breakDiff
+    }
+    
     return total + diff
   }, 0)
 }

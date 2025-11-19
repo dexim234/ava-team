@@ -25,6 +25,7 @@ export const ManagementWeekView = ({ selectedUserId, onEditSlot, onEditStatus }:
   const [loading, setLoading] = useState(true)
 
   const weekDays = getWeekDays(selectedWeek)
+  const displayUsers = selectedUserId ? TEAM_MEMBERS.filter((u) => u.id === selectedUserId) : TEAM_MEMBERS
 
   useEffect(() => {
     loadData()
@@ -220,22 +221,41 @@ export const ManagementWeekView = ({ selectedUserId, onEditSlot, onEditStatus }:
                           </div>
                         )}
                       </div>
-                      {(isAdmin || user?.id === status.userId) && (
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => onEditStatus(status)}
-                            className="p-1 bg-white bg-opacity-20 hover:bg-opacity-30 rounded transition-colors"
-                          >
-                            <Edit className="w-4 h-4 text-white" />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteStatus(status.id)}
-                            className="p-1 bg-white bg-opacity-20 hover:bg-opacity-30 rounded transition-colors"
-                          >
-                            <Trash2 className="w-4 h-4 text-white" />
-                          </button>
-                        </div>
-                      )}
+                      <div className="flex gap-2">
+                        {(isAdmin || user?.id === status.userId) ? (
+                          <>
+                            <button
+                              onClick={() => onEditStatus(status)}
+                              className="p-1 bg-white bg-opacity-20 hover:bg-opacity-30 rounded transition-colors"
+                            >
+                              <Edit className="w-4 h-4 text-white" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteStatus(status.id)}
+                              className="p-1 bg-white bg-opacity-20 hover:bg-opacity-30 rounded transition-colors"
+                            >
+                              <Trash2 className="w-4 h-4 text-white" />
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <button
+                              disabled
+                              className="p-1 bg-white bg-opacity-10 cursor-not-allowed rounded"
+                              title="Вы можете редактировать только свои статусы"
+                            >
+                              <Edit className="w-4 h-4 text-white opacity-50" />
+                            </button>
+                            <button
+                              disabled
+                              className="p-1 bg-white bg-opacity-10 cursor-not-allowed rounded"
+                              title="Вы можете удалять только свои статусы"
+                            >
+                              <Trash2 className="w-4 h-4 text-white opacity-50" />
+                            </button>
+                          </>
+                        )}
+                      </div>
                     </div>
                   )
                 })}
@@ -263,7 +283,11 @@ export const ManagementWeekView = ({ selectedUserId, onEditSlot, onEditStatus }:
                       <div className="flex items-center gap-2">
                         <span className="text-white font-medium">{displayName}</span>
                         <span className="text-white text-sm">
-                          {slot.slots.map((s) => `${s.start}-${s.end}`).join(', ')}
+                          {slot.slots.map((s) => {
+                            const timeStr = `${s.start}-${s.end}`
+                            const breakStr = s.break ? ` (перерыв: ${s.break.start}-${s.break.end})` : ''
+                            return timeStr + breakStr
+                          }).join(', ')}
                         </span>
                         {slot.comment && (
                           <div className="relative group">
@@ -274,22 +298,41 @@ export const ManagementWeekView = ({ selectedUserId, onEditSlot, onEditStatus }:
                           </div>
                         )}
                       </div>
-                      {(isAdmin || user?.id === slot.userId) && (
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => onEditSlot(slot)}
-                            className="p-1 bg-white bg-opacity-20 hover:bg-opacity-30 rounded transition-colors"
-                          >
-                            <Edit className="w-4 h-4 text-white" />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteSlot(slot.id)}
-                            className="p-1 bg-white bg-opacity-20 hover:bg-opacity-30 rounded transition-colors"
-                          >
-                            <Trash2 className="w-4 h-4 text-white" />
-                          </button>
-                        </div>
-                      )}
+                      <div className="flex gap-2">
+                        {(isAdmin || user?.id === slot.userId) ? (
+                          <>
+                            <button
+                              onClick={() => onEditSlot(slot)}
+                              className="p-1 bg-white bg-opacity-20 hover:bg-opacity-30 rounded transition-colors"
+                            >
+                              <Edit className="w-4 h-4 text-white" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteSlot(slot.id)}
+                              className="p-1 bg-white bg-opacity-20 hover:bg-opacity-30 rounded transition-colors"
+                            >
+                              <Trash2 className="w-4 h-4 text-white" />
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <button
+                              disabled
+                              className="p-1 bg-white bg-opacity-10 cursor-not-allowed rounded"
+                              title="Вы можете редактировать только свои слоты"
+                            >
+                              <Edit className="w-4 h-4 text-white opacity-50" />
+                            </button>
+                            <button
+                              disabled
+                              className="p-1 bg-white bg-opacity-10 cursor-not-allowed rounded"
+                              title="Вы можете удалять только свои слоты"
+                            >
+                              <Trash2 className="w-4 h-4 text-white opacity-50" />
+                            </button>
+                          </>
+                        )}
+                      </div>
                     </div>
                   )
                 })}

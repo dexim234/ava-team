@@ -10,6 +10,10 @@ export interface User {
 export interface TimeSlot {
   start: string // HH:mm format
   end: string
+  break?: {
+    start: string // HH:mm format
+    end: string // HH:mm format
+  }
 }
 
 export interface WorkSlot {

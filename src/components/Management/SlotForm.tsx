@@ -2,10 +2,11 @@
 import { useState, useEffect } from 'react'
 import { useAuthStore } from '@/store/authStore'
 import { useThemeStore } from '@/store/themeStore'
+import { useAdminStore } from '@/store/adminStore'
 import { addWorkSlot, updateWorkSlot, getWorkSlots } from '@/services/firestoreService'
 import { calculateHours, timeOverlaps, formatDate } from '@/utils/dateUtils'
 import { X, Plus, Trash2 } from 'lucide-react'
-import { WorkSlot, TimeSlot } from '@/types'
+import { WorkSlot, TimeSlot, TEAM_MEMBERS } from '@/types'
 
 interface SlotFormProps {
   slot?: WorkSlot | null
@@ -16,11 +17,15 @@ interface SlotFormProps {
 export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
   const { user } = useAuthStore()
   const { theme } = useThemeStore()
+  const { isAdmin } = useAdminStore()
   const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
   const [date, setDate] = useState(slot?.date || formatDate(new Date(), 'yyyy-MM-dd'))
+  const [selectedUserId, setSelectedUserId] = useState(slot?.userId || user?.id || '')
   const [slots, setSlots] = useState<TimeSlot[]>(slot?.slots || [])
   const [currentStart, setCurrentStart] = useState('')
   const [currentEnd, setCurrentEnd] = useState('')
+  const [currentBreakStart, setCurrentBreakStart] = useState('')
+  const [currentBreakEnd, setCurrentBreakEnd] = useState('')
   const [comment, setComment] = useState(slot?.comment || '')
   const [repeatMonth, setRepeatMonth] = useState(false)
   const [repeatDays, setRepeatDays] = useState<number[]>([])
@@ -54,9 +59,29 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
       return
     }
 
-    setSlots([...slots, { start: currentStart, end: currentEnd }])
+    // Validate break if provided
+    let breakTime: { start: string; end: string } | undefined = undefined
+    if (currentBreakStart && currentBreakEnd) {
+      if (currentBreakStart >= currentBreakEnd) {
+        setError('Время окончания перерыва должно быть позже времени начала')
+        return
+      }
+      if (currentBreakStart < currentStart || currentBreakEnd > currentEnd) {
+        setError('Перерыв должен быть в пределах времени слота')
+        return
+      }
+      breakTime = { start: currentBreakStart, end: currentBreakEnd }
+    }
+
+    setSlots([...slots, { 
+      start: currentStart, 
+      end: currentEnd,
+      ...(breakTime && { break: breakTime })
+    }])
     setCurrentStart('')
     setCurrentEnd('')
+    setCurrentBreakStart('')
+    setCurrentBreakEnd('')
     setError('')
   }
 
@@ -111,6 +136,21 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
       return
     }
 
+    // Check if user can edit this slot
+    if (slot && !isAdmin && slot.userId !== user.id) {
+      setError('Вы можете редактировать только свои слоты')
+      setLoading(false)
+      return
+    }
+
+    // Validate selected user for admin mode
+    const targetUserId = isAdmin && !slot ? selectedUserId : (slot?.userId || user.id)
+    if (!targetUserId) {
+      setError('Выберите участника')
+      setLoading(false)
+      return
+    }
+
     console.log('Starting save process...')
     setError('')
     setLoading(true)
@@ -136,11 +176,11 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
             }
 
             const slotData: Omit<WorkSlot, 'id'> = {
-              userId: user.id,
+              userId: targetUserId,
               date: dateStr,
               slots,
               ...(comment && { comment }),
-              participants: [user.id],
+              participants: [targetUserId],
             }
 
             if (slot) {
@@ -170,11 +210,11 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
             }
 
             const slotData: Omit<WorkSlot, 'id'> = {
-              userId: user.id,
+              userId: targetUserId,
               date: dateStr,
               slots,
               ...(comment && { comment }),
-              participants: [user.id],
+              participants: [targetUserId],
             }
 
             await addWorkSlot(slotData)
@@ -190,11 +230,11 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
         }
 
         const slotData: Omit<WorkSlot, 'id'> = {
-          userId: user.id,
+          userId: targetUserId,
           date,
           slots,
           ...(comment && { comment }),
-          participants: slot?.participants || [user.id],
+          participants: slot?.participants || [targetUserId],
         }
 
         if (slot) {
@@ -231,6 +271,30 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
           </div>
 
           <div className="space-y-4">
+            {/* User selection for admin when adding new slot */}
+            {isAdmin && !slot && (
+              <div>
+                <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                  Участник
+                </label>
+                <select
+                  value={selectedUserId}
+                  onChange={(e) => setSelectedUserId(e.target.value)}
+                  className={`w-full px-4 py-2 rounded-lg border ${
+                    theme === 'dark'
+                      ? 'bg-gray-700 border-gray-600 text-white'
+                      : 'bg-white border-gray-300 text-gray-900'
+                  } focus:outline-none focus:ring-2 focus:ring-green-500`}
+                >
+                  {TEAM_MEMBERS.map((member) => (
+                    <option key={member.id} value={member.id}>
+                      {member.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
             {/* Date */}
             <div>
               <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
@@ -253,35 +317,62 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
               <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
                 Временные слоты
               </label>
-              <div className="flex gap-2 mb-2">
-                <input
-                  type="time"
-                  value={currentStart}
-                  onChange={(e) => setCurrentStart(e.target.value)}
-                  className={`flex-1 px-4 py-2 rounded-lg border ${
-                    theme === 'dark'
-                      ? 'bg-gray-700 border-gray-600 text-white'
-                      : 'bg-white border-gray-300 text-gray-900'
-                  } focus:outline-none focus:ring-2 focus:ring-green-500`}
-                  placeholder="Начало"
-                />
-                <input
-                  type="time"
-                  value={currentEnd}
-                  onChange={(e) => setCurrentEnd(e.target.value)}
-                  className={`flex-1 px-4 py-2 rounded-lg border ${
-                    theme === 'dark'
-                      ? 'bg-gray-700 border-gray-600 text-white'
-                      : 'bg-white border-gray-300 text-gray-900'
-                  } focus:outline-none focus:ring-2 focus:ring-green-500`}
-                  placeholder="Окончание"
-                />
+              <div className="space-y-2 mb-2">
+                <div className="flex gap-2">
+                  <input
+                    type="time"
+                    value={currentStart}
+                    onChange={(e) => setCurrentStart(e.target.value)}
+                    className={`flex-1 px-4 py-2 rounded-lg border ${
+                      theme === 'dark'
+                        ? 'bg-gray-700 border-gray-600 text-white'
+                        : 'bg-white border-gray-300 text-gray-900'
+                    } focus:outline-none focus:ring-2 focus:ring-green-500`}
+                    placeholder="Начало"
+                  />
+                  <input
+                    type="time"
+                    value={currentEnd}
+                    onChange={(e) => setCurrentEnd(e.target.value)}
+                    className={`flex-1 px-4 py-2 rounded-lg border ${
+                      theme === 'dark'
+                        ? 'bg-gray-700 border-gray-600 text-white'
+                        : 'bg-white border-gray-300 text-gray-900'
+                    } focus:outline-none focus:ring-2 focus:ring-green-500`}
+                    placeholder="Окончание"
+                  />
+                </div>
+                <div className="flex gap-2 items-center">
+                  <span className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Перерыв (необязательно):</span>
+                  <input
+                    type="time"
+                    value={currentBreakStart}
+                    onChange={(e) => setCurrentBreakStart(e.target.value)}
+                    className={`flex-1 px-4 py-2 rounded-lg border ${
+                      theme === 'dark'
+                        ? 'bg-gray-700 border-gray-600 text-white'
+                        : 'bg-white border-gray-300 text-gray-900'
+                    } focus:outline-none focus:ring-2 focus:ring-green-500`}
+                    placeholder="Начало перерыва"
+                  />
+                  <input
+                    type="time"
+                    value={currentBreakEnd}
+                    onChange={(e) => setCurrentBreakEnd(e.target.value)}
+                    className={`flex-1 px-4 py-2 rounded-lg border ${
+                      theme === 'dark'
+                        ? 'bg-gray-700 border-gray-600 text-white'
+                        : 'bg-white border-gray-300 text-gray-900'
+                    } focus:outline-none focus:ring-2 focus:ring-green-500`}
+                    placeholder="Окончание перерыва"
+                  />
+                </div>
                 <button
                   onClick={addTimeSlot}
-                  className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors flex items-center gap-2"
+                  className="w-full px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors flex items-center justify-center gap-2"
                 >
                   <Plus className="w-4 h-4" />
-                  Добавить
+                  Добавить слот
                 </button>
               </div>
 
@@ -290,19 +381,26 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
                 {slots.map((s, index) => (
                   <div
                     key={index}
-                    className={`flex items-center justify-between p-3 rounded-lg ${
+                    className={`flex flex-col gap-1 p-3 rounded-lg ${
                       theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100'
                     }`}
                   >
-                    <span className={headingColor}>
-                      {s.start} - {s.end}
-                    </span>
-                    <button
-                      onClick={() => removeTimeSlot(index)}
-                      className="p-1 text-red-500 hover:bg-red-500 hover:text-white rounded transition-colors"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    <div className="flex items-center justify-between">
+                      <span className={headingColor}>
+                        {s.start} - {s.end}
+                        {s.break && (
+                          <span className={`ml-2 text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                            (перерыв: {s.break.start} - {s.break.end})
+                          </span>
+                        )}
+                      </span>
+                      <button
+                        onClick={() => removeTimeSlot(index)}
+                        className="p-1 text-red-500 hover:bg-red-500 hover:text-white rounded transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>

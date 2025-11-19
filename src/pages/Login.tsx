@@ -1,17 +1,122 @@
 // Login page component
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuthStore } from '@/store/authStore'
 import { useThemeStore } from '@/store/themeStore'
+import { useAdminStore } from '@/store/adminStore'
+import { TEAM_MEMBERS } from '@/types'
 import logo from '@/assets/logo.png'
+
+// Declare Telegram WebApp types
+declare global {
+  interface Window {
+    Telegram?: {
+      WebApp?: {
+        initData: string
+        initDataUnsafe?: {
+          user?: {
+            id: number
+            first_name?: string
+            last_name?: string
+            username?: string
+          }
+        }
+        ready: () => void
+        expand: () => void
+      }
+    }
+  }
+}
 
 export const Login = () => {
   const [login, setLogin] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
-  const { login: loginUser } = useAuthStore()
+  const { login: loginUser, user, isAuthenticated } = useAuthStore()
   const { theme } = useThemeStore()
+  const { activateAdmin } = useAdminStore()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+
+  // Check for Telegram Mini App authentication
+  useEffect(() => {
+    // Check if already authenticated
+    if (isAuthenticated && user) {
+      navigate('/management')
+      return
+    }
+
+    // Check if we're in Telegram Mini App
+    if (window.Telegram?.WebApp) {
+      window.Telegram.WebApp.ready()
+      window.Telegram.WebApp.expand()
+      
+      // Try to get initData from URL params first (for deep links)
+      const initDataFromUrl = searchParams.get('tgWebAppData')
+      const initData = initDataFromUrl || window.Telegram.WebApp.initData
+      
+      // Also check for login/password in URL params (from bot)
+      const loginFromUrl = searchParams.get('login')
+      const passwordFromUrl = searchParams.get('password')
+      
+      if (loginFromUrl && passwordFromUrl) {
+        // Auto-login with credentials from bot
+        const success = loginUser(loginFromUrl, passwordFromUrl)
+        if (success) {
+          navigate('/management')
+          return
+        }
+      }
+      
+      if (initData) {
+        try {
+          // Parse initData to extract user info
+          // Format: user=%7B%22id%22%3A123456789%2C...%7D
+          const params = new URLSearchParams(initData)
+          const userParam = params.get('user')
+          
+          if (userParam) {
+            const userData = JSON.parse(decodeURIComponent(userParam))
+            const telegramUserId = userData.id
+            
+            // Store telegram user ID for later use
+            sessionStorage.setItem('telegram_user_id', String(telegramUserId))
+            
+            // Try to get saved credentials from localStorage (from previous session)
+            const savedAuth = localStorage.getItem('apevault-auth')
+            if (savedAuth) {
+              try {
+                const parsed = JSON.parse(savedAuth)
+                if (parsed.state?.user) {
+                  // Auto-login with saved credentials
+                  const savedUser = parsed.state.user
+                  const success = loginUser(savedUser.login, savedUser.password)
+                  if (success) {
+                    navigate('/management')
+                    return
+                  }
+                }
+              } catch (err) {
+                console.error('Error parsing saved auth:', err)
+              }
+            }
+            
+            console.log('Telegram Mini App detected, user ID:', telegramUserId)
+            // User needs to login manually or bot should pass credentials
+          }
+        } catch (err) {
+          console.error('Error parsing Telegram initData:', err)
+        }
+      }
+      
+      // Also try initDataUnsafe for simpler access
+      const unsafeUser = window.Telegram.WebApp.initDataUnsafe?.user
+      if (unsafeUser) {
+        sessionStorage.setItem('telegram_user_id', String(unsafeUser.id))
+        console.log('Telegram user detected:', unsafeUser.first_name)
+      }
+    }
+  }, [searchParams, isAuthenticated, user, navigate, loginUser])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()

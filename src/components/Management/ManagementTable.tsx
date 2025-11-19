@@ -206,7 +206,11 @@ export const ManagementTable = ({ selectedUserId, onEditSlot, onEditStatus }: Ma
                         {slot ? (
                           <div className="space-y-1">
                             <div className="bg-green-500 text-white rounded px-2 py-1 text-xs">
-                              {slot.slots.map((s) => `${s.start}-${s.end}`).join(', ')}
+                              {slot.slots.map((s) => {
+                                const timeStr = `${s.start}-${s.end}`
+                                const breakStr = s.break ? ` (перерыв: ${s.break.start}-${s.break.end})` : ''
+                                return timeStr + breakStr
+                              }).join(', ')}
                             </div>
                             {slot.comment && (
                               <div className="flex items-center justify-center group relative">
@@ -216,22 +220,41 @@ export const ManagementTable = ({ selectedUserId, onEditSlot, onEditStatus }: Ma
                                 </div>
                               </div>
                             )}
-                            {(isAdmin || user.id === slot.userId) && (
-                              <div className="flex gap-1 justify-center">
-                                <button
-                                  onClick={() => onEditSlot(slot)}
-                                  className="p-1 text-blue-500 hover:bg-blue-500 hover:text-white rounded"
-                                >
-                                  <Edit className="w-3 h-3" />
-                                </button>
-                                <button
-                                  onClick={() => handleDeleteSlot(slot.id)}
-                                  className="p-1 text-red-500 hover:bg-red-500 hover:text-white rounded"
-                                >
-                                  <Trash2 className="w-3 h-3" />
-                                </button>
-                              </div>
-                            )}
+                            <div className="flex gap-1 justify-center">
+                              {(isAdmin || user?.id === slot.userId) ? (
+                                <>
+                                  <button
+                                    onClick={() => onEditSlot(slot)}
+                                    className="p-1 text-blue-500 hover:bg-blue-500 hover:text-white rounded"
+                                  >
+                                    <Edit className="w-3 h-3" />
+                                  </button>
+                                  <button
+                                    onClick={() => handleDeleteSlot(slot.id)}
+                                    className="p-1 text-red-500 hover:bg-red-500 hover:text-white rounded"
+                                  >
+                                    <Trash2 className="w-3 h-3" />
+                                  </button>
+                                </>
+                              ) : (
+                                <>
+                                  <button
+                                    disabled
+                                    className="p-1 text-gray-400 cursor-not-allowed rounded"
+                                    title="Вы можете редактировать только свои слоты"
+                                  >
+                                    <Edit className="w-3 h-3" />
+                                  </button>
+                                  <button
+                                    disabled
+                                    className="p-1 text-gray-400 cursor-not-allowed rounded"
+                                    title="Вы можете удалять только свои слоты"
+                                  >
+                                    <Trash2 className="w-3 h-3" />
+                                  </button>
+                                </>
+                              )}
+                            </div>
                           </div>
                         ) : status ? (
                           <div className="space-y-1">
@@ -254,22 +277,41 @@ export const ManagementTable = ({ selectedUserId, onEditSlot, onEditStatus }: Ma
                                 </div>
                               </div>
                             )}
-                            {(isAdmin || user.id === status.userId) && (
-                              <div className="flex gap-1 justify-center">
-                                <button
-                                  onClick={() => onEditStatus(status)}
-                                  className="p-1 text-blue-500 hover:bg-blue-500 hover:text-white rounded"
-                                >
-                                  <Edit className="w-3 h-3" />
-                                </button>
-                                <button
-                                  onClick={() => handleDeleteStatus(status.id)}
-                                  className="p-1 text-red-500 hover:bg-red-500 hover:text-white rounded"
-                                >
-                                  <Trash2 className="w-3 h-3" />
-                                </button>
-                              </div>
-                            )}
+                            <div className="flex gap-1 justify-center">
+                              {(isAdmin || user?.id === status.userId) ? (
+                                <>
+                                  <button
+                                    onClick={() => onEditStatus(status)}
+                                    className="p-1 text-blue-500 hover:bg-blue-500 hover:text-white rounded"
+                                  >
+                                    <Edit className="w-3 h-3" />
+                                  </button>
+                                  <button
+                                    onClick={() => handleDeleteStatus(status.id)}
+                                    className="p-1 text-red-500 hover:bg-red-500 hover:text-white rounded"
+                                  >
+                                    <Trash2 className="w-3 h-3" />
+                                  </button>
+                                </>
+                              ) : (
+                                <>
+                                  <button
+                                    disabled
+                                    className="p-1 text-gray-400 cursor-not-allowed rounded"
+                                    title="Вы можете редактировать только свои статусы"
+                                  >
+                                    <Edit className="w-3 h-3" />
+                                  </button>
+                                  <button
+                                    disabled
+                                    className="p-1 text-gray-400 cursor-not-allowed rounded"
+                                    title="Вы можете удалять только свои статусы"
+                                  >
+                                    <Trash2 className="w-3 h-3" />
+                                  </button>
+                                </>
+                              )}
+                            </div>
                           </div>
                         ) : (
                           <span className={`text-sm ${subtleColor}`}>—</span>

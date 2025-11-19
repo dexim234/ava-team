@@ -7,8 +7,9 @@ import { ManagementWeekView } from '@/components/Management/ManagementWeekView'
 import { SlotForm } from '@/components/Management/SlotForm'
 import { DayStatusForm } from '@/components/Management/DayStatusForm'
 import { AdminModeButton } from '@/components/Management/AdminModeButton'
-import { Calendar, Table2, Plus } from 'lucide-react'
+import { Calendar, Table2, Plus, Trash2 } from 'lucide-react'
 import { TEAM_MEMBERS } from '@/types'
+import { DeleteSlotsForm } from '@/components/Management/DeleteSlotsForm'
 
 type ViewMode = 'table' | 'week'
 
@@ -16,6 +17,7 @@ export const Management = () => {
   const { theme } = useThemeStore()
   const [viewMode, setViewMode] = useState<ViewMode>('table')
   const [showSlotForm, setShowSlotForm] = useState(false)
+  const [showDeleteSlotsForm, setShowDeleteSlotsForm] = useState(false)
   const [showStatusForm, setShowStatusForm] = useState(false)
   const [statusType, setStatusType] = useState<'dayoff' | 'sick' | 'vacation' | null>(null)
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null)
@@ -44,8 +46,13 @@ export const Management = () => {
     setShowStatusForm(true)
   }
 
+  const handleDeleteSlots = () => {
+    setShowDeleteSlotsForm(true)
+  }
+
   const handleFormClose = () => {
     setShowSlotForm(false)
+    setShowDeleteSlotsForm(false)
     setShowStatusForm(false)
     setStatusType(null)
     setEditingSlot(null)
@@ -106,6 +113,14 @@ export const Management = () => {
               >
                 <Plus className="w-4 h-4" />
                 Добавить слот
+              </button>
+
+              <button
+                onClick={handleDeleteSlots}
+                className="flex-1 sm:flex-none px-3 py-2 text-sm sm:text-base bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors flex items-center justify-center gap-2"
+              >
+                <Trash2 className="w-4 h-4" />
+                Удалить слоты
               </button>
 
               <div className="flex gap-2 w-full sm:w-auto">
@@ -177,6 +192,13 @@ export const Management = () => {
         {showSlotForm && (
           <SlotForm
             slot={editingSlot}
+            onClose={handleFormClose}
+            onSave={handleFormClose}
+          />
+        )}
+
+        {showDeleteSlotsForm && (
+          <DeleteSlotsForm
             onClose={handleFormClose}
             onSave={handleFormClose}
           />
