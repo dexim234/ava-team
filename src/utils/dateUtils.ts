@@ -99,19 +99,47 @@ export const canAddEarnings = (slotEndTime: string, currentTime: Date = getMosco
 export const formatHours = (totalHours: number): string => {
   const hours = Math.floor(totalHours)
   const minutes = Math.round((totalHours - hours) * 60)
-  
+
   if (hours === 0 && minutes === 0) {
     return '0ч'
   }
-  
+
   if (hours === 0) {
     return `${minutes}м`
   }
-  
+
   if (minutes === 0) {
     return `${hours}ч`
   }
-  
+
   return `${hours}ч ${minutes}м`
+}
+
+// Calculate number of days in a date range that fall within a period
+export const countDaysInPeriod = (
+  statusDate: string,
+  statusEndDate: string | undefined,
+  periodStart: string,
+  periodEnd: string
+): number => {
+  const start = statusDate
+  const end = statusEndDate || statusDate
+  
+  // If status range doesn't overlap with period, return 0
+  if (end < periodStart || start > periodEnd) {
+    return 0
+  }
+  
+  // Find the overlap
+  const overlapStart = start > periodStart ? start : periodStart
+  const overlapEnd = end < periodEnd ? end : periodEnd
+  
+  // Calculate days in overlap (inclusive)
+  const startDate = parseISO(overlapStart)
+  const endDate = parseISO(overlapEnd)
+  const diffTime = endDate.getTime() - startDate.getTime()
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1
+  
+  return diffDays
 }
 

@@ -5,7 +5,7 @@ import { useThemeStore } from '@/store/themeStore'
 import { RatingCard } from '@/components/Rating/RatingCard'
 import { ReferralForm } from '@/components/Rating/ReferralForm'
 import { getRatingData, getEarnings, getDayStatuses, getReferrals, getWorkSlots, getWeeklyMessages } from '@/services/firestoreService'
-import { getLastNDaysRange, getWeekRange, formatDate, calculateHours } from '@/utils/dateUtils'
+import { getLastNDaysRange, getWeekRange, formatDate, calculateHours, countDaysInPeriod } from '@/utils/dateUtils'
 import { calculateRating, getRatingBreakdown } from '@/utils/ratingUtils'
 import { RatingData, Referral, TEAM_MEMBERS } from '@/types'
 
@@ -49,10 +49,22 @@ export const Rating = () => {
         const poolAmount = monthEarnings.reduce((sum, e) => sum + e.poolAmount, 0)
 
         const statuses = await getDayStatuses(member.id)
-        const monthStatuses = statuses.filter(s => s.date >= monthStart && s.date <= monthEnd)
-        const daysOff = monthStatuses.filter(s => s.type === 'dayoff').length
-        const sickDays = monthStatuses.filter(s => s.type === 'sick').length
-        const vacationDays = monthStatuses.filter(s => s.type === 'vacation').length
+        // Filter statuses that overlap with the month period
+        const monthStatuses = statuses.filter(s => {
+          const statusStart = s.date
+          const statusEnd = s.endDate || s.date
+          return statusStart <= monthEnd && statusEnd >= monthStart
+        })
+        // Count days, not just status count (for multi-day statuses)
+        const daysOff = monthStatuses
+          .filter(s => s.type === 'dayoff')
+          .reduce((sum, s) => sum + countDaysInPeriod(s.date, s.endDate, monthStart, monthEnd), 0)
+        const sickDays = monthStatuses
+          .filter(s => s.type === 'sick')
+          .reduce((sum, s) => sum + countDaysInPeriod(s.date, s.endDate, monthStart, monthEnd), 0)
+        const vacationDays = monthStatuses
+          .filter(s => s.type === 'vacation')
+          .reduce((sum, s) => sum + countDaysInPeriod(s.date, s.endDate, monthStart, monthEnd), 0)
 
         const slots = await getWorkSlots(member.id)
         const weekSlots = slots.filter(s => s.date >= weekStart && s.date <= weekEnd)

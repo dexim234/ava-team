@@ -60,7 +60,13 @@ export const ManagementTable = ({ selectedUserId, onEditSlot, onEditStatus }: Ma
 
       // Filter by week range
       const weekSlots = allSlots.filter((s) => s.date >= weekStart && s.date <= weekEnd)
-      const weekStatuses = allStatuses.filter((s) => s.date >= weekStart && s.date <= weekEnd)
+      // For statuses, check if any day in the status range overlaps with the week
+      const weekStatuses = allStatuses.filter((s) => {
+        const statusStart = s.date
+        const statusEnd = s.endDate || s.date
+        // Status overlaps with week if statusStart <= weekEnd AND statusEnd >= weekStart
+        return statusStart <= weekEnd && statusEnd >= weekStart
+      })
 
       // If user filter is selected, filter by user
       const filteredSlots = selectedUserId 
@@ -117,7 +123,15 @@ export const ManagementTable = ({ selectedUserId, onEditSlot, onEditStatus }: Ma
   }
 
   const getStatusForDay = (userId: string, date: string): DayStatus | null => {
-    return statuses.find((s) => s.userId === userId && s.date === date) || null
+    return statuses.find((s) => {
+      if (s.userId !== userId) return false
+      // If status has endDate, check if date falls within the range
+      if (s.endDate) {
+        return s.date <= date && s.endDate >= date
+      }
+      // Otherwise, check exact match
+      return s.date === date
+    }) || null
   }
 
   const getUserStats = (userId: string) => {

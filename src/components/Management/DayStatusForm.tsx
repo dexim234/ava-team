@@ -41,6 +41,12 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
   const validate = async (): Promise<string | null> => {
     if (!user) return 'Пользователь не найден'
 
+    // Validate selected user for admin mode
+    const targetUserId = isAdmin && !status ? selectedUserId : (status?.userId || user.id)
+    if (!targetUserId) {
+      return 'Выберите участника'
+    }
+
     const today = new Date()
     const selectedDate = new Date(date)
     const selectedEndDate = new Date(endDate)
@@ -120,13 +126,34 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
       const weekEnd = new Date(weekStart)
       weekEnd.setDate(weekStart.getDate() + 6)
 
-      const existingStatuses = await getDayStatuses(user.id)
-      const weekDayoffs = existingStatuses.filter(
+      const existingStatuses = await getDayStatuses(targetUserId)
+      let weekDayoffs = existingStatuses.filter(
         (s) => s.type === 'dayoff' && s.date >= formatDate(weekStart, 'yyyy-MM-dd') && s.date <= formatDate(weekEnd, 'yyyy-MM-dd')
       )
 
+      // If editing, exclude current status from count
+      if (status) {
+        weekDayoffs = weekDayoffs.filter(s => s.id !== status.id)
+      }
+
       if (weekDayoffs.length >= 2) {
         return 'Выходные на неделе ограничены максимум 2 днями'
+      }
+
+      // Check if 3 people already have dayoff on this date
+      const allStatuses = await getDayStatuses()
+      const dateDayoffs = allStatuses.filter(
+        (s) => s.type === 'dayoff' && s.date === date
+      )
+      const uniqueUsers = new Set(dateDayoffs.map(s => s.userId))
+      
+      // If editing, exclude current status from count
+      if (status) {
+        uniqueUsers.delete(status.userId)
+      }
+      
+      if (uniqueUsers.size >= 3) {
+        return 'На этот день уже установлено максимальное количество выходных (3 человека). Выберите другую дату.'
       }
     }
 
