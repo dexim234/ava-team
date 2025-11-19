@@ -1,10 +1,11 @@
 // Rating card component
 import { useThemeStore } from '@/store/themeStore'
-import { getRatingColor } from '@/utils/ratingUtils'
+import { getRatingColor, getRatingBreakdown } from '@/utils/ratingUtils'
 import { RatingData, TEAM_MEMBERS } from '@/types'
+import { formatHours } from '@/utils/dateUtils'
 
 interface RatingCardProps {
-  rating: RatingData
+  rating: RatingData & { breakdown?: ReturnType<typeof getRatingBreakdown> }
 }
 
 export const RatingCard = ({ rating }: RatingCardProps) => {
@@ -43,47 +44,55 @@ export const RatingCard = ({ rating }: RatingCardProps) => {
         </div>
       </div>
 
+      {/* Rating Breakdown */}
+      {rating.breakdown && (
+        <div className="mb-4 space-y-2 text-sm">
+          <div className={`text-xs font-semibold ${mutedColor} mb-2`}>Параметры рейтинга:</div>
+          <div className="flex justify-between">
+            <span className={mutedColor}>Выходные:</span>
+            <span className={`${valueColor} font-medium`}>{rating.breakdown.daysOffPoints}% ({rating.breakdown.daysOff} день)</span>
+          </div>
+          <div className="flex justify-between">
+            <span className={mutedColor}>Больничные:</span>
+            <span className={`${valueColor} font-medium`}>{rating.breakdown.sickDaysPoints}% ({rating.breakdown.sickDays} дней)</span>
+          </div>
+          <div className="flex justify-between">
+            <span className={mutedColor}>Отпуск:</span>
+            <span className={`${valueColor} font-medium`}>{rating.breakdown.vacationDaysPoints}% ({rating.breakdown.vacationDays} дней)</span>
+          </div>
+          <div className="flex justify-between">
+            <span className={mutedColor}>Часы (неделя):</span>
+            <span className={`${valueColor} font-medium`}>{rating.breakdown.weeklyHoursPoints}% ({formatHours(rating.breakdown.weeklyHours)})</span>
+          </div>
+          <div className="flex justify-between">
+            <span className={mutedColor}>Заработок (неделя):</span>
+            <span className={`${valueColor} font-medium`}>{rating.breakdown.weeklyEarningsPoints}% ({rating.breakdown.weeklyEarnings.toFixed(2)} ₽)</span>
+          </div>
+          <div className="flex justify-between">
+            <span className={mutedColor}>Рефералы:</span>
+            <span className={`${valueColor} font-medium`}>{rating.breakdown.referralsPoints}% ({rating.breakdown.referrals})</span>
+          </div>
+          <div className="flex justify-between">
+            <span className={mutedColor}>Сообщения (неделя):</span>
+            <span className={`${valueColor} font-medium`}>{rating.breakdown.weeklyMessagesPoints}% ({rating.breakdown.weeklyMessages})</span>
+          </div>
+        </div>
+      )}
+
       {/* Statistics */}
       <div className="space-y-2 text-sm">
+        <div className={`text-xs font-semibold ${mutedColor} mb-2`}>Общая статистика:</div>
         <div className="flex justify-between">
-          <span className={mutedColor}>Заработок:</span>
+          <span className={mutedColor}>Заработок (месяц):</span>
           <span className={`${valueColor} font-medium`}>{rating.earnings.toFixed(2)} ₽</span>
-        </div>
-        <div className="flex justify-between">
-          <span className={mutedColor}>Сообщений:</span>
-          <span className={`${valueColor} font-medium`}>{rating.messages}</span>
-        </div>
-        <div className="flex justify-between">
-          <span className={mutedColor}>Инициатив:</span>
-          <span className={`${valueColor} font-medium`}>{rating.initiatives}</span>
-        </div>
-        <div className="flex justify-between">
-          <span className={mutedColor}>Сигналов:</span>
-          <span className={`${valueColor} font-medium`}>{rating.signals}</span>
-        </div>
-        <div className="flex justify-between">
-          <span className={mutedColor}>Прибыльных:</span>
-          <span className={`${valueColor} font-medium`}>{rating.profitableSignals}</span>
-        </div>
-        <div className="flex justify-between">
-          <span className={mutedColor}>Приглашено:</span>
-          <span className={`${valueColor} font-medium`}>{rating.referrals}</span>
-        </div>
-        <div className="flex justify-between">
-          <span className={mutedColor}>Выходных:</span>
-          <span className={`${valueColor} font-medium`}>{rating.daysOff}</span>
-        </div>
-        <div className="flex justify-between">
-          <span className={mutedColor}>Больничных:</span>
-          <span className={`${valueColor} font-medium`}>{rating.sickDays}</span>
-        </div>
-        <div className="flex justify-between">
-          <span className={mutedColor}>Отпусков:</span>
-          <span className={`${valueColor} font-medium`}>{rating.vacationDays}</span>
         </div>
         <div className="flex justify-between">
           <span className={mutedColor}>В пул:</span>
           <span className={`${valueColor} font-medium`}>{rating.poolAmount.toFixed(2)} ₽</span>
+        </div>
+        <div className="flex justify-between">
+          <span className={mutedColor}>Рефералов:</span>
+          <span className={`${valueColor} font-medium`}>{rating.referrals}</span>
         </div>
       </div>
     </div>

@@ -4,9 +4,9 @@ import { Layout } from '@/components/Layout'
 import { useThemeStore } from '@/store/themeStore'
 import { RatingCard } from '@/components/Rating/RatingCard'
 import { ReferralForm } from '@/components/Rating/ReferralForm'
-import { getRatingData, getEarnings, getDayStatuses, getReferrals } from '@/services/firestoreService'
-import { getLastNDaysRange, formatDate } from '@/utils/dateUtils'
-import { calculateRating } from '@/utils/ratingUtils'
+import { getRatingData, getEarnings, getDayStatuses, getReferrals, getWorkSlots } from '@/services/firestoreService'
+import { getLastNDaysRange, getWeekRange, formatDate, calculateHours } from '@/utils/dateUtils'
+import { calculateRating, getRatingBreakdown } from '@/utils/ratingUtils'
 import { RatingData, Referral, TEAM_MEMBERS } from '@/types'
 
 export const Rating = () => {
@@ -24,29 +24,41 @@ export const Rating = () => {
   const loadRatings = async () => {
     setLoading(true)
     try {
-      const periodRange = getLastNDaysRange(30)
-      const periodStart = formatDate(periodRange.start, 'yyyy-MM-dd')
-      const periodEnd = formatDate(periodRange.end, 'yyyy-MM-dd')
-      const isoStart = periodRange.start.toISOString()
-      const isoEnd = periodRange.end.toISOString()
+      // Для рейтинга считаем за неделю и за месяц
+      const weekRange = getWeekRange()
+      const weekStart = formatDate(weekRange.start, 'yyyy-MM-dd')
+      const weekEnd = formatDate(weekRange.end, 'yyyy-MM-dd')
+      const weekIsoStart = weekRange.start.toISOString()
+      const weekIsoEnd = weekRange.end.toISOString()
 
-      const currentReferrals = await getReferrals(undefined, isoStart, isoEnd)
+      const monthRange = getLastNDaysRange(30)
+      const monthStart = formatDate(monthRange.start, 'yyyy-MM-dd')
+      const monthEnd = formatDate(monthRange.end, 'yyyy-MM-dd')
+      const monthIsoStart = monthRange.start.toISOString()
+      const monthIsoEnd = monthRange.end.toISOString()
+
+      const currentReferrals = await getReferrals(undefined, monthIsoStart, monthIsoEnd)
       setReferrals(currentReferrals)
-      const allRatings: RatingData[] = []
+      const allRatings: (RatingData & { breakdown?: ReturnType<typeof getRatingBreakdown> })[] = []
 
       for (const member of TEAM_MEMBERS) {
-        const periodEarnings = await getEarnings(member.id, periodStart, periodEnd)
-        const totalEarnings = periodEarnings.reduce((sum, e) => sum + e.amount, 0)
-        const poolAmount = periodEarnings.reduce((sum, e) => sum + e.poolAmount, 0)
+        // Данные для рейтинга
+        const weekEarnings = await getEarnings(member.id, weekStart, weekEnd)
+        const weeklyEarnings = weekEarnings.reduce((sum, e) => sum + e.amount, 0)
 
-        const monthStatuses = await getDayStatuses(member.id)
-        const filteredStatuses = monthStatuses.filter(
-          (s) => s.date >= periodStart && s.date <= periodEnd
-        )
+        const monthEarnings = await getEarnings(member.id, monthStart, monthEnd)
+        const totalEarnings = monthEarnings.reduce((sum, e) => sum + e.amount, 0)
+        const poolAmount = monthEarnings.reduce((sum, e) => sum + e.poolAmount, 0)
 
-        const daysOff = filteredStatuses.filter((s) => s.type === 'dayoff').length
-        const sickDays = filteredStatuses.filter((s) => s.type === 'sick').length
-        const vacationDays = filteredStatuses.filter((s) => s.type === 'vacation').length
+        const statuses = await getDayStatuses(member.id)
+        const monthStatuses = statuses.filter(s => s.date >= monthStart && s.date <= monthEnd)
+        const daysOff = monthStatuses.filter(s => s.type === 'dayoff').length
+        const sickDays = monthStatuses.filter(s => s.type === 'sick').length
+        const vacationDays = monthStatuses.filter(s => s.type === 'vacation').length
+
+        const slots = await getWorkSlots(member.id)
+        const weekSlots = slots.filter(s => s.date >= weekStart && s.date <= weekEnd)
+        const weeklyHours = weekSlots.reduce((sum, slot) => sum + calculateHours(slot.slots), 0)
 
         const existingRatings = await getRatingData(member.id)
         const ratingData = existingRatings[0] || {
@@ -64,6 +76,7 @@ export const Rating = () => {
           rating: 0,
           lastUpdated: new Date().toISOString(),
         }
+        const weeklyMessages = ratingData.messages || 0
 
         const userReferrals = currentReferrals.filter((referral) => referral.ownerId === member.id).length
 
@@ -82,11 +95,13 @@ export const Rating = () => {
           lastUpdated: new Date().toISOString(),
         }
 
-        const rating = calculateRating(updatedData)
+        const rating = calculateRating(updatedData, weeklyHours, weeklyEarnings, weeklyMessages)
+        const breakdown = getRatingBreakdown(updatedData, weeklyHours, weeklyEarnings, weeklyMessages)
 
         allRatings.push({
           ...updatedData,
           rating,
+          breakdown,
         })
       }
 
@@ -125,7 +140,7 @@ export const Rating = () => {
             <div>
               <h2 className={`text-2xl font-bold mb-1 ${headingColor}`}>Рейтинг</h2>
               <p className={`text-sm ${subTextColor}`}>
-                Рейтинг строится за последние 30 дней и обновляется автоматически.
+                Рейтинг рассчитывается на основе недельных параметров (часы, заработок, сообщения) и месячных (выходные, больничные, отпуск). Обновляется автоматически.
               </p>
             </div>
             <button

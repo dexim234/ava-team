@@ -1,63 +1,128 @@
 // Rating calculation utilities
 import { RatingData } from '@/types'
 
-export const calculateRating = (data: Omit<RatingData, 'rating'>): number => {
+export interface RatingBreakdown {
+  daysOff: number
+  daysOffPoints: number
+  sickDays: number
+  sickDaysPoints: number
+  vacationDays: number
+  vacationDaysPoints: number
+  weeklyHours: number
+  weeklyHoursPoints: number
+  weeklyEarnings: number
+  weeklyEarningsPoints: number
+  referrals: number
+  referralsPoints: number
+  weeklyMessages: number
+  weeklyMessagesPoints: number
+  totalRating: number
+}
+
+export const calculateRating = (
+  data: Omit<RatingData, 'rating'>,
+  weeklyHours: number = 0,
+  weeklyEarnings: number = 0,
+  weeklyMessages: number = 0
+): number => {
   let rating = 0
 
-  // Earnings > 3000 rubles per week = 15%
-  if (data.earnings > 3000) {
+  // Выходные: нет или <1 дня (или 1 день в неделю) = 10%
+  if (data.daysOff === 0 || data.daysOff <= 1) {
+    rating += 10
+  }
+
+  // Больничные: <=7 дней за месяц = 10%, иначе 0%
+  if (data.sickDays <= 7) {
+    rating += 10
+  }
+
+  // Отпуск: <=7 дней за месяц = 10%, иначе 0%
+  if (data.vacationDays <= 7) {
+    rating += 10
+  }
+
+  // Часы работы в неделю: <20 = 0%, >=20 = 15%, >=30 = 25%
+  if (weeklyHours >= 30) {
+    rating += 25
+  } else if (weeklyHours >= 20) {
     rating += 15
   }
 
-  // Days off: 0 = 10%, 1-2 = 5%, >2 = 0%
-  if (data.daysOff === 0) {
-    rating += 10
-  } else if (data.daysOff <= 2) {
-    rating += 5
-  }
-
-  // Sick days: 0 or <7 = 10%, >=7 = 3%
-  if (data.sickDays === 0 || data.sickDays < 7) {
-    rating += 10
-  } else {
-    rating += 3
-  }
-
-  // Vacation: 0 or <4 = 15%, >=4 = 1%
-  if (data.vacationDays === 0 || data.vacationDays < 4) {
+  // Заработок за неделю: >=6000 = 30%, >=3000 = 15%, <3000 = 0%
+  if (weeklyEarnings >= 6000) {
+    rating += 30
+  } else if (weeklyEarnings >= 3000) {
     rating += 15
-  } else {
-    rating += 1
   }
 
-  // Initiatives > 3 = 10%
-  if (data.initiatives > 3) {
-    rating += 10
-  }
+  // Рефералы: 5% за каждого, но не более 30% (макс 6 рефералов)
+  const referralsPoints = Math.min(data.referrals * 5, 30)
+  rating += referralsPoints
 
-  // Signals >= 10 = 15% (not implemented yet)
-  // if (data.signals >= 10) {
-  //   rating += 15
-  // }
-
-  // Referrals >= 3 = 20% (permanent)
-  if (data.referrals >= 3) {
-    rating += 20
-  }
-
-  // Pool amount >= 5000 = 10%, <5000 = 3%
-  if (data.poolAmount >= 5000) {
-    rating += 10
-  } else {
-    rating += 3
-  }
-
-  // Messages > 30 = 10%
-  if (data.messages > 30) {
-    rating += 10
+  // Сообщения: >50 за неделю = 15%, меньше = 0%
+  if (weeklyMessages > 50) {
+    rating += 15
   }
 
   return Math.min(rating, 100)
+}
+
+export const getRatingBreakdown = (
+  data: Omit<RatingData, 'rating'>,
+  weeklyHours: number = 0,
+  weeklyEarnings: number = 0,
+  weeklyMessages: number = 0
+): RatingBreakdown => {
+  const daysOffPoints = (data.daysOff === 0 || data.daysOff <= 1) ? 10 : 0
+  const sickDaysPoints = data.sickDays <= 7 ? 10 : 0
+  const vacationDaysPoints = data.vacationDays <= 7 ? 10 : 0
+  
+  let weeklyHoursPoints = 0
+  if (weeklyHours >= 30) {
+    weeklyHoursPoints = 25
+  } else if (weeklyHours >= 20) {
+    weeklyHoursPoints = 15
+  }
+
+  let weeklyEarningsPoints = 0
+  if (weeklyEarnings >= 6000) {
+    weeklyEarningsPoints = 30
+  } else if (weeklyEarnings >= 3000) {
+    weeklyEarningsPoints = 15
+  }
+
+  const referralsPoints = Math.min(data.referrals * 5, 30)
+  const weeklyMessagesPoints = weeklyMessages > 50 ? 15 : 0
+
+  const totalRating = Math.min(
+    daysOffPoints +
+    sickDaysPoints +
+    vacationDaysPoints +
+    weeklyHoursPoints +
+    weeklyEarningsPoints +
+    referralsPoints +
+    weeklyMessagesPoints,
+    100
+  )
+
+  return {
+    daysOff: data.daysOff,
+    daysOffPoints,
+    sickDays: data.sickDays,
+    sickDaysPoints,
+    vacationDays: data.vacationDays,
+    vacationDaysPoints,
+    weeklyHours,
+    weeklyHoursPoints,
+    weeklyEarnings,
+    weeklyEarningsPoints,
+    referrals: data.referrals,
+    referralsPoints,
+    weeklyMessages,
+    weeklyMessagesPoints,
+    totalRating,
+  }
 }
 
 export const getRatingColor = (rating: number): string => {

@@ -96,3 +96,22 @@ export const canAddEarnings = (slotEndTime: string, currentTime: Date = getMosco
   return currentHour >= 21 || currentTime > slotEndDate
 }
 
+export const formatHours = (totalHours: number): string => {
+  const hours = Math.floor(totalHours)
+  const minutes = Math.round((totalHours - hours) * 60)
+  
+  if (hours === 0 && minutes === 0) {
+    return '0ч'
+  }
+  
+  if (hours === 0) {
+    return `${minutes}м`
+  }
+  
+  if (minutes === 0) {
+    return `${hours}ч`
+  }
+  
+  return `${hours}ч ${minutes}м`
+}
+
