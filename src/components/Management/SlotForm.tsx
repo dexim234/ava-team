@@ -21,11 +21,20 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
   const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
   const [date, setDate] = useState(slot?.date || formatDate(new Date(), 'yyyy-MM-dd'))
   const [selectedUserId, setSelectedUserId] = useState(slot?.userId || user?.id || '')
-  const [slots, setSlots] = useState<TimeSlot[]>(slot?.slots || [])
+  const [slots, setSlots] = useState<TimeSlot[]>(
+    slot?.slots?.map(s => {
+      // Convert old format (break) to new format (breaks array) for backward compatibility
+      if (s.break && !s.breaks) {
+        return { ...s, breaks: [s.break], break: undefined }
+      }
+      return s
+    }) || []
+  )
   const [currentStart, setCurrentStart] = useState('')
   const [currentEnd, setCurrentEnd] = useState('')
   const [currentBreakStart, setCurrentBreakStart] = useState('')
   const [currentBreakEnd, setCurrentBreakEnd] = useState('')
+  const [currentSlotIndex, setCurrentSlotIndex] = useState<number | null>(null)
   const [comment, setComment] = useState(slot?.comment || '')
   const [repeatMonth, setRepeatMonth] = useState(false)
   const [repeatDays, setRepeatDays] = useState<number[]>([])
@@ -59,30 +68,82 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
       return
     }
 
-    // Validate break if provided
-    let breakTime: { start: string; end: string } | undefined = undefined
-    if (currentBreakStart && currentBreakEnd) {
-      if (currentBreakStart >= currentBreakEnd) {
-        setError('Время окончания перерыва должно быть позже времени начала')
-        return
-      }
-      if (currentBreakStart < currentStart || currentBreakEnd > currentEnd) {
-        setError('Перерыв должен быть в пределах времени слота')
-        return
-      }
-      breakTime = { start: currentBreakStart, end: currentBreakEnd }
+    // Add slot without breaks initially (breaks can be added separately)
+    const newSlot: TimeSlot = {
+      start: currentStart,
+      end: currentEnd,
+      breaks: []
     }
 
-    setSlots([...slots, { 
-      start: currentStart, 
-      end: currentEnd,
-      ...(breakTime && { break: breakTime })
-    }])
+    setSlots([...slots, newSlot])
     setCurrentStart('')
     setCurrentEnd('')
     setCurrentBreakStart('')
     setCurrentBreakEnd('')
+    setCurrentSlotIndex(null)
     setError('')
+  }
+
+  const addBreakToSlot = (slotIndex: number) => {
+    if (!currentBreakStart || !currentBreakEnd) {
+      setError('Заполните время начала и окончания перерыва')
+      return
+    }
+
+    const slot = slots[slotIndex]
+    if (!slot) return
+
+    if (currentBreakStart >= currentBreakEnd) {
+      setError('Время окончания перерыва должно быть позже времени начала')
+      return
+    }
+
+    if (currentBreakStart < slot.start || currentBreakEnd > slot.end) {
+      setError('Перерыв должен быть в пределах времени слота')
+      return
+    }
+
+    // Check for overlapping breaks
+    const existingBreaks = slot.breaks || []
+    for (const existingBreak of existingBreaks) {
+      if (
+        (currentBreakStart >= existingBreak.start && currentBreakStart < existingBreak.end) ||
+        (currentBreakEnd > existingBreak.start && currentBreakEnd <= existingBreak.end) ||
+        (currentBreakStart <= existingBreak.start && currentBreakEnd >= existingBreak.end)
+      ) {
+        setError('Перерывы не должны пересекаться')
+        return
+      }
+    }
+
+    const newBreaks = [...existingBreaks, { start: currentBreakStart, end: currentBreakEnd }]
+      .sort((a, b) => a.start.localeCompare(b.start))
+
+    const updatedSlots = [...slots]
+    updatedSlots[slotIndex] = {
+      ...slot,
+      breaks: newBreaks
+    }
+
+    setSlots(updatedSlots)
+    setCurrentBreakStart('')
+    setCurrentBreakEnd('')
+    setCurrentSlotIndex(null)
+    setError('')
+  }
+
+  const removeBreakFromSlot = (slotIndex: number, breakIndex: number) => {
+    const slot = slots[slotIndex]
+    if (!slot || !slot.breaks) return
+
+    const updatedBreaks = slot.breaks.filter((_, i) => i !== breakIndex)
+    const updatedSlots = [...slots]
+    updatedSlots[slotIndex] = {
+      ...slot,
+      breaks: updatedBreaks.length > 0 ? updatedBreaks : undefined
+    }
+
+    setSlots(updatedSlots)
   }
 
   const removeTimeSlot = (index: number) => {
@@ -106,12 +167,6 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
   }
 
   const validateSlot = async (slotDate: string, timeSlots: TimeSlot[]): Promise<string | null> => {
-    // Check minimum 5 hours
-    const totalHours = calculateHours(timeSlots)
-    if (totalHours < 5) {
-      return 'Смена должна быть минимум 5 часов'
-    }
-
     // Check max 3 people per slot
     const existingSlots = await getWorkSlots(undefined, slotDate)
     for (const timeSlot of timeSlots) {
@@ -342,31 +397,6 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
                     placeholder="Окончание"
                   />
                 </div>
-                <div className="flex gap-2 items-center">
-                  <span className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Перерыв (необязательно):</span>
-                  <input
-                    type="time"
-                    value={currentBreakStart}
-                    onChange={(e) => setCurrentBreakStart(e.target.value)}
-                    className={`flex-1 px-4 py-2 rounded-lg border ${
-                      theme === 'dark'
-                        ? 'bg-gray-700 border-gray-600 text-white'
-                        : 'bg-white border-gray-300 text-gray-900'
-                    } focus:outline-none focus:ring-2 focus:ring-green-500`}
-                    placeholder="Начало перерыва"
-                  />
-                  <input
-                    type="time"
-                    value={currentBreakEnd}
-                    onChange={(e) => setCurrentBreakEnd(e.target.value)}
-                    className={`flex-1 px-4 py-2 rounded-lg border ${
-                      theme === 'dark'
-                        ? 'bg-gray-700 border-gray-600 text-white'
-                        : 'bg-white border-gray-300 text-gray-900'
-                    } focus:outline-none focus:ring-2 focus:ring-green-500`}
-                    placeholder="Окончание перерыва"
-                  />
-                </div>
                 <button
                   onClick={addTimeSlot}
                   className="w-full px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors flex items-center justify-center gap-2"
@@ -377,29 +407,112 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
               </div>
 
               {/* Added slots */}
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {slots.map((s, index) => (
                   <div
                     key={index}
-                    className={`flex flex-col gap-1 p-3 rounded-lg ${
+                    className={`flex flex-col gap-2 p-3 rounded-lg ${
                       theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100'
                     }`}
                   >
                     <div className="flex items-center justify-between">
                       <span className={headingColor}>
                         {s.start} - {s.end}
-                        {s.break && (
-                          <span className={`ml-2 text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                            (перерыв: {s.break.start} - {s.break.end})
-                          </span>
-                        )}
                       </span>
                       <button
                         onClick={() => removeTimeSlot(index)}
                         className="p-1 text-red-500 hover:bg-red-500 hover:text-white rounded transition-colors"
+                        title="Удалить слот"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
+                    </div>
+
+                    {/* Breaks for this slot */}
+                    {s.breaks && s.breaks.length > 0 && (
+                      <div className="ml-4 space-y-1">
+                        <span className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                          Перерывы:
+                        </span>
+                        {s.breaks.map((breakTime, breakIndex) => (
+                          <div key={breakIndex} className="flex items-center justify-between">
+                            <span className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                              {breakTime.start} - {breakTime.end}
+                            </span>
+                            <button
+                              onClick={() => removeBreakFromSlot(index, breakIndex)}
+                              className="p-1 text-red-400 hover:bg-red-400 hover:text-white rounded transition-colors"
+                              title="Удалить перерыв"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Add break to this slot */}
+                    <div className="ml-4 space-y-2 border-t pt-2 border-gray-500 border-opacity-30">
+                      {currentSlotIndex === index ? (
+                        <div className="space-y-2">
+                          <div className="flex gap-2">
+                            <input
+                              type="time"
+                              value={currentBreakStart}
+                              onChange={(e) => setCurrentBreakStart(e.target.value)}
+                              className={`flex-1 px-3 py-1.5 text-sm rounded-lg border ${
+                                theme === 'dark'
+                                  ? 'bg-gray-600 border-gray-500 text-white'
+                                  : 'bg-white border-gray-300 text-gray-900'
+                              } focus:outline-none focus:ring-2 focus:ring-green-500`}
+                              placeholder="Начало"
+                            />
+                            <input
+                              type="time"
+                              value={currentBreakEnd}
+                              onChange={(e) => setCurrentBreakEnd(e.target.value)}
+                              className={`flex-1 px-3 py-1.5 text-sm rounded-lg border ${
+                                theme === 'dark'
+                                  ? 'bg-gray-600 border-gray-500 text-white'
+                                  : 'bg-white border-gray-300 text-gray-900'
+                              } focus:outline-none focus:ring-2 focus:ring-green-500`}
+                              placeholder="Конец"
+                            />
+                          </div>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => addBreakToSlot(index)}
+                              className="flex-1 px-3 py-1.5 text-sm bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors"
+                            >
+                              Добавить перерыв
+                            </button>
+                            <button
+                              onClick={() => {
+                                setCurrentSlotIndex(null)
+                                setCurrentBreakStart('')
+                                setCurrentBreakEnd('')
+                                setError('')
+                              }}
+                              className="px-3 py-1.5 text-sm bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition-colors"
+                            >
+                              Отмена
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => {
+                            setCurrentSlotIndex(index)
+                            setCurrentBreakStart('')
+                            setCurrentBreakEnd('')
+                            setError('')
+                          }}
+                          className="w-full px-3 py-1.5 text-sm bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors flex items-center justify-center gap-1"
+                        >
+                          <Plus className="w-3 h-3" />
+                          Добавить перерыв
+                        </button>
+                      )}
                     </div>
                   </div>
                 ))}

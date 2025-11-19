@@ -72,11 +72,24 @@ export const getWorkSlots = async (userId?: string, date?: string) => {
   const snapshot = await getDocs(q)
   let results = snapshot.docs.map((doc) => {
     const data = doc.data() as any
+    // Convert old format (break) to new format (breaks array) for backward compatibility
+    const slots = (data?.slots || []).map((slot: any) => {
+      if (slot.break && !slot.breaks) {
+        // Old format with single break - convert to array
+        return {
+          ...slot,
+          breaks: [slot.break],
+          break: undefined
+        }
+      }
+      return slot
+    })
+    
     return {
       id: doc.id,
       userId: data?.userId || '',
       date: data?.date || '',
-      slots: data?.slots || [],
+      slots,
       participants: data?.participants || [],
       ...(data?.comment && { comment: data.comment }),
     } as WorkSlot

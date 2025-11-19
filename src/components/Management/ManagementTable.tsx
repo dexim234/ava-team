@@ -208,8 +208,10 @@ export const ManagementTable = ({ selectedUserId, onEditSlot, onEditStatus }: Ma
                             <div className="bg-green-500 text-white rounded px-2 py-1 text-xs">
                               {slot.slots.map((s) => {
                                 const timeStr = `${s.start}-${s.end}`
-                                const breakStr = s.break ? ` (перерыв: ${s.break.start}-${s.break.end})` : ''
-                                return timeStr + breakStr
+                                const breaksStr = s.breaks && s.breaks.length > 0
+                                  ? ` (перерывы: ${s.breaks.map(b => `${b.start}-${b.end}`).join(', ')})`
+                                  : ''
+                                return timeStr + breaksStr
                               }).join(', ')}
                             </div>
                             {slot.comment && (

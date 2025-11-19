@@ -284,8 +284,10 @@ export const ManagementWeekView = ({ selectedUserId, onEditSlot, onEditStatus }:
                         <span className="text-white text-sm">
                           {slot.slots.map((s) => {
                             const timeStr = `${s.start}-${s.end}`
-                            const breakStr = s.break ? ` (перерыв: ${s.break.start}-${s.break.end})` : ''
-                            return timeStr + breakStr
+                            const breaksStr = s.breaks && s.breaks.length > 0
+                              ? ` (перерывы: ${s.breaks.map(b => `${b.start}-${b.end}`).join(', ')})`
+                              : ''
+                            return timeStr + breaksStr
                           }).join(', ')}
                         </span>
                         {slot.comment && (
