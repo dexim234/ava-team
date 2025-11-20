@@ -155,14 +155,14 @@ export const CallForm = ({ onSuccess, onCancel, callToEdit }: CallFormProps) => 
       {/* Ticker */}
       <div>
         <label className={`block text-sm font-medium ${textColor} mb-2`}>
-          № Тикер токена *
+          Тикер токена *
         </label>
         <input
           type="text"
           value={formData.ticker}
           onChange={(e) => setFormData({ ...formData, ticker: e.target.value.toUpperCase() })}
           className={`w-full px-4 py-2 rounded-lg border ${borderColor} ${inputBg} ${textColor} focus:outline-none focus:ring-2 focus:ring-green-500`}
-          placeholder="PEPE, DOGE, BONK..."
+          placeholder="тикер токена"
           required
         />
       </div>
