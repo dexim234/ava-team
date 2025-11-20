@@ -355,9 +355,8 @@ export const ManagementWeekView = ({ selectedUserId, onEditSlot, onEditStatus }:
                             )}
                           </div>
                         ))}
-                      </div>
                         {slot.comment && (
-                          <div className="relative group">
+                          <div className="relative group flex items-center gap-2 pt-2">
                             <Info className="w-4 h-4 text-white cursor-help" />
                             <div className="absolute bottom-full left-0 mb-2 p-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity z-10 whitespace-nowrap">
                               {slot.comment}
