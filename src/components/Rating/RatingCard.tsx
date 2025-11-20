@@ -27,9 +27,7 @@ export const RatingCard = ({ rating }: RatingCardProps) => {
   const member = TEAM_MEMBERS.find((m) => m.id === rating.userId)
   const color = getRatingColor(rating.rating)
   const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
-  const labelColor = theme === 'dark' ? 'text-white' : 'text-gray-800'
   const mutedColor = theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-  const valueColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
   const cardBg = theme === 'dark' ? 'bg-gray-800' : 'bg-white'
   const borderColor = theme === 'dark' ? 'border-gray-700' : 'border-gray-200'
   const hoverBg = theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-50'

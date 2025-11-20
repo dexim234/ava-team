@@ -132,7 +132,6 @@ export const Rating = () => {
   const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
   const subTextColor = theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
   const cardBg = theme === 'dark' ? 'bg-gray-800' : 'bg-white'
-  const secondaryBg = theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100'
 
   const handleAddReferral = () => {
     setActiveReferral(null)
