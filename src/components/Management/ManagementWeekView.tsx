@@ -345,15 +345,11 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
                               <img 
                                 src={slotUserFallback.avatar} 
                                 alt={displayName}
-                                className={`w-10 h-10 rounded-full object-cover border-2 shadow-lg ring-2 ring-offset-2 transition-all duration-200 hover:scale-110 ${
+                                className={`w-10 h-10 rounded-full object-cover border-2 shadow-lg transition-all duration-200 hover:scale-110 ${
                                   isUpcoming 
-                                    ? 'border-white/40' 
-                                    : 'border-white/30'
+                                    ? 'border-white/40 ring-2 ring-white/30 ring-offset-2 ring-offset-transparent' 
+                                    : 'border-white/30 ring-2 ring-white/20 ring-offset-2 ring-offset-transparent'
                                 }`}
-                                style={{
-                                  ringColor: isUpcoming ? 'rgba(255, 255, 255, 0.3)' : 'rgba(255, 255, 255, 0.2)',
-                                  ringOffsetColor: 'transparent'
-                                }}
                                 onError={(e) => {
                                   const target = e.target as HTMLImageElement
                                   target.style.display = 'none'

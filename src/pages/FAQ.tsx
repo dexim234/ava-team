@@ -15,9 +15,7 @@ import {
   Edit,
   Sparkles,
   Zap,
-  Image,
-  Eye,
-  Settings
+  Eye
 } from 'lucide-react'
 import { useState } from 'react'
 
