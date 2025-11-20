@@ -12,7 +12,7 @@ import {
   orderBy,
 } from 'firebase/firestore'
 import { db } from '@/firebase/config'
-import { WorkSlot, DayStatus, Earnings, RatingData, Referral } from '@/types'
+import { WorkSlot, DayStatus, Earnings, RatingData, Referral, Call } from '@/types'
 
 const DATA_RETENTION_DAYS = 30
 
@@ -423,5 +423,76 @@ export const updateReferral = async (id: string, updates: Partial<Referral>) => 
 export const deleteReferral = async (id: string) => {
   const referralRef = doc(db, 'referrals', id)
   return await deleteDoc(referralRef)
+}
+
+// Call (Trading Signal) functions
+export const addCall = async (callData: Omit<Call, 'id'>): Promise<string> => {
+  const callsRef = collection(db, 'calls')
+  const docRef = await addDoc(callsRef, callData)
+  return docRef.id
+}
+
+export const getCalls = async (filters?: {
+  userId?: string
+  network?: string
+  strategy?: string
+  status?: string
+  activeOnly?: boolean
+}): Promise<Call[]> => {
+  const callsRef = collection(db, 'calls')
+  let q: ReturnType<typeof query> = query(callsRef, orderBy('createdAt', 'desc'))
+
+  if (filters?.userId) {
+    q = query(callsRef, where('userId', '==', filters.userId), orderBy('createdAt', 'desc'))
+  }
+  if (filters?.status) {
+    q = query(callsRef, where('status', '==', filters.status), orderBy('createdAt', 'desc'))
+  }
+  if (filters?.activeOnly) {
+    const yesterday = new Date()
+    yesterday.setHours(yesterday.getHours() - 24)
+    q = query(
+      callsRef,
+      where('status', '==', 'active'),
+      where('createdAt', '>=', yesterday.toISOString()),
+      orderBy('createdAt', 'desc')
+    )
+  }
+
+  const snapshot = await getDocs(q)
+  let calls = snapshot.docs.map((doc) => ({
+    id: doc.id,
+    ...doc.data()
+  })) as Call[]
+
+  // Apply additional filters in memory
+  if (filters?.network) {
+    calls = calls.filter(c => c.network === filters.network)
+  }
+  if (filters?.strategy) {
+    calls = calls.filter(c => c.strategy === filters.strategy)
+  }
+
+  // Filter by active (24 hours) if needed
+  if (filters?.activeOnly && !filters.status) {
+    const yesterday = new Date()
+    yesterday.setHours(yesterday.getHours() - 24)
+    calls = calls.filter(c => {
+      const createdAt = new Date(c.createdAt)
+      return c.status === 'active' && createdAt >= yesterday
+    })
+  }
+
+  return calls
+}
+
+export const updateCall = async (id: string, updates: Partial<Call>): Promise<void> => {
+  const callRef = doc(db, 'calls', id)
+  await updateDoc(callRef, updates as any)
+}
+
+export const deleteCall = async (id: string): Promise<void> => {
+  const callRef = doc(db, 'calls', id)
+  await deleteDoc(callRef)
 }
 
