@@ -7,7 +7,7 @@ import { getWorkSlots, getDayStatuses, deleteWorkSlot, deleteDayStatus } from '@
 import { formatDate, calculateHours, getWeekDays } from '@/utils/dateUtils'
 import { WorkSlot, DayStatus } from '@/types'
 import { TEAM_MEMBERS } from '@/types'
-import { Edit, Trash2, Info, Clock, CheckCircle2, Calendar as CalendarIcon } from 'lucide-react'
+import { Edit, Trash2, Info, CheckCircle2, Calendar as CalendarIcon } from 'lucide-react'
 
 type SlotFilter = 'all' | 'upcoming' | 'completed'
 
@@ -121,8 +121,42 @@ export const ManagementTable = ({ selectedUserId, slotFilter, onEditSlot, onEdit
     }
   }
 
+  const isSlotUpcoming = (slot: WorkSlot): boolean => {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const slotDate = new Date(slot.date)
+    slotDate.setHours(0, 0, 0, 0)
+    
+    // If slot date is in the future, it's upcoming
+    if (slotDate > today) return true
+    
+    // If slot date is today, check if any slot time hasn't ended yet
+    if (slotDate.getTime() === today.getTime()) {
+      const now = new Date()
+      const currentTime = now.getHours() * 60 + now.getMinutes() // minutes since midnight
+      
+      // Check if any slot hasn't ended yet
+      return slot.slots.some((s) => {
+        const [endHour, endMin] = s.end.split(':').map(Number)
+        const endTime = endHour * 60 + endMin
+        return endTime > currentTime
+      })
+    }
+    
+    return false
+  }
+
   const getSlotForDay = (userId: string, date: string): WorkSlot | null => {
-    return slots.find((s) => s.userId === userId && s.date === date) || null
+    const slot = slots.find((s) => s.userId === userId && s.date === date) || null
+    
+    // Apply filter
+    if (slot && slotFilter !== 'all') {
+      const isUpcoming = isSlotUpcoming(slot)
+      if (slotFilter === 'upcoming' && !isUpcoming) return null
+      if (slotFilter === 'completed' && isUpcoming) return null
+    }
+    
+    return slot
   }
 
   const getStatusForDay = (userId: string, date: string): DayStatus | null => {

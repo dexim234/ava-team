@@ -7,7 +7,7 @@ import { getWorkSlots, getDayStatuses, deleteWorkSlot, deleteDayStatus } from '@
 import { formatDate, getWeekDays } from '@/utils/dateUtils'
 import { WorkSlot, DayStatus } from '@/types'
 import { TEAM_MEMBERS } from '@/types'
-import { Edit, Trash2, Info, Clock, CheckCircle2, Calendar as CalendarIcon } from 'lucide-react'
+import { Edit, Trash2, Info, CheckCircle2, Calendar as CalendarIcon } from 'lucide-react'
 
 type SlotFilter = 'all' | 'upcoming' | 'completed'
 
