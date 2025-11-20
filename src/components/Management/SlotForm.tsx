@@ -4,7 +4,7 @@ import { useAuthStore } from '@/store/authStore'
 import { useThemeStore } from '@/store/themeStore'
 import { useAdminStore } from '@/store/adminStore'
 import { addWorkSlot, updateWorkSlot, getWorkSlots } from '@/services/firestoreService'
-import { calculateHours, timeOverlaps, formatDate } from '@/utils/dateUtils'
+import { calculateHours, timeOverlaps, formatDate, getDatesInRange, normalizeDatesList } from '@/utils/dateUtils'
 import { X, Plus, Trash2, Edit } from 'lucide-react'
 import { WorkSlot, TimeSlot, TEAM_MEMBERS } from '@/types'
 
@@ -19,8 +19,11 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
   const { theme } = useThemeStore()
   const { isAdmin } = useAdminStore()
   const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
-  const [date, setDate] = useState(slot?.date || formatDate(new Date(), 'yyyy-MM-dd'))
-  const [selectedUserId, setSelectedUserId] = useState(slot?.userId || user?.id || '')
+  const initialDate = slot?.date || formatDate(new Date(), 'yyyy-MM-dd')
+  const [date, setDate] = useState(initialDate)
+  const [selectedUserIds, setSelectedUserIds] = useState<string[]>(
+    slot?.userId ? [slot.userId] : user?.id ? [user.id] : []
+  )
   const [slots, setSlots] = useState<TimeSlot[]>(
     slot?.slots?.map(s => {
       // Convert old format (break) to new format (breaks array) for backward compatibility
@@ -43,10 +46,16 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
   const [repeatDays, setRepeatDays] = useState<number[]>([])
   const [repeatAllDays, setRepeatAllDays] = useState(false)
   const [selectedDays, setSelectedDays] = useState<number[]>([])
+  const [dateMode, setDateMode] = useState<'single' | 'range' | 'multiple'>('single')
+  const [rangeStart, setRangeStart] = useState(initialDate)
+  const [rangeEnd, setRangeEnd] = useState(initialDate)
+  const [multiDateInput, setMultiDateInput] = useState(initialDate)
+  const [multipleDates, setMultipleDates] = useState<string[]>([])
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
   const weekDays = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']
+  const adminBulkMode = isAdmin && !slot
 
   useEffect(() => {
     console.log('SlotForm mounted, user:', user?.name, 'slots count:', slots.length)
@@ -59,6 +68,15 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
       setRepeatDays([dayOfWeek])
     }
   }, [repeatMonth, date])
+
+  useEffect(() => {
+    if (dateMode !== 'single') {
+      setRepeatMonth(false)
+      setRepeatAllDays(false)
+      setRepeatDays([])
+      setSelectedDays([])
+    }
+  }, [dateMode])
 
   const addTimeSlot = () => {
     if (!currentStart || !currentEnd) {
@@ -206,6 +224,60 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
     }
   }
 
+  const toggleUserSelection = (userId: string) => {
+    setSelectedUserIds((prev) => {
+      if (prev.includes(userId)) {
+        return prev.filter((id) => id !== userId)
+      }
+      return [...prev, userId]
+    })
+  }
+
+  const handleSelectAllUsers = () => {
+    if (selectedUserIds.length === TEAM_MEMBERS.length) {
+      setSelectedUserIds([])
+    } else {
+      setSelectedUserIds(TEAM_MEMBERS.map((member) => member.id))
+    }
+  }
+
+  const handleAddMultiDate = () => {
+    if (!multiDateInput) return
+    const updated = normalizeDatesList([...multipleDates, multiDateInput])
+    setMultipleDates(updated)
+    setMultiDateInput('')
+  }
+
+  const handleRemoveMultiDate = (dateToRemove: string) => {
+    setMultipleDates((prev) => prev.filter((d) => d !== dateToRemove))
+  }
+
+  const getTargetDates = (): string[] => {
+    if (adminBulkMode) {
+      if (dateMode === 'range') {
+        return getDatesInRange(rangeStart, rangeEnd)
+      }
+      if (dateMode === 'multiple') {
+        return multipleDates
+      }
+    }
+    return [date]
+  }
+
+  const getTargetUsers = (): string[] => {
+    if (slot) {
+      return [slot.userId]
+    }
+    if (adminBulkMode) {
+      return selectedUserIds
+    }
+    return user?.id ? [user.id] : []
+  }
+
+  const getMemberName = (userId: string): string => {
+    return TEAM_MEMBERS.find((member) => member.id === userId)?.name || userId
+  }
+
   const validateSlot = async (slotDate: string, timeSlots: TimeSlot[]): Promise<string | null> => {
     // Get all existing slots on this date (excluding the current slot if editing)
     const allExistingSlots = await getWorkSlots(undefined, slotDate)
@@ -233,6 +305,11 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
       return
     }
 
+    if (slots.length === 0) {
+      setError('Добавьте хотя бы один временной интервал')
+      return
+    }
+
     // Check if user can edit this slot
     if (slot && !isAdmin && slot.userId !== user.id) {
       setError('Вы можете редактировать только свои слоты')
@@ -240,12 +317,37 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
       return
     }
 
-    // Validate selected user for admin mode
-    const targetUserId = isAdmin && !slot ? selectedUserId : (slot?.userId || user.id)
-    if (!targetUserId) {
-      setError('Выберите участника')
-      setLoading(false)
+    const targetUsers = getTargetUsers()
+    if (targetUsers.length === 0) {
+      setError('Выберите хотя бы одного участника')
       return
+    }
+
+    const targetDates = getTargetDates()
+    if (targetDates.length === 0) {
+      setError('Выберите даты')
+      return
+    }
+
+    const createSlotForUserDate = async (targetUserId: string, dateStr: string, participants: string[] = [targetUserId]) => {
+      const validationError = await validateSlot(dateStr, slots)
+      if (validationError) {
+        throw new Error(`[${getMemberName(targetUserId)} • ${formatDate(new Date(dateStr), 'dd.MM.yyyy')}] ${validationError}`)
+      }
+
+      const slotData: Omit<WorkSlot, 'id'> = {
+        userId: targetUserId,
+        date: dateStr,
+        slots,
+        ...(comment && { comment }),
+        participants,
+      }
+
+      if (slot) {
+        await updateWorkSlot(slot.id, slotData)
+      } else {
+        await addWorkSlot(slotData)
+      }
     }
 
     console.log('Starting save process...')
@@ -253,8 +355,13 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
     setLoading(true)
 
     try {
+      if (slot) {
+        await createSlotForUserDate(slot.userId, date, slot.participants || [slot.userId])
+        onSave()
+        return
+      }
+
       if (repeatMonth && repeatDays.length > 0) {
-        // Repeat for month ahead on specific days
         const dateObj = new Date(date)
         const month = dateObj.getMonth()
         const year = dateObj.getFullYear()
@@ -265,30 +372,12 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
           const dayOfWeek = checkDate.getDay() === 0 ? 6 : checkDate.getDay() - 1
           if (repeatDays.includes(dayOfWeek)) {
             const dateStr = formatDate(checkDate, 'yyyy-MM-dd')
-            const validationError = await validateSlot(dateStr, slots)
-            if (validationError) {
-              setError(validationError)
-              setLoading(false)
-              return
-            }
-
-            const slotData: Omit<WorkSlot, 'id'> = {
-              userId: targetUserId,
-              date: dateStr,
-              slots,
-              ...(comment && { comment }),
-              participants: [targetUserId],
-            }
-
-            if (slot) {
-              await updateWorkSlot(slot.id, slotData)
-            } else {
-              await addWorkSlot(slotData)
+            for (const targetUserId of targetUsers) {
+              await createSlotForUserDate(targetUserId, dateStr)
             }
           }
         }
-      } else if (repeatAllDays && selectedDays.length > 0 && slots.length > 0) {
-        // Repeat for selected days
+      } else if (repeatAllDays && selectedDays.length > 0) {
         const dateObj = new Date(date)
         const month = dateObj.getMonth()
         const year = dateObj.getFullYear()
@@ -299,45 +388,20 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
           const dayOfWeek = checkDate.getDay() === 0 ? 6 : checkDate.getDay() - 1
           if (selectedDays.includes(dayOfWeek)) {
             const dateStr = formatDate(checkDate, 'yyyy-MM-dd')
-            const validationError = await validateSlot(dateStr, slots)
-            if (validationError) {
-              setError(validationError)
-              setLoading(false)
-              return
+            for (const targetUserId of targetUsers) {
+              await createSlotForUserDate(targetUserId, dateStr)
             }
-
-            const slotData: Omit<WorkSlot, 'id'> = {
-              userId: targetUserId,
-              date: dateStr,
-              slots,
-              ...(comment && { comment }),
-              participants: [targetUserId],
-            }
-
-            await addWorkSlot(slotData)
+          }
+        }
+      } else if (adminBulkMode && dateMode !== 'single') {
+        for (const dateStr of targetDates) {
+          for (const targetUserId of targetUsers) {
+            await createSlotForUserDate(targetUserId, dateStr)
           }
         }
       } else {
-        // Single date
-        const validationError = await validateSlot(date, slots)
-        if (validationError) {
-          setError(validationError)
-          setLoading(false)
-          return
-        }
-
-        const slotData: Omit<WorkSlot, 'id'> = {
-          userId: targetUserId,
-          date,
-          slots,
-          ...(comment && { comment }),
-          participants: slot?.participants || [targetUserId],
-        }
-
-        if (slot) {
-          await updateWorkSlot(slot.id, slotData)
-        } else {
-          await addWorkSlot(slotData)
+        for (const targetUserId of targetUsers) {
+          await createSlotForUserDate(targetUserId, date)
         }
       }
 
@@ -369,45 +433,174 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
 
           <div className="space-y-4">
             {/* User selection for admin when adding new slot */}
-            {isAdmin && !slot && (
+            {adminBulkMode && (
               <div>
                 <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                  Участник
+                  Участники
                 </label>
-                <select
-                  value={selectedUserId}
-                  onChange={(e) => setSelectedUserId(e.target.value)}
+                <div className="space-y-3">
+                  <div className="flex flex-wrap gap-2">
+                    {TEAM_MEMBERS.map((member) => (
+                      <label
+                        key={member.id}
+                        className={`px-3 py-1.5 rounded-full border cursor-pointer text-sm flex items-center gap-2 ${
+                          selectedUserIds.includes(member.id)
+                            ? 'bg-green-500 border-green-500 text-white'
+                            : theme === 'dark'
+                            ? 'bg-gray-700 border-gray-600 text-gray-200'
+                            : 'bg-gray-100 border-gray-300 text-gray-700'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selectedUserIds.includes(member.id)}
+                          onChange={() => toggleUserSelection(member.id)}
+                          className="hidden"
+                        />
+                        {member.name}
+                      </label>
+                    ))}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleSelectAllUsers}
+                    className="text-sm text-green-600 hover:text-green-700"
+                  >
+                    {selectedUserIds.length === TEAM_MEMBERS.length ? 'Снять выделение' : 'Выбрать всех'}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {adminBulkMode && (
+              <div>
+                <p className={`text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                  Формат выбора дат
+                </p>
+                <div className="flex flex-wrap gap-4">
+                  {[
+                    { value: 'single', label: 'Один день' },
+                    { value: 'range', label: 'Диапазон дат' },
+                    { value: 'multiple', label: 'Конкретные даты' },
+                  ].map((option) => (
+                    <label key={option.value} className="flex items-center gap-2 text-sm cursor-pointer">
+                      <input
+                        type="radio"
+                        value={option.value}
+                        checked={dateMode === option.value}
+                        onChange={(e) => setDateMode(e.target.value as typeof dateMode)}
+                      />
+                      <span className={theme === 'dark' ? 'text-gray-200' : 'text-gray-700'}>{option.label}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Date */}
+            {(!adminBulkMode || dateMode === 'single') && (
+              <div>
+                <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                  Дата
+                </label>
+                <input
+                  type="date"
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
                   className={`w-full px-4 py-2 rounded-lg border ${
                     theme === 'dark'
                       ? 'bg-gray-700 border-gray-600 text-white'
                       : 'bg-white border-gray-300 text-gray-900'
                   } focus:outline-none focus:ring-2 focus:ring-green-500`}
-                >
-                  {TEAM_MEMBERS.map((member) => (
-                    <option key={member.id} value={member.id}>
-                      {member.name}
-                    </option>
-                  ))}
-                </select>
+                />
               </div>
             )}
 
-            {/* Date */}
-            <div>
-              <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                Дата
-              </label>
-              <input
-                type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                className={`w-full px-4 py-2 rounded-lg border ${
-                  theme === 'dark'
-                    ? 'bg-gray-700 border-gray-600 text-white'
-                    : 'bg-white border-gray-300 text-gray-900'
-                } focus:outline-none focus:ring-2 focus:ring-green-500`}
-              />
-            </div>
+            {adminBulkMode && dateMode === 'range' && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Начало диапазона
+                  </label>
+                  <input
+                    type="date"
+                    value={rangeStart}
+                    onChange={(e) => setRangeStart(e.target.value)}
+                    className={`w-full px-4 py-2 rounded-lg border ${
+                      theme === 'dark'
+                        ? 'bg-gray-700 border-gray-600 text-white'
+                        : 'bg-white border-gray-300 text-gray-900'
+                    } focus:outline-none focus:ring-2 focus:ring-green-500`}
+                  />
+                </div>
+                <div>
+                  <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Конец диапазона
+                  </label>
+                  <input
+                    type="date"
+                    value={rangeEnd}
+                    min={rangeStart}
+                    onChange={(e) => setRangeEnd(e.target.value)}
+                    className={`w-full px-4 py-2 rounded-lg border ${
+                      theme === 'dark'
+                        ? 'bg-gray-700 border-gray-600 text-white'
+                        : 'bg-white border-gray-300 text-gray-900'
+                    } focus:outline-none focus:ring-2 focus:ring-green-500`}
+                  />
+                </div>
+              </div>
+            )}
+
+            {adminBulkMode && dateMode === 'multiple' && (
+              <div>
+                <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                  Выбранные даты
+                </label>
+                <div className="flex flex-col gap-3">
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <input
+                      type="date"
+                      value={multiDateInput}
+                      onChange={(e) => setMultiDateInput(e.target.value)}
+                      className={`flex-1 px-4 py-2 rounded-lg border ${
+                        theme === 'dark'
+                          ? 'bg-gray-700 border-gray-600 text-white'
+                          : 'bg-white border-gray-300 text-gray-900'
+                      } focus:outline-none focus:ring-2 focus:ring-green-500`}
+                    />
+                    <button
+                      type="button"
+                      onClick={handleAddMultiDate}
+                      className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors"
+                    >
+                      Добавить
+                    </button>
+                  </div>
+                  {multipleDates.length > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                      {multipleDates.map((d) => (
+                        <span
+                          key={d}
+                          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-100 text-gray-800 text-sm"
+                        >
+                          {formatDate(d, 'dd.MM.yyyy')}
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveMultiDate(d)}
+                            className="text-red-500 hover:text-red-600"
+                          >
+                            x
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-500">Пока не выбрано ни одной даты</p>
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* Time slots */}
             <div>
@@ -580,6 +773,7 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
             </div>
 
             {/* Repeat options */}
+            {(!adminBulkMode || dateMode === 'single') && (
             <div className="space-y-3">
               <label className="flex items-center gap-2">
                 <input
@@ -669,6 +863,7 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
                 </div>
               )}
             </div>
+            )}
 
             {/* Comment */}
             <div>

@@ -4,7 +4,7 @@ import { useAuthStore } from '@/store/authStore'
 import { useThemeStore } from '@/store/themeStore'
 import { useAdminStore } from '@/store/adminStore'
 import { addDayStatus, updateDayStatus, getDayStatuses } from '@/services/firestoreService'
-import { formatDate, isSameDate } from '@/utils/dateUtils'
+import { formatDate, isSameDate, getDatesInRange, normalizeDatesList } from '@/utils/dateUtils'
 import { X } from 'lucide-react'
 import { DayStatus, TEAM_MEMBERS } from '@/types'
 
@@ -20,17 +20,23 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
   const { theme } = useThemeStore()
   const { isAdmin } = useAdminStore()
   const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
-  const [selectedUserId, setSelectedUserId] = useState(status?.userId || user?.id || '')
-  const [date, setDate] = useState(
-    status?.date || formatDate(new Date(), 'yyyy-MM-dd')
+  const initialDate = status?.date || formatDate(new Date(), 'yyyy-MM-dd')
+  const [selectedUserIds, setSelectedUserIds] = useState<string[]>(
+    status?.userId ? [status.userId] : user?.id ? [user.id] : []
   )
-  const [endDate, setEndDate] = useState(
-    status?.endDate || formatDate(new Date(), 'yyyy-MM-dd')
-  )
+  const [date, setDate] = useState(initialDate)
+  const [endDate, setEndDate] = useState(status?.endDate || initialDate)
   const [isMultiDay, setIsMultiDay] = useState(!!status?.endDate)
   const [comment, setComment] = useState(status?.comment || '')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [dateMode, setDateMode] = useState<'single' | 'range' | 'multiple'>('single')
+  const [rangeStart, setRangeStart] = useState(initialDate)
+  const [rangeEnd, setRangeEnd] = useState(initialDate)
+  const [multiDateInput, setMultiDateInput] = useState(initialDate)
+  const [multipleDates, setMultipleDates] = useState<string[]>([])
+
+  const adminBulkMode = isAdmin && !status
 
   useEffect(() => {
     if (!isMultiDay) {
@@ -38,18 +44,84 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
     }
   }, [isMultiDay, date])
 
-  const validate = async (): Promise<string | null> => {
-    if (!user) return 'Пользователь не найден'
+  useEffect(() => {
+    if (adminBulkMode && dateMode !== 'single') {
+      setIsMultiDay(false)
+    }
+  }, [adminBulkMode, dateMode])
 
-    // Validate selected user for admin mode
-    const targetUserId = isAdmin && !status ? selectedUserId : (status?.userId || user.id)
-    if (!targetUserId) {
-      return 'Выберите участника'
+  const toggleUserSelection = (userId: string) => {
+    setSelectedUserIds((prev) => {
+      if (prev.includes(userId)) {
+        return prev.filter((id) => id !== userId)
+      }
+      return [...prev, userId]
+    })
+  }
+
+  const handleSelectAllUsers = () => {
+    if (selectedUserIds.length === TEAM_MEMBERS.length) {
+      setSelectedUserIds([])
+    } else {
+      setSelectedUserIds(TEAM_MEMBERS.map((member) => member.id))
+    }
+  }
+
+  const handleAddMultiDate = () => {
+    if (!multiDateInput) return
+    const updated = normalizeDatesList([...multipleDates, multiDateInput])
+    setMultipleDates(updated)
+    setMultiDateInput('')
+  }
+
+  const handleRemoveMultiDate = (dateToRemove: string) => {
+    setMultipleDates((prev) => prev.filter((d) => d !== dateToRemove))
+  }
+
+  const getTargetUsers = (): string[] => {
+    if (status) {
+      return [status.userId]
+    }
+    if (adminBulkMode) {
+      return selectedUserIds
+    }
+    return user?.id ? [user.id] : []
+  }
+
+  const getMemberName = (userId: string) => TEAM_MEMBERS.find((member) => member.id === userId)?.name || userId
+
+  const getDatePayloads = (): { date: string; endDate?: string }[] => {
+    if (adminBulkMode) {
+      if (dateMode === 'range') {
+        if (type === 'dayoff') {
+          return getDatesInRange(rangeStart, rangeEnd).map((d) => ({ date: d }))
+        }
+        if (rangeStart && rangeEnd) {
+          return [{ date: rangeStart, endDate: rangeEnd }]
+        }
+        return []
+      }
+      if (dateMode === 'multiple') {
+        if (type === 'dayoff') {
+          return multipleDates.map((d) => ({ date: d }))
+        }
+        return multipleDates.map((d) => ({ date: d, endDate: d }))
+      }
     }
 
+    const payload: { date: string; endDate?: string } = { date }
+    if (type !== 'dayoff' && (isMultiDay || status?.endDate)) {
+      payload.endDate = endDate
+    }
+    return [payload]
+  }
+
+  const validateStatus = async (targetUserId: string, startDate: string, endDateValue?: string): Promise<string | null> => {
+    if (!user) return 'Пользователь не найден'
+
     const today = new Date()
-    const selectedDate = new Date(date)
-    const selectedEndDate = new Date(endDate)
+    const selectedDate = new Date(startDate)
+    const selectedEndDate = new Date(endDateValue || startDate)
 
     // Check if date is in the past for dayoff
     if (type === 'dayoff') {
@@ -60,14 +132,14 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
 
     // Check sick leave restrictions
     if (type === 'sick') {
-      const today = new Date()
-      today.setHours(0, 0, 0, 0)
-      const maxDate = new Date(today)
+      const todayStart = new Date()
+      todayStart.setHours(0, 0, 0, 0)
+      const maxDate = new Date(todayStart)
       maxDate.setDate(maxDate.getDate() + 2)
-      const selectedDateObj = new Date(date)
+      const selectedDateObj = new Date(startDate)
       selectedDateObj.setHours(0, 0, 0, 0)
       
-      if (selectedDateObj < today || selectedDateObj > maxDate) {
+      if (selectedDateObj < todayStart || selectedDateObj > maxDate) {
         return 'Больничный можно взять только на актуальную дату и + 2 суток. Нельзя выбрать заранее.'
       }
 
@@ -83,10 +155,9 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
         return 'Больничный может длиться не более 14 календарных дней в месяце'
       }
 
-      // Check existing sick days in month
       const monthStart = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1)
       const monthEnd = new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, 0)
-      const existingStatuses = await getDayStatuses(user.id)
+      const existingStatuses = await getDayStatuses(targetUserId)
       const monthSickDays = existingStatuses.filter(
         (s) => s.type === 'sick' && s.date >= formatDate(monthStart, 'yyyy-MM-dd') && s.date <= formatDate(monthEnd, 'yyyy-MM-dd')
       )
@@ -96,7 +167,6 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
       }
     }
 
-    // Check vacation restrictions
     if (type === 'vacation') {
       const daysDiff = Math.ceil(
         (selectedEndDate.getTime() - selectedDate.getTime()) / (1000 * 60 * 60 * 24)
@@ -106,10 +176,9 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
         return 'Отпуск не может быть больше 14 дней в месяце'
       }
 
-      // Check yearly vacation limit (6 per year)
       const yearStart = new Date(selectedDate.getFullYear(), 0, 1)
       const yearEnd = new Date(selectedDate.getFullYear(), 11, 31)
-      const existingStatuses = await getDayStatuses(user.id)
+      const existingStatuses = await getDayStatuses(targetUserId)
       const yearVacations = existingStatuses.filter(
         (s) => s.type === 'vacation' && s.date >= formatDate(yearStart, 'yyyy-MM-dd') && s.date <= formatDate(yearEnd, 'yyyy-MM-dd')
       )
@@ -119,7 +188,6 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
       }
     }
 
-    // Check dayoff limit (max 2 per week)
     if (type === 'dayoff') {
       const weekStart = new Date(selectedDate)
       weekStart.setDate(weekStart.getDate() - weekStart.getDay() + 1)
@@ -131,7 +199,6 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
         (s) => s.type === 'dayoff' && s.date >= formatDate(weekStart, 'yyyy-MM-dd') && s.date <= formatDate(weekEnd, 'yyyy-MM-dd')
       )
 
-      // If editing, exclude current status from count
       if (status) {
         weekDayoffs = weekDayoffs.filter(s => s.id !== status.id)
       }
@@ -140,15 +207,13 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
         return 'Выходные на неделе ограничены максимум 2 днями'
       }
 
-      // Check if 3 people already have dayoff on this date
       const allStatuses = await getDayStatuses()
       const dateDayoffs = allStatuses.filter(
-        (s) => s.type === 'dayoff' && s.date === date
+        (s) => s.type === 'dayoff' && s.date === startDate
       )
       const uniqueUsers = new Set(dateDayoffs.map(s => s.userId))
       
-      // If editing, exclude current status from count
-      if (status) {
+      if (status && status.type === 'dayoff' && status.date === startDate) {
         uniqueUsers.delete(status.userId)
       }
       
@@ -167,19 +232,43 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
       return
     }
 
-    // Check if user can edit this status
     if (status && !isAdmin && status.userId !== user.id) {
       setError('Вы можете редактировать только свои статусы')
       setLoading(false)
       return
     }
 
-    // Validate selected user for admin mode
-    const targetUserId = isAdmin && !status ? selectedUserId : (status?.userId || user.id)
-    if (!targetUserId) {
-      setError('Выберите участника')
-      setLoading(false)
+    const targetUsers = getTargetUsers()
+    if (targetUsers.length === 0) {
+      setError('Выберите хотя бы одного участника')
       return
+    }
+
+    const datePayloads = getDatePayloads()
+    if (datePayloads.length === 0) {
+      setError('Выберите даты')
+      return
+    }
+
+    const saveStatusFor = async (targetUserId: string, payload: { date: string; endDate?: string }) => {
+      const validationError = await validateStatus(targetUserId, payload.date, payload.endDate)
+      if (validationError) {
+        throw new Error(`[${getMemberName(targetUserId)} • ${formatDate(payload.date, 'dd.MM.yyyy')}] ${validationError}`)
+      }
+
+      const statusData: Omit<DayStatus, 'id'> = {
+        userId: targetUserId,
+        date: payload.date,
+        type,
+        ...(payload.endDate && { endDate: payload.endDate }),
+        ...(comment && { comment }),
+      }
+
+      if (status) {
+        await updateDayStatus(status.id, statusData)
+      } else {
+        await addDayStatus(statusData)
+      }
     }
 
     console.log('Starting save process...')
@@ -187,25 +276,20 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
     setLoading(true)
 
     try {
-      const validationError = await validate()
-      if (validationError) {
-        setError(validationError)
-        setLoading(false)
+      if (status) {
+        const payload: { date: string; endDate?: string } = { date }
+        if (type !== 'dayoff' && (isMultiDay || status.endDate)) {
+          payload.endDate = endDate
+        }
+        await saveStatusFor(status.userId, payload)
+        onSave()
         return
       }
 
-      const statusData: Omit<DayStatus, 'id'> = {
-        userId: targetUserId,
-        date,
-        type,
-        ...(comment && { comment }),
-        ...(isMultiDay && { endDate }),
-      }
-
-      if (status) {
-        await updateDayStatus(status.id, statusData)
-      } else {
-        await addDayStatus(statusData)
+      for (const targetUserId of targetUsers) {
+        for (const payload of datePayloads) {
+          await saveStatusFor(targetUserId, payload)
+        }
       }
 
       onSave()
@@ -248,48 +332,177 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
 
           <div className="space-y-4">
             {/* User selection for admin when adding new status */}
-            {isAdmin && !status && (
+            {adminBulkMode && (
               <div>
                 <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                  Участник
+                  Участники
                 </label>
-                <select
-                  value={selectedUserId}
-                  onChange={(e) => setSelectedUserId(e.target.value)}
+                <div className="space-y-3">
+                  <div className="flex flex-wrap gap-2">
+                    {TEAM_MEMBERS.map((member) => (
+                      <label
+                        key={member.id}
+                        className={`px-3 py-1.5 rounded-full border cursor-pointer text-sm flex items-center gap-2 ${
+                          selectedUserIds.includes(member.id)
+                            ? 'bg-green-500 border-green-500 text-white'
+                            : theme === 'dark'
+                            ? 'bg-gray-700 border-gray-600 text-gray-200'
+                            : 'bg-gray-100 border-gray-300 text-gray-700'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selectedUserIds.includes(member.id)}
+                          onChange={() => toggleUserSelection(member.id)}
+                          className="hidden"
+                        />
+                        {member.name}
+                      </label>
+                    ))}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleSelectAllUsers}
+                    className="text-sm text-green-600 hover:text-green-700"
+                  >
+                    {selectedUserIds.length === TEAM_MEMBERS.length ? 'Снять выделение' : 'Выбрать всех'}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {adminBulkMode && (
+              <div>
+                <p className={`text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                  Формат выбора дат
+                </p>
+                <div className="flex flex-wrap gap-4">
+                  {[
+                    { value: 'single', label: 'Один день' },
+                    { value: 'range', label: type === 'dayoff' ? 'Диапазон (каждый день)' : 'Диапазон дат' },
+                    { value: 'multiple', label: 'Конкретные даты' },
+                  ].map((option) => (
+                    <label key={option.value} className="flex items-center gap-2 text-sm cursor-pointer">
+                      <input
+                        type="radio"
+                        value={option.value}
+                        checked={dateMode === option.value}
+                        onChange={(e) => setDateMode(e.target.value as typeof dateMode)}
+                      />
+                      <span className={theme === 'dark' ? 'text-gray-200' : 'text-gray-700'}>{option.label}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Date */}
+            {(!adminBulkMode || dateMode === 'single') && (
+              <div>
+                <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                  Дата начала
+                </label>
+                <input
+                  type="date"
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
                   className={`w-full px-4 py-2 rounded-lg border ${
                     theme === 'dark'
                       ? 'bg-gray-700 border-gray-600 text-white'
                       : 'bg-white border-gray-300 text-gray-900'
                   } focus:outline-none focus:ring-2 focus:ring-green-500`}
-                >
-                  {TEAM_MEMBERS.map((member) => (
-                    <option key={member.id} value={member.id}>
-                      {member.name}
-                    </option>
-                  ))}
-                </select>
+                />
               </div>
             )}
 
-            {/* Date */}
-            <div>
-              <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                Дата начала
-              </label>
-              <input
-                type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                className={`w-full px-4 py-2 rounded-lg border ${
-                  theme === 'dark'
-                    ? 'bg-gray-700 border-gray-600 text-white'
-                    : 'bg-white border-gray-300 text-gray-900'
-                } focus:outline-none focus:ring-2 focus:ring-green-500`}
-              />
-            </div>
+            {adminBulkMode && dateMode === 'range' && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Начало
+                  </label>
+                  <input
+                    type="date"
+                    value={rangeStart}
+                    onChange={(e) => setRangeStart(e.target.value)}
+                    className={`w-full px-4 py-2 rounded-lg border ${
+                      theme === 'dark'
+                        ? 'bg-gray-700 border-gray-600 text-white'
+                        : 'bg-white border-gray-300 text-gray-900'
+                    } focus:outline-none focus:ring-2 focus:ring-green-500`}
+                  />
+                </div>
+                <div>
+                  <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Конец
+                  </label>
+                  <input
+                    type="date"
+                    value={rangeEnd}
+                    min={rangeStart}
+                    onChange={(e) => setRangeEnd(e.target.value)}
+                    className={`w-full px-4 py-2 rounded-lg border ${
+                      theme === 'dark'
+                        ? 'bg-gray-700 border-gray-600 text-white'
+                        : 'bg-white border-gray-300 text-gray-900'
+                    } focus:outline-none focus:ring-2 focus:ring-green-500`}
+                  />
+                </div>
+              </div>
+            )}
+
+            {adminBulkMode && dateMode === 'multiple' && (
+              <div>
+                <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                  Выбранные даты
+                </label>
+                <div className="flex flex-col gap-3">
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <input
+                      type="date"
+                      value={multiDateInput}
+                      onChange={(e) => setMultiDateInput(e.target.value)}
+                      className={`flex-1 px-4 py-2 rounded-lg border ${
+                        theme === 'dark'
+                          ? 'bg-gray-700 border-gray-600 text-white'
+                          : 'bg-white border-gray-300 text-gray-900'
+                      } focus:outline-none focus:ring-2 focus:ring-green-500`}
+                    />
+                    <button
+                      type="button"
+                      onClick={handleAddMultiDate}
+                      className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors"
+                    >
+                      Добавить
+                    </button>
+                  </div>
+                  {multipleDates.length > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                      {multipleDates.map((d) => (
+                        <span
+                          key={d}
+                          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-100 text-gray-800 text-sm"
+                        >
+                          {formatDate(d, 'dd.MM.yyyy')}
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveMultiDate(d)}
+                            className="text-red-500 hover:text-red-600"
+                          >
+                            x
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-500">Пока не выбрано ни одной даты</p>
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* Multi-day toggle */}
-            {(type === 'sick' || type === 'vacation') && (
+            {(type === 'sick' || type === 'vacation') && (!adminBulkMode || dateMode === 'single') && (
               <label className="flex items-center gap-2">
                 <input
                   type="checkbox"

@@ -77,6 +77,31 @@ export const formatTimeFromMinutes = (minutes: number): string => {
   return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`
 }
 
+export const getDatesInRange = (startDate: string, endDate: string): string[] => {
+  if (!startDate || !endDate) return []
+  const start = parseISO(startDate)
+  const end = parseISO(endDate)
+  
+  if (isBefore(end, start)) {
+    return []
+  }
+  
+  const dates: string[] = []
+  const current = new Date(start)
+  while (current <= end) {
+    dates.push(formatDate(current, 'yyyy-MM-dd'))
+    current.setDate(current.getDate() + 1)
+  }
+  
+  return dates
+}
+
+export const normalizeDatesList = (dates: string[]): string[] => {
+  const unique = Array.from(new Set(dates.filter(Boolean)))
+  unique.sort()
+  return unique
+}
+
 export const timeOverlaps = (
   slot1: { start: string; end: string },
   slot2: { start: string; end: string }
