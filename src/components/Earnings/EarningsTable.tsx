@@ -3,6 +3,7 @@ import { useThemeStore } from '@/store/themeStore'
 import { formatDate, getWeekRange } from '@/utils/dateUtils'
 import { Earnings } from '@/types'
 import { TEAM_MEMBERS } from '@/types'
+import { TrendingUp } from 'lucide-react'
 
 interface EarningsTableProps {
   earnings: Earnings[]
@@ -52,17 +53,26 @@ export const EarningsTable = ({ earnings }: EarningsTableProps) => {
   }, 0)
 
   return (
-    <div className={`rounded-lg ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'} shadow-md overflow-hidden`}>
+    <div className={`rounded-2xl ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'} shadow-lg border-2 ${
+      theme === 'dark' ? 'border-gray-700' : 'border-gray-200'
+    } overflow-hidden`}>
       <div className="p-6">
-        <h3 className={`text-xl font-bold mb-4 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Статистика заработка</h3>
+        <div className="flex items-center gap-3 mb-6">
+          <div className={`p-2 rounded-lg ${
+            theme === 'dark' ? 'bg-blue-500/20' : 'bg-blue-100'
+          }`}>
+            <TrendingUp className={`w-5 h-5 ${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'}`} />
+          </div>
+          <h3 className={`text-xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Статистика заработка</h3>
+        </div>
 
         {/* Weekly stats */}
         <div className="mb-6">
-          <h4 className={`text-lg font-semibold mb-3 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>За неделю</h4>
-          <div className="overflow-x-auto">
+          <h4 className={`text-lg font-semibold mb-4 px-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>За неделю</h4>
+          <div className="overflow-x-auto rounded-xl border-2 border-gray-700/50 dark:border-gray-700">
             <table className="w-full">
               <thead>
-                <tr className={`${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100'}`}>
+                <tr className={`${theme === 'dark' ? 'bg-gray-700/50' : 'bg-gray-100'}`}>
                   <th className={`px-4 py-3 text-left text-sm font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Участник</th>
                   <th className={`px-4 py-3 text-right text-sm font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Заработок</th>
                   <th className={`px-4 py-3 text-right text-sm font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Пул</th>
@@ -72,17 +82,22 @@ export const EarningsTable = ({ earnings }: EarningsTableProps) => {
                 {TEAM_MEMBERS.map((member) => {
                   const stats = getStats(member.id, weekStart, weekEnd)
                   return (
-                    <tr key={member.id} className={`border-b ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
-                      <td className={`px-4 py-3 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{member.name}</td>
-                      <td className={`px-4 py-3 text-right ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{stats.totalEarnings.toFixed(2)} ₽</td>
-                      <td className={`px-4 py-3 text-right ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{stats.totalPool.toFixed(2)} ₽</td>
+                    <tr 
+                      key={member.id} 
+                      className={`border-b border-gray-700/30 dark:border-gray-700 transition-colors ${
+                        theme === 'dark' ? 'hover:bg-gray-700/30' : 'hover:bg-gray-50'
+                      }`}
+                    >
+                      <td className={`px-4 py-3 font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{member.name}</td>
+                      <td className={`px-4 py-3 text-right font-semibold ${theme === 'dark' ? 'text-green-400' : 'text-green-600'}`}>{stats.totalEarnings.toFixed(2)} ₽</td>
+                      <td className={`px-4 py-3 text-right font-semibold ${theme === 'dark' ? 'text-purple-400' : 'text-purple-600'}`}>{stats.totalPool.toFixed(2)} ₽</td>
                     </tr>
                   )
                 })}
-                <tr className={`${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100'} font-bold`}>
+                <tr className={`${theme === 'dark' ? 'bg-gray-700/70' : 'bg-gray-100'} font-bold border-t-2 border-gray-700/50 dark:border-gray-700`}>
                   <td className={`px-4 py-3 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Итого команды</td>
-                  <td className={`px-4 py-3 text-right ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{teamWeekEarnings.toFixed(2)} ₽</td>
-                  <td className={`px-4 py-3 text-right ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{teamWeekPool.toFixed(2)} ₽</td>
+                  <td className={`px-4 py-3 text-right ${theme === 'dark' ? 'text-green-400' : 'text-green-600'}`}>{teamWeekEarnings.toFixed(2)} ₽</td>
+                  <td className={`px-4 py-3 text-right ${theme === 'dark' ? 'text-purple-400' : 'text-purple-600'}`}>{teamWeekPool.toFixed(2)} ₽</td>
                 </tr>
               </tbody>
             </table>
@@ -91,11 +106,11 @@ export const EarningsTable = ({ earnings }: EarningsTableProps) => {
 
         {/* Monthly stats */}
         <div>
-          <h4 className={`text-lg font-semibold mb-3 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>За месяц</h4>
-          <div className="overflow-x-auto">
+          <h4 className={`text-lg font-semibold mb-4 px-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>За месяц</h4>
+          <div className="overflow-x-auto rounded-xl border-2 border-gray-700/50 dark:border-gray-700">
             <table className="w-full">
               <thead>
-                <tr className={`${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100'}`}>
+                <tr className={`${theme === 'dark' ? 'bg-gray-700/50' : 'bg-gray-100'}`}>
                   <th className={`px-4 py-3 text-left text-sm font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Участник</th>
                   <th className={`px-4 py-3 text-right text-sm font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Заработок</th>
                   <th className={`px-4 py-3 text-right text-sm font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Пул</th>
@@ -105,17 +120,22 @@ export const EarningsTable = ({ earnings }: EarningsTableProps) => {
                 {TEAM_MEMBERS.map((member) => {
                   const stats = getStats(member.id, monthStart, monthEnd)
                   return (
-                    <tr key={member.id} className={`border-b ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
-                      <td className={`px-4 py-3 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{member.name}</td>
-                      <td className={`px-4 py-3 text-right ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{stats.totalEarnings.toFixed(2)} ₽</td>
-                      <td className={`px-4 py-3 text-right ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{stats.totalPool.toFixed(2)} ₽</td>
+                    <tr 
+                      key={member.id} 
+                      className={`border-b border-gray-700/30 dark:border-gray-700 transition-colors ${
+                        theme === 'dark' ? 'hover:bg-gray-700/30' : 'hover:bg-gray-50'
+                      }`}
+                    >
+                      <td className={`px-4 py-3 font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{member.name}</td>
+                      <td className={`px-4 py-3 text-right font-semibold ${theme === 'dark' ? 'text-green-400' : 'text-green-600'}`}>{stats.totalEarnings.toFixed(2)} ₽</td>
+                      <td className={`px-4 py-3 text-right font-semibold ${theme === 'dark' ? 'text-purple-400' : 'text-purple-600'}`}>{stats.totalPool.toFixed(2)} ₽</td>
                     </tr>
                   )
                 })}
-                <tr className={`${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100'} font-bold`}>
+                <tr className={`${theme === 'dark' ? 'bg-gray-700/70' : 'bg-gray-100'} font-bold border-t-2 border-gray-700/50 dark:border-gray-700`}>
                   <td className={`px-4 py-3 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Итого команды</td>
-                  <td className={`px-4 py-3 text-right ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{teamMonthEarnings.toFixed(2)} ₽</td>
-                  <td className={`px-4 py-3 text-right ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{teamMonthPool.toFixed(2)} ₽</td>
+                  <td className={`px-4 py-3 text-right ${theme === 'dark' ? 'text-green-400' : 'text-green-600'}`}>{teamMonthEarnings.toFixed(2)} ₽</td>
+                  <td className={`px-4 py-3 text-right ${theme === 'dark' ? 'text-purple-400' : 'text-purple-600'}`}>{teamMonthPool.toFixed(2)} ₽</td>
                 </tr>
               </tbody>
             </table>
