@@ -315,11 +315,11 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start sm:items-center justify-center z-50 p-4 sm:py-0 overflow-y-auto">
-      <div className={`w-full max-w-md rounded-lg shadow-xl ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'} max-h-[90vh] overflow-y-auto`}>
-        <div className="p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className={`text-xl font-bold ${headingColor}`}>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start sm:items-center justify-center z-50 p-3 sm:p-4 overflow-y-auto touch-manipulation">
+      <div className={`w-full max-w-md rounded-lg sm:rounded-xl shadow-xl ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'} max-h-[90vh] overflow-y-auto my-4 sm:my-8`}>
+        <div className="p-4 sm:p-6">
+          <div className="flex items-center justify-between mb-4 sm:mb-6">
+            <h3 className={`text-lg sm:text-xl font-bold ${headingColor} pr-2`}>
               {status ? 'Редактировать' : 'Добавить'} {typeLabels[type]}
             </h3>
             <button
@@ -334,7 +334,7 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
             {/* User selection for admin when adding new status */}
             {adminBulkMode && (
               <div>
-                <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                <label className={`block text-xs sm:text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
                   Участники
                 </label>
                 <div className="space-y-3">
@@ -373,7 +373,7 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
 
             {adminBulkMode && (
               <div>
-                <p className={`text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                <p className={`text-xs sm:text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
                   Формат выбора дат
                 </p>
                 <div className="flex flex-wrap gap-4">
@@ -399,14 +399,14 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
             {/* Date */}
             {(!adminBulkMode || dateMode === 'single') && (
               <div>
-                <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                <label className={`block text-xs sm:text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
                   Дата начала
                 </label>
                 <input
                   type="date"
                   value={date}
                   onChange={(e) => setDate(e.target.value)}
-                  className={`w-full px-4 py-2 rounded-lg border ${
+                  className={`w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base rounded-lg border touch-manipulation ${
                     theme === 'dark'
                       ? 'bg-gray-700 border-gray-600 text-white'
                       : 'bg-white border-gray-300 text-gray-900'
@@ -418,14 +418,14 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
             {adminBulkMode && dateMode === 'range' && (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                  <label className={`block text-xs sm:text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
                     Начало
                   </label>
                   <input
                     type="date"
                     value={rangeStart}
                     onChange={(e) => setRangeStart(e.target.value)}
-                    className={`w-full px-4 py-2 rounded-lg border ${
+                    className={`w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base rounded-lg border touch-manipulation ${
                       theme === 'dark'
                         ? 'bg-gray-700 border-gray-600 text-white'
                         : 'bg-white border-gray-300 text-gray-900'
@@ -433,7 +433,7 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
                   />
                 </div>
                 <div>
-                  <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                  <label className={`block text-xs sm:text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
                     Конец
                   </label>
                   <input
@@ -441,7 +441,7 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
                     value={rangeEnd}
                     min={rangeStart}
                     onChange={(e) => setRangeEnd(e.target.value)}
-                    className={`w-full px-4 py-2 rounded-lg border ${
+                    className={`w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base rounded-lg border touch-manipulation ${
                       theme === 'dark'
                         ? 'bg-gray-700 border-gray-600 text-white'
                         : 'bg-white border-gray-300 text-gray-900'
@@ -453,7 +453,7 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
 
             {adminBulkMode && dateMode === 'multiple' && (
               <div>
-                <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                <label className={`block text-xs sm:text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
                   Выбранные даты
                 </label>
                 <div className="flex flex-col gap-3">
@@ -462,7 +462,7 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
                       type="date"
                       value={multiDateInput}
                       onChange={(e) => setMultiDateInput(e.target.value)}
-                      className={`flex-1 px-4 py-2 rounded-lg border ${
+                      className={`flex-1 px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base rounded-lg border touch-manipulation ${
                         theme === 'dark'
                           ? 'bg-gray-700 border-gray-600 text-white'
                           : 'bg-white border-gray-300 text-gray-900'
@@ -519,7 +519,7 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
             {/* End date */}
             {isMultiDay && (
               <div>
-                <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                <label className={`block text-xs sm:text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
                   Дата окончания
                 </label>
                 <input
@@ -527,7 +527,7 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
                   min={date}
-                  className={`w-full px-4 py-2 rounded-lg border ${
+                  className={`w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base rounded-lg border touch-manipulation ${
                     theme === 'dark'
                       ? 'bg-gray-700 border-gray-600 text-white'
                       : 'bg-white border-gray-300 text-gray-900'
@@ -538,14 +538,14 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
 
             {/* Comment */}
             <div>
-              <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+              <label className={`block text-xs sm:text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
                 Комментарий
               </label>
               <textarea
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
                 rows={3}
-                className={`w-full px-4 py-2 rounded-lg border ${
+                className={`w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base rounded-lg border touch-manipulation resize-y ${
                   theme === 'dark'
                     ? 'bg-gray-700 border-gray-600 text-white'
                     : 'bg-white border-gray-300 text-gray-900'
@@ -560,18 +560,18 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
               </div>
             )}
 
-            <div className="flex gap-3">
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-2">
               <button
                 onClick={handleSave}
                 disabled={loading}
-                className={`flex-1 px-4 py-2 ${typeColors[type]} hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg transition-colors`}
+                className={`flex-1 px-4 py-2.5 sm:py-2 ${typeColors[type]} hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg sm:rounded-xl transition-colors text-sm sm:text-base font-medium touch-manipulation active:scale-95 disabled:active:scale-100`}
               >
                 {loading ? 'Сохранение...' : 'Сохранить'}
               </button>
               <button
                 onClick={onClose}
-                className={`px-4 py-2 rounded-lg transition-colors ${
-                  theme === 'dark' ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-200 hover:bg-gray-300'
+                className={`px-4 py-2.5 sm:py-2 rounded-lg sm:rounded-xl transition-colors text-sm sm:text-base font-medium touch-manipulation active:scale-95 ${
+                  theme === 'dark' ? 'bg-gray-700 hover:bg-gray-600 active:bg-gray-500' : 'bg-gray-200 hover:bg-gray-300 active:bg-gray-400'
                 }`}
               >
                 Отмена

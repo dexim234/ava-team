@@ -147,7 +147,7 @@ export const Rating = () => {
     <Layout>
       <div className="space-y-6">
         {/* Header */}
-        <div className={`rounded-2xl p-8 ${cardBg} shadow-xl border-2 ${
+        <div className={`rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8 ${cardBg} shadow-xl border-2 ${
           theme === 'dark' 
             ? 'border-blue-500/30 bg-gradient-to-br from-gray-800 via-gray-800 to-gray-900' 
             : 'border-blue-200 bg-gradient-to-br from-white via-blue-50/30 to-white'

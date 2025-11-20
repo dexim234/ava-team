@@ -172,32 +172,33 @@ export const EarningsForm = ({ onClose, onSave, editingEarning }: EarningsFormPr
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start sm:items-center justify-center z-50 p-4 sm:py-0 overflow-y-auto">
-      <div className={`w-full max-w-md rounded-lg shadow-xl ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'} max-h-[90vh] overflow-y-auto`}>
-        <div className="p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className={`text-xl font-bold ${headingColor}`}>{isEditing ? 'Редактировать заработок' : 'Добавить заработок'}</h3>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start sm:items-center justify-center z-50 p-3 sm:p-4 overflow-y-auto touch-manipulation">
+      <div className={`w-full max-w-md rounded-lg sm:rounded-xl shadow-xl ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'} max-h-[90vh] overflow-y-auto my-4 sm:my-8`}>
+        <div className="p-4 sm:p-6">
+          <div className="flex items-center justify-between mb-4 sm:mb-6">
+            <h3 className={`text-lg sm:text-xl font-bold ${headingColor} pr-2`}>{isEditing ? 'Редактировать заработок' : 'Добавить заработок'}</h3>
             <button
               onClick={onClose}
-              className={`p-2 rounded-lg ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
+              className={`p-1.5 sm:p-2 rounded-lg flex-shrink-0 ${theme === 'dark' ? 'hover:bg-gray-700 active:bg-gray-600' : 'hover:bg-gray-100 active:bg-gray-200'} transition-colors touch-manipulation`}
+              aria-label="Закрыть"
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-3 sm:space-y-4">
             {/* Date */}
             <div>
-              <label className={`flex items-center justify-between text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+              <label className={`flex flex-col sm:flex-row sm:items-center sm:justify-between text-xs sm:text-sm font-medium mb-2 gap-1 sm:gap-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
                 <span>Дата</span>
-                {!isAdmin && !isEditing && <span className="text-xs text-gray-400">Доступна только текущая дата</span>}
+                {!isAdmin && !isEditing && <span className="text-[10px] sm:text-xs text-gray-400 whitespace-nowrap">Доступна только текущая дата</span>}
               </label>
               <input
                 type="date"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
                 disabled={!isAdmin && !isEditing}
-                className={`w-full px-4 py-2 rounded-lg border ${
+                className={`w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base rounded-lg border touch-manipulation ${
                   theme === 'dark'
                     ? 'bg-gray-700 border-gray-600 text-white'
                     : 'bg-white border-gray-300 text-gray-900'
@@ -212,13 +213,13 @@ export const EarningsForm = ({ onClose, onSave, editingEarning }: EarningsFormPr
 
             {/* Slot selection */}
             <div>
-              <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+              <label className={`block text-xs sm:text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
                 Слот
               </label>
               <select
                 value={selectedSlotId}
                 onChange={(e) => setSelectedSlotId(e.target.value)}
-                className={`w-full px-4 py-2 rounded-lg border ${
+                className={`w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base rounded-lg border touch-manipulation ${
                   theme === 'dark'
                     ? 'bg-gray-700 border-gray-600 text-white'
                     : 'bg-white border-gray-300 text-gray-900'
@@ -245,14 +246,14 @@ export const EarningsForm = ({ onClose, onSave, editingEarning }: EarningsFormPr
 
             {/* Amount */}
             <div>
-              <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+              <label className={`block text-xs sm:text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
                 Сумма заработка (руб.)
               </label>
               <input
                 type="number"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
-                className={`w-full px-4 py-2 rounded-lg border ${
+                className={`w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base rounded-lg border touch-manipulation ${
                   theme === 'dark'
                     ? 'bg-gray-700 border-gray-600 text-white'
                     : 'bg-white border-gray-300 text-gray-900'
@@ -265,14 +266,14 @@ export const EarningsForm = ({ onClose, onSave, editingEarning }: EarningsFormPr
 
             {/* Pool amount */}
             <div>
-              <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+              <label className={`block text-xs sm:text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
                 Сумма в пул (руб.)
               </label>
               <input
                 type="number"
                 value={poolAmount}
                 onChange={(e) => setPoolAmount(e.target.value)}
-                className={`w-full px-4 py-2 rounded-lg border ${
+                className={`w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base rounded-lg border touch-manipulation ${
                   theme === 'dark'
                     ? 'bg-gray-700 border-gray-600 text-white'
                     : 'bg-white border-gray-300 text-gray-900'
@@ -324,18 +325,18 @@ export const EarningsForm = ({ onClose, onSave, editingEarning }: EarningsFormPr
               </div>
             )}
 
-            <div className="flex gap-3">
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-2">
               <button
                 onClick={handleSave}
                 disabled={loading}
-                className="flex-1 px-4 py-2 bg-green-500 hover:bg-green-600 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
+                className="flex-1 px-4 py-2.5 sm:py-2 bg-green-500 hover:bg-green-600 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg sm:rounded-xl transition-colors text-sm sm:text-base font-medium touch-manipulation active:scale-95 disabled:active:scale-100"
               >
                 {loading ? 'Сохранение...' : 'Сохранить'}
               </button>
               <button
                 onClick={onClose}
-                className={`px-4 py-2 rounded-lg transition-colors ${
-                  theme === 'dark' ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-200 hover:bg-gray-300'
+                className={`px-4 py-2.5 sm:py-2 rounded-lg sm:rounded-xl transition-colors text-sm sm:text-base font-medium touch-manipulation active:scale-95 ${
+                  theme === 'dark' ? 'bg-gray-700 hover:bg-gray-600 active:bg-gray-500' : 'bg-gray-200 hover:bg-gray-300 active:bg-gray-400'
                 }`}
               >
                 Отмена

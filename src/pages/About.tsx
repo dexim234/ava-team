@@ -13,34 +13,34 @@ export const About = () => {
     <Layout>
       <div className="space-y-6">
         {/* Header */}
-        <div className={`rounded-2xl p-8 ${cardBg} shadow-xl border-2 ${
+        <div className={`rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8 ${cardBg} shadow-xl border-2 ${
           theme === 'dark' 
             ? 'border-blue-500/30 bg-gradient-to-br from-gray-800 via-gray-800 to-gray-900' 
             : 'border-blue-200 bg-gradient-to-br from-white via-blue-50/30 to-white'
         } relative overflow-hidden`}>
           {/* Decorative elements */}
-          <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-full blur-3xl -mr-32 -mt-32" />
-          <div className="absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-tr from-green-500/10 to-yellow-500/10 rounded-full blur-2xl -ml-24 -mb-24" />
+          <div className="absolute top-0 right-0 w-32 h-32 sm:w-64 sm:h-64 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-full blur-3xl -mr-16 sm:-mr-32 -mt-16 sm:-mt-32" />
+          <div className="absolute bottom-0 left-0 w-24 h-24 sm:w-48 sm:h-48 bg-gradient-to-tr from-green-500/10 to-yellow-500/10 rounded-full blur-2xl -ml-12 sm:-ml-24 -mb-12 sm:-mb-24" />
           
           <div className="relative z-10">
-            <div className="flex items-center gap-4 mb-4">
-              <div className={`p-4 rounded-2xl shadow-lg ${
+            <div className="flex items-center gap-3 sm:gap-4 mb-3 sm:mb-4">
+              <div className={`p-3 sm:p-4 rounded-xl sm:rounded-2xl shadow-lg flex-shrink-0 ${
                 theme === 'dark' 
                   ? 'bg-gradient-to-br from-blue-600 to-purple-600' 
                   : 'bg-gradient-to-br from-blue-500 to-purple-500'
-              } text-white transform transition-transform hover:scale-110`}>
-                <Info className="w-8 h-8" />
+              } text-white transform transition-transform active:scale-95 sm:hover:scale-110`}>
+                <Info className="w-6 h-6 sm:w-8 sm:h-8" />
               </div>
-              <div>
-                <h1 className={`text-4xl font-extrabold mb-2 ${headingColor} flex items-center gap-3`}>
+              <div className="flex-1 min-w-0">
+                <h1 className={`text-2xl sm:text-3xl md:text-4xl font-extrabold mb-2 ${headingColor} flex flex-wrap items-center gap-2 sm:gap-3`}>
                   <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 text-transparent bg-clip-text">
                     О сообществе ApeVault
                   </span>
-                  <span className="text-2xl">🌟</span>
+                  <span className="text-xl sm:text-2xl flex-shrink-0">🌟</span>
                 </h1>
-                <p className={`text-base font-medium ${subTextColor} flex items-center gap-2`}>
-                  <span className="text-green-500">●</span>
-                  Профессиональное сообщество трейдеров и коллеров
+                <p className={`text-sm sm:text-base font-medium ${subTextColor} flex flex-wrap items-center gap-2`}>
+                  <span className="text-green-500 flex-shrink-0">●</span>
+                  <span>Профессиональное сообщество трейдеров и коллеров</span>
                 </p>
               </div>
             </div>
