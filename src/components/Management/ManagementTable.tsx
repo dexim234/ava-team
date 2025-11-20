@@ -245,7 +245,6 @@ export const ManagementTable = ({ selectedUserId, slotFilter, onEditSlot, onEdit
             {displayUsers.map((user, index) => {
               const stats = getUserStats(user.id)
               const isEven = index % 2 === 0
-              const isCurrentUser = user?.id === user?.id
               return (
                 <tr 
                   key={user.id} 
