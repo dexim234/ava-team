@@ -41,13 +41,18 @@ export const canSetSickLeave = (date: Date | string): boolean => {
   return !isAfter(targetDate, maxDate) && !isBefore(targetDate, today)
 }
 
-export const calculateHours = (slots: { start: string; end: string; breaks?: { start: string; end: string }[] }[]): number => {
+export const calculateHours = (slots: { start: string; end: string; endDate?: string; breaks?: { start: string; end: string }[] }[]): number => {
   return slots.reduce((total, slot) => {
     const [startHour, startMin] = slot.start.split(':').map(Number)
     const [endHour, endMin] = slot.end.split(':').map(Number)
     const startMinutes = startHour * 60 + startMin
     const endMinutes = endHour * 60 + endMin
+    
+    // If slot crosses midnight (end < start) or has endDate, add 24 hours
     let diff = (endMinutes - startMinutes) / 60
+    if (diff < 0 || slot.endDate) {
+      diff += 24 // Add 24 hours for slots crossing midnight
+    }
     
     // Subtract all breaks time if exists
     if (slot.breaks && slot.breaks.length > 0) {
@@ -56,7 +61,11 @@ export const calculateHours = (slots: { start: string; end: string; breaks?: { s
         const [breakEndHour, breakEndMin] = breakTime.end.split(':').map(Number)
         const breakStartMinutes = breakStartHour * 60 + breakStartMin
         const breakEndMinutes = breakEndHour * 60 + breakEndMin
-        const breakDiff = (breakEndMinutes - breakStartMinutes) / 60
+        let breakDiff = (breakEndMinutes - breakStartMinutes) / 60
+        // If break crosses midnight, add 24 hours
+        if (breakDiff < 0) {
+          breakDiff += 24
+        }
         return breakTotal + breakDiff
       }, 0)
       diff -= totalBreakTime

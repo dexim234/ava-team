@@ -136,13 +136,44 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
       
       // Check if any slot hasn't ended yet
       return slot.slots.some((s) => {
+        // If slot crosses midnight (has endDate), check endDate instead
+        if (s.endDate) {
+          const endDate = new Date(s.endDate)
+          endDate.setHours(0, 0, 0, 0)
+          const todayEnd = new Date(today)
+          todayEnd.setHours(23, 59, 59)
+          
+          // If endDate is in the future, slot is upcoming
+          if (endDate > today) return true
+          
+          // If endDate is today, check if end time hasn't passed
+          if (endDate.getTime() === today.getTime()) {
+            const [endHour, endMin] = s.end.split(':').map(Number)
+            const endTime = endHour * 60 + endMin
+            return endTime > currentTime
+          }
+          
+          return false
+        }
+        
+        // Regular same-day slot
         const [endHour, endMin] = s.end.split(':').map(Number)
         const endTime = endHour * 60 + endMin
         return endTime > currentTime
       })
     }
     
-    return false
+    // Check if slot has endDate in the future
+    const hasFutureEndDate = slot.slots.some((s) => {
+      if (s.endDate) {
+        const endDate = new Date(s.endDate)
+        endDate.setHours(0, 0, 0, 0)
+        return endDate >= today
+      }
+      return false
+    })
+    
+    return hasFutureEndDate
   }
 
   const getSlotsForDay = (date: string): WorkSlot[] => {
@@ -425,6 +456,11 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
                               <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
                                 <SlotIcon className={`w-3.5 h-3.5 sm:w-4 sm:h-4 text-white flex-shrink-0 ${isUpcoming ? 'animate-pulse' : ''}`} />
                                 <span className="text-white font-bold text-xs sm:text-sm whitespace-nowrap">{s.start} - {s.end}</span>
+                                {s.endDate && (
+                                  <span className="text-white/80 font-medium text-[10px] sm:text-xs whitespace-nowrap">
+                                    (до {formatDate(new Date(s.endDate), 'dd.MM')})
+                                  </span>
+                                )}
                               </div>
                             </div>
                             {/* Breaks */}

@@ -10,7 +10,8 @@ export interface User {
 // Slot types
 export interface TimeSlot {
   start: string // HH:mm format
-  end: string
+  end: string // HH:mm format
+  endDate?: string // YYYY-MM-DD format - optional, only if slot crosses midnight
   breaks?: {
     start: string // HH:mm format
     end: string // HH:mm format

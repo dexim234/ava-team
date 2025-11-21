@@ -76,13 +76,42 @@ export const Management = () => {
       
       // Check if any slot hasn't ended yet
       return slot.slots.some((s: any) => {
+        // If slot crosses midnight (has endDate), check endDate instead
+        if (s.endDate) {
+          const endDate = new Date(s.endDate)
+          endDate.setHours(0, 0, 0, 0)
+          
+          // If endDate is in the future, slot is upcoming
+          if (endDate > today) return true
+          
+          // If endDate is today, check if end time hasn't passed
+          if (endDate.getTime() === today.getTime()) {
+            const [endHour, endMin] = s.end.split(':').map(Number)
+            const endTime = endHour * 60 + endMin
+            return endTime > currentTime
+          }
+          
+          return false
+        }
+        
+        // Regular same-day slot
         const [endHour, endMin] = s.end.split(':').map(Number)
         const endTime = endHour * 60 + endMin
         return endTime > currentTime
       })
     }
     
-    return false
+    // Check if slot has endDate in the future
+    const hasFutureEndDate = slot.slots.some((s: any) => {
+      if (s.endDate) {
+        const endDate = new Date(s.endDate)
+        endDate.setHours(0, 0, 0, 0)
+        return endDate >= today
+      }
+      return false
+    })
+    
+    return hasFutureEndDate
   }
 
   const loadStats = async () => {

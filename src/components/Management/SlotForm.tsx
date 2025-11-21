@@ -36,6 +36,8 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
   )
   const [currentStart, setCurrentStart] = useState('')
   const [currentEnd, setCurrentEnd] = useState('')
+  const [crossesMidnight, setCrossesMidnight] = useState(false)
+  const [currentEndDate, setCurrentEndDate] = useState('')
   const [currentBreakStart, setCurrentBreakStart] = useState('')
   const [currentBreakEnd, setCurrentBreakEnd] = useState('')
   const [currentSlotIndex, setCurrentSlotIndex] = useState<number | null>(null)
@@ -78,27 +80,63 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
     }
   }, [dateMode])
 
+  useEffect(() => {
+    // Auto-calculate end date if crossing midnight
+    if (crossesMidnight && date && currentStart && currentEnd) {
+      if (currentStart >= currentEnd) {
+        // Slot crosses midnight - end date is next day
+        const startDate = new Date(date)
+        startDate.setDate(startDate.getDate() + 1)
+        setCurrentEndDate(formatDate(startDate, 'yyyy-MM-dd'))
+      } else {
+        // Same day slot
+        setCurrentEndDate('')
+      }
+    } else {
+      setCurrentEndDate('')
+    }
+  }, [crossesMidnight, date, currentStart, currentEnd])
+
   const addTimeSlot = () => {
     if (!currentStart || !currentEnd) {
       setError('Заполните время начала и окончания')
       return
     }
 
-    if (currentStart >= currentEnd) {
-      setError('Время окончания должно быть позже времени начала')
+    // Check if slot crosses midnight
+    const slotCrossesMidnight = crossesMidnight && currentStart >= currentEnd
+
+    if (!slotCrossesMidnight && currentStart >= currentEnd) {
+      setError('Время окончания должно быть позже времени начала. Включите "Переходит через полночь" для слотов, переходящих на следующий день.')
       return
+    }
+
+    // Calculate end date if crossing midnight
+    let endDate: string | undefined = undefined
+    if (slotCrossesMidnight && date) {
+      if (currentEndDate) {
+        endDate = currentEndDate
+      } else {
+        // Auto-calculate: next day
+        const startDate = new Date(date)
+        startDate.setDate(startDate.getDate() + 1)
+        endDate = formatDate(startDate, 'yyyy-MM-dd')
+      }
     }
 
     // Add slot without breaks initially (breaks can be added separately)
     const newSlot: TimeSlot = {
       start: currentStart,
       end: currentEnd,
+      ...(endDate && { endDate }),
       breaks: []
     }
 
     setSlots([...slots, newSlot])
     setCurrentStart('')
     setCurrentEnd('')
+    setCrossesMidnight(false)
+    setCurrentEndDate('')
     setCurrentBreakStart('')
     setCurrentBreakEnd('')
     setCurrentSlotIndex(null)
@@ -609,31 +647,84 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
                 Временные слоты
               </label>
               <div className="space-y-2 mb-2">
-                <div className="flex gap-2">
-                  <input
-                    type="time"
-                    value={currentStart}
-                    onChange={(e) => setCurrentStart(e.target.value)}
-                    className={`flex-1 px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base rounded-lg border touch-manipulation ${
-                      theme === 'dark'
-                        ? 'bg-gray-700 border-gray-600 text-white'
-                        : 'bg-white border-gray-300 text-gray-900'
-                    } focus:outline-none focus:ring-2 focus:ring-green-500`}
-                    placeholder="Начало"
-                  />
-                  <span className="mx-1 sm:mx-2 text-gray-500 text-sm sm:text-base">—</span>
-                  <input
-                    type="time"
-                    value={currentEnd}
-                    onChange={(e) => setCurrentEnd(e.target.value)}
-                    className={`flex-1 px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base rounded-lg border touch-manipulation ${
-                      theme === 'dark'
-                        ? 'bg-gray-700 border-gray-600 text-white'
-                        : 'bg-white border-gray-300 text-gray-900'
-                    } focus:outline-none focus:ring-2 focus:ring-green-500`}
-                    placeholder="Окончание"
-                  />
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <div className="flex gap-2 flex-1">
+                    <input
+                      type="time"
+                      value={currentStart}
+                      onChange={(e) => setCurrentStart(e.target.value)}
+                      className={`flex-1 px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base rounded-lg border touch-manipulation ${
+                        theme === 'dark'
+                          ? 'bg-gray-700 border-gray-600 text-white'
+                          : 'bg-white border-gray-300 text-gray-900'
+                      } focus:outline-none focus:ring-2 focus:ring-green-500`}
+                      placeholder="Начало"
+                    />
+                    <span className="mx-1 sm:mx-2 text-gray-500 text-sm sm:text-base flex items-center">—</span>
+                    <input
+                      type="time"
+                      value={currentEnd}
+                      onChange={(e) => setCurrentEnd(e.target.value)}
+                      className={`flex-1 px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base rounded-lg border touch-manipulation ${
+                        theme === 'dark'
+                          ? 'bg-gray-700 border-gray-600 text-white'
+                          : 'bg-white border-gray-300 text-gray-900'
+                      } focus:outline-none focus:ring-2 focus:ring-green-500`}
+                      placeholder="Окончание"
+                    />
+                  </div>
                 </div>
+                
+                {/* Cross midnight option */}
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="crossMidnight"
+                    checked={crossesMidnight}
+                    onChange={(e) => {
+                      setCrossesMidnight(e.target.checked)
+                      if (!e.target.checked) {
+                        setCurrentEndDate('')
+                      }
+                    }}
+                    className={`w-4 h-4 rounded border-2 ${
+                      theme === 'dark'
+                        ? 'border-gray-600 bg-gray-700 checked:bg-green-500 checked:border-green-500'
+                        : 'border-gray-300 bg-white checked:bg-green-500 checked:border-green-500'
+                    } focus:ring-2 focus:ring-green-500 cursor-pointer touch-manipulation`}
+                  />
+                  <label
+                    htmlFor="crossMidnight"
+                    className={`text-xs sm:text-sm font-medium cursor-pointer ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}
+                  >
+                    Переходит через полночь (на следующий день)
+                  </label>
+                </div>
+
+                {/* End date input (if crossing midnight) */}
+                {crossesMidnight && (
+                  <div>
+                    <label className={`block text-xs sm:text-sm font-medium mb-1 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                      Дата окончания (автоматически: следующий день после начала)
+                    </label>
+                    <input
+                      type="date"
+                      value={currentEndDate}
+                      onChange={(e) => setCurrentEndDate(e.target.value)}
+                      min={date}
+                      className={`w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base rounded-lg border touch-manipulation ${
+                        theme === 'dark'
+                          ? 'bg-gray-700 border-gray-600 text-white'
+                          : 'bg-white border-gray-300 text-gray-900'
+                      } focus:outline-none focus:ring-2 focus:ring-green-500`}
+                    />
+                    {currentEndDate && (
+                      <p className={`mt-1 text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                        Слот: {date} {currentStart} → {currentEndDate} {currentEnd}
+                      </p>
+                    )}
+                  </div>
+                )}
                 <button
                   onClick={addTimeSlot}
                   className="w-full px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors flex items-center justify-center gap-2"
@@ -652,13 +743,24 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
                       theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100'
                     }`}
                   >
-                    <div className="flex items-center justify-between">
-                      <span className={headingColor}>
-                        {s.start} - {s.end}
-                      </span>
+                    <div className="flex items-center justify-between flex-wrap gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className={headingColor}>
+                          {s.start} - {s.end}
+                        </span>
+                        {s.endDate && (
+                          <span className={`text-xs px-2 py-0.5 rounded-full ${
+                            theme === 'dark'
+                              ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
+                              : 'bg-blue-100 text-blue-700 border border-blue-300'
+                          }`}>
+                            до {formatDate(new Date(s.endDate), 'dd.MM.yyyy')}
+                          </span>
+                        )}
+                      </div>
                       <button
                         onClick={() => removeTimeSlot(index)}
-                        className="p-1 text-red-500 hover:bg-red-500 hover:text-white rounded transition-colors"
+                        className="p-1 text-red-500 hover:bg-red-500 hover:text-white rounded transition-colors flex-shrink-0"
                         title="Удалить слот"
                       >
                         <Trash2 className="w-4 h-4" />
