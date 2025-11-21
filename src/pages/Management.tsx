@@ -298,9 +298,9 @@ export const Management = () => {
                 <CalendarCheck className="w-4 h-4 sm:w-5 sm:h-5 text-green-500 flex-shrink-0" />
                 <span>Фильтр слотов:</span>
               </h2>
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div className="flex justify-start">
                 <div
-                  className={`inline-flex flex-row flex-wrap rounded-lg sm:rounded-xl p-1 sm:p-1.5 shadow-lg gap-1 ${
+                  className={`inline-flex flex-col sm:flex-row flex-wrap rounded-lg sm:rounded-xl p-1 sm:p-1.5 shadow-lg gap-1 ${
                     theme === 'dark'
                       ? 'bg-gray-700/50 border-2 border-gray-600'
                       : 'bg-gray-200/50 border-2 border-gray-300'
@@ -308,7 +308,7 @@ export const Management = () => {
                 >
                   <button
                   onClick={() => setSlotFilter('all')}
-                    className={`min-w-[110px] px-3 sm:px-4 md:px-5 py-2 sm:py-2.5 rounded-lg transition-all duration-300 text-xs sm:text-sm font-semibold flex items-center justify-center gap-1.5 sm:gap-2 relative touch-manipulation active:scale-95 ${
+                    className={`px-3 sm:px-4 md:px-5 py-2 sm:py-2.5 rounded-lg transition-all duration-300 text-xs sm:text-sm font-semibold flex items-center justify-center gap-1.5 sm:gap-2 relative touch-manipulation active:scale-95 ${
                     slotFilter === 'all'
                       ? 'bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg shadow-green-500/50 scale-105'
                       : theme === 'dark'
@@ -355,22 +355,6 @@ export const Management = () => {
                   )}
                   </button>
                 </div>
-                <button
-                  onClick={() => {
-                    const today = formatDate(new Date(), 'yyyy-MM-dd')
-                    setSelectedUserId(null)
-                    setSlotFilter('all')
-                    alert(`Показаны слоты на дату ${today}`)
-                  }}
-                  className={`w-full sm:w-auto px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold border flex items-center justify-center gap-2 ${
-                    theme === 'dark'
-                      ? 'text-white border-gray-600 hover:bg-gray-700'
-                      : 'text-gray-800 border-gray-300 hover:bg-gray-100'
-                  }`}
-                >
-                  <Calendar className="w-4 h-4" />
-                  Сегодня
-                </button>
               </div>
             </div>
 
