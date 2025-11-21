@@ -95,10 +95,10 @@ export const About = () => {
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {[
-                { label: 'Участников', value: '120+' },
-                { label: 'Сессий в неделю', value: '60+' },
-                { label: 'Коллов в клубе', value: '40+' },
-                { label: 'Городов', value: '15' }
+                { label: 'Участников', value: '50+' },
+                { label: 'Уроков', value: '100+' },
+                { label: 'Сессий в неделю', value: '10+' },
+                { label: 'Собственных продуктов', value: '3' }
               ].map((item) => (
                 <div
                   key={item.label}
