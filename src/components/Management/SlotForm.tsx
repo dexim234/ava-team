@@ -4,7 +4,7 @@ import { useAuthStore } from '@/store/authStore'
 import { useThemeStore } from '@/store/themeStore'
 import { useAdminStore } from '@/store/adminStore'
 import { addWorkSlot, updateWorkSlot, getWorkSlots } from '@/services/firestoreService'
-import { calculateHours, timeOverlaps, formatDate, getDatesInRange, normalizeDatesList } from '@/utils/dateUtils'
+import { calculateHours, timeOverlaps, formatDate, getDatesInRange, normalizeDatesList, parseTime } from '@/utils/dateUtils'
 import { X, Plus, Trash2, Edit } from 'lucide-react'
 import { WorkSlot, TimeSlot, TEAM_MEMBERS } from '@/types'
 
@@ -157,8 +157,51 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
       return
     }
 
-    if (currentBreakStart < slot.start || currentBreakEnd > slot.end) {
-      setError('Перерыв должен быть в пределах времени слота')
+    // Check if break is within slot time
+    // Convert times to minutes for proper comparison
+    const breakStartMin = parseTime(currentBreakStart)
+    const breakEndMin = parseTime(currentBreakEnd)
+    const slotStartMin = parseTime(slot.start)
+    const slotEndMin = parseTime(slot.end)
+    
+    // Handle slots that cross midnight (endDate exists or end < start in minutes)
+    const slotCrossesMidnight = slot.endDate || slotEndMin <= slotStartMin
+    
+    let breakWithinSlot = false
+    
+    if (slotCrossesMidnight) {
+      // Slot crosses midnight (e.g., 20:00-02:00)
+      // Break can be:
+      // 1. Entirely in first part: from slot.start to 23:59
+      // 2. Entirely in second part: from 00:00 to slot.end
+      // 3. Spans across midnight: starts before midnight, ends after midnight
+      
+      const minutesInDay = 24 * 60 // 1440 minutes
+      
+      // Case 1: Break entirely in first part (same day)
+      const breakInFirstPart = breakStartMin >= slotStartMin && breakStartMin < minutesInDay &&
+                                breakEndMin > breakStartMin && breakEndMin <= minutesInDay &&
+                                breakEndMin > breakStartMin
+      
+      // Case 2: Break entirely in second part (next day)
+      const breakInSecondPart = breakStartMin >= 0 && breakStartMin <= slotEndMin &&
+                                 breakEndMin > breakStartMin && breakEndMin <= slotEndMin
+      
+      // Case 3: Break spans across midnight (starts in first part, ends in second part)
+      const breakSpansMidnight = breakStartMin >= slotStartMin && breakStartMin < minutesInDay &&
+                                  breakEndMin > 0 && breakEndMin <= slotEndMin &&
+                                  breakStartMin > breakEndMin // Start is later in day than end
+      
+      breakWithinSlot = breakInFirstPart || breakInSecondPart || breakSpansMidnight
+    } else {
+      // Regular slot (same day) - break must be between slot.start and slot.end
+      // Break start must be >= slot start and break end must be <= slot end
+      breakWithinSlot = breakStartMin >= slotStartMin && breakEndMin <= slotEndMin && 
+                        breakEndMin > breakStartMin
+    }
+    
+    if (!breakWithinSlot) {
+      setError(`Перерыв должен быть в пределах времени слота (${slot.start} - ${slot.end})`)
       return
     }
 
