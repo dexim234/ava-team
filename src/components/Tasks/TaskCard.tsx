@@ -4,7 +4,7 @@ import { useAuthStore } from '@/store/authStore'
 import { useAdminStore } from '@/store/adminStore'
 import { useThemeStore } from '@/store/themeStore'
 import { updateTask, addTaskNotification } from '@/services/firestoreService'
-import { Task, TaskStatus, TaskApproval, TEAM_MEMBERS, TASK_CATEGORIES, TASK_STATUSES } from '@/types'
+import { Task, TaskStatus, TEAM_MEMBERS, TASK_CATEGORIES, TASK_STATUSES } from '@/types'
 import { 
   Edit, 
   Trash2, 
