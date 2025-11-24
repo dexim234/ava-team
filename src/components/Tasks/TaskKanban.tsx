@@ -5,8 +5,9 @@ import { useAuthStore } from '@/store/authStore'
 import { useAdminStore } from '@/store/adminStore'
 import { updateTask, addTaskNotification } from '@/services/firestoreService'
 import { Task, TaskStatus, TASK_STATUSES, TEAM_MEMBERS } from '@/types'
-import { MoreVertical, CheckSquare, Check, X, RotateCcw } from 'lucide-react'
+import { MoreVertical, CheckSquare, Check, X, RotateCcw, MessageSquare } from 'lucide-react'
 import { formatDate } from '@/utils/dateUtils'
+import { TaskChat } from './TaskChat'
 
 interface TaskKanbanProps {
   tasks: Task[]
@@ -28,6 +29,7 @@ export const TaskKanban = ({ tasks, onUpdate, onEdit, onDelete, getUnreadNotific
   const [loading, setLoading] = useState<string | null>(null)
   const [touchStart, setTouchStart] = useState<{ x: number; y: number; task: Task } | null>(null)
   const [touchTarget, setTouchTarget] = useState<string | null>(null)
+  const [chatTask, setChatTask] = useState<Task | null>(null)
 
   const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
   const cardBg = theme === 'dark' ? 'bg-gray-800' : 'bg-white'
@@ -279,7 +281,7 @@ export const TaskKanban = ({ tasks, onUpdate, onEdit, onDelete, getUnreadNotific
       
       const updatedApprovals: Task['approvals'] = task.approvals.map(a => 
         a.userId === user.id 
-          ? { ...a, status: newStatus, comment: approvalComment || undefined, updatedAt: now }
+          ? { ...a, status: newStatus, comment: action === 'reject' ? approvalComment || undefined : undefined, updatedAt: now }
           : a
       )
 
@@ -287,7 +289,7 @@ export const TaskKanban = ({ tasks, onUpdate, onEdit, onDelete, getUnreadNotific
         updatedApprovals.push({
           userId: user.id,
           status: newStatus,
-          comment: approvalComment || undefined,
+          comment: action === 'reject' ? approvalComment || undefined : undefined,
           updatedAt: now,
         })
       }
@@ -622,6 +624,19 @@ export const TaskKanban = ({ tasks, onUpdate, onEdit, onDelete, getUnreadNotific
                           </div>
                         </div>
 
+                        {/* Chat Button */}
+                        <button
+                          onClick={() => setChatTask(task)}
+                          className={`w-full mt-2 px-2 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center justify-center gap-1 ${
+                            theme === 'dark'
+                              ? 'bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 border border-blue-500/50'
+                              : 'bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200'
+                          }`}
+                        >
+                          <MessageSquare className="w-3 h-3" />
+                          Чат
+                        </button>
+
                         {/* Approval/Reject Buttons */}
                         {canApproveTask && (
                           <div className={`flex gap-2 mt-2 pt-2 border-t ${borderColor}`}>
@@ -678,15 +693,18 @@ export const TaskKanban = ({ tasks, onUpdate, onEdit, onDelete, getUnreadNotific
             <h3 className={`text-lg font-bold mb-4 ${headingColor}`}>
               {approvalDialog.action === 'approve' ? 'Согласовать задачу' : 'Отклонить задачу'}
             </h3>
-            <textarea
-              value={approvalComment}
-              onChange={(e) => setApprovalComment(e.target.value)}
-              placeholder={approvalDialog.action === 'approve' ? 'Комментарий (необязательно)' : 'Укажите причину отклонения'}
-              rows={3}
-              className={`w-full px-4 py-2 rounded-lg border ${borderColor} ${
-                theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'
-              } ${headingColor} mb-4 focus:outline-none focus:ring-2 focus:ring-green-500/50`}
-            />
+              {approvalDialog.action === 'reject' && (
+                <textarea
+                  value={approvalComment}
+                  onChange={(e) => setApprovalComment(e.target.value)}
+                  placeholder="Укажите причину отклонения"
+                  rows={3}
+                  className={`w-full px-4 py-2 rounded-lg border ${borderColor} ${
+                    theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'
+                  } ${headingColor} mb-4 focus:outline-none focus:ring-2 focus:ring-green-500/50`}
+                  required
+                />
+              )}
             <div className="flex gap-3">
               <button
                 onClick={() => handleApprove(approvalDialog.task, approvalDialog.action)}
@@ -713,6 +731,18 @@ export const TaskKanban = ({ tasks, onUpdate, onEdit, onDelete, getUnreadNotific
             </div>
           </div>
         </div>
+      )}
+
+      {/* Chat Modal */}
+      {chatTask && (
+        <TaskChat
+          task={chatTask}
+          onClose={() => setChatTask(null)}
+          onUpdate={() => {
+            onUpdate()
+            setChatTask(null)
+          }}
+        />
       )}
     </>
   )

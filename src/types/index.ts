@@ -178,6 +178,50 @@ export interface Task {
   priority?: 'low' | 'medium' | 'high'
   dueDate: string // YYYY-MM-DD format (обязательно)
   dueTime: string // HH:mm format (обязательно)
+  chatSaved?: boolean // Сохранен ли чат
+  chatSavedAt?: string // Дата сохранения чата
+}
+
+// Task Chat
+export interface TaskChatMessage {
+  id: string
+  taskId: string
+  userId: string // user ID
+  userName: string // user name
+  message: string
+  imageUrl?: string // URL изображения
+  documentUrl?: string // URL документа
+  documentName?: string // Имя документа
+  createdAt: string
+  updatedAt?: string
+  edited: boolean
+  deleted: boolean
+  chatSavedAt?: string // Дата сохранения чата
+}
+
+// Task Chat
+export interface TaskChatMessage {
+  id: string
+  taskId: string
+  userId: string // user ID
+  userName: string // user name
+  message: string
+  imageUrl?: string // URL изображения
+  documentUrl?: string // URL документа
+  documentName?: string // Имя документа
+  createdAt: string
+  updatedAt?: string
+  edited: boolean
+  deleted: boolean
+}
+
+export interface TaskChat {
+  taskId: string
+  messages: TaskChatMessage[]
+  createdAt: string // Дата создания первого сообщения
+  expiresAt: string // Дата автоматического удаления (48 часов)
+  saved: boolean // Сохранен ли чат
+  savedAt?: string // Дата сохранения
 }
 
 // Team members

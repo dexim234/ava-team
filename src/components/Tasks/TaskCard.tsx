@@ -17,7 +17,8 @@ import {
   Calendar,
   AlertCircle,
   Check,
-  X
+  X,
+  MessageSquare
 } from 'lucide-react'
 import { formatDate } from '@/utils/dateUtils'
 
@@ -38,6 +39,7 @@ export const TaskCard = ({ task, onEdit, onDelete, onUpdate, unreadNotifications
   const [showApprovalDialog, setShowApprovalDialog] = useState(false)
   const [approvalComment, setApprovalComment] = useState('')
   const [approvalAction, setApprovalAction] = useState<'approve' | 'reject' | null>(null)
+  const [showChat, setShowChat] = useState(false)
 
   const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
   const cardBg = theme === 'dark' ? 'bg-gray-800' : 'bg-white'
@@ -127,7 +129,7 @@ export const TaskCard = ({ task, onEdit, onDelete, onUpdate, unreadNotifications
       
       const updatedApprovals: Task['approvals'] = task.approvals.map(a => 
         a.userId === user.id 
-          ? { ...a, status: newStatus, comment: approvalComment || undefined, updatedAt: now }
+          ? { ...a, status: newStatus, comment: action === 'reject' ? approvalComment || undefined : undefined, updatedAt: now }
           : a
       )
 
@@ -136,7 +138,7 @@ export const TaskCard = ({ task, onEdit, onDelete, onUpdate, unreadNotifications
         updatedApprovals.push({
           userId: user.id,
           status: newStatus,
-          comment: approvalComment || undefined,
+          comment: action === 'reject' ? approvalComment || undefined : undefined,
           updatedAt: now,
         })
       }
@@ -358,6 +360,19 @@ export const TaskCard = ({ task, onEdit, onDelete, onUpdate, unreadNotifications
 
         {/* Actions */}
         <div className={`flex flex-wrap gap-2 pt-4 border-t ${borderColor}`}>
+          {/* Chat button */}
+          <button
+            onClick={() => setShowChat(true)}
+            className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
+              theme === 'dark'
+                ? 'bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 border border-blue-500/50'
+                : 'bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200'
+            }`}
+          >
+            <MessageSquare className="w-4 h-4" />
+            Чат
+          </button>
+
           {/* Approval buttons */}
           {canApprove && !userApproval && (
             <button
@@ -428,15 +443,18 @@ export const TaskCard = ({ task, onEdit, onDelete, onUpdate, unreadNotifications
             <h3 className={`text-lg font-bold mb-4 ${headingColor}`}>
               {approvalAction === 'approve' ? 'Согласовать задачу' : 'Отклонить задачу'}
             </h3>
-            <textarea
-              value={approvalComment}
-              onChange={(e) => setApprovalComment(e.target.value)}
-              placeholder={approvalAction === 'approve' ? 'Комментарий (необязательно)' : 'Укажите причину отклонения'}
-              rows={3}
-              className={`w-full px-4 py-2 rounded-lg border ${borderColor} ${
-                theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'
-              } ${headingColor} mb-4 focus:outline-none focus:ring-2 focus:ring-green-500/50`}
-            />
+            {approvalAction === 'reject' && (
+              <textarea
+                value={approvalComment}
+                onChange={(e) => setApprovalComment(e.target.value)}
+                placeholder="Укажите причину отклонения"
+                rows={3}
+                className={`w-full px-4 py-2 rounded-lg border ${borderColor} ${
+                  theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'
+                } ${headingColor} mb-4 focus:outline-none focus:ring-2 focus:ring-green-500/50`}
+                required
+              />
+            )}
             <div className="flex gap-3">
               <button
                 onClick={() => handleApprove(approvalAction!)}
