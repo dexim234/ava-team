@@ -22,7 +22,7 @@ import {
   countDaysInPeriod 
 } from '@/utils/dateUtils'
 import { calculateRating, getRatingBreakdown } from '@/utils/ratingUtils'
-import { Task, TaskNotification, RatingData, TEAM_MEMBERS } from '@/types'
+import { Task, TaskNotification, RatingData } from '@/types'
 import { 
   User, 
   LogOut, 
@@ -31,8 +31,6 @@ import {
   CheckSquare, 
   Bell, 
   TrendingUp, 
-  Calendar,
-  DollarSign,
   Shield,
   Sparkles,
   Copy,
@@ -158,22 +156,16 @@ export const Profile = () => {
         }
 
         const calculatedRating = calculateRating(
-          updatedData.daysOff,
-          updatedData.sickDays,
-          updatedData.vacationDays,
+          updatedData,
           weeklyHours,
           weeklyEarnings,
-          updatedData.referrals,
           weeklyMessages
         )
 
         const breakdown = getRatingBreakdown(
-          updatedData.daysOff,
-          updatedData.sickDays,
-          updatedData.vacationDays,
+          updatedData,
           weeklyHours,
           weeklyEarnings,
-          updatedData.referrals,
           weeklyMessages
         )
 
@@ -353,22 +345,62 @@ export const Profile = () => {
                     </div>
                   </div>
                   <div className="space-y-2">
-                    {Object.entries(ratingBreakdown).map(([key, value]) => (
-                      <div key={key} className="flex items-center justify-between">
-                        <span className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                          {key === 'daysOff' ? 'Выходные' :
-                           key === 'sickDays' ? 'Больничные' :
-                           key === 'vacationDays' ? 'Отпуск' :
-                           key === 'hours' ? 'Часы работы' :
-                           key === 'earnings' ? 'Заработок' :
-                           key === 'referrals' ? 'Рефералы' :
-                           'Сообщения'}
-                        </span>
-                        <span className={`text-sm font-semibold ${headingColor}`}>
-                          {value}%
-                        </span>
-                      </div>
-                    ))}
+                    <div className="flex items-center justify-between">
+                      <span className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                        Выходные
+                      </span>
+                      <span className={`text-sm font-semibold ${headingColor}`}>
+                        {ratingBreakdown.daysOffPoints}%
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                        Больничные
+                      </span>
+                      <span className={`text-sm font-semibold ${headingColor}`}>
+                        {ratingBreakdown.sickDaysPoints}%
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                        Отпуск
+                      </span>
+                      <span className={`text-sm font-semibold ${headingColor}`}>
+                        {ratingBreakdown.vacationDaysPoints}%
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                        Часы работы
+                      </span>
+                      <span className={`text-sm font-semibold ${headingColor}`}>
+                        {ratingBreakdown.weeklyHoursPoints}%
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                        Заработок
+                      </span>
+                      <span className={`text-sm font-semibold ${headingColor}`}>
+                        {ratingBreakdown.weeklyEarningsPoints}%
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                        Рефералы
+                      </span>
+                      <span className={`text-sm font-semibold ${headingColor}`}>
+                        {ratingBreakdown.referralsPoints}%
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                        Сообщения
+                      </span>
+                      <span className={`text-sm font-semibold ${headingColor}`}>
+                        {ratingBreakdown.weeklyMessagesPoints}%
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>

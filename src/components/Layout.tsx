@@ -9,17 +9,9 @@ import { useState, useEffect } from 'react'
 
 export const Layout = ({ children }: { children: React.ReactNode }) => {
   const { theme, toggleTheme } = useThemeStore()
-  const { isAdmin, deactivateAdmin } = useAdminStore()
-  const { user } = useAuthStore()
+  const { isAdmin } = useAdminStore()
   const location = useLocation()
   const [showFunctionalityMenu, setShowFunctionalityMenu] = useState(false)
-
-  const mainNavItems = [
-    { path: '/call', label: 'Call', icon: Zap },
-    { path: '/about', label: 'О сообществе', icon: Info },
-    { path: '/faq', label: 'FAQ', icon: HelpCircle },
-    { path: '/profile', label: 'ЛК', icon: User },
-  ]
 
   const functionalitySubItems = [
     { path: '/management', label: 'Расписание', icon: Calendar },

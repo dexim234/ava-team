@@ -4,7 +4,7 @@ import { useThemeStore } from '@/store/themeStore'
 import { useAuthStore } from '@/store/authStore'
 import { useAdminStore } from '@/store/adminStore'
 import { updateTask, addTaskNotification } from '@/services/firestoreService'
-import { Task, TaskStatus, TASK_STATUSES, TEAM_MEMBERS } from '@/types'
+import { Task, TaskStatus, TASK_STATUSES } from '@/types'
 import { MoreVertical, CheckSquare } from 'lucide-react'
 import { formatDate } from '@/utils/dateUtils'
 

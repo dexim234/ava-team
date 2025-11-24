@@ -11,11 +11,10 @@ import { TaskNotifications } from '@/components/Tasks/TaskNotifications'
 import { 
   getTasks, 
   deleteTask, 
-  getTaskNotifications,
-  markAllNotificationsAsRead 
+  getTaskNotifications
 } from '@/services/firestoreService'
 import { Task, TaskCategory, TaskStatus, TaskNotification } from '@/types'
-import { Plus, CheckSquare, Bell, Sparkles, List, LayoutGrid } from 'lucide-react'
+import { Plus, CheckSquare, Sparkles, List, LayoutGrid } from 'lucide-react'
 
 export const Tasks = () => {
   const { theme } = useThemeStore()
@@ -110,21 +109,6 @@ export const Tasks = () => {
     setSelectedCategory('all')
     setSelectedStatus('all')
     setSelectedUser('all')
-  }
-
-  const handleMarkAllRead = async () => {
-    if (!user) return
-    
-    try {
-      await markAllNotificationsAsRead(user.id)
-      loadNotifications()
-    } catch (error) {
-      console.error('Error marking notifications as read:', error)
-    }
-  }
-
-  const getUnreadCount = () => {
-    return notifications.filter(n => !n.read).length
   }
 
   const getTaskNotificationsCount = (taskId: string) => {
