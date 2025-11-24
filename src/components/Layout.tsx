@@ -4,7 +4,6 @@ import { useThemeStore } from '@/store/themeStore'
 import { useAdminStore } from '@/store/adminStore'
 import { Moon, Sun, Shield, Zap, Settings, Calendar, DollarSign, CheckSquare, TrendingUp, Info, HelpCircle, User, ChevronDown } from 'lucide-react'
 import logo from '@/assets/logo.png'
-import { useAuthStore } from '@/store/authStore'
 import { useState, useEffect } from 'react'
 
 export const Layout = ({ children }: { children: React.ReactNode }) => {
