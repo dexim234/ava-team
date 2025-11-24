@@ -4,7 +4,7 @@ import { useThemeStore } from '@/store/themeStore'
 import { useAuthStore } from '@/store/authStore'
 import { useAdminStore } from '@/store/adminStore'
 import { updateTask, addTaskNotification } from '@/services/firestoreService'
-import { Task, TaskStatus, TASK_STATUSES } from '@/types'
+import { Task, TaskStatus, TASK_STATUSES, TEAM_MEMBERS } from '@/types'
 import { MoreVertical, CheckSquare, Check, X, RotateCcw } from 'lucide-react'
 import { formatDate } from '@/utils/dateUtils'
 
@@ -26,6 +26,8 @@ export const TaskKanban = ({ tasks, onUpdate, onEdit, onDelete, getUnreadNotific
   const [approvalDialog, setApprovalDialog] = useState<{ task: Task; action: 'approve' | 'reject' } | null>(null)
   const [approvalComment, setApprovalComment] = useState('')
   const [loading, setLoading] = useState<string | null>(null)
+  const [touchStart, setTouchStart] = useState<{ x: number; y: number; task: Task } | null>(null)
+  const [touchTarget, setTouchTarget] = useState<string | null>(null)
 
   const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
   const cardBg = theme === 'dark' ? 'bg-gray-800' : 'bg-white'
@@ -54,6 +56,49 @@ export const TaskKanban = ({ tasks, onUpdate, onEdit, onDelete, getUnreadNotific
 
   const handleDragEnd = () => {
     setDraggedTask(null)
+  }
+
+  // Touch events for mobile drag & drop
+  const handleTouchStart = (e: React.TouchEvent, task: Task) => {
+    if (loading || task.status === 'rejected') return
+    const touch = e.touches[0]
+    setTouchStart({ x: touch.clientX, y: touch.clientY, task })
+  }
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!touchStart) return
+    e.preventDefault()
+    const touch = e.touches[0]
+    const element = document.elementFromPoint(touch.clientX, touch.clientY)
+    if (element) {
+      const column = element.closest('[data-status]')
+      if (column) {
+        const columnStatus = column.getAttribute('data-status')
+        if (columnStatus) {
+          setTouchTarget(columnStatus)
+        }
+      }
+    }
+  }
+
+  const handleTouchEnd = async (e: React.TouchEvent, currentStatus: TaskStatus) => {
+    if (!touchStart) return
+    
+    const touch = e.changedTouches[0]
+    const element = document.elementFromPoint(touch.clientX, touch.clientY)
+    
+    if (element) {
+      const column = element.closest('[data-status]')
+      if (column) {
+        const targetStatus = column.getAttribute('data-status') as TaskStatus
+        if (targetStatus && targetStatus !== currentStatus && touchStart.task.status !== 'rejected') {
+          await handleStatusChange(touchStart.task, targetStatus)
+        }
+      }
+    }
+    
+    setTouchStart(null)
+    setTouchTarget(null)
   }
 
   const handleDrop = async (e: React.DragEvent, targetStatus: TaskStatus) => {
@@ -108,8 +153,8 @@ export const TaskKanban = ({ tasks, onUpdate, onEdit, onDelete, getUnreadNotific
 
       await updateTask(draggedTask.id, updates)
 
-      const hasMultipleParticipants = draggedTask.assignedTo.length > 1
-      if (hasMultipleParticipants && targetStatus !== draggedTask.status) {
+      // Send notifications to all assigned users
+      if (targetStatus !== draggedTask.status && draggedTask.assignedTo.length > 0) {
         const movedBy = user?.name || 'Администратор'
         for (const userId of draggedTask.assignedTo) {
           if (userId !== user?.id) {
@@ -184,8 +229,8 @@ export const TaskKanban = ({ tasks, onUpdate, onEdit, onDelete, getUnreadNotific
 
       await updateTask(task.id, updates)
 
-      const hasMultipleParticipants = task.assignedTo.length > 1
-      if (hasMultipleParticipants && newStatus !== task.status) {
+      // Send notifications to all assigned users
+      if (newStatus !== task.status && task.assignedTo.length > 0) {
         const movedBy = user?.name || 'Администратор'
         for (const userId of task.assignedTo) {
           if (userId !== user?.id) {
@@ -255,26 +300,63 @@ export const TaskKanban = ({ tasks, onUpdate, onEdit, onDelete, getUnreadNotific
       // If rejected, change task status
       if (action === 'reject') {
         updates.status = 'rejected'
-      } else {
-        // If all approved, automatically move to in_progress
-        const allNowApproved = updatedApprovals.every(a => a.status === 'approved')
-        if (allNowApproved) {
-          updates.status = 'in_progress'
-        }
+      } else if (action === 'approve') {
+        // When approving, immediately move to in_progress
+        updates.status = 'in_progress'
       }
 
       await updateTask(task.id, updates)
 
       // Create notifications
-      if (action === 'reject' && task.assignedTo.length > 1) {
-        const rejectedBy = user.name || 'Пользователь'
+      if (action === 'approve') {
+        // Notify author when task is approved and moved to in_progress
+        if (task.createdBy !== user.id) {
+          await addTaskNotification({
+            userId: task.createdBy,
+            taskId: task.id,
+            type: 'task_moved',
+            message: `Задача "${task.title}" согласована и перемещена в работу пользователем ${user.name || 'Пользователь'}`,
+            read: false,
+            createdAt: now,
+            movedBy: user.name || 'Пользователь',
+          })
+        }
+        // Notify other assigned users
         for (const userId of task.assignedTo) {
-          if (userId !== user.id && userId === task.createdBy) {
+          if (userId !== user.id && userId !== task.createdBy) {
             await addTaskNotification({
               userId,
               taskId: task.id,
               type: 'task_moved',
-              message: `Задача "${task.title}" отклонена пользователем ${rejectedBy}. ${approvalComment || ''}`,
+              message: `Задача "${task.title}" согласована и перемещена в работу`,
+              read: false,
+              createdAt: now,
+              movedBy: user.name || 'Пользователь',
+            })
+          }
+        }
+      } else if (action === 'reject') {
+        const rejectedBy = user.name || 'Пользователь'
+        // Notify author when task is rejected
+        if (task.createdBy !== user.id) {
+          await addTaskNotification({
+            userId: task.createdBy,
+            taskId: task.id,
+            type: 'task_moved',
+            message: `Задача "${task.title}" отклонена пользователем ${rejectedBy}. ${approvalComment || ''}`,
+            read: false,
+            createdAt: now,
+            movedBy: rejectedBy,
+          })
+        }
+        // Notify other assigned users
+        for (const userId of task.assignedTo) {
+          if (userId !== user.id && userId !== task.createdBy) {
+            await addTaskNotification({
+              userId,
+              taskId: task.id,
+              type: 'task_moved',
+              message: `Задача "${task.title}" отклонена пользователем ${rejectedBy}`,
               read: false,
               createdAt: now,
               movedBy: rejectedBy,
@@ -380,12 +462,16 @@ export const TaskKanban = ({ tasks, onUpdate, onEdit, onDelete, getUnreadNotific
             const statusInfo = TASK_STATUSES[status]
             
             return (
-              <div
-                key={status}
-                className={`flex-shrink-0 w-[280px] sm:w-80 ${cardBg} rounded-xl border-2 ${borderColor} p-3 sm:p-4`}
-                onDragOver={handleDragOver}
-                onDrop={(e) => handleDrop(e, status)}
-              >
+            <div
+              key={status}
+              data-status={status}
+              className={`flex-shrink-0 w-[280px] sm:w-80 ${cardBg} rounded-xl border-2 ${borderColor} p-3 sm:p-4 ${
+                touchTarget === status ? 'border-green-500' : ''
+              }`}
+              onDragOver={handleDragOver}
+              onDrop={(e) => handleDrop(e, status)}
+              onTouchMove={handleTouchMove}
+            >
                 {/* Column Header */}
                 <div className={`mb-3 sm:mb-4 pb-2 sm:pb-3 border-b ${borderColor}`}>
                   <div className="flex items-center justify-between">
@@ -413,8 +499,10 @@ export const TaskKanban = ({ tasks, onUpdate, onEdit, onDelete, getUnreadNotific
                         draggable={!loading && task.status !== 'rejected'}
                         onDragStart={(e) => handleDragStart(e, task)}
                         onDragEnd={handleDragEnd}
+                        onTouchStart={(e) => handleTouchStart(e, task)}
+                        onTouchEnd={(e) => handleTouchEnd(e, status)}
                         className={`${cardBg} rounded-lg border-2 ${borderColor} p-2.5 sm:p-3 cursor-move hover:shadow-lg transition-all ${
-                          draggedTask?.id === task.id ? 'opacity-50' : ''
+                          draggedTask?.id === task.id || touchStart?.task.id === task.id ? 'opacity-50' : ''
                         } ${overdue ? 'border-red-500' : ''} ${loading === task.id ? 'opacity-50 pointer-events-none' : ''} ${
                           task.status === 'rejected' ? 'opacity-75' : ''
                         }`}
@@ -500,6 +588,21 @@ export const TaskKanban = ({ tasks, onUpdate, onEdit, onDelete, getUnreadNotific
 
                         {/* Task Info */}
                         <div className="space-y-1.5 text-xs mb-2">
+                          {/* Author and Executors */}
+                          <div className="space-y-1">
+                            <div className={`flex items-center gap-1 ${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'}`}>
+                              <span className="font-medium">Автор:</span>
+                              <span className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>
+                                {TEAM_MEMBERS.find(m => m.id === task.createdBy)?.name || 'Неизвестно'}
+                              </span>
+                            </div>
+                            <div className={`flex items-center gap-1 ${theme === 'dark' ? 'text-green-400' : 'text-green-600'}`}>
+                              <span className="font-medium">Исполнители:</span>
+                              <span className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>
+                                {task.assignedTo.map(id => TEAM_MEMBERS.find(m => m.id === id)?.name).filter(Boolean).join(', ') || 'Не назначены'}
+                              </span>
+                            </div>
+                          </div>
                           <div className={`flex items-center gap-1 flex-wrap ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
                             <span>📅 {formatDate(new Date(task.dueDate), 'dd.MM.yyyy')}</span>
                             <span>🕐 {task.dueTime}</span>
@@ -515,9 +618,6 @@ export const TaskKanban = ({ tasks, onUpdate, onEdit, onDelete, getUnreadNotific
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className={`px-1.5 py-0.5 rounded text-xs ${getStatusColor(status)} ${getStatusTextColor(status)}`}>
                               {task.category === 'trading' ? '📈' : task.category === 'learning' ? '📚' : task.category === 'technical' ? '⚙️' : task.category === 'stream' ? '📺' : task.category === 'research' ? '🔬' : task.category === 'organization' ? '📋' : '📋'}
-                            </span>
-                            <span className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>
-                              👥 {task.assignedTo.length}
                             </span>
                           </div>
                         </div>

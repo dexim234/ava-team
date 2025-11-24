@@ -151,12 +151,39 @@ export const addWorkSlot = async (slot: Omit<WorkSlot, 'id'>) => {
 }
 
 export const updateWorkSlot = async (id: string, updates: Partial<WorkSlot>) => {
+  // Get slot data before updating to create notification
   const slotRef = doc(db, 'workSlots', id)
+  const slotDoc = await getDoc(slotRef)
+  const slotData = slotDoc.data() as WorkSlot | undefined
+  
   // Remove undefined values before updating
   const cleanUpdates = Object.fromEntries(
     Object.entries(updates).filter(([_, value]) => value !== undefined)
   )
-  return await updateDoc(slotRef, cleanUpdates)
+  await updateDoc(slotRef, cleanUpdates)
+  
+  // Create notification
+  if (slotData) {
+    try {
+      const updatedSlot = { ...slotData, ...cleanUpdates } as WorkSlot
+      await addNotification({
+        userId: slotData.userId,
+        type: 'slot_updated',
+        category: 'schedule',
+        title: 'Изменен рабочий слот',
+        message: `Рабочий слот на ${updatedSlot.date || slotData.date} был изменен`,
+        read: false,
+        createdAt: new Date().toISOString(),
+        relatedId: id,
+        relatedType: 'slot',
+        actionUrl: '/management',
+        icon: '✏️',
+        priority: 'medium',
+      })
+    } catch (notifError) {
+      console.error('Error creating notification for updated slot:', notifError)
+    }
+  }
 }
 
 export const deleteWorkSlot = async (id: string) => {
@@ -245,6 +272,33 @@ export const addDayStatus = async (status: Omit<DayStatus, 'id'>) => {
     console.log('Adding day status:', cleanStatus)
     const result = await addDoc(statusesRef, cleanStatus)
     console.log('Day status added successfully:', result.id)
+    
+    // Create notification
+    try {
+      const statusLabels: Record<string, string> = {
+        dayoff: 'Выходной',
+        sick: 'Больничный',
+        vacation: 'Отпуск',
+      }
+      const statusLabel = statusLabels[status.type] || status.type
+      await addNotification({
+        userId: status.userId,
+        type: 'day_status_changed',
+        category: 'schedule',
+        title: `Добавлен ${statusLabel}`,
+        message: `${statusLabel} добавлен на ${status.date}${status.endDate ? ` - ${status.endDate}` : ''}`,
+        read: false,
+        createdAt: new Date().toISOString(),
+        relatedId: result.id,
+        relatedType: 'day_status',
+        actionUrl: '/management',
+        icon: status.type === 'dayoff' ? '🏖️' : status.type === 'sick' ? '🏥' : '✈️',
+        priority: 'medium',
+      })
+    } catch (notifError) {
+      console.error('Error creating notification for day status:', notifError)
+    }
+    
     return result
   } catch (error) {
     console.error('Error in addDayStatus:', error)
@@ -253,17 +307,81 @@ export const addDayStatus = async (status: Omit<DayStatus, 'id'>) => {
 }
 
 export const updateDayStatus = async (id: string, updates: Partial<DayStatus>) => {
+  // Get status data before updating to create notification
   const statusRef = doc(db, 'dayStatuses', id)
+  const statusDoc = await getDoc(statusRef)
+  const statusData = statusDoc.data() as DayStatus | undefined
+  
   // Remove undefined values before updating
   const cleanUpdates = Object.fromEntries(
     Object.entries(updates).filter(([_, value]) => value !== undefined)
   )
-  return await updateDoc(statusRef, cleanUpdates)
+  await updateDoc(statusRef, cleanUpdates)
+  
+  // Create notification
+  if (statusData) {
+    try {
+      const statusLabels: Record<string, string> = {
+        dayoff: 'Выходной',
+        sick: 'Больничный',
+        vacation: 'Отпуск',
+      }
+      const statusLabel = statusLabels[statusData.type] || statusData.type
+      await addNotification({
+        userId: statusData.userId,
+        type: 'day_status_changed',
+        category: 'schedule',
+        title: `Изменен ${statusLabel}`,
+        message: `${statusLabel} на ${statusData.date} был изменен`,
+        read: false,
+        createdAt: new Date().toISOString(),
+        relatedId: id,
+        relatedType: 'day_status',
+        actionUrl: '/management',
+        icon: statusData.type === 'dayoff' ? '🏖️' : statusData.type === 'sick' ? '🏥' : '✈️',
+        priority: 'medium',
+      })
+    } catch (notifError) {
+      console.error('Error creating notification for updated day status:', notifError)
+    }
+  }
 }
 
 export const deleteDayStatus = async (id: string) => {
+  // Get status data before deleting to create notification
   const statusRef = doc(db, 'dayStatuses', id)
-  return await deleteDoc(statusRef)
+  const statusDoc = await getDoc(statusRef)
+  const statusData = statusDoc.data() as DayStatus | undefined
+  
+  await deleteDoc(statusRef)
+  
+  // Create notification
+  if (statusData) {
+    try {
+      const statusLabels: Record<string, string> = {
+        dayoff: 'Выходной',
+        sick: 'Больничный',
+        vacation: 'Отпуск',
+      }
+      const statusLabel = statusLabels[statusData.type] || statusData.type
+      await addNotification({
+        userId: statusData.userId,
+        type: 'day_status_changed',
+        category: 'schedule',
+        title: `Удален ${statusLabel}`,
+        message: `${statusLabel} на ${statusData.date} был удален`,
+        read: false,
+        createdAt: new Date().toISOString(),
+        relatedId: id,
+        relatedType: 'day_status',
+        actionUrl: '/management',
+        icon: '🗑️',
+        priority: 'medium',
+      })
+    } catch (notifError) {
+      console.error('Error creating notification for deleted day status:', notifError)
+    }
+  }
 }
 
 // Earnings
@@ -350,17 +468,70 @@ export const addEarnings = async (earning: Omit<Earnings, 'id'>) => {
 }
 
 export const updateEarnings = async (id: string, updates: Partial<Earnings>) => {
+  // Get earning data before updating to create notification
   const earningRef = doc(db, 'earnings', id)
+  const earningDoc = await getDoc(earningRef)
+  const earningData = earningDoc.data() as Earnings | undefined
+  
   // Remove undefined values before updating
   const cleanUpdates = Object.fromEntries(
     Object.entries(updates).filter(([_, value]) => value !== undefined)
   )
-  return await updateDoc(earningRef, cleanUpdates)
+  await updateDoc(earningRef, cleanUpdates)
+  
+  // Create notification
+  if (earningData) {
+    try {
+      const updatedAmount = updates.amount !== undefined ? updates.amount : earningData.amount
+      await addNotification({
+        userId: earningData.userId,
+        type: 'earnings_updated',
+        category: 'earnings',
+        title: 'Изменен заработок',
+        message: `Заработок на ${earningData.date} изменен на ${updatedAmount} ₽`,
+        read: false,
+        createdAt: new Date().toISOString(),
+        relatedId: id,
+        relatedType: 'earning',
+        actionUrl: '/earnings',
+        icon: '✏️',
+        priority: 'high',
+      })
+    } catch (notifError) {
+      console.error('Error creating notification for updated earnings:', notifError)
+    }
+  }
 }
 
 export const deleteEarnings = async (id: string) => {
+  // Get earning data before deleting to create notification
   const earningRef = doc(db, 'earnings', id)
-  return await deleteDoc(earningRef)
+  const earningDoc = await getDoc(earningRef)
+  const earningData = earningDoc.data() as Earnings | undefined
+  
+  await deleteDoc(earningRef)
+  
+  // Create notification
+  if (earningData) {
+    try {
+      await addNotification({
+        userId: earningData.userId,
+        type: 'earnings_updated',
+        category: 'earnings',
+        title: 'Удален заработок',
+        message: `Заработок ${earningData.amount} ₽ на ${earningData.date} был удален`,
+        read: false,
+        createdAt: new Date().toISOString(),
+        relatedId: id,
+        relatedType: 'earning',
+        actionUrl: '/earnings',
+        icon: '🗑️',
+        priority: 'high',
+      })
+    } catch (notifError) {
+      console.error('Error creating notification for deleted earnings:', notifError)
+    }
+  }
 }
 
 // Rating
@@ -442,6 +613,27 @@ export const addReferral = async (referral: Omit<Referral, 'id'>) => {
     console.log('Adding referral:', cleanReferral)
     const result = await addDoc(referralsRef, cleanReferral)
     console.log('Referral added successfully:', result.id)
+    
+    // Create notification for referral owner
+    try {
+      await addNotification({
+        userId: referral.ownerId,
+        type: 'referral_added',
+        category: 'referrals',
+        title: 'Добавлен новый реферал',
+        message: `Добавлен новый реферал: ${referral.name || referral.referralId}`,
+        read: false,
+        createdAt: new Date().toISOString(),
+        relatedId: result.id,
+        relatedType: 'referral',
+        actionUrl: '/rating',
+        icon: '👥',
+        priority: 'medium',
+      })
+    } catch (notifError) {
+      console.error('Error creating notification for referral:', notifError)
+    }
+    
     return result
   } catch (error) {
     console.error('Error in addReferral:', error)
@@ -481,16 +673,68 @@ export const getReferrals = async (ownerId?: string, startDate?: string, endDate
 }
 
 export const updateReferral = async (id: string, updates: Partial<Referral>) => {
+  // Get referral data before updating to create notification
   const referralRef = doc(db, 'referrals', id)
+  const referralDoc = await getDoc(referralRef)
+  const referralData = referralDoc.data() as Referral | undefined
+  
   const cleanUpdates = Object.fromEntries(
     Object.entries(updates).filter(([_, value]) => value !== undefined)
   )
-  return await updateDoc(referralRef, cleanUpdates)
+  await updateDoc(referralRef, cleanUpdates)
+  
+  // Create notification
+  if (referralData) {
+    try {
+      await addNotification({
+        userId: referralData.ownerId,
+        type: 'referral_added',
+        category: 'referrals',
+        title: 'Изменен реферал',
+        message: `Реферал ${referralData.name || referralData.referralId} был изменен`,
+        read: false,
+        createdAt: new Date().toISOString(),
+        relatedId: id,
+        relatedType: 'referral',
+        actionUrl: '/rating',
+        icon: '✏️',
+        priority: 'medium',
+      })
+    } catch (notifError) {
+      console.error('Error creating notification for updated referral:', notifError)
+    }
+  }
 }
 
 export const deleteReferral = async (id: string) => {
+  // Get referral data before deleting to create notification
   const referralRef = doc(db, 'referrals', id)
-  return await deleteDoc(referralRef)
+  const referralDoc = await getDoc(referralRef)
+  const referralData = referralDoc.data() as Referral | undefined
+  
+  await deleteDoc(referralRef)
+  
+  // Create notification
+  if (referralData) {
+    try {
+      await addNotification({
+        userId: referralData.ownerId,
+        type: 'referral_added',
+        category: 'referrals',
+        title: 'Удален реферал',
+        message: `Реферал ${referralData.name || referralData.referralId} был удален`,
+        read: false,
+        createdAt: new Date().toISOString(),
+        relatedId: id,
+        relatedType: 'referral',
+        actionUrl: '/rating',
+        icon: '🗑️',
+        priority: 'medium',
+      })
+    } catch (notifError) {
+      console.error('Error creating notification for deleted referral:', notifError)
+    }
+  }
 }
 
 // Call (Trading Signal) functions
@@ -658,6 +902,25 @@ export const getTasks = async (filters?: {
       dueTime: data.dueTime || '12:00',
     } as Task
   })
+
+  // Auto-delete tasks that have been closed for more than 12 hours
+  const now = new Date()
+  const twelveHoursAgo = new Date(now.getTime() - 12 * 60 * 60 * 1000)
+  
+  const tasksToDelete = tasks.filter(task => {
+    if (task.status === 'closed' && task.closedAt) {
+      const closedDate = new Date(task.closedAt)
+      return closedDate < twelveHoursAgo
+    }
+    return false
+  })
+
+  // Delete old closed tasks
+  if (tasksToDelete.length > 0) {
+    await Promise.all(tasksToDelete.map(task => deleteTask(task.id)))
+    // Remove deleted tasks from the list
+    tasks = tasks.filter(task => !tasksToDelete.find(t => t.id === task.id))
+  }
   
   // Apply assignedTo filter in memory (array-contains doesn't work well with multiple users)
   if (filters?.assignedTo) {

@@ -40,7 +40,8 @@ import {
   Target,
   Award,
   BookOpen,
-  Mail
+  Mail,
+  HelpCircle
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
@@ -378,6 +379,11 @@ export const Profile = () => {
                       <div className={`text-xs mt-1 ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
                         {rating.daysOff} дней
                       </div>
+                      <div className={`text-xs mt-2 pt-2 border-t ${theme === 'dark' ? 'border-gray-600 text-gray-400' : 'border-gray-300 text-gray-600'}`}>
+                        {rating.daysOff === 0 || rating.daysOff <= 2 
+                          ? '✅ 0-2 дня = 10%' 
+                          : '❌ Более 2 дней = 0%'}
+                      </div>
                     </div>
 
                     {/* Больничные */}
@@ -396,6 +402,11 @@ export const Profile = () => {
                       <div className={`text-xs mt-1 ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
                         {rating.sickDays} дней
                       </div>
+                      <div className={`text-xs mt-2 pt-2 border-t ${theme === 'dark' ? 'border-gray-600 text-gray-400' : 'border-gray-300 text-gray-600'}`}>
+                        {rating.sickDays <= 7 
+                          ? '✅ ≤7 дней = 10%' 
+                          : '❌ Более 7 дней = 0%'}
+                      </div>
                     </div>
 
                     {/* Отпуск */}
@@ -413,6 +424,11 @@ export const Profile = () => {
                       </div>
                       <div className={`text-xs mt-1 ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
                         {rating.vacationDays} дней
+                      </div>
+                      <div className={`text-xs mt-2 pt-2 border-t ${theme === 'dark' ? 'border-gray-600 text-gray-400' : 'border-gray-300 text-gray-600'}`}>
+                        {rating.vacationDays <= 7 
+                          ? '✅ ≤7 дней = 10%' 
+                          : '❌ Более 7 дней = 0%'}
                       </div>
                     </div>
 
@@ -434,6 +450,13 @@ export const Profile = () => {
                       <div className={`text-xs mt-1 ${theme === 'dark' ? 'text-blue-400/70' : 'text-blue-600'}`}>
                         {ratingBreakdown.weeklyHours.toFixed(1)} ч/нед
                       </div>
+                      <div className={`text-xs mt-2 pt-2 border-t ${theme === 'dark' ? 'border-blue-500/30 text-blue-300' : 'border-blue-200 text-blue-600'}`}>
+                        {ratingBreakdown.weeklyHours >= 30 
+                          ? '✅ ≥30 ч = 25%' 
+                          : ratingBreakdown.weeklyHours >= 20 
+                          ? '✅ ≥20 ч = 15%' 
+                          : '❌ <20 ч = 0%'}
+                      </div>
                     </div>
 
                     {/* Заработок */}
@@ -453,6 +476,13 @@ export const Profile = () => {
                       </div>
                       <div className={`text-xs mt-1 ${theme === 'dark' ? 'text-green-400/70' : 'text-green-600'}`}>
                         {ratingBreakdown.weeklyEarnings.toFixed(0)} ₽/нед
+                      </div>
+                      <div className={`text-xs mt-2 pt-2 border-t ${theme === 'dark' ? 'border-green-500/30 text-green-300' : 'border-green-200 text-green-600'}`}>
+                        {ratingBreakdown.weeklyEarnings >= 6000 
+                          ? '✅ ≥6000₽ = 30%' 
+                          : ratingBreakdown.weeklyEarnings >= 3000 
+                          ? '✅ ≥3000₽ = 15%' 
+                          : '❌ <3000₽ = 0%'}
                       </div>
                     </div>
 
@@ -474,6 +504,11 @@ export const Profile = () => {
                       <div className={`text-xs mt-1 ${theme === 'dark' ? 'text-purple-400/70' : 'text-purple-600'}`}>
                         {rating.referrals} рефералов
                       </div>
+                      <div className={`text-xs mt-2 pt-2 border-t ${theme === 'dark' ? 'border-purple-500/30 text-purple-300' : 'border-purple-200 text-purple-600'}`}>
+                        {ratingBreakdown.referralsPoints >= 30 
+                          ? '✅ Макс 6 рефералов = 30%' 
+                          : `✅ ${rating.referrals} × 5% = ${ratingBreakdown.referralsPoints.toFixed(0)}%`}
+                      </div>
                     </div>
 
                     {/* Сообщения */}
@@ -493,6 +528,54 @@ export const Profile = () => {
                       </div>
                       <div className={`text-xs mt-1 ${theme === 'dark' ? 'text-orange-400/70' : 'text-orange-600'}`}>
                         {ratingBreakdown.weeklyMessages} сообщ/нед
+                      </div>
+                      <div className={`text-xs mt-2 pt-2 border-t ${theme === 'dark' ? 'border-orange-500/30 text-orange-300' : 'border-orange-200 text-orange-600'}`}>
+                        {ratingBreakdown.weeklyMessages > 50 
+                          ? '✅ >50 сообщ = 15%' 
+                          : '❌ ≤50 сообщ = 0%'}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Rating Explanation */}
+                  <div className={`p-4 rounded-lg border-2 ${
+                    theme === 'dark' ? 'bg-gray-700/50 border-gray-600' : 'bg-gray-50 border-gray-200'
+                  }`}>
+                    <h3 className={`text-sm font-bold ${headingColor} mb-3 flex items-center gap-2`}>
+                      <Info className="w-4 h-4" />
+                      Как рассчитывается рейтинг?
+                    </h3>
+                    <div className={`text-xs space-y-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                      <div className="flex items-start gap-2">
+                        <span className="font-semibold">• Выходные:</span>
+                        <span>0-2 дня в месяц = 10%, более 2 дней = 0%</span>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <span className="font-semibold">• Больничные:</span>
+                        <span>≤7 дней в месяц = 10%, более 7 дней = 0%</span>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <span className="font-semibold">• Отпуск:</span>
+                        <span>≤7 дней в месяц = 10%, более 7 дней = 0%</span>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <span className="font-semibold">• Часы работы:</span>
+                        <span>≥30 ч/нед = 25%, ≥20 ч/нед = 15%, менее 20 ч/нед = 0%</span>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <span className="font-semibold">• Заработок:</span>
+                        <span>≥6000₽/нед = 30%, ≥3000₽/нед = 15%, менее 3000₽/нед = 0%</span>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <span className="font-semibold">• Рефералы:</span>
+                        <span>5% за каждого, максимум 30% (6 рефералов)</span>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <span className="font-semibold">• Сообщения:</span>
+                        <span>Более 50 сообщений/нед = 15%, менее = 0%</span>
+                      </div>
+                      <div className={`mt-3 pt-3 border-t ${theme === 'dark' ? 'border-gray-600' : 'border-gray-300'}`}>
+                        <span className="font-semibold">Максимальный рейтинг: 100%</span>
                       </div>
                     </div>
                   </div>

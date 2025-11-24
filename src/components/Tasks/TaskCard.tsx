@@ -80,8 +80,8 @@ export const TaskCard = ({ task, onEdit, onDelete, onUpdate, unreadNotifications
 
       await updateTask(task.id, updates)
 
-      // Create notifications for status changes
-      if (hasMultipleParticipants && newStatus !== task.status) {
+      // Create notifications for status changes - send to all assigned users
+      if (newStatus !== task.status && task.assignedTo.length > 0) {
         const movedBy = user?.name || 'Администратор'
         for (const userId of task.assignedTo) {
           if (userId !== user?.id) {
@@ -289,12 +289,36 @@ export const TaskCard = ({ task, onEdit, onDelete, onUpdate, unreadNotifications
 
         {/* Details */}
         <div className="space-y-2 mb-4">
-          {/* Created by */}
-          <div className="flex items-center gap-2 text-xs sm:text-sm">
-            <User className={`w-4 h-4 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} />
-            <span className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>
-              Создал: {createdByUser?.name || 'Неизвестно'}
-            </span>
+          {/* Author and Executors */}
+          <div className="flex flex-col gap-2">
+            {/* Author */}
+            <div className="flex items-center gap-2 text-xs sm:text-sm">
+              <User className={`w-4 h-4 ${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'}`} />
+              <span className={`font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                Автор:
+              </span>
+              <span className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>
+                {createdByUser?.name || 'Неизвестно'}
+              </span>
+            </div>
+            {/* Executors */}
+            <div className="flex items-center gap-2 text-xs sm:text-sm">
+              <Users className={`w-4 h-4 ${theme === 'dark' ? 'text-green-400' : 'text-green-600'}`} />
+              <span className={`font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                Исполнители:
+              </span>
+              <div className="flex flex-wrap gap-1">
+                {assignedUsers.length > 0 ? (
+                  assignedUsers.map((u, idx) => (
+                    <span key={u?.id || idx} className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>
+                      {u?.name || 'Неизвестно'}{idx < assignedUsers.length - 1 ? ',' : ''}
+                    </span>
+                  ))
+                ) : (
+                  <span className={theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}>Не назначены</span>
+                )}
+              </div>
+            </div>
           </div>
 
           {/* Assigned to */}
