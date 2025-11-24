@@ -1,5 +1,5 @@
 // Form for adding/editing tasks
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useAuthStore } from '@/store/authStore'
 import { useAdminStore } from '@/store/adminStore'
 import { useThemeStore } from '@/store/themeStore'
@@ -80,7 +80,6 @@ export const TaskForm = ({ onClose, onSave, editingTask }: TaskFormProps) => {
 
       if (isEditing && editingTask) {
         // Update existing task
-        const oldStatus = editingTask.status
         const updates: Partial<Task> = {
           title: title.trim(),
           description: description.trim() || undefined,

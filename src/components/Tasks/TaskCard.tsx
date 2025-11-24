@@ -4,7 +4,7 @@ import { useAuthStore } from '@/store/authStore'
 import { useAdminStore } from '@/store/adminStore'
 import { useThemeStore } from '@/store/themeStore'
 import { updateTask, addTaskNotification } from '@/services/firestoreService'
-import { Task, TaskStatus, TEAM_MEMBERS, TASK_CATEGORIES, TASK_STATUSES } from '@/types'
+import { Task, TaskStatus, TaskApproval, TEAM_MEMBERS, TASK_CATEGORIES, TASK_STATUSES } from '@/types'
 import { 
   Edit, 
   Trash2, 
@@ -13,6 +13,7 @@ import {
   XCircle, 
   Bell, 
   User, 
+  Users,
   Calendar,
   AlertCircle,
   Check,
@@ -122,9 +123,11 @@ export const TaskCard = ({ task, onEdit, onDelete, onUpdate, unreadNotifications
     setLoading(true)
     try {
       const now = new Date().toISOString()
-      const updatedApprovals = task.approvals.map(a => 
+      const newStatus: 'approved' | 'rejected' = action === 'approve' ? 'approved' : 'rejected'
+      
+      const updatedApprovals: Task['approvals'] = task.approvals.map(a => 
         a.userId === user.id 
-          ? { ...a, status: action === 'approve' ? 'approved' : 'rejected', comment: approvalComment || undefined, updatedAt: now }
+          ? { ...a, status: newStatus, comment: approvalComment || undefined, updatedAt: now }
           : a
       )
 
@@ -132,7 +135,7 @@ export const TaskCard = ({ task, onEdit, onDelete, onUpdate, unreadNotifications
       if (!userApproval) {
         updatedApprovals.push({
           userId: user.id,
-          status: action === 'approve' ? 'approved' : 'rejected',
+          status: newStatus,
           comment: approvalComment || undefined,
           updatedAt: now,
         })
