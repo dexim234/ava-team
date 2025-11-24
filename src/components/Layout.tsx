@@ -31,6 +31,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
     { path: '/management', label: 'Management' },
     { path: '/earnings', label: 'Заработок' },
     { path: '/rating', label: 'Рейтинг' },
+    { path: '/tasks', label: 'Задачи' },
     { path: '/admin', label: 'Админ', icon: Shield, adminOnly: true },
     { path: '/about', label: 'О сообществе' },
     { path: '/faq', label: 'FAQ' },

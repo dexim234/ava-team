@@ -9,6 +9,7 @@ import { CallPage } from './pages/Call'
 import { Management } from './pages/Management'
 import { Earnings } from './pages/Earnings'
 import { Rating } from './pages/Rating'
+import { Tasks } from './pages/Tasks'
 import { About } from './pages/About'
 import { FAQ } from './pages/FAQ'
 import { Admin } from './pages/Admin'
@@ -71,6 +72,14 @@ function App() {
           element={
             <ProtectedRoute>
               <Rating />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/tasks"
+          element={
+            <ProtectedRoute>
+              <Tasks />
             </ProtectedRoute>
           }
         />

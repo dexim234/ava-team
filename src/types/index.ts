@@ -105,6 +105,47 @@ export interface Call {
   entryPrice?: number // Цена входа
 }
 
+// Task types
+export type TaskCategory = 'trading' | 'learning' | 'technical' | 'stream' | 'research' | 'organization'
+export type TaskStatus = 'pending' | 'in_progress' | 'completed' | 'closed'
+export type TaskNotificationType = 'task_added' | 'task_moved' | 'task_completion_request'
+
+export interface TaskNotification {
+  id: string
+  userId: string // Кому уведомление
+  taskId: string
+  type: TaskNotificationType
+  message: string
+  read: boolean
+  createdAt: string
+  movedBy?: string // Имя пользователя, который переместил задачу
+}
+
+export interface TaskApproval {
+  userId: string
+  status: 'approved' | 'rejected' | 'pending'
+  comment?: string
+  updatedAt: string
+}
+
+export interface Task {
+  id: string
+  title: string
+  description?: string
+  category: TaskCategory
+  status: TaskStatus
+  createdBy: string // user ID
+  assignedTo: string[] // user IDs
+  approvals: TaskApproval[] // Для статуса "pending"
+  createdAt: string
+  updatedAt: string
+  completedAt?: string
+  closedAt?: string
+  completedBy?: string // user ID
+  priority?: 'low' | 'medium' | 'high'
+  dueDate?: string // YYYY-MM-DD format
+}
+
 // Team members
 export const TEAM_MEMBERS: User[] = [
   { id: '1', name: 'Артём', login: 'artyom03', password: '248artdex', avatar: '/avatars/artyom.jpg' },
@@ -113,6 +154,22 @@ export const TEAM_MEMBERS: User[] = [
   { id: '4', name: 'Ольга', login: 'olga04', password: '638olgadex', avatar: '/avatars/olga.jpg' },
   { id: '5', name: 'Анастасия', login: 'anastasia05', password: '638anastadex', avatar: '/avatars/anastasia.jpg' },
 ]
+
+export const TASK_CATEGORIES: Record<TaskCategory, { label: string; icon: string; color: string }> = {
+  trading: { label: 'Торговля', icon: '📈', color: 'green' },
+  learning: { label: 'Обучение', icon: '📚', color: 'blue' },
+  technical: { label: 'Техническая часть', icon: '⚙️', color: 'purple' },
+  stream: { label: 'Стрим', icon: '📺', color: 'red' },
+  research: { label: 'Изучение нового', icon: '🔬', color: 'yellow' },
+  organization: { label: 'Поиск и систематизация информации', icon: '📋', color: 'indigo' },
+}
+
+export const TASK_STATUSES: Record<TaskStatus, { label: string; color: string }> = {
+  pending: { label: 'На согласовании', color: 'yellow' },
+  in_progress: { label: 'В работе', color: 'blue' },
+  completed: { label: 'Выполнена', color: 'green' },
+  closed: { label: 'Закрыта', color: 'gray' },
+}
 
 
 

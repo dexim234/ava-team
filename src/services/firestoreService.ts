@@ -12,7 +12,7 @@ import {
   orderBy,
 } from 'firebase/firestore'
 import { db } from '@/firebase/config'
-import { WorkSlot, DayStatus, Earnings, RatingData, Referral, Call } from '@/types'
+import { WorkSlot, DayStatus, Earnings, RatingData, Referral, Call, Task, TaskNotification, TaskStatus } from '@/types'
 
 const DATA_RETENTION_DAYS = 30
 
@@ -528,5 +528,150 @@ export const updateCall = async (id: string, updates: Partial<Call>): Promise<vo
 export const deleteCall = async (id: string): Promise<void> => {
   const callRef = doc(db, 'calls', id)
   await deleteDoc(callRef)
+}
+
+// Task functions
+export const addTask = async (taskData: Omit<Task, 'id'>): Promise<string> => {
+  const tasksRef = collection(db, 'tasks')
+  const docRef = await addDoc(tasksRef, taskData)
+  return docRef.id
+}
+
+export const getTasks = async (filters?: {
+  assignedTo?: string
+  category?: string
+  status?: TaskStatus
+  createdBy?: string
+}): Promise<Task[]> => {
+  const tasksRef = collection(db, 'tasks')
+  
+  const constraints: any[] = []
+  
+  if (filters?.status) {
+    constraints.push(where('status', '==', filters.status))
+  }
+  
+  if (filters?.category) {
+    constraints.push(where('category', '==', filters.category))
+  }
+  
+  if (filters?.createdBy) {
+    constraints.push(where('createdBy', '==', filters.createdBy))
+  }
+  
+  constraints.push(orderBy('createdAt', 'desc'))
+  
+  let q: ReturnType<typeof query>
+  if (constraints.length > 0) {
+    q = query(tasksRef, ...constraints) as ReturnType<typeof query>
+  } else {
+    q = query(tasksRef, orderBy('createdAt', 'desc'))
+  }
+  
+  const snapshot = await getDocs(q)
+  let tasks = snapshot.docs.map((doc) => {
+    const data = doc.data() as any
+    return {
+      id: doc.id,
+      title: data.title || '',
+      description: data.description,
+      category: data.category || 'trading',
+      status: data.status || 'pending',
+      createdBy: data.createdBy || '',
+      assignedTo: data.assignedTo || [],
+      approvals: data.approvals || [],
+      createdAt: data.createdAt || new Date().toISOString(),
+      updatedAt: data.updatedAt || new Date().toISOString(),
+      completedAt: data.completedAt,
+      closedAt: data.closedAt,
+      completedBy: data.completedBy,
+      priority: data.priority,
+      dueDate: data.dueDate,
+    } as Task
+  })
+  
+  // Apply assignedTo filter in memory (array-contains doesn't work well with multiple users)
+  if (filters?.assignedTo) {
+    tasks = tasks.filter(t => t.assignedTo.includes(filters.assignedTo!))
+  }
+  
+  return tasks
+}
+
+export const updateTask = async (id: string, updates: Partial<Task>): Promise<void> => {
+  const taskRef = doc(db, 'tasks', id)
+  const cleanUpdates = {
+    ...updates,
+    updatedAt: new Date().toISOString(),
+  }
+  await updateDoc(taskRef, cleanUpdates as any)
+}
+
+export const deleteTask = async (id: string): Promise<void> => {
+  const taskRef = doc(db, 'tasks', id)
+  await deleteDoc(taskRef)
+  
+  // Also delete related notifications
+  const notificationsRef = collection(db, 'taskNotifications')
+  const q = query(notificationsRef, where('taskId', '==', id))
+  const snapshot = await getDocs(q)
+  await Promise.all(snapshot.docs.map((doc) => deleteDoc(doc.ref)))
+}
+
+// Task Notification functions
+export const addTaskNotification = async (notificationData: Omit<TaskNotification, 'id'>): Promise<string> => {
+  const notificationsRef = collection(db, 'taskNotifications')
+  const docRef = await addDoc(notificationsRef, notificationData)
+  return docRef.id
+}
+
+export const getTaskNotifications = async (userId?: string, taskId?: string): Promise<TaskNotification[]> => {
+  const notificationsRef = collection(db, 'taskNotifications')
+  
+  const constraints: any[] = []
+  
+  if (userId) {
+    constraints.push(where('userId', '==', userId))
+  }
+  
+  if (taskId) {
+    constraints.push(where('taskId', '==', taskId))
+  }
+  
+  constraints.push(orderBy('createdAt', 'desc'))
+  
+  let q: ReturnType<typeof query>
+  if (constraints.length > 0) {
+    q = query(notificationsRef, ...constraints) as ReturnType<typeof query>
+  } else {
+    q = query(notificationsRef, orderBy('createdAt', 'desc'))
+  }
+  
+  const snapshot = await getDocs(q)
+  return snapshot.docs.map((doc) => {
+    const data = doc.data() as any
+    return {
+      id: doc.id,
+      userId: data.userId || '',
+      taskId: data.taskId || '',
+      type: data.type || 'task_added',
+      message: data.message || '',
+      read: data.read || false,
+      createdAt: data.createdAt || new Date().toISOString(),
+      movedBy: data.movedBy,
+    } as TaskNotification
+  })
+}
+
+export const markNotificationAsRead = async (id: string): Promise<void> => {
+  const notificationRef = doc(db, 'taskNotifications', id)
+  await updateDoc(notificationRef, { read: true })
+}
+
+export const markAllNotificationsAsRead = async (userId: string): Promise<void> => {
+  const notificationsRef = collection(db, 'taskNotifications')
+  const q = query(notificationsRef, where('userId', '==', userId), where('read', '==', false))
+  const snapshot = await getDocs(q)
+  await Promise.all(snapshot.docs.map((doc) => updateDoc(doc.ref, { read: true })))
 }
 
