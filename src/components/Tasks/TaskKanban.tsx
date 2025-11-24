@@ -406,7 +406,6 @@ export const TaskKanban = ({ tasks, onUpdate, onEdit, onDelete, getUnreadNotific
                     const canEdit = isAdmin || user?.id === task.createdBy
                     const canApproveTask = canApprove(task)
                     const canResubmitTask = canResubmit(task)
-                    const userApproval = task.approvals.find(a => a.userId === user?.id)
                     
                     return (
                       <div

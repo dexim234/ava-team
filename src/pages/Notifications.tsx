@@ -16,7 +16,6 @@ import {
   CheckCheck,
   Trash2,
   Filter,
-  X,
   Calendar,
   DollarSign,
   TrendingUp,

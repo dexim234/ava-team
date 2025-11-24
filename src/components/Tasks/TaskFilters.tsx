@@ -27,7 +27,6 @@ export const TaskFilters = ({
   const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
   const cardBg = theme === 'dark' ? 'bg-gray-800' : 'bg-white'
   const borderColor = theme === 'dark' ? 'border-gray-600' : 'border-gray-300'
-  const textColor = theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
 
   const hasActiveFilters = selectedCategory !== 'all' || selectedStatus !== 'all' || selectedUser !== 'all'
 

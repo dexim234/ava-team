@@ -181,6 +181,7 @@ export const TaskCard = ({ task, onEdit, onDelete, onUpdate, unreadNotifications
       in_progress: theme === 'dark' ? 'bg-blue-500/20 border-blue-500/50 text-blue-400' : 'bg-blue-50 border-blue-200 text-blue-700',
       completed: theme === 'dark' ? 'bg-green-500/20 border-green-500/50 text-green-400' : 'bg-green-50 border-green-200 text-green-700',
       closed: theme === 'dark' ? 'bg-gray-500/20 border-gray-500/50 text-gray-400' : 'bg-gray-50 border-gray-200 text-gray-700',
+      rejected: theme === 'dark' ? 'bg-red-500/20 border-red-500/50 text-red-400' : 'bg-red-50 border-red-200 text-red-700',
     }
     return colorMap[task.status]
   }
