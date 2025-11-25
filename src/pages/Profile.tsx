@@ -34,11 +34,6 @@ import {
   Copy,
   Check,
   Info,
-  Users,
-  Target,
-  Award,
-  BookOpen,
-  Mail
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
@@ -256,53 +251,77 @@ export const Profile = () => {
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
             {/* Personal Information */}
-            <div className={`${cardBg} rounded-xl border-2 ${borderColor} p-4 sm:p-6 shadow-lg`}>
-              <h2 className={`text-xl font-bold ${headingColor} mb-4 flex items-center gap-2`}>
-                <User className="w-5 h-5" />
-                Личные данные
-              </h2>
-              <div className="space-y-4">
-                <div>
-                  <label className={`text-sm font-medium ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} block mb-1`}>
-                    Имя
-                  </label>
-                  <div className={`px-4 py-2.5 rounded-lg border ${borderColor} ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'} ${headingColor}`}>
-                    {userData.name}
+            <div className={`${cardBg} rounded-xl border-2 ${borderColor} p-5 sm:p-6 shadow-lg hover:shadow-xl transition-all relative overflow-hidden ${
+              theme === 'dark' 
+                ? 'bg-gradient-to-br from-gray-800 to-gray-900' 
+                : 'bg-gradient-to-br from-white to-gray-50'
+            }`}>
+              <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-full blur-2xl -mr-12 -mt-12" />
+              <div className="relative z-10">
+                <h2 className={`text-xl font-bold ${headingColor} mb-5 flex items-center gap-2`}>
+                  <div className={`p-2 rounded-lg ${
+                    theme === 'dark' ? 'bg-blue-500/20' : 'bg-blue-50'
+                  }`}>
+                    <User className={`w-5 h-5 ${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'}`} />
                   </div>
-                </div>
-                <div>
-                  <label className={`text-sm font-medium ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} block mb-1`}>
-                    Логин
-                  </label>
-                  <div className={`px-4 py-2.5 rounded-lg border ${borderColor} ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'} ${headingColor}`}>
-                    {userData.login}
-                  </div>
-                </div>
-                <div>
-                  <label className={`text-sm font-medium ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} block mb-1`}>
-                    Пароль
-                  </label>
-                  <div className="flex items-center gap-2">
-                    <div className={`flex-1 px-4 py-2.5 rounded-lg border ${borderColor} ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'} ${headingColor} font-mono`}>
-                      {showPassword ? userData.password : '•'.repeat(userData.password.length)}
+                  Личные данные
+                </h2>
+                <div className="space-y-4">
+                  <div>
+                    <label className={`text-sm font-semibold ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} block mb-2`}>
+                      Имя
+                    </label>
+                    <div className={`px-4 py-3 rounded-lg border-2 ${borderColor} ${
+                      theme === 'dark' ? 'bg-gray-700/50 border-gray-600' : 'bg-white border-gray-200'
+                    } ${headingColor} font-medium`}>
+                      {userData.name}
                     </div>
-                    <button
-                      onClick={() => setShowPassword(!showPassword)}
-                      className={`p-2.5 rounded-lg border ${borderColor} ${theme === 'dark' ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-50 hover:bg-gray-100'} transition-colors`}
-                    >
-                      {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                    </button>
-                    <button
-                      onClick={handleCopyPassword}
-                      className={`p-2.5 rounded-lg border ${borderColor} ${
-                        passwordCopied
-                          ? 'bg-green-500 text-white'
-                          : theme === 'dark' ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-50 hover:bg-gray-100'
-                      } transition-colors`}
-                      title="Скопировать пароль"
-                    >
-                      {passwordCopied ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
-                    </button>
+                  </div>
+                  <div>
+                    <label className={`text-sm font-semibold ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} block mb-2`}>
+                      Логин
+                    </label>
+                    <div className={`px-4 py-3 rounded-lg border-2 ${borderColor} ${
+                      theme === 'dark' ? 'bg-gray-700/50 border-gray-600' : 'bg-white border-gray-200'
+                    } ${headingColor} font-medium`}>
+                      {userData.login}
+                    </div>
+                  </div>
+                  <div>
+                    <label className={`text-sm font-semibold ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} block mb-2`}>
+                      Пароль
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <div className={`flex-1 px-4 py-3 rounded-lg border-2 ${borderColor} ${
+                        theme === 'dark' ? 'bg-gray-700/50 border-gray-600' : 'bg-white border-gray-200'
+                      } ${headingColor} font-mono text-sm`}>
+                        {showPassword ? userData.password : '•'.repeat(userData.password.length)}
+                      </div>
+                      <button
+                        onClick={() => setShowPassword(!showPassword)}
+                        className={`p-3 rounded-lg border-2 ${borderColor} ${
+                          theme === 'dark' 
+                            ? 'bg-gray-700/50 hover:bg-gray-600/50 border-gray-600 hover:border-gray-500' 
+                            : 'bg-white hover:bg-gray-50 border-gray-200 hover:border-gray-300'
+                        } transition-all`}
+                        title={showPassword ? 'Скрыть пароль' : 'Показать пароль'}
+                      >
+                        {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                      </button>
+                      <button
+                        onClick={handleCopyPassword}
+                        className={`p-3 rounded-lg border-2 transition-all ${
+                          passwordCopied
+                            ? 'bg-green-500 text-white border-green-500'
+                            : theme === 'dark' 
+                            ? 'bg-gray-700/50 hover:bg-gray-600/50 border-gray-600 hover:border-gray-500' 
+                            : 'bg-white hover:bg-gray-50 border-gray-200 hover:border-gray-300'
+                        }`}
+                        title="Скопировать пароль"
+                      >
+                        {passwordCopied ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -573,259 +592,105 @@ export const Profile = () => {
             )}
 
             {/* Tasks */}
-            <div className={`${cardBg} rounded-xl border-2 ${borderColor} p-4 sm:p-6 shadow-lg`}>
-              <h2 className={`text-xl font-bold ${headingColor} mb-4 flex items-center gap-2`}>
-                <CheckSquare className="w-5 h-5" />
-                Мои задачи
-              </h2>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <div className={`p-3 rounded-lg border-2 ${
-                  theme === 'dark' ? 'bg-yellow-500/10 border-yellow-500/30' : 'bg-yellow-50 border-yellow-200'
-                }`}>
-                  <div className={`text-xs font-medium mb-1 ${
-                    theme === 'dark' ? 'text-yellow-400' : 'text-yellow-700'
+            <div className={`${cardBg} rounded-xl border-2 ${borderColor} p-5 sm:p-6 shadow-lg hover:shadow-xl transition-all relative overflow-hidden ${
+              theme === 'dark' 
+                ? 'bg-gradient-to-br from-gray-800 to-gray-900' 
+                : 'bg-gradient-to-br from-white to-gray-50'
+            }`}>
+              <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-green-500/10 to-emerald-500/10 rounded-full blur-2xl -mr-12 -mt-12" />
+              <div className="relative z-10">
+                <h2 className={`text-xl font-bold ${headingColor} mb-5 flex items-center gap-2`}>
+                  <div className={`p-2 rounded-lg ${
+                    theme === 'dark' ? 'bg-green-500/20' : 'bg-green-50'
                   }`}>
-                    На согласовании
+                    <CheckSquare className={`w-5 h-5 ${theme === 'dark' ? 'text-green-400' : 'text-green-600'}`} />
                   </div>
-                  <div className={`text-2xl font-bold ${headingColor}`}>
-                    {pendingTasks}
-                  </div>
-                </div>
-                <div className={`p-3 rounded-lg border-2 ${
-                  theme === 'dark' ? 'bg-blue-500/10 border-blue-500/30' : 'bg-blue-50 border-blue-200'
-                }`}>
-                  <div className={`text-xs font-medium mb-1 ${
-                    theme === 'dark' ? 'text-blue-400' : 'text-blue-700'
+                  Мои задачи
+                </h2>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+                  <div className={`p-4 rounded-xl border-2 transition-all hover:scale-105 ${
+                    theme === 'dark' ? 'bg-yellow-500/10 border-yellow-500/30 hover:border-yellow-500/50' : 'bg-yellow-50 border-yellow-200 hover:border-yellow-300'
                   }`}>
-                    В работе
+                    <div className={`text-xs font-semibold mb-2 ${
+                      theme === 'dark' ? 'text-yellow-400' : 'text-yellow-700'
+                    }`}>
+                      На согласовании
+                    </div>
+                    <div className={`text-3xl font-extrabold ${headingColor}`}>
+                      {pendingTasks}
+                    </div>
                   </div>
-                  <div className={`text-2xl font-bold ${headingColor}`}>
-                    {inProgressTasks}
-                  </div>
-                </div>
-                <div className={`p-3 rounded-lg border-2 ${
-                  theme === 'dark' ? 'bg-green-500/10 border-green-500/30' : 'bg-green-50 border-green-200'
-                }`}>
-                  <div className={`text-xs font-medium mb-1 ${
-                    theme === 'dark' ? 'text-green-400' : 'text-green-700'
+                  <div className={`p-4 rounded-xl border-2 transition-all hover:scale-105 ${
+                    theme === 'dark' ? 'bg-blue-500/10 border-blue-500/30 hover:border-blue-500/50' : 'bg-blue-50 border-blue-200 hover:border-blue-300'
                   }`}>
-                    Выполнена
+                    <div className={`text-xs font-semibold mb-2 ${
+                      theme === 'dark' ? 'text-blue-400' : 'text-blue-700'
+                    }`}>
+                      В работе
+                    </div>
+                    <div className={`text-3xl font-extrabold ${headingColor}`}>
+                      {inProgressTasks}
+                    </div>
                   </div>
-                  <div className={`text-2xl font-bold ${headingColor}`}>
-                    {completedTasks}
-                  </div>
-                </div>
-                <div className={`p-3 rounded-lg border-2 ${
-                  theme === 'dark' ? 'bg-gray-500/10 border-gray-500/30' : 'bg-gray-50 border-gray-200'
-                }`}>
-                  <div className={`text-xs font-medium mb-1 ${
-                    theme === 'dark' ? 'text-gray-400' : 'text-gray-700'
+                  <div className={`p-4 rounded-xl border-2 transition-all hover:scale-105 ${
+                    theme === 'dark' ? 'bg-green-500/10 border-green-500/30 hover:border-green-500/50' : 'bg-green-50 border-green-200 hover:border-green-300'
                   }`}>
-                    Всего
-                  </div>
-                  <div className={`text-2xl font-bold ${headingColor}`}>
-                    {tasks.length}
-                  </div>
-                </div>
-              </div>
-              <button
-                onClick={() => navigate('/tasks')}
-                className={`w-full mt-4 px-4 py-2 rounded-lg font-medium transition-colors ${
-                  theme === 'dark'
-                    ? 'bg-green-500/20 hover:bg-green-500/30 text-green-400 border border-green-500/50'
-                    : 'bg-green-50 hover:bg-green-100 text-green-700 border border-green-200'
-                }`}
-              >
-                Перейти к задачам
-              </button>
-            </div>
-
-            {/* About Community */}
-            <div className={`lg:col-span-2 ${cardBg} rounded-xl border-2 ${borderColor} p-4 sm:p-6 shadow-lg`}>
-              <h2 className={`text-xl font-bold ${headingColor} mb-4 flex items-center gap-2`}>
-                <Info className="w-5 h-5" />
-                О сообществе ApeVault
-              </h2>
-              <div className="space-y-4">
-                <div className={`p-4 rounded-lg border-2 ${
-                  theme === 'dark' 
-                    ? 'border-cyan-500/30 bg-gradient-to-br from-gray-800 to-gray-900' 
-                    : 'border-cyan-200 bg-gradient-to-br from-white to-cyan-50/20'
-                }`}>
-                  <div className="flex items-start gap-3">
-                    <div className={`p-2 rounded-lg ${
-                      theme === 'dark'
-                        ? 'bg-gradient-to-br from-cyan-600 to-blue-600'
-                        : 'bg-gradient-to-br from-cyan-500 to-blue-500'
-                    } text-white flex-shrink-0`}>
-                      <Info className="w-4 h-4" />
+                    <div className={`text-xs font-semibold mb-2 ${
+                      theme === 'dark' ? 'text-green-400' : 'text-green-700'
+                    }`}>
+                      Выполнена
                     </div>
-                    <div className="flex-1">
-                      <h3 className={`text-lg font-bold mb-2 ${headingColor}`}>
-                        Что такое ApeVault?
-                      </h3>
-                      <p className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                        ApeVault — закрытое профессиональное сообщество трейдеров и коллеров. Мы объединяем экспертизу, строгие
-                        регламенты и командную поддержку, чтобы ускорять результаты каждого участника и строить прозрачную культуру
-                        трейдинга.
-                      </p>
+                    <div className={`text-3xl font-extrabold ${headingColor}`}>
+                      {completedTasks}
                     </div>
                   </div>
-                </div>
-
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  {[
-                    { label: 'Участников', value: '50+', icon: Users },
-                    { label: 'Уроков', value: '100+', icon: BookOpen },
-                    { label: 'Сессий в неделю', value: '10+', icon: Target },
-                    { label: 'Продуктов', value: '3', icon: Award }
-                  ].map((item) => (
-                    <div
-                      key={item.label}
-                      className={`p-3 rounded-lg border ${
-                        theme === 'dark' ? 'border-cyan-500/20 bg-white/5' : 'border-cyan-200 bg-white'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2 mb-1">
-                        <item.icon className={`w-4 h-4 ${theme === 'dark' ? 'text-cyan-400' : 'text-cyan-600'}`} />
-                        <p className={`text-xs uppercase tracking-wide ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                          {item.label}
-                        </p>
-                      </div>
-                      <p className={`text-xl font-bold ${headingColor}`}>{item.value}</p>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="grid md:grid-cols-3 gap-3">
-                  <div className={`p-3 rounded-lg border-2 ${
-                    theme === 'dark' 
-                      ? 'border-green-500/30 bg-gradient-to-br from-gray-800 to-gray-900' 
-                      : 'border-green-200 bg-gradient-to-br from-white to-green-50/20'
+                  <div className={`p-4 rounded-xl border-2 transition-all hover:scale-105 ${
+                    theme === 'dark' ? 'bg-gray-500/10 border-gray-500/30 hover:border-gray-500/50' : 'bg-gray-50 border-gray-200 hover:border-gray-300'
                   }`}>
-                    <div className={`p-2 rounded-lg mb-2 inline-block ${
-                      theme === 'dark' 
-                        ? 'bg-gradient-to-br from-green-600 to-emerald-600' 
-                        : 'bg-gradient-to-br from-green-500 to-emerald-500'
-                    } text-white`}>
-                      <Users className="w-4 h-4" />
+                    <div className={`text-xs font-semibold mb-2 ${
+                      theme === 'dark' ? 'text-gray-400' : 'text-gray-700'
+                    }`}>
+                      Всего
                     </div>
-                    <h4 className={`text-sm font-bold mb-1 ${headingColor}`}>Командная работа</h4>
-                    <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                      Слаженная работа команды профессионалов
-                    </p>
-                  </div>
-
-                  <div className={`p-3 rounded-lg border-2 ${
-                    theme === 'dark' 
-                      ? 'border-purple-500/30 bg-gradient-to-br from-gray-800 to-gray-900' 
-                      : 'border-purple-200 bg-gradient-to-br from-white to-purple-50/20'
-                  }`}>
-                    <div className={`p-2 rounded-lg mb-2 inline-block ${
-                      theme === 'dark' 
-                        ? 'bg-gradient-to-br from-purple-600 to-pink-600' 
-                        : 'bg-gradient-to-br from-purple-500 to-pink-500'
-                    } text-white`}>
-                      <Target className="w-4 h-4" />
-                    </div>
-                    <h4 className={`text-sm font-bold mb-1 ${headingColor}`}>Профессионализм</h4>
-                    <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                      Высокие стандарты работы и строгий регламент
-                    </p>
-                  </div>
-
-                  <div className={`p-3 rounded-lg border-2 ${
-                    theme === 'dark' 
-                      ? 'border-yellow-500/30 bg-gradient-to-br from-gray-800 to-gray-900' 
-                      : 'border-yellow-200 bg-gradient-to-br from-white to-yellow-50/20'
-                  }`}>
-                    <div className={`p-2 rounded-lg mb-2 inline-block ${
-                      theme === 'dark' 
-                        ? 'bg-gradient-to-br from-yellow-600 to-orange-600' 
-                        : 'bg-gradient-to-br from-yellow-500 to-orange-500'
-                    } text-white`}>
-                      <Award className="w-4 h-4" />
-                    </div>
-                    <h4 className={`text-sm font-bold mb-1 ${headingColor}`}>Рейтинг</h4>
-                    <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                      Система рейтинга и мотивация к результатам
-                    </p>
-                  </div>
-                </div>
-
-                <div className={`p-4 rounded-lg border-2 ${
-                  theme === 'dark' 
-                    ? 'border-indigo-500/30 bg-gradient-to-br from-gray-800 to-gray-900' 
-                    : 'border-indigo-200 bg-gradient-to-br from-white to-indigo-50/20'
-                }`}>
-                  <div className="flex items-start gap-3">
-                    <div className={`p-2 rounded-lg ${
-                      theme === 'dark' 
-                        ? 'bg-gradient-to-br from-indigo-600 to-purple-600' 
-                        : 'bg-gradient-to-br from-indigo-500 to-purple-500'
-                    } text-white flex-shrink-0`}>
-                      <BookOpen className="w-4 h-4" />
-                    </div>
-                    <div className="flex-1">
-                      <h4 className={`text-sm font-bold mb-2 ${headingColor}`}>Правила сообщества</h4>
-                      <p className={`text-xs mb-3 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                        Подробный регламент торговых сессий и правила сообщества
-                      </p>
-                      <a
-                        href="https://telegra.ph/Reglament-provedeniya-torgovyh-sessij-pravila-soobshchestva-ApeVault-dlya-trejderov-i-kollerov-11-20"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all ${
-                          theme === 'dark'
-                            ? 'bg-green-500/20 hover:bg-green-500/30 text-green-400 border border-green-500/50'
-                            : 'bg-green-50 hover:bg-green-100 text-green-700 border border-green-200'
-                        }`}
-                      >
-                        <BookOpen className="w-3 h-3" />
-                        Ознакомиться с правилами
-                      </a>
+                    <div className={`text-3xl font-extrabold ${headingColor}`}>
+                      {tasks.length}
                     </div>
                   </div>
                 </div>
-
-                <div className={`p-4 rounded-lg border-2 ${
-                  theme === 'dark' 
-                    ? 'border-pink-500/30 bg-gradient-to-br from-gray-800 to-gray-900' 
-                    : 'border-pink-200 bg-gradient-to-br from-white to-pink-50/20'
-                }`}>
-                  <div className="flex items-start gap-3">
-                    <div className={`p-2 rounded-lg ${
-                      theme === 'dark' 
-                        ? 'bg-gradient-to-br from-pink-600 to-rose-600' 
-                        : 'bg-gradient-to-br from-pink-500 to-rose-500'
-                    } text-white flex-shrink-0`}>
-                      <Mail className="w-4 h-4" />
-                    </div>
-                    <div className="flex-1">
-                      <h4 className={`text-sm font-bold mb-1 ${headingColor}`}>Контакты</h4>
-                      <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                        По вопросам работы системы обращайтесь к администратору:{' '}
-                        <span className={`font-bold ${headingColor}`}>@artyommedoed</span>
-                      </p>
-                    </div>
-                  </div>
-                </div>
+                <button
+                  onClick={() => navigate('/tasks')}
+                  className={`w-full px-4 py-3 rounded-lg font-semibold transition-all transform hover:scale-[1.02] flex items-center justify-center gap-2 ${
+                    theme === 'dark'
+                      ? 'bg-gradient-to-r from-green-500/20 to-emerald-500/20 hover:from-green-500/30 hover:to-emerald-500/30 text-green-400 border-2 border-green-500/50 hover:border-green-500'
+                      : 'bg-gradient-to-r from-green-50 to-emerald-50 hover:from-green-100 hover:to-emerald-100 text-green-700 border-2 border-green-200 hover:border-green-300'
+                  }`}
+                >
+                  <CheckSquare className="w-4 h-4" />
+                  Перейти к задачам
+                </button>
               </div>
             </div>
 
             {/* Logout Button */}
-            <div className={`lg:col-span-2 ${cardBg} rounded-xl border-2 ${borderColor} p-4 sm:p-6 shadow-lg`}>
-              <button
-                onClick={handleLogout}
-                className={`w-full px-6 py-3 rounded-lg font-semibold transition-all flex items-center justify-center gap-2 ${
-                  theme === 'dark'
-                    ? 'bg-red-500/20 hover:bg-red-500/30 text-red-400 border-2 border-red-500/50 hover:border-red-500'
-                    : 'bg-red-50 hover:bg-red-100 text-red-700 border-2 border-red-200 hover:border-red-300'
-                }`}
-              >
-                <LogOut className="w-5 h-5" />
-                Выйти из аккаунта
-              </button>
+            <div className={`lg:col-span-2 ${cardBg} rounded-xl border-2 ${borderColor} p-5 sm:p-6 shadow-lg hover:shadow-xl transition-all relative overflow-hidden ${
+              theme === 'dark' 
+                ? 'bg-gradient-to-br from-gray-800 to-gray-900' 
+                : 'bg-gradient-to-br from-white to-gray-50'
+            }`}>
+              <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-red-500/10 to-pink-500/10 rounded-full blur-2xl -mr-12 -mt-12" />
+              <div className="relative z-10">
+                <button
+                  onClick={handleLogout}
+                  className={`w-full px-6 py-3.5 rounded-lg font-semibold transition-all transform hover:scale-[1.02] flex items-center justify-center gap-2 ${
+                    theme === 'dark'
+                      ? 'bg-gradient-to-r from-red-500/20 to-pink-500/20 hover:from-red-500/30 hover:to-pink-500/30 text-red-400 border-2 border-red-500/50 hover:border-red-500'
+                      : 'bg-gradient-to-r from-red-50 to-pink-50 hover:from-red-100 hover:to-pink-100 text-red-700 border-2 border-red-200 hover:border-red-300'
+                  }`}
+                >
+                  <LogOut className="w-5 h-5" />
+                  Выйти из аккаунта
+                </button>
+              </div>
             </div>
           </div>
         )}
