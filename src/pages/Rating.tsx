@@ -42,11 +42,22 @@ export const Rating = () => {
       for (const member of TEAM_MEMBERS) {
         // Данные для рейтинга
         const weekEarnings = await getEarnings(member.id, weekStart, weekEnd)
-        const weeklyEarnings = weekEarnings.reduce((sum, e) => sum + e.amount, 0)
+        // Если у записи несколько участников, сумма делится поровну между ними
+        const weeklyEarnings = weekEarnings.reduce((sum, e) => {
+          const participantCount = e.participants && e.participants.length > 0 ? e.participants.length : 1
+          return sum + (e.amount / participantCount)
+        }, 0)
 
         const monthEarnings = await getEarnings(member.id, monthStart, monthEnd)
-        const totalEarnings = monthEarnings.reduce((sum, e) => sum + e.amount, 0)
-        const poolAmount = monthEarnings.reduce((sum, e) => sum + e.poolAmount, 0)
+        // Если у записи несколько участников, сумма делится поровну между ними
+        const totalEarnings = monthEarnings.reduce((sum, e) => {
+          const participantCount = e.participants && e.participants.length > 0 ? e.participants.length : 1
+          return sum + (e.amount / participantCount)
+        }, 0)
+        const poolAmount = monthEarnings.reduce((sum, e) => {
+          const participantCount = e.participants && e.participants.length > 0 ? e.participants.length : 1
+          return sum + (e.poolAmount / participantCount)
+        }, 0)
 
         const statuses = await getDayStatuses(member.id)
         // Filter statuses that overlap with the month period

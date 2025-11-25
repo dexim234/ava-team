@@ -163,16 +163,17 @@ export const EarningsForm = ({ onClose, onSave, editingEarning }: EarningsFormPr
           return
         }
 
-        for (const participantId of participants) {
-          await addEarnings({
-            userId: participantId,
-            date,
-            amount: amountNum,
-            poolAmount: poolNum,
-            slotId: selectedSlotId,
-            participants: multipleParticipants ? participants : [participantId],
-          })
-        }
+        // Create a single earnings record with all participants
+        // The amount is the same for all participants (not summed)
+        // Use the first participant as the primary userId for the record
+        await addEarnings({
+          userId: participants[0],
+          date,
+          amount: amountNum, // Единая сумма для всех участников
+          poolAmount: poolNum, // Единая сумма пула для всех участников
+          slotId: selectedSlotId,
+          participants: participants, // Все участники в одной записи
+        })
       }
 
       onSave()

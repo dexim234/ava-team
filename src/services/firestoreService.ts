@@ -229,12 +229,11 @@ export const getEarnings = async (userId?: string, startDate?: string, endDate?:
   let q: ReturnType<typeof query>
 
   // Build query to avoid composite index requirement
-  if (userId && startDate && endDate) {
-    // Filter by userId first, then filter by date in memory
-    q = query(earningsRef, where('userId', '==', userId))
-  } else if (userId) {
-    // Filter by userId only, sort in memory
-    q = query(earningsRef, where('userId', '==', userId))
+  // When userId is provided, we need to get all earnings and filter in memory
+  // because we need to check both userId field and participants array
+  if (userId) {
+    // Get all earnings to check both userId and participants
+    q = query(earningsRef)
   } else if (startDate && endDate) {
     // Filter by date range (this doesn't require index for range queries on single field)
     q = query(earningsRef, where('date', '>=', startDate), where('date', '<=', endDate))
@@ -257,8 +256,21 @@ export const getEarnings = async (userId?: string, startDate?: string, endDate?:
     } as Earnings
   })
   
+  // Filter by userId in memory (check both userId field and participants array)
+  if (userId) {
+    results = results.filter((e) => {
+      const allParticipants = e.participants && e.participants.length > 0 
+        ? [...e.participants, e.userId] 
+        : [e.userId]
+      return allParticipants.includes(userId)
+    })
+  }
+  
   // Filter by date range in memory if userId is also provided
   if (userId && startDate && endDate) {
+    results = results.filter((e) => e.date >= startDate && e.date <= endDate)
+  } else if (!userId && startDate && endDate) {
+    // Already filtered by query, but ensure consistency
     results = results.filter((e) => e.date >= startDate && e.date <= endDate)
   }
   

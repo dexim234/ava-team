@@ -21,12 +21,23 @@ export const EarningsTable = ({ earnings }: EarningsTableProps) => {
 
   // Calculate statistics
   const getStats = (userId: string, startDate: string, endDate: string) => {
-    const userEarnings = earnings.filter(
-      (e) => e.userId === userId && e.date >= startDate && e.date <= endDate
-    )
+    const userEarnings = earnings.filter((e) => {
+      // Проверяем, является ли пользователь участником (в userId или в participants)
+      const allParticipants = e.participants && e.participants.length > 0 
+        ? [...e.participants, e.userId] 
+        : [e.userId]
+      return allParticipants.includes(userId) && e.date >= startDate && e.date <= endDate
+    })
 
-    const totalEarnings = userEarnings.reduce((sum, e) => sum + e.amount, 0)
-    const totalPool = userEarnings.reduce((sum, e) => sum + e.poolAmount, 0)
+    // Если у записи несколько участников, сумма делится поровну между ними
+    const totalEarnings = userEarnings.reduce((sum, e) => {
+      const participantCount = e.participants && e.participants.length > 0 ? e.participants.length : 1
+      return sum + (e.amount / participantCount)
+    }, 0)
+    const totalPool = userEarnings.reduce((sum, e) => {
+      const participantCount = e.participants && e.participants.length > 0 ? e.participants.length : 1
+      return sum + (e.poolAmount / participantCount)
+    }, 0)
 
     return { totalEarnings, totalPool, count: userEarnings.length }
   }
