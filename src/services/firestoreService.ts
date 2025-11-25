@@ -11,9 +11,8 @@ import {
   where,
   orderBy,
 } from 'firebase/firestore'
-import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage'
-import { db, storage } from '@/firebase/config'
-import { WorkSlot, DayStatus, Earnings, RatingData, Referral, Call, Task, TaskNotification, TaskStatus, Notification, NotificationCategory, TaskChatMessage } from '@/types'
+import { db } from '@/firebase/config'
+import { WorkSlot, DayStatus, Earnings, RatingData, Referral, Call, Task, TaskNotification, TaskStatus, Notification, NotificationCategory } from '@/types'
 
 const DATA_RETENTION_DAYS = 30
 
@@ -852,7 +851,7 @@ export const addTask = async (taskData: Omit<Task, 'id'>): Promise<string> => {
 }
 
 export const getTasks = async (filters?: {
-  assignedTo?: string
+  assignedTo?: string | string[]
   category?: string
   status?: TaskStatus
   createdBy?: string
@@ -885,6 +884,17 @@ export const getTasks = async (filters?: {
   const snapshot = await getDocs(q)
   let tasks = snapshot.docs.map((doc) => {
     const data = doc.data() as any
+    const rawAssignees = Array.isArray(data.assignees)
+      ? data.assignees
+      : (data.assignedTo || []).map((userId: string) => ({ userId, priority: 'medium' }))
+    const normalizedAssignees = (rawAssignees || [])
+      .map((assignee: any) => ({
+        userId: assignee.userId || '',
+        priority: assignee.priority === 'high' || assignee.priority === 'low' ? assignee.priority : 'medium',
+        comment: assignee.comment,
+      }))
+      .filter((assignee: any) => !!assignee.userId)
+    const assignedIds = normalizedAssignees.map((assignee: any) => assignee.userId)
     return {
       id: doc.id,
       title: data.title || '',
@@ -892,7 +902,8 @@ export const getTasks = async (filters?: {
       category: data.category || 'trading',
       status: data.status || 'pending',
       createdBy: data.createdBy || '',
-      assignedTo: data.assignedTo || [],
+      assignedTo: assignedIds,
+      assignees: normalizedAssignees,
       approvals: data.approvals || [],
       createdAt: data.createdAt || new Date().toISOString(),
       updatedAt: data.updatedAt || new Date().toISOString(),
@@ -926,7 +937,14 @@ export const getTasks = async (filters?: {
   
   // Apply assignedTo filter in memory (array-contains doesn't work well with multiple users)
   if (filters?.assignedTo) {
-    tasks = tasks.filter(t => t.assignedTo.includes(filters.assignedTo!))
+    if (Array.isArray(filters.assignedTo)) {
+      const selected = filters.assignedTo
+      if (selected.length > 0) {
+        tasks = tasks.filter((t) => selected.some((userId) => t.assignedTo.includes(userId)))
+      }
+    } else {
+      tasks = tasks.filter((t) => t.assignedTo.includes(filters.assignedTo as string))
+    }
   }
   
   return tasks
@@ -1094,228 +1112,5 @@ export const markAllNotificationsAsReadGeneral = async (userId: string, category
 export const deleteNotification = async (id: string): Promise<void> => {
   const notificationRef = doc(db, 'notifications', id)
   await deleteDoc(notificationRef)
-}
-
-// Task Chat functions
-export const addTaskChatMessage = async (messageData: Omit<TaskChatMessage, 'id'>): Promise<string> => {
-  try {
-    const messagesRef = collection(db, 'taskChatMessages')
-    const dataToSave = {
-      taskId: messageData.taskId,
-      userId: messageData.userId,
-      userName: messageData.userName,
-      message: messageData.message || '',
-      imageUrl: messageData.imageUrl || null,
-      documentUrl: messageData.documentUrl || null,
-      documentName: messageData.documentName || null,
-      createdAt: messageData.createdAt || new Date().toISOString(),
-      updatedAt: null,
-      edited: messageData.edited || false,
-      deleted: messageData.deleted || false,
-    }
-    
-    console.log('Adding task chat message to Firestore:', dataToSave)
-    const docRef = await addDoc(messagesRef, dataToSave)
-    console.log('Task chat message added with ID:', docRef.id)
-    return docRef.id
-  } catch (error: any) {
-    console.error('Error adding task chat message:', error)
-    throw new Error(`Failed to add message: ${error?.message || 'Unknown error'}`)
-  }
-}
-
-export const getTaskChatMessages = async (taskId: string): Promise<TaskChatMessage[]> => {
-  const messagesRef = collection(db, 'taskChatMessages')
-  // Use only taskId and orderBy to avoid index issues, filter deleted in code
-  const q = query(
-    messagesRef,
-    where('taskId', '==', taskId),
-    orderBy('createdAt', 'asc')
-  )
-  
-  const snapshot = await getDocs(q)
-  return snapshot.docs
-    .map((doc) => {
-      const data = doc.data() as any
-      return {
-        id: doc.id,
-        taskId: data.taskId || '',
-        userId: data.userId || '',
-        userName: data.userName || '',
-        message: data.message || '',
-        imageUrl: data.imageUrl,
-        documentUrl: data.documentUrl,
-        documentName: data.documentName,
-        createdAt: data.createdAt || new Date().toISOString(),
-        updatedAt: data.updatedAt,
-        edited: data.edited || false,
-        deleted: data.deleted || false,
-      } as TaskChatMessage
-    })
-    .filter(msg => !msg.deleted) // Filter deleted messages in code
-}
-
-export const updateTaskChatMessage = async (id: string, updates: Partial<TaskChatMessage>): Promise<void> => {
-  const messageRef = doc(db, 'taskChatMessages', id)
-  const cleanUpdates = {
-    ...updates,
-    updatedAt: new Date().toISOString(),
-    edited: true,
-  }
-  await updateDoc(messageRef, cleanUpdates as any)
-}
-
-export const deleteTaskChatMessage = async (id: string): Promise<void> => {
-  const messageRef = doc(db, 'taskChatMessages', id)
-  await updateDoc(messageRef, { 
-    deleted: true,
-    updatedAt: new Date().toISOString(),
-  })
-}
-
-export const saveTaskChat = async (taskId: string): Promise<void> => {
-  const taskRef = doc(db, 'tasks', taskId)
-  await updateDoc(taskRef, {
-    chatSaved: true,
-    chatSavedAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  })
-}
-
-export const clearTaskChat = async (taskId: string): Promise<void> => {
-  const messagesRef = collection(db, 'taskChatMessages')
-  const q = query(messagesRef, where('taskId', '==', taskId))
-  const snapshot = await getDocs(q)
-  
-  await Promise.all(snapshot.docs.map((doc) => deleteDoc(doc.ref)))
-  
-  // Update task
-  const taskRef = doc(db, 'tasks', taskId)
-  await updateDoc(taskRef, {
-    chatSaved: false,
-    chatSavedAt: undefined,
-    updatedAt: new Date().toISOString(),
-  })
-}
-
-export const cleanupExpiredChats = async (): Promise<void> => {
-  const messagesRef = collection(db, 'taskChatMessages')
-  const twoDaysAgo = new Date()
-  twoDaysAgo.setHours(twoDaysAgo.getHours() - 48)
-  
-  const q = query(messagesRef, where('createdAt', '<', twoDaysAgo.toISOString()))
-  const snapshot = await getDocs(q)
-  
-  const taskIds = new Set<string>()
-  
-  // Get all task IDs with expired messages
-  snapshot.docs.forEach((doc) => {
-    const data = doc.data()
-    if (data.taskId) {
-      taskIds.add(data.taskId)
-    }
-  })
-  
-  // Delete expired messages and their files
-  for (const docSnap of snapshot.docs) {
-    const data = docSnap.data()
-    
-    // Delete image from storage if exists
-    if (data.imageUrl) {
-      try {
-        const imageRef = ref(storage, data.imageUrl)
-        await deleteObject(imageRef)
-      } catch (error) {
-        console.error('Error deleting image:', error)
-      }
-    }
-    
-    // Delete document from storage if exists
-    if (data.documentUrl) {
-      try {
-        const documentRef = ref(storage, data.documentUrl)
-        await deleteObject(documentRef)
-      } catch (error) {
-        console.error('Error deleting document:', error)
-      }
-    }
-    
-    // Delete message
-    await deleteDoc(docSnap.ref)
-  }
-  
-  // Check if chats are saved, if not - clear saved flag
-  for (const taskId of taskIds) {
-    const taskRef = doc(db, 'tasks', taskId)
-    const taskDoc = await getDoc(taskRef)
-    const taskData = taskDoc.data() as Task | undefined
-    
-    if (taskData && !taskData.chatSaved) {
-      // Check if there are any messages left
-      const remainingMessages = query(messagesRef, where('taskId', '==', taskId))
-      const remainingSnapshot = await getDocs(remainingMessages)
-      
-      if (remainingSnapshot.empty) {
-        await updateDoc(taskRef, {
-          chatSaved: false,
-          chatSavedAt: undefined,
-        })
-      }
-    }
-  }
-}
-
-// File upload functions
-export const uploadChatImage = async (taskId: string, file: File): Promise<string> => {
-  try {
-    if (!storage) {
-      throw new Error('Firebase Storage не инициализирован')
-    }
-    
-    const timestamp = Date.now()
-    const sanitizedFileName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_')
-    const fileName = `task-chat/${taskId}/images/${timestamp}-${sanitizedFileName}`
-    const storageRef = ref(storage, fileName)
-    
-    console.log('Uploading image to storage:', fileName, 'Size:', file.size)
-    await uploadBytes(storageRef, file)
-    const downloadURL = await getDownloadURL(storageRef)
-    console.log('Image uploaded, URL:', downloadURL)
-    return downloadURL
-  } catch (error: any) {
-    console.error('Error in uploadChatImage:', error)
-    throw new Error(`Ошибка загрузки изображения: ${error?.message || 'Unknown error'}`)
-  }
-}
-
-export const uploadChatDocument = async (taskId: string, file: File): Promise<string> => {
-  try {
-    if (!storage) {
-      throw new Error('Firebase Storage не инициализирован')
-    }
-    
-    const timestamp = Date.now()
-    const sanitizedFileName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_')
-    const fileName = `task-chat/${taskId}/documents/${timestamp}-${sanitizedFileName}`
-    const storageRef = ref(storage, fileName)
-    
-    console.log('Uploading document to storage:', fileName, 'Size:', file.size)
-    await uploadBytes(storageRef, file)
-    const downloadURL = await getDownloadURL(storageRef)
-    console.log('Document uploaded, URL:', downloadURL)
-    return downloadURL
-  } catch (error: any) {
-    console.error('Error in uploadChatDocument:', error)
-    throw new Error(`Ошибка загрузки документа: ${error?.message || 'Unknown error'}`)
-  }
-}
-
-export const deleteChatFile = async (fileUrl: string): Promise<void> => {
-  try {
-    const fileRef = ref(storage, fileUrl)
-    await deleteObject(fileRef)
-  } catch (error) {
-    console.error('Error deleting file:', error)
-  }
 }
 

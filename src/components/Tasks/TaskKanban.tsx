@@ -5,9 +5,8 @@ import { useAuthStore } from '@/store/authStore'
 import { useAdminStore } from '@/store/adminStore'
 import { updateTask, addTaskNotification } from '@/services/firestoreService'
 import { Task, TaskStatus, TASK_STATUSES, TEAM_MEMBERS } from '@/types'
-import { MoreVertical, CheckSquare, Check, X, RotateCcw, MessageSquare } from 'lucide-react'
+import { MoreVertical, CheckSquare, Check, X, RotateCcw } from 'lucide-react'
 import { formatDate } from '@/utils/dateUtils'
-import { TaskChat } from './TaskChat'
 import { TaskDeadlineBadge } from './TaskDeadlineBadge'
 
 interface TaskKanbanProps {
@@ -25,18 +24,24 @@ export const TaskKanban = ({ tasks, onUpdate, onEdit, onDelete, getUnreadNotific
   
   const [draggedTask, setDraggedTask] = useState<Task | null>(null)
   const [mobileMenuTask, setMobileMenuTask] = useState<Task | null>(null)
-  const [approvalDialog, setApprovalDialog] = useState<{ task: Task; action: 'approve' | 'reject' } | null>(null)
-  const [approvalComment, setApprovalComment] = useState('')
+  const [rejectDialog, setRejectDialog] = useState<{ task: Task } | null>(null)
+  const [rejectionComment, setRejectionComment] = useState('')
   const [loading, setLoading] = useState<string | null>(null)
   const [touchStart, setTouchStart] = useState<{ x: number; y: number; task: Task } | null>(null)
   const [touchTarget, setTouchTarget] = useState<string | null>(null)
-  const [chatTask, setChatTask] = useState<Task | null>(null)
 
   const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
   const cardBg = theme === 'dark' ? 'bg-gray-800' : 'bg-white'
   const borderColor = theme === 'dark' ? 'border-gray-600' : 'border-gray-300'
 
   const statuses: TaskStatus[] = ['pending', 'in_progress', 'completed', 'closed', 'rejected']
+
+  const resolveAssignees = (task: Task) =>
+    task.assignees && task.assignees.length > 0
+      ? task.assignees
+      : task.assignedTo.map((userId) => ({ userId, priority: 'medium' as const }))
+
+  const resolveAssigneeIds = (task: Task) => resolveAssignees(task).map((assignee) => assignee.userId)
 
   const getTasksByStatus = (status: TaskStatus) => {
     return tasks.filter(task => task.status === status)
@@ -147,7 +152,7 @@ export const TaskKanban = ({ tasks, onUpdate, onEdit, onDelete, getUnreadNotific
         }
       } else if (targetStatus === 'pending' && draggedTask.status === 'rejected') {
         // Reset approvals when resubmitting rejected task
-        updates.approvals = draggedTask.assignedTo.map((userId) => ({
+        updates.approvals = resolveAssigneeIds(draggedTask).map((userId) => ({
           userId,
           status: 'pending' as const,
           updatedAt: now,
@@ -157,9 +162,10 @@ export const TaskKanban = ({ tasks, onUpdate, onEdit, onDelete, getUnreadNotific
       await updateTask(draggedTask.id, updates)
 
       // Send notifications to all assigned users
-      if (targetStatus !== draggedTask.status && draggedTask.assignedTo.length > 0) {
+      const draggedAssigneeIds = resolveAssigneeIds(draggedTask)
+      if (targetStatus !== draggedTask.status && draggedAssigneeIds.length > 0) {
         const movedBy = user?.name || 'Администратор'
-        for (const userId of draggedTask.assignedTo) {
+        for (const userId of draggedAssigneeIds) {
           if (userId !== user?.id) {
             let message = ''
             if (targetStatus === 'in_progress') {
@@ -223,7 +229,7 @@ export const TaskKanban = ({ tasks, onUpdate, onEdit, onDelete, getUnreadNotific
           return
         }
       } else if (newStatus === 'pending' && task.status === 'rejected') {
-        updates.approvals = task.assignedTo.map((userId) => ({
+        updates.approvals = resolveAssigneeIds(task).map((userId) => ({
           userId,
           status: 'pending' as const,
           updatedAt: now,
@@ -233,9 +239,10 @@ export const TaskKanban = ({ tasks, onUpdate, onEdit, onDelete, getUnreadNotific
       await updateTask(task.id, updates)
 
       // Send notifications to all assigned users
-      if (newStatus !== task.status && task.assignedTo.length > 0) {
+      const taskAssigneeIds = resolveAssigneeIds(task)
+      if (newStatus !== task.status && taskAssigneeIds.length > 0) {
         const movedBy = user?.name || 'Администратор'
-        for (const userId of task.assignedTo) {
+        for (const userId of taskAssigneeIds) {
           if (userId !== user?.id) {
             let message = ''
             if (newStatus === 'in_progress') {
@@ -282,7 +289,7 @@ export const TaskKanban = ({ tasks, onUpdate, onEdit, onDelete, getUnreadNotific
       
       const updatedApprovals: Task['approvals'] = task.approvals.map(a => 
         a.userId === user.id 
-          ? { ...a, status: newStatus, comment: action === 'reject' ? approvalComment || undefined : undefined, updatedAt: now }
+          ? { ...a, status: newStatus, comment: action === 'reject' ? rejectionComment || undefined : undefined, updatedAt: now }
           : a
       )
 
@@ -290,7 +297,7 @@ export const TaskKanban = ({ tasks, onUpdate, onEdit, onDelete, getUnreadNotific
         updatedApprovals.push({
           userId: user.id,
           status: newStatus,
-          comment: action === 'reject' ? approvalComment || undefined : undefined,
+          comment: action === 'reject' ? rejectionComment || undefined : undefined,
           updatedAt: now,
         })
       }
@@ -325,7 +332,7 @@ export const TaskKanban = ({ tasks, onUpdate, onEdit, onDelete, getUnreadNotific
           })
         }
         // Notify other assigned users
-        for (const userId of task.assignedTo) {
+        for (const userId of resolveAssigneeIds(task)) {
           if (userId !== user.id && userId !== task.createdBy) {
             await addTaskNotification({
               userId,
@@ -346,14 +353,14 @@ export const TaskKanban = ({ tasks, onUpdate, onEdit, onDelete, getUnreadNotific
             userId: task.createdBy,
             taskId: task.id,
             type: 'task_moved',
-            message: `Задача "${task.title}" отклонена пользователем ${rejectedBy}. ${approvalComment || ''}`,
+            message: `Задача "${task.title}" отклонена пользователем ${rejectedBy}. ${rejectionComment || ''}`,
             read: false,
             createdAt: now,
             movedBy: rejectedBy,
           })
         }
         // Notify other assigned users
-        for (const userId of task.assignedTo) {
+        for (const userId of resolveAssigneeIds(task)) {
           if (userId !== user.id && userId !== task.createdBy) {
             await addTaskNotification({
               userId,
@@ -369,8 +376,10 @@ export const TaskKanban = ({ tasks, onUpdate, onEdit, onDelete, getUnreadNotific
       }
 
       onUpdate()
-      setApprovalDialog(null)
-      setApprovalComment('')
+      if (action === 'reject') {
+        setRejectDialog(null)
+        setRejectionComment('')
+      }
     } catch (error) {
       console.error('Error approving task:', error)
     } finally {
@@ -386,7 +395,7 @@ export const TaskKanban = ({ tasks, onUpdate, onEdit, onDelete, getUnreadNotific
       const now = new Date().toISOString()
       await updateTask(task.id, {
         status: 'pending',
-        approvals: task.assignedTo.map((userId) => ({
+        approvals: resolveAssigneeIds(task).map((userId) => ({
           userId,
           status: 'pending' as const,
           updatedAt: now,
@@ -395,7 +404,7 @@ export const TaskKanban = ({ tasks, onUpdate, onEdit, onDelete, getUnreadNotific
       })
 
       // Notify assigned users
-      for (const userId of task.assignedTo) {
+      for (const userId of resolveAssigneeIds(task)) {
         await addTaskNotification({
           userId,
           taskId: task.id,
@@ -445,7 +454,8 @@ export const TaskKanban = ({ tasks, onUpdate, onEdit, onDelete, getUnreadNotific
   const canApprove = (task: Task) => {
     if (task.status !== 'pending') return false
     if (!user) return false
-    if (!task.assignedTo.includes(user.id)) return false
+    const ids = resolveAssigneeIds(task)
+    if (!ids.includes(user.id)) return false
     const userApproval = task.approvals.find(a => a.userId === user.id)
     return !userApproval || userApproval.status === 'pending'
   }
@@ -495,6 +505,14 @@ export const TaskKanban = ({ tasks, onUpdate, onEdit, onDelete, getUnreadNotific
                     const canEdit = isAdmin || user?.id === task.createdBy
                     const canApproveTask = canApprove(task)
                     const canResubmitTask = canResubmit(task)
+                    const taskAssignees = resolveAssignees(task)
+                    const assigneeDetails = taskAssignees
+                      .map((assignee) => {
+                        const member = TEAM_MEMBERS.find((m) => m.id === assignee.userId)
+                        if (!member) return null
+                        return { ...assignee, member }
+                      })
+                      .filter(Boolean) as { member: (typeof TEAM_MEMBERS)[number]; priority: 'low' | 'medium' | 'high'; comment?: string }[]
                     
                     return (
                       <div
@@ -599,12 +617,30 @@ export const TaskKanban = ({ tasks, onUpdate, onEdit, onDelete, getUnreadNotific
                                 {TEAM_MEMBERS.find(m => m.id === task.createdBy)?.name || 'Неизвестно'}
                               </span>
                             </div>
+                          <div className="flex flex-col gap-1">
                             <div className={`flex items-center gap-1 ${theme === 'dark' ? 'text-green-400' : 'text-green-600'}`}>
                               <span className="font-medium">Исполнители:</span>
-                              <span className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>
-                                {task.assignedTo.map(id => TEAM_MEMBERS.find(m => m.id === id)?.name).filter(Boolean).join(', ') || 'Не назначены'}
-                              </span>
                             </div>
+                            {assigneeDetails.length > 0 ? (
+                              assigneeDetails.map((assignee) => (
+                                <div key={assignee.member.id} className={`text-[11px] sm:text-xs ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} flex flex-wrap gap-1`}>
+                                  <span className="font-medium">{assignee.member.name}</span>
+                                  <span>•</span>
+                                  <span>
+                                    {assignee.priority === 'high' ? 'Высокий' : assignee.priority === 'medium' ? 'Средний' : 'Низкий'}
+                                  </span>
+                                  {assignee.comment && (
+                                    <>
+                                      <span>•</span>
+                                      <span className="truncate max-w-[140px] sm:max-w-[180px]">{assignee.comment}</span>
+                                    </>
+                                  )}
+                                </div>
+                              ))
+                            ) : (
+                              <span className={theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}>Не назначены</span>
+                            )}
+                          </div>
                           </div>
                           <div className={`flex items-center gap-1 flex-wrap ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
                             <span>📅 {formatDate(new Date(task.dueDate), 'dd.MM.yyyy')}</span>
@@ -623,31 +659,21 @@ export const TaskKanban = ({ tasks, onUpdate, onEdit, onDelete, getUnreadNotific
                           </div>
                         </div>
 
-                        {/* Chat Button */}
-                        <button
-                          onClick={() => setChatTask(task)}
-                          className={`w-full mt-2 px-2 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center justify-center gap-1 ${
-                            theme === 'dark'
-                              ? 'bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 border border-blue-500/50'
-                              : 'bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200'
-                          }`}
-                        >
-                          <MessageSquare className="w-3 h-3" />
-                          Чат
-                        </button>
-
                         {/* Approval/Reject Buttons */}
                         {canApproveTask && (
                           <div className={`flex gap-2 mt-2 pt-2 border-t ${borderColor}`}>
                             <button
-                              onClick={() => setApprovalDialog({ task, action: 'approve' })}
+                              onClick={() => handleApprove(task, 'approve')}
                               className="flex-1 px-2 py-1.5 bg-green-500 hover:bg-green-600 text-white rounded-lg text-xs font-medium transition-colors flex items-center justify-center gap-1"
                             >
                               <Check className="w-3 h-3" />
                               Согласовать
                             </button>
                             <button
-                              onClick={() => setApprovalDialog({ task, action: 'reject' })}
+                              onClick={() => {
+                                setRejectDialog({ task })
+                                setRejectionComment('')
+                              }}
                               className="flex-1 px-2 py-1.5 bg-red-500 hover:bg-red-600 text-white rounded-lg text-xs font-medium transition-colors flex items-center justify-center gap-1"
                             >
                               <X className="w-3 h-3" />
@@ -685,41 +711,32 @@ export const TaskKanban = ({ tasks, onUpdate, onEdit, onDelete, getUnreadNotific
         </div>
       </div>
 
-      {/* Approval Dialog */}
-      {approvalDialog && (
+      {/* Reject Dialog */}
+      {rejectDialog && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className={`${cardBg} rounded-xl p-6 max-w-md w-full border-2 ${borderColor}`}>
-            <h3 className={`text-lg font-bold mb-4 ${headingColor}`}>
-              {approvalDialog.action === 'approve' ? 'Согласовать задачу' : 'Отклонить задачу'}
-            </h3>
-              {approvalDialog.action === 'reject' && (
-                <textarea
-                  value={approvalComment}
-                  onChange={(e) => setApprovalComment(e.target.value)}
-                  placeholder="Укажите причину отклонения"
-                  rows={3}
-                  className={`w-full px-4 py-2 rounded-lg border ${borderColor} ${
-                    theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'
-                  } ${headingColor} mb-4 focus:outline-none focus:ring-2 focus:ring-green-500/50`}
-                  required
-                />
-              )}
+            <h3 className={`text-lg font-bold mb-4 ${headingColor}`}>Отклонить задачу</h3>
+            <textarea
+              value={rejectionComment}
+              onChange={(e) => setRejectionComment(e.target.value)}
+              placeholder="Укажите причину отклонения"
+              rows={3}
+              className={`w-full px-4 py-2 rounded-lg border ${borderColor} ${
+                theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'
+              } ${headingColor} mb-4 focus:outline-none focus:ring-2 focus:ring-green-500/50`}
+            />
             <div className="flex gap-3">
               <button
-                onClick={() => handleApprove(approvalDialog.task, approvalDialog.action)}
-                disabled={loading === approvalDialog.task.id || (approvalDialog.action === 'reject' && !approvalComment.trim())}
-                className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors ${
-                  approvalDialog.action === 'approve'
-                    ? 'bg-green-500 hover:bg-green-600 text-white'
-                    : 'bg-red-500 hover:bg-red-600 text-white'
-                } disabled:opacity-50`}
+                onClick={() => rejectDialog.task && handleApprove(rejectDialog.task, 'reject')}
+                disabled={loading === rejectDialog.task.id || !rejectionComment.trim()}
+                className="flex-1 px-4 py-2 rounded-lg font-medium transition-colors bg-red-500 hover:bg-red-600 text-white disabled:opacity-50"
               >
-                {approvalDialog.action === 'approve' ? 'Согласовать' : 'Отклонить'}
+                Отклонить
               </button>
               <button
                 onClick={() => {
-                  setApprovalDialog(null)
-                  setApprovalComment('')
+                  setRejectDialog(null)
+                  setRejectionComment('')
                 }}
                 className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                   theme === 'dark' ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-200 hover:bg-gray-300'
@@ -730,18 +747,6 @@ export const TaskKanban = ({ tasks, onUpdate, onEdit, onDelete, getUnreadNotific
             </div>
           </div>
         </div>
-      )}
-
-      {/* Chat Modal */}
-      {chatTask && (
-        <TaskChat
-          task={chatTask}
-          onClose={() => setChatTask(null)}
-          onUpdate={() => {
-            onUpdate()
-            setChatTask(null)
-          }}
-        />
       )}
     </>
   )

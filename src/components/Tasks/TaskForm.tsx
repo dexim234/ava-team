@@ -5,7 +5,7 @@ import { useAdminStore } from '@/store/adminStore'
 import { useThemeStore } from '@/store/themeStore'
 import { addTask, updateTask } from '@/services/firestoreService'
 import { addTaskNotification } from '@/services/firestoreService'
-import { Task, TaskCategory, TEAM_MEMBERS, TASK_CATEGORIES } from '@/types'
+import { Task, TaskAssignee, TaskCategory, TEAM_MEMBERS, TASK_CATEGORIES } from '@/types'
 import { X, Calendar, Users, Tag, FileText, AlertCircle, Clock } from 'lucide-react'
 import { formatDate } from '@/utils/dateUtils'
 
@@ -32,26 +32,42 @@ export const TaskForm = ({ onClose, onSave, editingTask }: TaskFormProps) => {
   const [priority, setPriority] = useState<'low' | 'medium' | 'high'>(editingTask?.priority || 'medium')
   const [dueDate, setDueDate] = useState(editingTask?.dueDate || formatDate(new Date(), 'yyyy-MM-dd'))
   const [dueTime, setDueTime] = useState(editingTask?.dueTime || '12:00')
-  const [selectedParticipants, setSelectedParticipants] = useState<string[]>(
-    editingTask ? editingTask.assignedTo : []
-  )
+  const initialAssignees: TaskAssignee[] =
+    editingTask && editingTask.assignees && editingTask.assignees.length > 0
+      ? editingTask.assignees
+      : editingTask
+        ? editingTask.assignedTo.map((userId) => ({ userId, priority: 'medium' as const }))
+        : []
+  const [assignees, setAssignees] = useState<TaskAssignee[]>(initialAssignees)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
   const handleParticipantToggle = (userId: string) => {
-    if (selectedParticipants.includes(userId)) {
-      setSelectedParticipants(selectedParticipants.filter((id) => id !== userId))
+    if (assignees.find((assignee) => assignee.userId === userId)) {
+      setAssignees((prev) => prev.filter((assignee) => assignee.userId !== userId))
     } else {
-      setSelectedParticipants([...selectedParticipants, userId])
+      setAssignees((prev) => [...prev, { userId, priority: 'medium' }])
     }
   }
 
   const handleSelectAll = () => {
-    if (selectedParticipants.length === TEAM_MEMBERS.length) {
-      setSelectedParticipants([])
+    if (assignees.length === TEAM_MEMBERS.length) {
+      setAssignees([])
     } else {
-      setSelectedParticipants(TEAM_MEMBERS.map((member) => member.id))
+      setAssignees(TEAM_MEMBERS.map((member) => ({ userId: member.id, priority: 'medium' })))
     }
+  }
+
+  const handleAssigneePriorityChange = (userId: string, priority: 'low' | 'medium' | 'high') => {
+    setAssignees((prev) =>
+      prev.map((assignee) => (assignee.userId === userId ? { ...assignee, priority } : assignee))
+    )
+  }
+
+  const handleAssigneeCommentChange = (userId: string, comment: string) => {
+    setAssignees((prev) =>
+      prev.map((assignee) => (assignee.userId === userId ? { ...assignee, comment } : assignee))
+    )
   }
 
   const handleSave = async () => {
@@ -70,7 +86,7 @@ export const TaskForm = ({ onClose, onSave, editingTask }: TaskFormProps) => {
         return
       }
 
-      if (selectedParticipants.length === 0) {
+      if (assignees.length === 0) {
         setError('Выберите хотя бы одного участника')
         setLoading(false)
         return
@@ -91,14 +107,29 @@ export const TaskForm = ({ onClose, onSave, editingTask }: TaskFormProps) => {
       const now = new Date().toISOString()
       const currentUserId = user?.id || 'admin'
 
+      const participantIds = assignees.map((assignee) => assignee.userId)
+
       if (isEditing && editingTask) {
         // Update existing task
+        const updatedApprovals = participantIds.map((userId) => {
+          const existing = editingTask.approvals.find((a) => a.userId === userId)
+          return (
+            existing || {
+              userId,
+              status: 'pending' as const,
+              updatedAt: now,
+            }
+          )
+        })
+
         const updates: Partial<Task> = {
           title: title.trim(),
           description: description.trim() || undefined,
           category,
           priority,
-          assignedTo: selectedParticipants,
+          assignedTo: participantIds,
+          assignees,
+          approvals: updatedApprovals,
           dueDate,
           dueTime,
           updatedAt: now,
@@ -116,8 +147,9 @@ export const TaskForm = ({ onClose, onSave, editingTask }: TaskFormProps) => {
           category,
           status: 'pending',
           createdBy: currentUserId,
-          assignedTo: selectedParticipants,
-          approvals: selectedParticipants.map((userId) => ({
+          assignedTo: participantIds,
+          assignees,
+          approvals: participantIds.map((userId) => ({
             userId,
             status: 'pending' as const,
             updatedAt: now,
@@ -132,7 +164,7 @@ export const TaskForm = ({ onClose, onSave, editingTask }: TaskFormProps) => {
         const taskId = await addTask(newTask)
 
         // Create notifications for all assigned users
-        for (const userId of selectedParticipants) {
+        for (const userId of participantIds) {
           await addTaskNotification({
             userId,
             taskId,
@@ -197,6 +229,49 @@ export const TaskForm = ({ onClose, onSave, editingTask }: TaskFormProps) => {
               placeholder="Введите название задачи"
             />
           </div>
+
+          {/* Assignee details */}
+          {assignees.length > 0 && (
+            <div className="space-y-3">
+              <label className={`block text-sm font-medium ${headingColor}`}>Приоритеты и комментарии</label>
+              <div className="space-y-3">
+                {assignees.map((assignee) => {
+                  const member = TEAM_MEMBERS.find((m) => m.id === assignee.userId)
+                  return (
+                    <div
+                      key={assignee.userId}
+                      className={`p-3 rounded-lg border ${borderColor} ${inputBg} space-y-2`}
+                    >
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                        <div className="text-sm font-medium">
+                          {member?.name || 'Участник'}{' '}
+                          <span className="text-xs text-gray-500">
+                            ({member?.login || member?.id || '—'})
+                          </span>
+                        </div>
+                        <select
+                          value={assignee.priority}
+                          onChange={(e) => handleAssigneePriorityChange(assignee.userId, e.target.value as 'low' | 'medium' | 'high')}
+                          className={`px-3 py-1.5 rounded-lg border ${borderColor} ${theme === 'dark' ? 'bg-gray-800 text-gray-100' : 'bg-white text-gray-700'}`}
+                        >
+                          <option value="low">Низкий приоритет</option>
+                          <option value="medium">Средний приоритет</option>
+                          <option value="high">Высокий приоритет</option>
+                        </select>
+                      </div>
+                      <textarea
+                        value={assignee.comment || ''}
+                        onChange={(e) => handleAssigneeCommentChange(assignee.userId, e.target.value)}
+                        rows={2}
+                        className={`w-full px-3 py-2 rounded-lg border ${borderColor} ${theme === 'dark' ? 'bg-gray-800 text-gray-100' : 'bg-white text-gray-700'} focus:outline-none focus:ring-2 focus:ring-green-500/50`}
+                        placeholder="Комментарий для исполнителя (необязательно)"
+                      />
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
 
           {/* Description */}
           <div>
@@ -297,12 +372,12 @@ export const TaskForm = ({ onClose, onSave, editingTask }: TaskFormProps) => {
                     : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
                 }`}
               >
-                {selectedParticipants.length === TEAM_MEMBERS.length ? 'Снять выделение' : 'Выбрать всех'}
+                {assignees.length === TEAM_MEMBERS.length ? 'Снять выделение' : 'Выбрать всех'}
               </button>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
               {TEAM_MEMBERS.map((member) => {
-                const isSelected = selectedParticipants.includes(member.id)
+                const isSelected = assignees.some((assignee) => assignee.userId === member.id)
                 return (
                   <button
                     key={member.id}

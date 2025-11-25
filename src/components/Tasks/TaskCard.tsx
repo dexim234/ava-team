@@ -5,24 +5,22 @@ import { useAdminStore } from '@/store/adminStore'
 import { useThemeStore } from '@/store/themeStore'
 import { updateTask, addTaskNotification } from '@/services/firestoreService'
 import { Task, TaskStatus, TEAM_MEMBERS, TASK_CATEGORIES, TASK_STATUSES } from '@/types'
-import { 
-  Edit, 
-  Trash2, 
-  CheckCircle2, 
-  Clock, 
-  XCircle, 
-  Bell, 
-  User, 
+import {
+  Edit,
+  Trash2,
+  CheckCircle2,
+  Clock,
+  XCircle,
+  Bell,
+  User,
   Users,
   Calendar,
   AlertCircle,
   Check,
   X,
-  MessageSquare
 } from 'lucide-react'
 import { formatDate } from '@/utils/dateUtils'
 import { TaskDeadlineBadge } from './TaskDeadlineBadge'
-import { TaskChat } from './TaskChat'
 
 interface TaskCardProps {
   task: Task
@@ -38,10 +36,8 @@ export const TaskCard = ({ task, onEdit, onDelete, onUpdate, unreadNotifications
   const { theme } = useThemeStore()
   
   const [loading, setLoading] = useState(false)
-  const [showApprovalDialog, setShowApprovalDialog] = useState(false)
-  const [approvalComment, setApprovalComment] = useState('')
-  const [approvalAction, setApprovalAction] = useState<'approve' | 'reject' | null>(null)
-  const [showChat, setShowChat] = useState(false)
+  const [showRejectDialog, setShowRejectDialog] = useState(false)
+  const [rejectionComment, setRejectionComment] = useState('')
 
   const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
   const cardBg = theme === 'dark' ? 'bg-gray-800' : 'bg-white'
@@ -49,14 +45,25 @@ export const TaskCard = ({ task, onEdit, onDelete, onUpdate, unreadNotifications
   
   const categoryInfo = TASK_CATEGORIES[task.category]
   const statusInfo = TASK_STATUSES[task.status]
-  const createdByUser = TEAM_MEMBERS.find(m => m.id === task.createdBy)
-  const assignedUsers = task.assignedTo.map(id => TEAM_MEMBERS.find(m => m.id === id)).filter(Boolean)
+  const createdByUser = TEAM_MEMBERS.find((m) => m.id === task.createdBy)
+  const assignees =
+    task.assignees && task.assignees.length > 0
+      ? task.assignees
+      : task.assignedTo.map((userId) => ({ userId, priority: 'medium' as const }))
+  const assigneeIds = assignees.map((a) => a.userId)
+  const assignedUsers = assignees
+    .map((assignee) => {
+      const member = TEAM_MEMBERS.find((m) => m.id === assignee.userId)
+      if (!member) return null
+      return { ...assignee, member }
+    })
+    .filter(Boolean) as { member: (typeof TEAM_MEMBERS)[number]; priority: 'low' | 'medium' | 'high'; comment?: string }[]
   
   const canEdit = isAdmin || user?.id === task.createdBy
-  const canApprove = task.status === 'pending' && task.assignedTo.includes(user?.id || '')
-  const userApproval = task.approvals.find(a => a.userId === user?.id)
-  const allApproved = task.status === 'pending' && task.approvals.every(a => a.status === 'approved')
-  const hasMultipleParticipants = task.assignedTo.length > 1
+  const canApprove = task.status === 'pending' && assigneeIds.includes(user?.id || '')
+  const userApproval = task.approvals.find((a) => a.userId === user?.id)
+  const allApproved = task.status === 'pending' && task.approvals.length > 0 && task.approvals.every((a) => a.status === 'approved')
+  const hasMultipleParticipants = assignees.length > 1
 
   const handleStatusChange = async (newStatus: TaskStatus) => {
     if (!user && !isAdmin) return
@@ -85,9 +92,9 @@ export const TaskCard = ({ task, onEdit, onDelete, onUpdate, unreadNotifications
       await updateTask(task.id, updates)
 
       // Create notifications for status changes - send to all assigned users
-      if (newStatus !== task.status && task.assignedTo.length > 0) {
+      if (newStatus !== task.status && assigneeIds.length > 0) {
         const movedBy = user?.name || 'Администратор'
-        for (const userId of task.assignedTo) {
+        for (const userId of assigneeIds) {
           if (userId !== user?.id) {
             let message = ''
             if (newStatus === 'in_progress') {
@@ -129,9 +136,9 @@ export const TaskCard = ({ task, onEdit, onDelete, onUpdate, unreadNotifications
       const now = new Date().toISOString()
       const newStatus: 'approved' | 'rejected' = action === 'approve' ? 'approved' : 'rejected'
       
-      const updatedApprovals: Task['approvals'] = task.approvals.map(a => 
-        a.userId === user.id 
-          ? { ...a, status: newStatus, comment: action === 'reject' ? approvalComment || undefined : undefined, updatedAt: now }
+      const updatedApprovals: Task['approvals'] = task.approvals.map(a =>
+        a.userId === user.id
+          ? { ...a, status: newStatus, comment: action === 'reject' ? rejectionComment || undefined : undefined, updatedAt: now }
           : a
       )
 
@@ -140,7 +147,7 @@ export const TaskCard = ({ task, onEdit, onDelete, onUpdate, unreadNotifications
         updatedApprovals.push({
           userId: user.id,
           status: newStatus,
-          comment: action === 'reject' ? approvalComment || undefined : undefined,
+          comment: action === 'reject' ? rejectionComment || undefined : undefined,
           updatedAt: now,
         })
       }
@@ -175,7 +182,7 @@ export const TaskCard = ({ task, onEdit, onDelete, onUpdate, unreadNotifications
           })
         }
         // Notify other assigned users
-        for (const userId of task.assignedTo) {
+        for (const userId of assigneeIds) {
           if (userId !== user.id && userId !== task.createdBy) {
             await addTaskNotification({
               userId,
@@ -196,14 +203,14 @@ export const TaskCard = ({ task, onEdit, onDelete, onUpdate, unreadNotifications
             userId: task.createdBy,
             taskId: task.id,
             type: 'task_rejected',
-            message: `Задача "${task.title}" отклонена пользователем ${rejectedBy}. ${approvalComment || ''}`,
+            message: `Задача "${task.title}" отклонена пользователем ${rejectedBy}. ${rejectionComment || ''}`,
             read: false,
             createdAt: now,
             movedBy: rejectedBy,
           })
         }
         // Notify other assigned users
-        for (const userId of task.assignedTo) {
+        for (const userId of assigneeIds) {
           if (userId !== user.id && userId !== task.createdBy) {
             await addTaskNotification({
               userId,
@@ -218,9 +225,10 @@ export const TaskCard = ({ task, onEdit, onDelete, onUpdate, unreadNotifications
         }
       }
 
-      setShowApprovalDialog(false)
-      setApprovalComment('')
-      setApprovalAction(null)
+      if (action === 'reject') {
+        setShowRejectDialog(false)
+        setRejectionComment('')
+      }
       onUpdate()
     } catch (error) {
       console.error('Error approving task:', error)
@@ -238,6 +246,24 @@ export const TaskCard = ({ task, onEdit, onDelete, onUpdate, unreadNotifications
       case 'low':
         return theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
     }
+  }
+
+  const getAssigneePriorityStyles = (priority: 'low' | 'medium' | 'high') => {
+    const map = {
+      high: {
+        label: 'Высокий',
+        classes: theme === 'dark' ? 'bg-red-500/20 text-red-300 border-red-500/40' : 'bg-red-50 text-red-600 border-red-200',
+      },
+      medium: {
+        label: 'Средний',
+        classes: theme === 'dark' ? 'bg-yellow-500/20 text-yellow-300 border-yellow-500/40' : 'bg-yellow-50 text-yellow-700 border-yellow-200',
+      },
+      low: {
+        label: 'Низкий',
+        classes: theme === 'dark' ? 'bg-gray-500/20 text-gray-300 border-gray-500/40' : 'bg-gray-50 text-gray-700 border-gray-200',
+      },
+    }
+    return map[priority]
   }
 
   const getStatusColor = () => {
@@ -355,7 +381,7 @@ export const TaskCard = ({ task, onEdit, onDelete, onUpdate, unreadNotifications
         {/* Details */}
         <div className="space-y-2 mb-4">
           {/* Author and Executors */}
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-3">
             {/* Author */}
             <div className="flex items-center gap-2 text-xs sm:text-sm">
               <User className={`w-4 h-4 ${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'}`} />
@@ -366,32 +392,45 @@ export const TaskCard = ({ task, onEdit, onDelete, onUpdate, unreadNotifications
                 {createdByUser?.name || 'Неизвестно'}
               </span>
             </div>
-            {/* Executors */}
-            <div className="flex items-center gap-2 text-xs sm:text-sm">
-              <Users className={`w-4 h-4 ${theme === 'dark' ? 'text-green-400' : 'text-green-600'}`} />
-              <span className={`font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                Исполнители:
-              </span>
-              <div className="flex flex-wrap gap-1">
-                {assignedUsers.length > 0 ? (
-                  assignedUsers.map((u, idx) => (
-                    <span key={u?.id || idx} className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>
-                      {u?.name || 'Неизвестно'}{idx < assignedUsers.length - 1 ? ',' : ''}
-                    </span>
-                  ))
-                ) : (
-                  <span className={theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}>Не назначены</span>
-                )}
-              </div>
-            </div>
-          </div>
 
-          {/* Assigned to */}
-          <div className="flex items-center gap-2 text-xs sm:text-sm">
-            <Users className={`w-4 h-4 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} />
-            <span className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>
-              Участники: {assignedUsers.map(u => u?.name).filter(Boolean).join(', ') || 'Нет'}
-            </span>
+            {/* Executors */}
+            <div>
+              <div className="flex items-center gap-2 text-xs sm:text-sm">
+                <Users className={`w-4 h-4 ${theme === 'dark' ? 'text-green-400' : 'text-green-600'}`} />
+                <span className={`font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                  Исполнители:
+                </span>
+              </div>
+              {assignedUsers.length > 0 ? (
+                <div className="mt-2 space-y-2">
+                  {assignedUsers.map((assignee) => {
+                    const priorityStyles = getAssigneePriorityStyles(assignee.priority)
+                    return (
+                      <div
+                        key={assignee.member.id}
+                        className={`p-3 rounded-lg border ${borderColor} ${theme === 'dark' ? 'bg-gray-800/70' : 'bg-gray-50'}`}
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <span className={`text-sm font-medium ${theme === 'dark' ? 'text-gray-100' : 'text-gray-800'}`}>
+                            {assignee.member.name}
+                          </span>
+                          <span className={`text-[11px] px-2 py-0.5 rounded-full border ${priorityStyles.classes}`}>
+                            {priorityStyles.label}
+                          </span>
+                        </div>
+                        {assignee.comment && (
+                          <p className={`text-xs mt-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                            {assignee.comment}
+                          </p>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              ) : (
+                <span className={theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}>Не назначены</span>
+              )}
+            </div>
           </div>
 
           {/* Due date and time */}
@@ -416,26 +455,9 @@ export const TaskCard = ({ task, onEdit, onDelete, onUpdate, unreadNotifications
 
         {/* Actions */}
         <div className={`flex flex-wrap gap-2 pt-4 border-t ${borderColor}`}>
-          {/* Chat button */}
-          <button
-            onClick={() => setShowChat(true)}
-            className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
-              theme === 'dark'
-                ? 'bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 border border-blue-500/50'
-                : 'bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200'
-            }`}
-          >
-            <MessageSquare className="w-4 h-4" />
-            Чат
-          </button>
-
-          {/* Approval buttons */}
           {canApprove && !userApproval && (
             <button
-              onClick={() => {
-                setApprovalAction('approve')
-                setShowApprovalDialog(true)
-              }}
+              onClick={() => handleApprove('approve')}
               className="flex-1 sm:flex-none px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
             >
               <Check className="w-4 h-4" />
@@ -445,10 +467,7 @@ export const TaskCard = ({ task, onEdit, onDelete, onUpdate, unreadNotifications
           
           {canApprove && !userApproval && (
             <button
-              onClick={() => {
-                setApprovalAction('reject')
-                setShowApprovalDialog(true)
-              }}
+              onClick={() => setShowRejectDialog(true)}
               className="flex-1 sm:flex-none px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
             >
               <X className="w-4 h-4" />
@@ -468,7 +487,7 @@ export const TaskCard = ({ task, onEdit, onDelete, onUpdate, unreadNotifications
             </button>
           )}
 
-          {task.status === 'in_progress' && (canEdit || task.assignedTo.includes(user?.id || '')) && (
+          {task.status === 'in_progress' && (canEdit || assigneeIds.includes(user?.id || '')) && (
             <button
               onClick={() => handleStatusChange('completed')}
               disabled={loading}
@@ -492,42 +511,32 @@ export const TaskCard = ({ task, onEdit, onDelete, onUpdate, unreadNotifications
         </div>
       </div>
 
-      {/* Approval Dialog */}
-      {showApprovalDialog && (
+      {/* Reject Dialog */}
+      {showRejectDialog && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className={`${cardBg} rounded-xl p-6 max-w-md w-full border-2 ${borderColor}`}>
-            <h3 className={`text-lg font-bold mb-4 ${headingColor}`}>
-              {approvalAction === 'approve' ? 'Согласовать задачу' : 'Отклонить задачу'}
-            </h3>
-            {approvalAction === 'reject' && (
-              <textarea
-                value={approvalComment}
-                onChange={(e) => setApprovalComment(e.target.value)}
-                placeholder="Укажите причину отклонения"
-                rows={3}
-                className={`w-full px-4 py-2 rounded-lg border ${borderColor} ${
-                  theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'
-                } ${headingColor} mb-4 focus:outline-none focus:ring-2 focus:ring-green-500/50`}
-                required
-              />
-            )}
+            <h3 className={`text-lg font-bold mb-4 ${headingColor}`}>Отклонить задачу</h3>
+            <textarea
+              value={rejectionComment}
+              onChange={(e) => setRejectionComment(e.target.value)}
+              placeholder="Укажите причину отклонения"
+              rows={3}
+              className={`w-full px-4 py-2 rounded-lg border ${borderColor} ${
+                theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'
+              } ${headingColor} mb-4 focus:outline-none focus:ring-2 focus:ring-green-500/50`}
+            />
             <div className="flex gap-3">
               <button
-                onClick={() => handleApprove(approvalAction!)}
-                disabled={loading || (approvalAction === 'reject' && !approvalComment.trim())}
-                className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors ${
-                  approvalAction === 'approve'
-                    ? 'bg-green-500 hover:bg-green-600 text-white'
-                    : 'bg-red-500 hover:bg-red-600 text-white'
-                } disabled:opacity-50`}
+                onClick={() => handleApprove('reject')}
+                disabled={loading || !rejectionComment.trim()}
+                className="flex-1 px-4 py-2 rounded-lg font-medium transition-colors bg-red-500 hover:bg-red-600 text-white disabled:opacity-50"
               >
-                {approvalAction === 'approve' ? 'Согласовать' : 'Отклонить'}
+                Отклонить
               </button>
               <button
                 onClick={() => {
-                  setShowApprovalDialog(false)
-                  setApprovalComment('')
-                  setApprovalAction(null)
+                  setShowRejectDialog(false)
+                  setRejectionComment('')
                 }}
                 className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                   theme === 'dark' ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-200 hover:bg-gray-300'
@@ -540,17 +549,6 @@ export const TaskCard = ({ task, onEdit, onDelete, onUpdate, unreadNotifications
         </div>
       )}
 
-      {/* Chat Modal */}
-      {showChat && (
-        <TaskChat
-          task={task}
-          onClose={() => setShowChat(false)}
-          onUpdate={() => {
-            onUpdate()
-            setShowChat(false)
-          }}
-        />
-      )}
     </>
   )
 }

@@ -6,20 +6,20 @@ import { Filter, X, Sparkles } from 'lucide-react'
 interface TaskFiltersProps {
   selectedCategory: TaskCategory | 'all'
   selectedStatus: TaskStatus | 'all'
-  selectedUser: string | 'all'
+  selectedUsers: string[]
   onCategoryChange: (category: TaskCategory | 'all') => void
   onStatusChange: (status: TaskStatus | 'all') => void
-  onUserChange: (userId: string | 'all') => void
+  onUsersChange: (userIds: string[]) => void
   onClear: () => void
 }
 
 export const TaskFilters = ({
   selectedCategory,
   selectedStatus,
-  selectedUser,
+  selectedUsers,
   onCategoryChange,
   onStatusChange,
-  onUserChange,
+  onUsersChange,
   onClear,
 }: TaskFiltersProps) => {
   const { theme } = useThemeStore()
@@ -28,7 +28,7 @@ export const TaskFilters = ({
   const cardBg = theme === 'dark' ? 'bg-gray-800' : 'bg-white'
   const borderColor = theme === 'dark' ? 'border-gray-600' : 'border-gray-300'
 
-  const hasActiveFilters = selectedCategory !== 'all' || selectedStatus !== 'all' || selectedUser !== 'all'
+  const hasActiveFilters = selectedCategory !== 'all' || selectedStatus !== 'all' || selectedUsers.length > 0
 
   return (
     <div className={`${cardBg} rounded-xl border-2 ${borderColor} p-4 sm:p-6 shadow-lg sticky top-4`}>
@@ -156,13 +156,13 @@ export const TaskFilters = ({
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
             </svg>
-            Участник
+            Участники
           </label>
           <div className="flex flex-wrap gap-2">
             <button
-              onClick={() => onUserChange('all')}
+              onClick={() => onUsersChange([])}
               className={`px-3 py-2 rounded-lg text-sm font-medium transition-all border-2 ${
-                selectedUser === 'all'
+                selectedUsers.length === 0
                   ? theme === 'dark'
                     ? 'bg-green-500/20 border-green-500 text-green-400'
                     : 'bg-green-50 border-green-500 text-green-700'
@@ -171,21 +171,30 @@ export const TaskFilters = ({
             >
               Все
             </button>
-            {TEAM_MEMBERS.map((member) => (
-              <button
-                key={member.id}
-                onClick={() => onUserChange(member.id)}
-                className={`px-3 py-2 rounded-lg text-sm font-medium transition-all border-2 ${
-                  selectedUser === member.id
-                    ? theme === 'dark'
-                      ? 'bg-green-500/20 border-green-500 text-green-400'
-                      : 'bg-green-50 border-green-500 text-green-700'
-                    : `${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-gray-300 hover:bg-gray-600' : 'bg-gray-100 border-gray-300 text-gray-700 hover:bg-gray-200'}`
-                }`}
-              >
-                {member.name}
-              </button>
-            ))}
+            {TEAM_MEMBERS.map((member) => {
+              const isSelected = selectedUsers.includes(member.id)
+              return (
+                <button
+                  key={member.id}
+                  onClick={() => {
+                    if (isSelected) {
+                      onUsersChange(selectedUsers.filter((id) => id !== member.id))
+                    } else {
+                      onUsersChange([...selectedUsers, member.id])
+                    }
+                  }}
+                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-all border-2 ${
+                    isSelected
+                      ? theme === 'dark'
+                        ? 'bg-green-500/20 border-green-500 text-green-400'
+                        : 'bg-green-50 border-green-500 text-green-700'
+                      : `${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-gray-300 hover:bg-gray-600' : 'bg-gray-100 border-gray-300 text-gray-700 hover:bg-gray-200'}`
+                  }`}
+                >
+                  {member.name}
+                </button>
+              )
+            })}
           </div>
         </div>
       </div>

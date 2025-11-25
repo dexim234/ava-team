@@ -161,6 +161,12 @@ export interface TaskApproval {
   updatedAt: string
 }
 
+export interface TaskAssignee {
+  userId: string
+  priority: 'low' | 'medium' | 'high'
+  comment?: string
+}
+
 export interface Task {
   id: string
   title: string
@@ -168,7 +174,8 @@ export interface Task {
   category: TaskCategory
   status: TaskStatus
   createdBy: string // user ID
-  assignedTo: string[] // user IDs
+  assignedTo: string[] // user IDs (для быстрых фильтров)
+  assignees?: TaskAssignee[]
   approvals: TaskApproval[] // Для статуса "pending"
   createdAt: string
   updatedAt: string
@@ -178,50 +185,6 @@ export interface Task {
   priority?: 'low' | 'medium' | 'high'
   dueDate: string // YYYY-MM-DD format (обязательно)
   dueTime: string // HH:mm format (обязательно)
-  chatSaved?: boolean // Сохранен ли чат
-  chatSavedAt?: string // Дата сохранения чата
-}
-
-// Task Chat
-export interface TaskChatMessage {
-  id: string
-  taskId: string
-  userId: string // user ID
-  userName: string // user name
-  message: string
-  imageUrl?: string // URL изображения
-  documentUrl?: string // URL документа
-  documentName?: string // Имя документа
-  createdAt: string
-  updatedAt?: string
-  edited: boolean
-  deleted: boolean
-  chatSavedAt?: string // Дата сохранения чата
-}
-
-// Task Chat
-export interface TaskChatMessage {
-  id: string
-  taskId: string
-  userId: string // user ID
-  userName: string // user name
-  message: string
-  imageUrl?: string // URL изображения
-  documentUrl?: string // URL документа
-  documentName?: string // Имя документа
-  createdAt: string
-  updatedAt?: string
-  edited: boolean
-  deleted: boolean
-}
-
-export interface TaskChat {
-  taskId: string
-  messages: TaskChatMessage[]
-  createdAt: string // Дата создания первого сообщения
-  expiresAt: string // Дата автоматического удаления (48 часов)
-  saved: boolean // Сохранен ли чат
-  savedAt?: string // Дата сохранения
 }
 
 // Team members

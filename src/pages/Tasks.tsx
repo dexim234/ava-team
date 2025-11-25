@@ -27,7 +27,7 @@ export const Tasks = () => {
   const [loading, setLoading] = useState(true)
   const [selectedCategory, setSelectedCategory] = useState<TaskCategory | 'all'>('all')
   const [selectedStatus, setSelectedStatus] = useState<TaskStatus | 'all'>('all')
-  const [selectedUser, setSelectedUser] = useState<string | 'all'>('all')
+  const [selectedUsers, setSelectedUsers] = useState<string[]>([])
   const [viewMode, setViewMode] = useState<'list' | 'kanban'>('kanban')
 
   const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
@@ -40,7 +40,7 @@ export const Tasks = () => {
 
   useEffect(() => {
     loadTasks()
-  }, [selectedCategory, selectedStatus, selectedUser])
+  }, [selectedCategory, selectedStatus, selectedUsers])
 
   const loadTasks = async () => {
     setLoading(true)
@@ -52,8 +52,8 @@ export const Tasks = () => {
       if (selectedStatus !== 'all') {
         filters.status = selectedStatus
       }
-      if (selectedUser !== 'all') {
-        filters.assignedTo = selectedUser
+      if (selectedUsers.length > 0) {
+        filters.assignedTo = selectedUsers
       }
       
       const allTasks = await getTasks(filters)
@@ -108,7 +108,7 @@ export const Tasks = () => {
   const handleClearFilters = () => {
     setSelectedCategory('all')
     setSelectedStatus('all')
-    setSelectedUser('all')
+    setSelectedUsers([])
   }
 
   const getTaskNotificationsCount = (taskId: string) => {
@@ -118,7 +118,7 @@ export const Tasks = () => {
   const filteredTasks = tasks.filter(task => {
     if (selectedCategory !== 'all' && task.category !== selectedCategory) return false
     if (selectedStatus !== 'all' && task.status !== selectedStatus) return false
-    if (selectedUser !== 'all' && !task.assignedTo.includes(selectedUser)) return false
+    if (selectedUsers.length > 0 && !selectedUsers.some((userId) => task.assignedTo.includes(userId))) return false
     return true
   })
 
@@ -241,10 +241,10 @@ export const Tasks = () => {
             <TaskFilters
               selectedCategory={selectedCategory}
               selectedStatus={selectedStatus}
-              selectedUser={selectedUser}
+              selectedUsers={selectedUsers}
               onCategoryChange={setSelectedCategory}
               onStatusChange={setSelectedStatus}
-              onUserChange={setSelectedUser}
+              onUsersChange={setSelectedUsers}
               onClear={handleClearFilters}
             />
           </div>
@@ -303,7 +303,7 @@ export const Tasks = () => {
                   Нет задач
                 </p>
                 <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                  {selectedCategory !== 'all' || selectedStatus !== 'all' || selectedUser !== 'all'
+                  {selectedCategory !== 'all' || selectedStatus !== 'all' || selectedUsers.length > 0
                     ? 'Попробуйте изменить фильтры'
                     : 'Создайте первую задачу'}
                 </p>
