@@ -8,18 +8,25 @@ export default defineConfig({
     alias: {
       '@': path.resolve(__dirname, './src'),
     },
+    dedupe: ['firebase'],
+  },
+  optimizeDeps: {
+    include: ['firebase/app', 'firebase/auth', 'firebase/firestore', 'firebase/storage'],
   },
   build: {
     rollupOptions: {
       output: {
         manualChunks: {
           'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-          'firebase-vendor': ['firebase'],
         },
       },
     },
     chunkSizeWarningLimit: 1000,
     minify: 'esbuild',
+    commonjsOptions: {
+      include: [/firebase/, /node_modules/],
+      transformMixedEsModules: true,
+    },
   },
 })
 
