@@ -447,8 +447,25 @@ export const deleteReferral = async (id: string) => {
 
 // Call (Trading Signal) functions
 export const addCall = async (callData: Omit<Call, 'id'>): Promise<string> => {
+  console.log('📝 Service site: Creating call:', {
+    ticker: callData.ticker,
+    network: callData.network,
+    userId: callData.userId,
+    status: callData.status,
+    createdAt: callData.createdAt
+  })
+  
+  if (!db) {
+    console.error('❌ Service site: Firestore db is not initialized')
+    throw new Error('Firestore database is not initialized')
+  }
+  
   const callsRef = collection(db, 'calls')
   const docRef = await addDoc(callsRef, callData)
+  
+  console.log('✅ Service site: Call created successfully with ID:', docRef.id)
+  console.log('📊 Service site: Call data saved to Firestore:', callData)
+  
   return docRef.id
 }
 

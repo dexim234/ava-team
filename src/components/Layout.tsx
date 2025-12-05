@@ -30,183 +30,162 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
   const isAboutActive = aboutSubItems.some(item => location.pathname === item.path)
   const isAboutSubItemActive = (path: string) => location.pathname === path
 
-  // Close menu when route changes
   useEffect(() => {
     setShowFunctionalityMenu(false)
     setShowAboutMenu(false)
   }, [location.pathname])
 
   return (
-    <div className={`min-h-screen ${theme === 'dark' ? 'bg-[#0A0A0A]' : 'bg-gray-50'} pb-20 lg:pb-0`}>
-      {/* Header - Desktop */}
-      <header className={`${theme === 'dark' ? 'bg-[#1a1a1a]' : 'bg-white'} shadow-md sticky top-0 z-50 hidden lg:block`}>
-        <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            {/* Logo and Title */}
-            <div className="flex items-center space-x-3 min-w-0 flex-shrink-0">
-              <img 
-                src={logo} 
-                alt="ApeVault Logo" 
-                className="w-10 h-10 object-contain flex-shrink-0"
-              />
-              <h1 className={`text-xl font-bold truncate ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>ApeVault</h1>
+    <div className="app-shell">
+      <div className="absolute inset-0 pointer-events-none -z-10 overflow-hidden">
+        <div className="absolute -top-24 -left-12 w-80 h-80 bg-gradient-to-br from-[#4E6E49]/25 via-transparent to-transparent blur-3xl" />
+        <div className="absolute top-8 right-0 w-[520px] h-[520px] bg-gradient-to-bl from-blue-500/12 via-purple-500/10 to-transparent blur-3xl" />
+        <div className="absolute bottom-[-120px] left-12 w-96 h-96 bg-gradient-to-tr from-amber-400/10 to-[#4E6E49]/12 blur-3xl" />
+        <div className="floating-grid" />
+      </div>
+
+      <header className="sticky top-0 z-50 backdrop-blur-md">
+        <div className="max-w-7xl mx-auto px-4 lg:px-6 pt-4 pb-2">
+          <div className="glass-panel rounded-2xl px-4 lg:px-6 py-3 flex items-center gap-4 shadow-2xl">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="relative w-12 h-12 rounded-2xl bg-white/80 dark:bg-white/5 border border-white/50 dark:border-white/10 shadow-lg overflow-hidden flex items-center justify-center">
+                <img src={logo} alt="ApeVault Logo" className="w-10 h-10 object-contain" />
+                <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent dark:from-white/5" />
+              </div>
+              <div className="leading-tight">
+                <p className={`text-xs uppercase tracking-[0.16em] ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                  ApeVault Panel
+                </p>
+                <p className={`text-xl font-extrabold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                  Панель команды
+                </p>
+              </div>
             </div>
 
-            {/* Navigation - Desktop */}
-            <nav className="flex items-center space-x-1 flex-wrap">
-              {/* Call */}
+            <nav className="hidden lg:flex items-center gap-2 flex-1 justify-center">
               <Link
                 to="/call"
-                className={`px-4 py-2 rounded-lg transition-colors flex items-center gap-2 text-base ${
-                  location.pathname === '/call'
-                    ? 'bg-[#4E6E49] text-white'
-                    : theme === 'dark'
-                    ? 'text-gray-300 hover:bg-[#1a1a1a]'
-                    : 'text-gray-700 hover:bg-gray-100'
-                }`}
+                data-active={location.pathname === '/call'}
+                className="nav-chip"
               >
-                <Zap className="w-4 h-4 flex-shrink-0" />
+                <Zap className="w-4 h-4" />
                 <span>Call</span>
               </Link>
 
-              {/* Функционал с подменю */}
               <div className="relative">
                 <button
                   onClick={() => setShowFunctionalityMenu(!showFunctionalityMenu)}
-                  className={`px-4 py-2 rounded-lg transition-colors flex items-center gap-2 text-base ${
-                    isFunctionalityActive
-                      ? 'bg-[#4E6E49] text-white'
-                      : theme === 'dark'
-                      ? 'text-gray-300 hover:bg-[#1a1a1a]'
-                      : 'text-gray-700 hover:bg-gray-100'
-                  }`}
+                  data-active={isFunctionalityActive}
+                  className="nav-chip"
                 >
-                  <Settings className="w-4 h-4 flex-shrink-0" />
+                  <Settings className="w-4 h-4" />
                   <span>Функционал</span>
                   <ChevronDown className={`w-4 h-4 transition-transform ${showFunctionalityMenu ? 'rotate-180' : ''}`} />
                 </button>
-                
                 {showFunctionalityMenu && (
                   <>
-                    <div
-                      className="fixed inset-0 z-40"
-                      onClick={() => setShowFunctionalityMenu(false)}
-                    />
-                    <div className={`absolute top-full left-0 mt-2 ${theme === 'dark' ? 'bg-[#1a1a1a]' : 'bg-white'} rounded-lg shadow-xl border-2 ${theme === 'dark' ? 'border-gray-800' : 'border-gray-300'} min-w-[200px] z-50`}>
-                      {functionalitySubItems.map((item) => (
-                        <Link
-                          key={item.path}
-                          to={item.path}
-                          onClick={() => setShowFunctionalityMenu(false)}
-                          className={`flex items-center gap-3 px-4 py-3 transition-colors ${
-                            isFunctionalitySubItemActive(item.path)
-                              ? theme === 'dark' ? 'bg-[#4E6E49]/20 text-[#4E6E49]' : 'bg-green-50 text-[#4E6E49]'
-                              : theme === 'dark' ? 'hover:bg-[#1a1a1a] text-gray-300' : 'hover:bg-gray-100 text-gray-700'
-                          } ${item.path === functionalitySubItems[0].path ? 'rounded-t-lg' : ''} ${item.path === functionalitySubItems[functionalitySubItems.length - 1].path ? 'rounded-b-lg' : ''}`}
-                        >
-                          <item.icon className="w-4 h-4 flex-shrink-0" />
-                          <span>{item.label}</span>
-                        </Link>
-                      ))}
+                    <div className="fixed inset-0 z-40" onClick={() => setShowFunctionalityMenu(false)} />
+                    <div className="absolute top-[calc(100%+12px)] left-0 min-w-[220px] glass-panel rounded-2xl border border-white/40 dark:border-white/10 shadow-2xl z-50 overflow-hidden">
+                      <div className="accent-dots" />
+                      <div className="relative z-10 divide-y divide-gray-100/60 dark:divide-white/5">
+                        {functionalitySubItems.map((item) => (
+                          <Link
+                            key={item.path}
+                            to={item.path}
+                            onClick={() => setShowFunctionalityMenu(false)}
+                            className={`flex items-center gap-3 px-4 py-3 transition-colors ${
+                              isFunctionalitySubItemActive(item.path)
+                                ? 'bg-gradient-to-r from-[#4E6E49]/15 to-[#4E6E49]/5 text-[#4E6E49] dark:from-[#4E6E49]/20 dark:text-[#4E6E49]'
+                                : theme === 'dark'
+                                ? 'hover:bg-white/5 text-gray-200'
+                                : 'hover:bg-gray-50 text-gray-800'
+                            }`}
+                          >
+                            <item.icon className="w-4 h-4 flex-shrink-0" />
+                            <span className="font-semibold">{item.label}</span>
+                          </Link>
+                        ))}
+                      </div>
                     </div>
                   </>
                 )}
               </div>
 
-              {/* About menu */}
               <div className="relative">
                 <button
                   onClick={() => setShowAboutMenu(!showAboutMenu)}
-                  className={`px-4 py-2 rounded-lg transition-colors flex items-center gap-2 text-base ${
-                    isAboutActive
-                      ? 'bg-[#4E6E49] text-white'
-                      : theme === 'dark'
-                      ? 'text-gray-300 hover:bg-[#1a1a1a]'
-                      : 'text-gray-700 hover:bg-gray-100'
-                  }`}
+                  data-active={isAboutActive}
+                  className="nav-chip"
                 >
-                  <Info className="w-4 h-4 flex-shrink-0" />
+                  <Info className="w-4 h-4" />
                   <span>О нас</span>
                   <ChevronDown className={`w-4 h-4 transition-transform ${showAboutMenu ? 'rotate-180' : ''}`} />
                 </button>
-
                 {showAboutMenu && (
                   <>
                     <div className="fixed inset-0 z-40" onClick={() => setShowAboutMenu(false)} />
-                    <div className={`absolute top-full left-0 mt-2 ${theme === 'dark' ? 'bg-[#1a1a1a]' : 'bg-white'} rounded-lg shadow-xl border-2 ${theme === 'dark' ? 'border-gray-800' : 'border-gray-300'} min-w-[200px] z-50`}>
-                      {aboutSubItems.map((item, index) => (
-                        <Link
-                          key={item.path}
-                          to={item.path}
-                          onClick={() => setShowAboutMenu(false)}
-                          className={`flex items-center gap-3 px-4 py-3 transition-colors ${
-                            isAboutSubItemActive(item.path)
-                              ? theme === 'dark' ? 'bg-[#4E6E49]/20 text-[#4E6E49]' : 'bg-green-50 text-[#4E6E49]'
-                              : theme === 'dark' ? 'hover:bg-[#1a1a1a] text-gray-300' : 'hover:bg-gray-100 text-gray-700'
-                          } ${index === 0 ? 'rounded-t-lg' : ''} ${index === aboutSubItems.length - 1 ? 'rounded-b-lg' : ''}`}
-                        >
-                          <item.icon className="w-4 h-4 flex-shrink-0" />
-                          <span>{item.label}</span>
-                        </Link>
-                      ))}
+                    <div className="absolute top-[calc(100%+12px)] left-0 min-w-[220px] glass-panel rounded-2xl border border-white/40 dark:border-white/10 shadow-2xl z-50 overflow-hidden">
+                      <div className="accent-dots" />
+                      <div className="relative z-10 divide-y divide-gray-100/60 dark:divide-white/5">
+                        {aboutSubItems.map((item) => (
+                          <Link
+                            key={item.path}
+                            to={item.path}
+                            onClick={() => setShowAboutMenu(false)}
+                            className={`flex items-center gap-3 px-4 py-3 transition-colors ${
+                              isAboutSubItemActive(item.path)
+                                ? 'bg-gradient-to-r from-[#4E6E49]/15 to-[#4E6E49]/5 text-[#4E6E49] dark:from-[#4E6E49]/20 dark:text-[#4E6E49]'
+                                : theme === 'dark'
+                                ? 'hover:bg-white/5 text-gray-200'
+                                : 'hover:bg-gray-50 text-gray-800'
+                            }`}
+                          >
+                            <item.icon className="w-4 h-4 flex-shrink-0" />
+                            <span className="font-semibold">{item.label}</span>
+                          </Link>
+                        ))}
+                      </div>
                     </div>
                   </>
                 )}
               </div>
 
-              {/* ЛК */}
               <Link
                 to="/profile"
-                className={`px-4 py-2 rounded-lg transition-colors flex items-center gap-2 text-base ${
-                  location.pathname === '/profile'
-                    ? 'bg-[#4E6E49] text-white'
-                    : theme === 'dark'
-                    ? 'text-gray-300 hover:bg-[#1a1a1a]'
-                    : 'text-gray-700 hover:bg-gray-100'
-                }`}
+                data-active={location.pathname === '/profile'}
+                className="nav-chip"
               >
-                <User className="w-4 h-4 flex-shrink-0" />
+                <User className="w-4 h-4" />
                 <span>ЛК</span>
               </Link>
 
-              {/* Admin */}
               {isAdmin && (
                 <Link
                   to="/admin"
-                  className={`px-4 py-2 rounded-lg transition-colors flex items-center gap-2 text-base ${
-                    location.pathname === '/admin'
-                      ? 'bg-purple-600 text-white'
-                      : theme === 'dark'
-                      ? 'text-gray-300 hover:bg-gray-700'
-                      : 'text-gray-700 hover:bg-gray-100'
-                  }`}
+                  data-active={location.pathname === '/admin'}
+                  className="nav-chip"
                 >
-                  <Shield className="w-4 h-4 flex-shrink-0" />
+                  <Shield className="w-4 h-4" />
                   <span>Админ</span>
                 </Link>
               )}
             </nav>
 
-            {/* Right side controls */}
-            <div className="flex items-center space-x-4 ml-4">
-              {/* Admin badge */}
+            <div className="flex items-center gap-3 ml-auto">
               {isAdmin && (
-                <div className="flex items-center space-x-2 px-3 py-1 bg-purple-600 text-white rounded-lg">
-                  <Shield className="w-4 h-4 flex-shrink-0" />
-                  <span className="text-sm whitespace-nowrap">Админ</span>
+                <div className="badge-glow px-3 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 text-white font-semibold shadow-lg hidden md:inline-flex items-center gap-2">
+                  <Shield className="w-4 h-4" />
+                  <span className="text-sm">Админ</span>
                 </div>
               )}
-
-              {/* Theme toggle */}
               <button
                 onClick={toggleTheme}
-                className={`p-2 rounded-lg transition-colors flex-shrink-0 ${
-                  theme === 'dark' ? 'bg-[#1a1a1a] hover:bg-gray-700' : 'bg-gray-200 hover:bg-gray-300'
-                }`}
+                className="nav-chip px-3 py-2"
+                data-active="false"
                 aria-label="Toggle theme"
               >
                 {theme === 'dark' ? (
-                  <Sun className="w-5 h-5 text-yellow-400" />
+                  <Sun className="w-5 h-5 text-amber-300" />
                 ) : (
                   <Moon className="w-5 h-5 text-gray-700" />
                 )}
@@ -216,125 +195,100 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
         </div>
       </header>
 
-      {/* Main content */}
-      <main className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
+      <main className="page-shell">
         {children}
       </main>
 
-      {/* Mobile Navigation - Bottom */}
-      <nav className={`lg:hidden fixed bottom-0 left-0 right-0 ${theme === 'dark' ? 'bg-[#1a1a1a]' : 'bg-white'} border-t-2 ${theme === 'dark' ? 'border-gray-800' : 'border-gray-200'} shadow-2xl z-50`}>
-        <div className="max-w-7xl mx-auto px-2">
-          <div className="flex items-center justify-around h-16">
-            {/* Call */}
-            <Link
-              to="/call"
-              className={`flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-lg transition-colors touch-manipulation ${
-                location.pathname === '/call'
-                  ? theme === 'dark' ? 'bg-[#4E6E49]/20 text-[#4E6E49]' : 'bg-green-50 text-[#4E6E49]'
-                  : theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-              }`}
-            >
-              <Zap className="w-5 h-5" />
-              <span className="text-xs font-medium">Call</span>
-            </Link>
-
-            {/* Функционал */}
-            <div className="relative">
+      <nav className="lg:hidden fixed bottom-4 left-0 right-0 px-3 z-50">
+        <div className="max-w-5xl mx-auto">
+          <div className="glass-panel rounded-2xl shadow-2xl border border-white/60 dark:border-white/10">
+            <div className="grid grid-cols-4 divide-x divide-white/40 dark:divide-white/5">
+              <Link
+                to="/call"
+                className={`flex flex-col items-center justify-center gap-1 py-3 ${location.pathname === '/call' ? 'text-[#4E6E49]' : theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}
+              >
+                <Zap className="w-5 h-5" />
+                <span className="text-[11px] font-semibold">Call</span>
+              </Link>
               <button
                 onClick={() => setShowFunctionalityMenu(!showFunctionalityMenu)}
-                className={`flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-lg transition-colors touch-manipulation ${
-                  isFunctionalityActive
-                    ? theme === 'dark' ? 'bg-[#4E6E49]/20 text-[#4E6E49]' : 'bg-green-50 text-[#4E6E49]'
-                    : theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-                }`}
+                className={`flex flex-col items-center justify-center gap-1 py-3 ${isFunctionalityActive ? 'text-[#4E6E49]' : theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}
               >
                 <Settings className="w-5 h-5" />
-                <span className="text-xs font-medium">Функционал</span>
+                <span className="text-[11px] font-semibold">Функционал</span>
               </button>
-              
-              {showFunctionalityMenu && (
-                <>
-                  <div
-                    className="fixed inset-0 z-40 bg-black/50"
-                    onClick={() => setShowFunctionalityMenu(false)}
-                  />
-                  <div className={`absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 ${theme === 'dark' ? 'bg-[#1a1a1a]' : 'bg-white'} rounded-lg shadow-xl border-2 ${theme === 'dark' ? 'border-gray-800' : 'border-gray-300'} min-w-[200px] z-50`}>
-                    {functionalitySubItems.map((item) => (
-                      <Link
-                        key={item.path}
-                        to={item.path}
-                        onClick={() => setShowFunctionalityMenu(false)}
-                        className={`flex items-center gap-3 px-4 py-3 transition-colors ${
-                          isFunctionalitySubItemActive(item.path)
-                            ? theme === 'dark' ? 'bg-[#4E6E49]/20 text-[#4E6E49]' : 'bg-green-50 text-[#4E6E49]'
-                            : theme === 'dark' ? 'hover:bg-[#1a1a1a] text-gray-300' : 'hover:bg-gray-100 text-gray-700'
-                        } ${item.path === functionalitySubItems[0].path ? 'rounded-t-lg' : ''} ${item.path === functionalitySubItems[functionalitySubItems.length - 1].path ? 'rounded-b-lg' : ''}`}
-                      >
-                        <item.icon className="w-4 h-4 flex-shrink-0" />
-                        <span>{item.label}</span>
-                      </Link>
-                    ))}
-                  </div>
-                </>
-              )}
-            </div>
-
-            {/* О нас */}
-            <div className="relative">
               <button
                 onClick={() => setShowAboutMenu(!showAboutMenu)}
-                className={`flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-lg transition-colors touch-manipulation ${
-                  isAboutActive
-                    ? theme === 'dark' ? 'bg-[#4E6E49]/20 text-[#4E6E49]' : 'bg-green-50 text-[#4E6E49]'
-                    : theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-                }`}
+                className={`flex flex-col items-center justify-center gap-1 py-3 ${isAboutActive ? 'text-[#4E6E49]' : theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}
               >
                 <Info className="w-5 h-5" />
-                <span className="text-xs font-medium">О нас</span>
+                <span className="text-[11px] font-semibold">О нас</span>
               </button>
-
-              {showAboutMenu && (
-                <>
-                  <div
-                    className="fixed inset-0 z-40 bg-black/50"
-                    onClick={() => setShowAboutMenu(false)}
-                  />
-                  <div className={`absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 ${theme === 'dark' ? 'bg-[#1a1a1a]' : 'bg-white'} rounded-lg shadow-xl border-2 ${theme === 'dark' ? 'border-gray-800' : 'border-gray-300'} min-w-[200px] z-50`}>
-                    {aboutSubItems.map((item, index) => (
-                      <Link
-                        key={item.path}
-                        to={item.path}
-                        onClick={() => setShowAboutMenu(false)}
-                        className={`flex items-center gap-3 px-4 py-3 transition-colors ${
-                          isAboutSubItemActive(item.path)
-                            ? theme === 'dark' ? 'bg-[#4E6E49]/20 text-[#4E6E49]' : 'bg-green-50 text-[#4E6E49]'
-                            : theme === 'dark' ? 'hover:bg-[#1a1a1a] text-gray-300' : 'hover:bg-gray-100 text-gray-700'
-                        } ${index === 0 ? 'rounded-t-lg' : ''} ${index === aboutSubItems.length - 1 ? 'rounded-b-lg' : ''}`}
-                      >
-                        <item.icon className="w-4 h-4 flex-shrink-0" />
-                        <span>{item.label}</span>
-                      </Link>
-                    ))}
-                  </div>
-                </>
-              )}
+              <Link
+                to="/profile"
+                className={`flex flex-col items-center justify-center gap-1 py-3 ${location.pathname === '/profile' ? 'text-[#4E6E49]' : theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}
+              >
+                <User className="w-5 h-5" />
+                <span className="text-[11px] font-semibold">ЛК</span>
+              </Link>
             </div>
-
-            {/* ЛК */}
-            <Link
-              to="/profile"
-              className={`flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-lg transition-colors touch-manipulation ${
-                location.pathname === '/profile'
-                  ? theme === 'dark' ? 'bg-[#4E6E49]/20 text-[#4E6E49]' : 'bg-green-50 text-[#4E6E49]'
-                  : theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-              }`}
-            >
-              <User className="w-5 h-5" />
-              <span className="text-xs font-medium">ЛК</span>
-            </Link>
           </div>
         </div>
       </nav>
+
+      {showFunctionalityMenu && (
+        <div className="lg:hidden fixed inset-0 z-40 bg-black/40 backdrop-blur-sm" onClick={() => setShowFunctionalityMenu(false)}>
+          <div className="absolute bottom-24 left-1/2 -translate-x-1/2 w-[88%] max-w-sm glass-panel rounded-2xl shadow-2xl border border-white/50 dark:border-white/10 overflow-hidden">
+            <div className="accent-dots" />
+            <div className="relative z-10 divide-y divide-gray-100/60 dark:divide-white/5">
+              {functionalitySubItems.map((item) => (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  onClick={() => setShowFunctionalityMenu(false)}
+                  className={`flex items-center gap-3 px-4 py-3 transition-colors ${
+                    isFunctionalitySubItemActive(item.path)
+                      ? 'bg-gradient-to-r from-[#4E6E49]/15 to-[#4E6E49]/5 text-[#4E6E49] dark:from-[#4E6E49]/20 dark:text-[#4E6E49]'
+                      : theme === 'dark'
+                      ? 'hover:bg-white/5 text-gray-200'
+                      : 'hover:bg-gray-50 text-gray-800'
+                  }`}
+                >
+                  <item.icon className="w-4 h-4 flex-shrink-0" />
+                  <span className="font-semibold">{item.label}</span>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showAboutMenu && (
+        <div className="lg:hidden fixed inset-0 z-40 bg-black/40 backdrop-blur-sm" onClick={() => setShowAboutMenu(false)}>
+          <div className="absolute bottom-24 left-1/2 -translate-x-1/2 w-[88%] max-w-sm glass-panel rounded-2xl shadow-2xl border border-white/50 dark:border-white/10 overflow-hidden">
+            <div className="accent-dots" />
+            <div className="relative z-10 divide-y divide-gray-100/60 dark:divide-white/5">
+              {aboutSubItems.map((item) => (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  onClick={() => setShowAboutMenu(false)}
+                  className={`flex items-center gap-3 px-4 py-3 transition-colors ${
+                    isAboutSubItemActive(item.path)
+                      ? 'bg-gradient-to-r from-[#4E6E49]/15 to-[#4E6E49]/5 text-[#4E6E49] dark:from-[#4E6E49]/20 dark:text-[#4E6E49]'
+                      : theme === 'dark'
+                      ? 'hover:bg-white/5 text-gray-200'
+                      : 'hover:bg-gray-50 text-gray-800'
+                  }`}
+                >
+                  <item.icon className="w-4 h-4 flex-shrink-0" />
+                  <span className="font-semibold">{item.label}</span>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

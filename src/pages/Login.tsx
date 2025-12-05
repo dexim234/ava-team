@@ -164,207 +164,200 @@ export const Login = () => {
   }
 
   return (
-    <div className={`min-h-screen flex items-center justify-center relative overflow-hidden ${theme === 'dark' ? 'bg-[#0A0A0A]' : 'bg-gradient-to-br from-gray-50 via-blue-50 to-gray-100'}`}>
-      {/* Background decorative elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className={`absolute top-20 left-10 w-72 h-72 rounded-full blur-3xl opacity-20 ${theme === 'dark' ? 'bg-[#4E6E49]' : 'bg-[#4E6E49]'}`}></div>
-        <div className={`absolute bottom-20 right-10 w-96 h-96 rounded-full blur-3xl opacity-20 ${theme === 'dark' ? 'bg-blue-500' : 'bg-blue-400'}`}></div>
-        <div className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full blur-3xl opacity-10 ${theme === 'dark' ? 'bg-purple-500' : 'bg-purple-400'}`}></div>
+    <div className={`min-h-screen relative overflow-hidden ${theme === 'dark' ? 'bg-[#0b0f17]' : 'bg-gradient-to-br from-slate-50 via-white to-slate-100'}`}>
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute -top-24 -left-12 w-96 h-96 bg-gradient-to-br from-[#4E6E49]/35 via-transparent to-transparent blur-3xl" />
+        <div className="absolute top-12 right-10 w-[520px] h-[520px] bg-gradient-to-bl from-blue-500/18 via-purple-500/16 to-transparent blur-3xl" />
+        <div className="absolute bottom-[-140px] left-12 w-96 h-96 bg-gradient-to-tr from-amber-400/12 to-[#4E6E49]/14 blur-3xl" />
+        <div className="floating-grid" />
       </div>
 
-      {/* Theme toggle button - floating */}
       <button
         onClick={handleThemeToggle}
-        className={`absolute top-6 right-6 p-3 rounded-full transition-all duration-300 shadow-lg hover:scale-110 z-10 ${
-          theme === 'dark' 
-            ? 'bg-[#1a1a1a] hover:bg-gray-700 text-yellow-400 border border-gray-800' 
-            : 'bg-white hover:bg-gray-100 text-gray-700 border border-gray-200'
-        }`}
+        className="nav-chip px-3 py-2 absolute top-6 right-6 z-20"
+        data-active="false"
         aria-label="Toggle theme"
       >
-        {theme === 'dark' ? (
-          <Sun className="w-6 h-6" />
-        ) : (
-          <Moon className="w-6 h-6" />
-        )}
+        {theme === 'dark' ? <Sun className="w-5 h-5 text-amber-300" /> : <Moon className="w-5 h-5 text-gray-700" />}
       </button>
 
-      <div className={`w-full max-w-md p-8 rounded-2xl shadow-2xl backdrop-blur-sm border relative z-10 ${
-        theme === 'dark' 
-          ? 'bg-[#1a1a1a]/90 border-gray-800' 
-          : 'bg-white/90 border-gray-200'
-      }`}>
-        {/* Logo and header with decorative elements */}
-        <div className="text-center mb-8 relative">
-          {/* Sparkle decorations */}
-          <div className="absolute -top-4 -left-4 animate-pulse">
-            <Sparkles className={`w-6 h-6 ${theme === 'dark' ? 'text-[#4E6E49]' : 'text-[#4E6E49]'} opacity-60`} />
-          </div>
-          <div className="absolute -top-4 -right-4 animate-pulse delay-300">
-            <Sparkles className={`w-6 h-6 ${theme === 'dark' ? 'text-blue-400' : 'text-blue-500'} opacity-60`} />
-          </div>
-          
-          <div className="mx-auto mb-6 flex justify-center relative">
-            <div className={`p-4 rounded-2xl shadow-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-gradient-to-br from-green-50 to-blue-50'}`}>
-              <img 
-                src={logo} 
-                alt="ApeVault Logo" 
-                className="w-24 h-24 object-contain"
-              />
-            </div>
-          </div>
-          <h1 className={`text-4xl font-bold mb-3 bg-gradient-to-r ${
-            theme === 'dark' 
-              ? 'from-[#4E6E49] to-blue-400 text-transparent bg-clip-text' 
-              : 'from-[#4E6E49] to-blue-600 text-transparent bg-clip-text'
-          }`}>
-            ApeVault
-          </h1>
-          <div className="flex items-center justify-center gap-2 mb-2">
-            <Shield className={`w-5 h-5 ${theme === 'dark' ? 'text-[#4E6E49]' : 'text-[#4E6E49]'}`} />
-            <p className={`text-lg font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-              Командная панель управления
-            </p>
-          </div>
-          <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-            Выберите тему оформления перед входом
-          </p>
-        </div>
+      <div className="max-w-5xl mx-auto px-4 lg:px-6 py-12 lg:py-16 relative z-10">
+        <div className="glass-panel rounded-[28px] p-4 sm:p-6 md:p-8 border border-white/70 dark:border-white/10 shadow-2xl overflow-hidden">
+          <div className="accent-dots" />
+          <div className="relative z-10 grid md:grid-cols-[1.05fr_0.95fr] gap-6 lg:gap-8 items-stretch">
+            <div className="section-card rounded-2xl p-6 lg:p-7 border border-white/60 dark:border-white/10 shadow-xl">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="p-4 rounded-2xl bg-white/80 dark:bg-white/5 border border-white/50 dark:border-white/10 shadow-lg">
+                  <img src={logo} alt="ApeVault Logo" className="w-16 h-16 object-contain" />
+                </div>
+                <div>
+                  <p className={`text-xs uppercase tracking-[0.16em] ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>ApeVault</p>
+                  <h1 className={`text-3xl lg:text-4xl font-extrabold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Командная панель</h1>
+                </div>
+              </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* User type selection */}
-          <div>
-            <label className={`block text-sm font-semibold mb-3 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-              Тип пользователя
-            </label>
-            <div className={`grid grid-cols-2 gap-3 p-1 rounded-xl ${
-              theme === 'dark' ? 'bg-gray-700/50' : 'bg-gray-100'
-            }`}>
-              <button
-                type="button"
-                onClick={() => {
-                  setUserType('member')
-                  setLogin('')
-                  setPassword('')
-                  setError('')
-                }}
-                className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-medium transition-all duration-200 ${
-                  userType === 'member'
-                    ? theme === 'dark'
-                      ? 'bg-gradient-to-r from-[#4E6E49] to-[#4E6E49] text-white shadow-lg'
-                      : 'bg-gradient-to-r from-[#4E6E49] to-[#4E6E49] text-white shadow-lg'
-                    : theme === 'dark'
-                    ? 'text-gray-400 hover:text-white hover:bg-gray-600'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200'
-                }`}
-              >
-                <Users className="w-5 h-5" />
-                <span>Участник</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setUserType('admin')
-                  setLogin('')
-                  setPassword('')
-                  setError('')
-                }}
-                className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-medium transition-all duration-200 ${
-                  userType === 'admin'
-                    ? theme === 'dark'
-                      ? 'bg-gradient-to-r from-purple-500 to-purple-600 text-white shadow-lg'
-                      : 'bg-gradient-to-r from-purple-500 to-purple-600 text-white shadow-lg'
-                    : theme === 'dark'
-                    ? 'text-gray-400 hover:text-white hover:bg-gray-600'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200'
-                }`}
-              >
-                <Shield className="w-5 h-5" />
-                <span>Админ</span>
-              </button>
-            </div>
-          </div>
+              <div className="space-y-4 mb-6">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-[#4E6E49]/15 to-emerald-500/10 text-[#4E6E49] text-xs font-semibold">
+                  <Shield className="w-4 h-4" />
+                  Защищенный доступ
+                </div>
+                <h2 className={`text-lg font-semibold ${theme === 'dark' ? 'text-gray-200' : 'text-gray-700'}`}>
+                  Вход в систему с новой дерзкой оболочкой. Сохранили цвета бренда и ускорили навигацию.
+                </h2>
+                <div className="grid sm:grid-cols-2 gap-3">
+                  {[
+                    { icon: Sparkles, text: 'Обновлённый интерфейс' },
+                    { icon: Users, text: 'Режим участника / админа' },
+                    { icon: Shield, text: 'Тема сохраняется автоматически' },
+                    { icon: User, text: 'Доступ к ЛК и функционалу' },
+                  ].map(({ icon: Icon, text }) => (
+                    <div
+                      key={text}
+                      className={`flex items-center gap-2 px-3 py-2 rounded-xl border ${theme === 'dark' ? 'border-white/10 bg-white/5 text-gray-100' : 'border-gray-200 bg-white text-gray-800'} shadow-sm`}
+                    >
+                      <Icon className="w-4 h-4 text-[#4E6E49]" />
+                      <span className="text-sm font-semibold">{text}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
 
-          {/* Login field - only for members */}
-          {userType === 'member' && (
-            <div>
-              <label htmlFor="login" className={`block text-sm font-semibold mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                <User className="w-4 h-4 inline mr-2" />
-                Логин
-              </label>
-              <div className="relative">
-                <input
-                  id="login"
-                  type="text"
-                  value={login}
-                  onChange={(e) => setLogin(e.target.value)}
-                  className={`w-full px-4 py-3 rounded-xl border-2 transition-all ${
-                    theme === 'dark'
-                      ? 'bg-gray-700/50 border-gray-800 text-white placeholder-gray-500 focus:border-[#4E6E49]'
-                      : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400 focus:border-[#4E6E49]'
-                  } focus:outline-none focus:ring-4 focus:ring-[#4E6E49]/20`}
-                  placeholder="Введите ваш логин"
-                  autoComplete="username"
-                />
+              <div className={`rounded-2xl p-4 border ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-white/70'}`}>
+                <p className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                  Выберите тему, роль и войдите с теми же данными, что и в боте. Все функции и цвета сохранены, но оформление стало более универсальным и чистым.
+                </p>
               </div>
             </div>
-          )}
 
-          {/* Password field */}
-          <div>
-            <label htmlFor="password" className={`block text-sm font-semibold mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-              <Shield className="w-4 h-4 inline mr-2" />
-              Пароль
-            </label>
-            <div className="relative">
-              <input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className={`w-full px-4 py-3 rounded-xl border-2 transition-all ${
-                  theme === 'dark'
-                    ? 'bg-gray-700/50 border-gray-800 text-white placeholder-gray-500 focus:border-[#4E6E49]'
-                    : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400 focus:border-[#4E6E49]'
-                } focus:outline-none focus:ring-4 focus:ring-[#4E6E49]/20`}
-                placeholder={userType === 'admin' ? 'Введите пароль администратора' : 'Введите ваш пароль'}
-                autoComplete={userType === 'admin' ? 'off' : 'current-password'}
-              />
+            <div className="section-card rounded-2xl p-6 lg:p-7 border border-white/60 dark:border-white/10 shadow-xl">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <p className={`text-xs uppercase tracking-[0.12em] ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Доступ</p>
+                  <h2 className={`text-2xl font-extrabold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Вход в систему</h2>
+                </div>
+                <button
+                  onClick={handleThemeToggle}
+                  className="nav-chip px-3 py-2"
+                  data-active="false"
+                  aria-label="Toggle theme"
+                >
+                  {theme === 'dark' ? <Sun className="w-5 h-5 text-amber-300" /> : <Moon className="w-5 h-5 text-gray-700" />}
+                </button>
+              </div>
+
+              <form onSubmit={handleSubmit} className="space-y-5">
+                <div>
+                  <label className={`block text-sm font-semibold mb-3 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Тип пользователя
+                  </label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setUserType('member')
+                        setLogin('')
+                        setPassword('')
+                        setError('')
+                      }}
+                      className="pill justify-center"
+                      data-active={userType === 'member'}
+                    >
+                      <Users className="w-5 h-5" />
+                      <span>Участник</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setUserType('admin')
+                        setLogin('')
+                        setPassword('')
+                        setError('')
+                      }}
+                      className="pill justify-center"
+                      data-active={userType === 'admin'}
+                    >
+                      <Shield className="w-5 h-5" />
+                      <span>Админ</span>
+                    </button>
+                  </div>
+                </div>
+
+                {userType === 'member' && (
+                  <div>
+                    <label htmlFor="login" className={`block text-sm font-semibold mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                      <User className="w-4 h-4 inline mr-2" />
+                      Логин
+                    </label>
+                    <input
+                      id="login"
+                      type="text"
+                      value={login}
+                      onChange={(e) => setLogin(e.target.value)}
+                      className={`w-full px-4 py-3 rounded-xl border transition-all ${
+                        theme === 'dark'
+                          ? 'bg-white/5 border-white/10 text-white placeholder-gray-500 focus:border-[#4E6E49]'
+                          : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400 focus:border-[#4E6E49]'
+                      } focus:outline-none focus:ring-4 focus:ring-[#4E6E49]/20`}
+                      placeholder="Введите ваш логин"
+                      autoComplete="username"
+                    />
+                  </div>
+                )}
+
+                <div>
+                  <label htmlFor="password" className={`block text-sm font-semibold mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                    <Shield className="w-4 h-4 inline mr-2" />
+                    Пароль
+                  </label>
+                  <input
+                    id="password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className={`w-full px-4 py-3 rounded-xl border transition-all ${
+                      theme === 'dark'
+                        ? 'bg-white/5 border-white/10 text-white placeholder-gray-500 focus:border-[#4E6E49]'
+                        : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400 focus:border-[#4E6E49]'
+                    } focus:outline-none focus:ring-4 focus:ring-[#4E6E49]/20`}
+                    placeholder={userType === 'admin' ? 'Введите пароль администратора' : 'Введите ваш пароль'}
+                    autoComplete={userType === 'admin' ? 'off' : 'current-password'}
+                  />
+                  {userType === 'admin' && (
+                    <p className={`mt-2 text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                      Для входа в режим администратора требуется специальный пароль
+                    </p>
+                  )}
+                </div>
+
+                {error && (
+                  <div className={`p-4 rounded-xl border ${
+                    theme === 'dark' 
+                      ? 'bg-red-500/15 border-red-500/40 text-red-300' 
+                      : 'bg-red-50 border-red-300 text-red-700'
+                  } text-sm font-semibold animate-shake`}>
+                    {error}
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  className="w-full py-3 px-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all bg-gradient-to-r from-[#4E6E49] to-[#4E6E49] text-white"
+                >
+                  Войти в систему
+                </button>
+              </form>
+
+              <div className={`mt-6 pt-6 border-t ${theme === 'dark' ? 'border-white/10' : 'border-gray-200'} flex items-center justify-between gap-3`}>
+                <div className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                  Защищенная система для команды ApeVault
+                </div>
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-[#4E6E49]/15 to-emerald-500/15 text-[#4E6E49] text-xs font-semibold">
+                  <Sparkles className="w-4 h-4" />
+                  Универсальное новое оформление
+                </div>
+              </div>
             </div>
-            {userType === 'admin' && (
-              <p className={`mt-2 text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                Для входа в режим администратора требуется специальный пароль
-              </p>
-            )}
           </div>
-
-          {error && (
-            <div className={`p-4 rounded-xl border-2 ${
-              theme === 'dark' 
-                ? 'bg-red-500/20 border-red-500 text-red-400' 
-                : 'bg-red-50 border-red-300 text-red-700'
-            } text-sm font-medium animate-shake`}>
-              {error}
-            </div>
-          )}
-
-          <button
-            type="submit"
-            className={`w-full py-3 px-4 rounded-xl font-bold text-lg transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-[1.02] active:scale-[0.98] ${
-              theme === 'dark'
-                ? 'bg-gradient-to-r from-[#4E6E49] to-[#4E6E49] hover:from-[#4E6E49] hover:to-[#4E6E49] text-white'
-                : 'bg-gradient-to-r from-[#4E6E49] to-[#4E6E49] hover:from-[#4E6E49] hover:to-[#4E6E49] text-white'
-            }`}
-          >
-            Войти в систему
-          </button>
-        </form>
-
-        {/* Footer info */}
-        <div className={`mt-6 pt-6 border-t ${theme === 'dark' ? 'border-gray-800' : 'border-gray-200'} text-center`}>
-          <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-            Защищенная система для команды ApeVault
-          </p>
         </div>
       </div>
     </div>
