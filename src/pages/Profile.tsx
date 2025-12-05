@@ -52,7 +52,6 @@ export const Profile = () => {
 
   const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
   const cardBg = theme === 'dark' ? 'bg-[#1a1a1a]' : 'bg-white'
-  const borderColor = theme === 'dark' ? 'border-gray-800' : 'border-gray-300'
 
   useEffect(() => {
     if (user || isAdmin) {
