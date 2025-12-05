@@ -191,7 +191,7 @@ export const Login = () => {
                   <img src={logo} alt="ApeVault Logo" className="w-16 h-16 object-contain" />
                 </div>
                 <div>
-                  <p className={`text-xs uppercase tracking-[0.16em] ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>ApeVault</p>
+                  <p className={`text-xs uppercase tracking-[0.16em] ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>ApeVault Black Ops</p>
                   <h1 className={`text-3xl lg:text-4xl font-extrabold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Командная панель</h1>
                 </div>
               </div>
@@ -202,7 +202,7 @@ export const Login = () => {
                   Защищенный доступ
                 </div>
                 <h2 className={`text-lg font-semibold ${theme === 'dark' ? 'text-gray-200' : 'text-gray-700'}`}>
-                  Вход в систему с новой дерзкой оболочкой. Сохранили цвета бренда и ускорили навигацию.
+                  Быстрый доступ к закрытому контуру команды. Сохранили цвета бренда и привычный функционал.
                 </h2>
                 <div className="grid sm:grid-cols-2 gap-3">
                   {[
@@ -351,10 +351,7 @@ export const Login = () => {
                 <div className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
                   Защищенная система для команды ApeVault
                 </div>
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-[#4E6E49]/15 to-emerald-500/15 text-[#4E6E49] text-xs font-semibold">
-                  <Sparkles className="w-4 h-4" />
-                  Универсальное новое оформление
-                </div>
+                <div />
               </div>
             </div>
           </div>

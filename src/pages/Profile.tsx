@@ -216,41 +216,45 @@ export const Profile = () => {
   return (
     <Layout>
       <div className="space-y-6">
-        {/* Header */}
-        <div className={`rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8 ${cardBg} shadow-xl border-2 ${
-          theme === 'dark' 
-            ? 'border-[#4E6E49]/30 bg-gradient-to-br from-[#1a1a1a] via-[#1a1a1a] to-[#0A0A0A]' 
-            : 'border-green-200 bg-gradient-to-br from-white via-green-50/30 to-white'
-        } relative overflow-hidden`}>
-          <div className="absolute top-0 right-0 w-32 h-32 sm:w-64 sm:h-64 bg-gradient-to-br from-[#4E6E49]/10 to-emerald-700/10 rounded-full blur-3xl -mr-16 sm:-mr-32 -mt-16 sm:-mt-32" />
-          <div className="absolute bottom-0 left-0 w-24 h-24 sm:w-48 sm:h-48 bg-gradient-to-tr from-yellow-500/10 to-orange-500/10 rounded-full blur-2xl -ml-12 sm:-ml-24 -mb-12 sm:-mb-24" />
-          
-          <div className="relative z-10">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+        <div className="section-card rounded-2xl p-5 sm:p-6 md:p-7 border border-white/60 dark:border-white/10 shadow-xl relative overflow-hidden">
+          <div className="accent-dots" />
+          <div className="relative z-10 flex flex-col gap-4">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
               <div className="flex items-center gap-3 sm:gap-4">
-                <div className={`p-3 sm:p-4 rounded-xl sm:rounded-2xl shadow-lg ${
-                  theme === 'dark'
-                    ? 'bg-gradient-to-br from-[#4E6E49] to-emerald-700'
-                    : 'bg-gradient-to-br from-[#4E6E49] to-emerald-700'
-                } text-white`}>
-                  <User className="w-6 h-6 sm:w-8 sm:h-8" />
+                <div className={`p-3 sm:p-4 rounded-2xl shadow-lg ${theme === 'dark' ? 'bg-gradient-to-br from-[#4E6E49] to-emerald-700' : 'bg-gradient-to-br from-[#4E6E49] to-emerald-700'} text-white`}>
+                  <User className="w-6 h-6 sm:w-7 sm:h-7" />
                 </div>
                 <div>
+                  <p className={`text-xs uppercase tracking-[0.14em] ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>ApeVault Black Ops</p>
                   <h1 className={`text-2xl sm:text-3xl md:text-4xl font-extrabold ${headingColor} flex items-center gap-2`}>
                     Личный кабинет
                     <Sparkles className={`w-5 h-5 sm:w-6 sm:h-6 ${theme === 'dark' ? 'text-yellow-400' : 'text-yellow-600'}`} />
                   </h1>
-                  <p className={`text-sm sm:text-base ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'} mt-1`}>
-                    Управление профилем и данными
-                  </p>
+                  <p className={`text-sm sm:text-base ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>Закрытый контур Black Ops для управления профилем.</p>
                 </div>
               </div>
-              {isAdmin && (
-                <div className="flex items-center gap-2 px-3 py-1.5 bg-purple-600 text-white rounded-lg">
-                  <Shield className="w-4 h-4" />
-                  <span className="text-sm font-medium">Администратор</span>
+              <div className="flex flex-wrap gap-2">
+                <div className="pill" data-active="true">
+                  <User className="w-4 h-4" />
+                  <span>{userData.name}</span>
                 </div>
-              )}
+                {isAdmin && (
+                  <div className="pill" data-active="true">
+                    <Shield className="w-4 h-4" />
+                    <span>Администратор</span>
+                  </div>
+                )}
+                <div className="pill" data-active="false">
+                  <CheckSquare className="w-4 h-4" />
+                  <span>{tasks.length} задач</span>
+                </div>
+                {rating && (
+                  <div className="pill" data-active="false">
+                    <TrendingUp className="w-4 h-4" />
+                    <span>{rating.rating.toFixed(1)}%</span>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -260,74 +264,49 @@ export const Profile = () => {
             <div className="animate-pulse">Загрузка...</div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-            {/* Personal Information */}
-            <div className={`${cardBg} rounded-xl border-2 ${borderColor} p-5 sm:p-6 shadow-lg hover:shadow-xl transition-all relative overflow-hidden ${
-              theme === 'dark' 
-                ? 'bg-gradient-to-br from-[#1a1a1a] to-[#0A0A0A]' 
-                : 'bg-gradient-to-br from-white to-gray-50'
-            }`}>
-              <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-full blur-2xl -mr-12 -mt-12" />
-              <div className="relative z-10">
-                <h2 className={`text-xl font-bold ${headingColor} mb-5 flex items-center gap-2`}>
-                  <div className={`p-2 rounded-lg ${
-                    theme === 'dark' ? 'bg-blue-500/20' : 'bg-blue-50'
-                  }`}>
-                    <User className={`w-5 h-5 ${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'}`} />
-                  </div>
-                  Личные данные
-                </h2>
-                <div className="space-y-4">
-                  <div>
-                    <label className={`text-sm font-semibold ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} block mb-2`}>
-                      Имя
-                    </label>
-                    <div className={`px-4 py-3 rounded-lg border-2 ${borderColor} ${
-                      theme === 'dark' ? 'bg-gray-700/50 border-gray-800' : 'bg-white border-gray-200'
-                    } ${headingColor} font-medium`}>
-                      {userData.name}
+          <div className="space-y-5">
+            <div className="grid grid-cols-1 lg:grid-cols-[1.05fr_0.95fr] gap-4 sm:gap-5">
+              <div className="space-y-4 sm:space-y-5">
+                <div className="section-card rounded-2xl p-5 sm:p-6 border border-white/60 dark:border-white/10 shadow-xl">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className={`p-2.5 rounded-xl ${theme === 'dark' ? 'bg-blue-500/15 text-blue-200' : 'bg-blue-50 text-blue-700'}`}>
+                        <User className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h2 className={`text-lg sm:text-xl font-bold ${headingColor}`}>Профиль</h2>
+                        <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Ваши данные и доступ</p>
+                      </div>
                     </div>
                   </div>
-                  <div>
-                    <label className={`text-sm font-semibold ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} block mb-2`}>
-                      Логин
-                    </label>
-                    <div className={`px-4 py-3 rounded-lg border-2 ${borderColor} ${
-                      theme === 'dark' ? 'bg-gray-700/50 border-gray-800' : 'bg-white border-gray-200'
-                    } ${headingColor} font-medium`}>
-                      {userData.login}
+                  <div className="grid sm:grid-cols-2 gap-3 sm:gap-4">
+                    <div className="rounded-xl border border-white/50 dark:border-white/10 bg-white/70 dark:bg-white/5 p-4 shadow-sm">
+                      <p className={`text-xs font-semibold uppercase tracking-wide ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Имя</p>
+                      <p className={`mt-1 text-lg font-bold ${headingColor}`}>{userData.name}</p>
+                    </div>
+                    <div className="rounded-xl border border-white/50 dark:border-white/10 bg-white/70 dark:bg-white/5 p-4 shadow-sm">
+                      <p className={`text-xs font-semibold uppercase tracking-wide ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Логин</p>
+                      <p className={`mt-1 text-lg font-bold ${headingColor}`}>{userData.login}</p>
                     </div>
                   </div>
-                  <div>
-                    <label className={`text-sm font-semibold ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} block mb-2`}>
+                  <div className="mt-4 space-y-2">
+                    <label className={`text-sm font-semibold ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} block`}>
                       Пароль
                     </label>
                     <div className="flex items-center gap-2">
-                      <div className={`flex-1 px-4 py-3 rounded-lg border-2 ${borderColor} ${
-                        theme === 'dark' ? 'bg-gray-700/50 border-gray-800' : 'bg-white border-gray-200'
-                      } ${headingColor} font-mono text-sm`}>
+                      <div className={`flex-1 px-4 py-3 rounded-lg border ${theme === 'dark' ? 'border-white/10 bg-white/5 text-white' : 'border-gray-200 bg-white text-gray-900'} font-mono text-sm`}>
                         {showPassword ? userData.password : '•'.repeat(userData.password.length)}
                       </div>
                       <button
                         onClick={() => setShowPassword(!showPassword)}
-                        className={`p-3 rounded-lg border-2 ${borderColor} ${
-                          theme === 'dark' 
-                            ? 'bg-gray-700/50 hover:bg-gray-600/50 border-gray-800 hover:border-gray-500' 
-                            : 'bg-white hover:bg-gray-50 border-gray-200 hover:border-gray-300'
-                        } transition-all`}
+                        className={`p-3 rounded-lg border ${theme === 'dark' ? 'border-white/10 bg-white/5 hover:border-white/30' : 'border-gray-200 bg-white hover:border-gray-300'} transition`}
                         title={showPassword ? 'Скрыть пароль' : 'Показать пароль'}
                       >
                         {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                       </button>
                       <button
                         onClick={handleCopyPassword}
-                        className={`p-3 rounded-lg border-2 transition-all ${
-                          passwordCopied
-                            ? 'bg-[#4E6E49] text-white border-[#4E6E49]'
-                            : theme === 'dark' 
-                            ? 'bg-gray-700/50 hover:bg-gray-600/50 border-gray-800 hover:border-gray-500' 
-                            : 'bg-white hover:bg-gray-50 border-gray-200 hover:border-gray-300'
-                        }`}
+                        className={`p-3 rounded-lg border transition ${passwordCopied ? 'bg-[#4E6E49] text-white border-[#4E6E49]' : theme === 'dark' ? 'border-white/10 bg-white/5 hover:border-white/30' : 'border-gray-200 bg-white hover:border-gray-300'}`}
                         title="Скопировать пароль"
                       >
                         {passwordCopied ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
@@ -335,372 +314,169 @@ export const Profile = () => {
                     </div>
                   </div>
                 </div>
-              </div>
-            </div>
 
-            {/* Rating - Enhanced */}
-            {rating && ratingBreakdown && (
-              <div className={`${cardBg} rounded-xl border-2 ${borderColor} p-4 sm:p-6 shadow-lg lg:col-span-2`}>
-                <h2 className={`text-xl font-bold ${headingColor} mb-6 flex items-center gap-2`}>
-                  <TrendingUp className="w-5 h-5" />
-                  Рейтинг эффективности
-                </h2>
-                <div className="space-y-6">
-                  {/* Main Rating Display */}
-                  <div className={`p-6 sm:p-8 rounded-xl border-2 ${
-                    rating.rating >= 70
-                      ? theme === 'dark' ? 'bg-gradient-to-br from-[#4E6E49]/20 to-emerald-700/20 border-[#4E6E49]/50' : 'bg-gradient-to-br from-green-50 to-emerald-50 border-green-200'
-                      : rating.rating >= 50
-                      ? theme === 'dark' ? 'bg-gradient-to-br from-yellow-500/20 to-orange-500/20 border-yellow-500/50' : 'bg-gradient-to-br from-yellow-50 to-orange-50 border-yellow-200'
-                      : theme === 'dark' ? 'bg-gradient-to-br from-blue-500/20 to-indigo-500/20 border-blue-500/50' : 'bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200'
-                  } relative overflow-hidden`}>
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-white/10 to-transparent rounded-full blur-2xl -mr-16 -mt-16" />
-                    <div className="relative z-10">
-                      <div className="text-center">
-                        <div className={`text-5xl sm:text-6xl md:text-7xl font-extrabold mb-2 ${
-                          rating.rating >= 70
-                            ? theme === 'dark' ? 'text-[#4E6E49]' : 'text-[#4E6E49]'
-                            : rating.rating >= 50
-                            ? theme === 'dark' ? 'text-yellow-400' : 'text-yellow-700'
-                            : theme === 'dark' ? 'text-blue-400' : 'text-blue-700'
-                        }`}>
-                          {rating.rating.toFixed(1)}%
-                        </div>
-                        <div className={`text-lg sm:text-xl font-semibold ${
-                          theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
-                        }`}>
-                          Общая эффективность
-                        </div>
-                        <div className={`text-sm mt-2 ${
-                          theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-                        }`}>
-                          {rating.rating >= 70 ? 'Отличный результат! 🎉' : rating.rating >= 50 ? 'Хороший результат! 👍' : 'Есть над чем поработать 💪'}
-                        </div>
+                <div className="section-card rounded-2xl p-5 sm:p-6 border border-white/60 dark:border-white/10 shadow-xl">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className={`p-2.5 rounded-xl ${theme === 'dark' ? 'bg-[#4E6E49]/20 text-[#4E6E49]' : 'bg-green-50 text-[#4E6E49]'}`}>
+                        <CheckSquare className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h2 className={`text-lg sm:text-xl font-bold ${headingColor}`}>Мои задачи</h2>
+                        <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Сводка по статусам</p>
                       </div>
                     </div>
                   </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+                    {[
+                      { label: 'На согласовании', value: pendingTasks, tone: 'yellow' },
+                      { label: 'В работе', value: inProgressTasks, tone: 'blue' },
+                      { label: 'Выполнена', value: completedTasks, tone: 'green' },
+                      { label: 'Всего', value: tasks.length, tone: 'gray' },
+                    ].map(({ label, value, tone }) => (
+                      <div
+                        key={label}
+                        className={`p-4 rounded-xl border transition-all hover:-translate-y-0.5 ${
+                          tone === 'yellow'
+                            ? theme === 'dark' ? 'bg-yellow-500/10 border-yellow-500/30' : 'bg-yellow-50 border-yellow-200'
+                            : tone === 'blue'
+                            ? theme === 'dark' ? 'bg-blue-500/10 border-blue-500/30' : 'bg-blue-50 border-blue-200'
+                            : tone === 'green'
+                            ? theme === 'dark' ? 'bg-[#4E6E49]/10 border-[#4E6E49]/30' : 'bg-green-50 border-green-200'
+                            : theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'
+                        }`}
+                      >
+                        <div className={`text-xs font-semibold mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>{label}</div>
+                        <div className={`text-3xl font-extrabold ${headingColor}`}>{value}</div>
+                      </div>
+                    ))}
+                  </div>
+                  <button
+                    onClick={() => navigate('/tasks')}
+                    className={`w-full px-4 py-3 rounded-lg font-semibold transition-all transform hover:-translate-y-0.5 flex items-center justify-center gap-2 ${
+                      theme === 'dark'
+                        ? 'bg-gradient-to-r from-[#4E6E49]/25 to-emerald-700/25 text-[#4E6E49] border border-[#4E6E49]/50 hover:border-[#4E6E49]'
+                        : 'bg-gradient-to-r from-green-50 to-emerald-50 text-[#4E6E49] border border-green-200 hover:border-[#4E6E49]'
+                    }`}
+                  >
+                    <CheckSquare className="w-4 h-4" />
+                    Перейти к задачам
+                  </button>
+                </div>
 
-                  {/* Rating Breakdown Grid */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {/* Выходные */}
-                    <div className={`p-4 rounded-lg border-2 ${
-                      theme === 'dark' ? 'bg-gray-700/50 border-gray-800' : 'bg-gray-50 border-gray-200'
-                    }`}>
-                      <div className="flex items-center justify-between mb-2">
-                        <span className={`text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                          Выходные
-                        </span>
-                        <span className="text-lg">📅</span>
-                      </div>
-                      <div className={`text-2xl font-bold ${headingColor}`}>
-                        {ratingBreakdown.daysOffPoints.toFixed(1)}%
-                      </div>
-                      <div className={`text-xs mt-1 ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
-                        {rating.daysOff} дней
-                      </div>
-                      <div className={`text-xs mt-2 pt-2 border-t ${theme === 'dark' ? 'border-gray-800 text-gray-400' : 'border-gray-300 text-gray-600'}`}>
-                        {rating.daysOff === 0 || rating.daysOff <= 2 
-                          ? '✅ 0-2 дня = 10%' 
-                          : '❌ Более 2 дней = 0%'}
-                      </div>
+                <div className="section-card rounded-2xl p-5 sm:p-6 border border-white/60 dark:border-white/10 shadow-xl">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className={`p-2.5 rounded-xl ${theme === 'dark' ? 'bg-red-500/15 text-red-300' : 'bg-red-50 text-red-700'}`}>
+                      <LogOut className="w-5 h-5" />
                     </div>
-
-                    {/* Больничные */}
-                    <div className={`p-4 rounded-lg border-2 ${
-                      theme === 'dark' ? 'bg-gray-700/50 border-gray-800' : 'bg-gray-50 border-gray-200'
-                    }`}>
-                      <div className="flex items-center justify-between mb-2">
-                        <span className={`text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                          Больничные
-                        </span>
-                        <span className="text-lg">🏥</span>
-                      </div>
-                      <div className={`text-2xl font-bold ${headingColor}`}>
-                        {ratingBreakdown.sickDaysPoints.toFixed(1)}%
-                      </div>
-                      <div className={`text-xs mt-1 ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
-                        {rating.sickDays} дней
-                      </div>
-                      <div className={`text-xs mt-2 pt-2 border-t ${theme === 'dark' ? 'border-gray-800 text-gray-400' : 'border-gray-300 text-gray-600'}`}>
-                        {rating.sickDays <= 7 
-                          ? '✅ ≤7 дней = 10%' 
-                          : '❌ Более 7 дней = 0%'}
-                      </div>
-                    </div>
-
-                    {/* Отпуск */}
-                    <div className={`p-4 rounded-lg border-2 ${
-                      theme === 'dark' ? 'bg-gray-700/50 border-gray-800' : 'bg-gray-50 border-gray-200'
-                    }`}>
-                      <div className="flex items-center justify-between mb-2">
-                        <span className={`text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                          Отпуск
-                        </span>
-                        <span className="text-lg">🏖️</span>
-                      </div>
-                      <div className={`text-2xl font-bold ${headingColor}`}>
-                        {ratingBreakdown.vacationDaysPoints.toFixed(1)}%
-                      </div>
-                      <div className={`text-xs mt-1 ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
-                        {rating.vacationDays} дней
-                      </div>
-                      <div className={`text-xs mt-2 pt-2 border-t ${theme === 'dark' ? 'border-gray-800 text-gray-400' : 'border-gray-300 text-gray-600'}`}>
-                        {rating.vacationDays <= 7 
-                          ? '✅ ≤7 дней = 10%' 
-                          : '❌ Более 7 дней = 0%'}
-                      </div>
-                    </div>
-
-                    {/* Часы работы */}
-                    <div className={`p-4 rounded-lg border-2 ${
-                      theme === 'dark' ? 'bg-blue-500/10 border-blue-500/30' : 'bg-blue-50 border-blue-200'
-                    }`}>
-                      <div className="flex items-center justify-between mb-2">
-                        <span className={`text-sm font-medium ${theme === 'dark' ? 'text-blue-300' : 'text-blue-700'}`}>
-                          Часы работы
-                        </span>
-                        <span className="text-lg">⏰</span>
-                      </div>
-                      <div className={`text-2xl font-bold ${
-                        theme === 'dark' ? 'text-blue-400' : 'text-blue-700'
-                      }`}>
-                        {ratingBreakdown.weeklyHoursPoints.toFixed(1)}%
-                      </div>
-                      <div className={`text-xs mt-1 ${theme === 'dark' ? 'text-blue-400/70' : 'text-blue-600'}`}>
-                        {ratingBreakdown.weeklyHours.toFixed(1)} ч/нед
-                      </div>
-                      <div className={`text-xs mt-2 pt-2 border-t ${theme === 'dark' ? 'border-blue-500/30 text-blue-300' : 'border-blue-200 text-blue-600'}`}>
-                        {ratingBreakdown.weeklyHours >= 30 
-                          ? '✅ ≥30 ч = 25%' 
-                          : ratingBreakdown.weeklyHours >= 20 
-                          ? '✅ ≥20 ч = 15%' 
-                          : '❌ <20 ч = 0%'}
-                      </div>
-                    </div>
-
-                    {/* Заработок */}
-                    <div className={`p-4 rounded-lg border-2 ${
-                      theme === 'dark' ? 'bg-[#4E6E49]/10 border-[#4E6E49]/30' : 'bg-green-50 border-green-200'
-                    }`}>
-                      <div className="flex items-center justify-between mb-2">
-                        <span className={`text-sm font-medium ${theme === 'dark' ? 'text-[#4E6E49]' : 'text-[#4E6E49]'}`}>
-                          Заработок
-                        </span>
-                        <span className="text-lg">💰</span>
-                      </div>
-                      <div className={`text-2xl font-bold ${
-                        theme === 'dark' ? 'text-[#4E6E49]' : 'text-[#4E6E49]'
-                      }`}>
-                        {ratingBreakdown.weeklyEarningsPoints.toFixed(1)}%
-                      </div>
-                      <div className={`text-xs mt-1 ${theme === 'dark' ? 'text-[#4E6E49]/70' : 'text-[#4E6E49]'}`}>
-                        {ratingBreakdown.weeklyEarnings.toFixed(0)} ₽/нед
-                      </div>
-                      <div className={`text-xs mt-2 pt-2 border-t ${theme === 'dark' ? 'border-[#4E6E49]/30 text-[#4E6E49]' : 'border-green-200 text-[#4E6E49]'}`}>
-                        {ratingBreakdown.weeklyEarnings >= 6000 
-                          ? '✅ ≥6000₽ = 30%' 
-                          : ratingBreakdown.weeklyEarnings >= 3000 
-                          ? '✅ ≥3000₽ = 15%' 
-                          : '❌ <3000₽ = 0%'}
-                      </div>
-                    </div>
-
-                    {/* Рефералы */}
-                    <div className={`p-4 rounded-lg border-2 ${
-                      theme === 'dark' ? 'bg-purple-500/10 border-purple-500/30' : 'bg-purple-50 border-purple-200'
-                    }`}>
-                      <div className="flex items-center justify-between mb-2">
-                        <span className={`text-sm font-medium ${theme === 'dark' ? 'text-purple-300' : 'text-purple-700'}`}>
-                          Рефералы
-                        </span>
-                        <span className="text-lg">👥</span>
-                      </div>
-                      <div className={`text-2xl font-bold ${
-                        theme === 'dark' ? 'text-purple-400' : 'text-purple-700'
-                      }`}>
-                        {ratingBreakdown.referralsPoints.toFixed(1)}%
-                      </div>
-                      <div className={`text-xs mt-1 ${theme === 'dark' ? 'text-purple-400/70' : 'text-purple-600'}`}>
-                        {rating.referrals} рефералов
-                      </div>
-                      <div className={`text-xs mt-2 pt-2 border-t ${theme === 'dark' ? 'border-purple-500/30 text-purple-300' : 'border-purple-200 text-purple-600'}`}>
-                        {ratingBreakdown.referralsPoints >= 30 
-                          ? '✅ Макс 6 рефералов = 30%' 
-                          : `✅ ${rating.referrals} × 5% = ${ratingBreakdown.referralsPoints.toFixed(0)}%`}
-                      </div>
-                    </div>
-
-                    {/* Сообщения */}
-                    <div className={`p-4 rounded-lg border-2 ${
-                      theme === 'dark' ? 'bg-orange-500/10 border-orange-500/30' : 'bg-orange-50 border-orange-200'
-                    }`}>
-                      <div className="flex items-center justify-between mb-2">
-                        <span className={`text-sm font-medium ${theme === 'dark' ? 'text-orange-300' : 'text-orange-700'}`}>
-                          Сообщения
-                        </span>
-                        <span className="text-lg">💬</span>
-                      </div>
-                      <div className={`text-2xl font-bold ${
-                        theme === 'dark' ? 'text-orange-400' : 'text-orange-700'
-                      }`}>
-                        {ratingBreakdown.weeklyMessagesPoints.toFixed(1)}%
-                      </div>
-                      <div className={`text-xs mt-1 ${theme === 'dark' ? 'text-orange-400/70' : 'text-orange-600'}`}>
-                        {ratingBreakdown.weeklyMessages} сообщ/нед
-                      </div>
-                      <div className={`text-xs mt-2 pt-2 border-t ${theme === 'dark' ? 'border-orange-500/30 text-orange-300' : 'border-orange-200 text-orange-600'}`}>
-                        {ratingBreakdown.weeklyMessages > 50 
-                          ? '✅ >50 сообщ = 15%' 
-                          : '❌ ≤50 сообщ = 0%'}
-                      </div>
+                    <div>
+                      <h2 className={`text-lg font-bold ${headingColor}`}>Выход</h2>
+                      <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Завершить сессию и деактивировать доступ</p>
                     </div>
                   </div>
-
-                  {/* Rating Explanation */}
-                  <div className={`p-4 rounded-lg border-2 ${
-                    theme === 'dark' ? 'bg-gray-700/50 border-gray-800' : 'bg-gray-50 border-gray-200'
-                  }`}>
-                    <h3 className={`text-sm font-bold ${headingColor} mb-3 flex items-center gap-2`}>
-                      <Info className="w-4 h-4" />
-                      Как рассчитывается рейтинг?
-                    </h3>
-                    <div className={`text-xs space-y-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                      <div className="flex items-start gap-2">
-                        <span className="font-semibold">• Выходные:</span>
-                        <span>0-2 дня в месяц = 10%, более 2 дней = 0%</span>
-                      </div>
-                      <div className="flex items-start gap-2">
-                        <span className="font-semibold">• Больничные:</span>
-                        <span>≤7 дней в месяц = 10%, более 7 дней = 0%</span>
-                      </div>
-                      <div className="flex items-start gap-2">
-                        <span className="font-semibold">• Отпуск:</span>
-                        <span>≤7 дней в месяц = 10%, более 7 дней = 0%</span>
-                      </div>
-                      <div className="flex items-start gap-2">
-                        <span className="font-semibold">• Часы работы:</span>
-                        <span>≥30 ч/нед = 25%, ≥20 ч/нед = 15%, менее 20 ч/нед = 0%</span>
-                      </div>
-                      <div className="flex items-start gap-2">
-                        <span className="font-semibold">• Заработок:</span>
-                        <span>≥6000₽/нед = 30%, ≥3000₽/нед = 15%, менее 3000₽/нед = 0%</span>
-                      </div>
-                      <div className="flex items-start gap-2">
-                        <span className="font-semibold">• Рефералы:</span>
-                        <span>5% за каждого, максимум 30% (6 рефералов)</span>
-                      </div>
-                      <div className="flex items-start gap-2">
-                        <span className="font-semibold">• Сообщения:</span>
-                        <span>Более 50 сообщений/нед = 15%, менее = 0%</span>
-                      </div>
-                      <div className={`mt-3 pt-3 border-t ${theme === 'dark' ? 'border-gray-800' : 'border-gray-300'}`}>
-                        <span className="font-semibold">Максимальный рейтинг: 100%</span>
-                      </div>
-                    </div>
-                  </div>
+                  <button
+                    onClick={handleLogout}
+                    className={`w-full px-6 py-3.5 rounded-lg font-semibold transition-all transform hover:-translate-y-0.5 flex items-center justify-center gap-2 ${
+                      theme === 'dark'
+                        ? 'bg-gradient-to-r from-red-500/25 to-pink-500/25 text-red-300 border border-red-500/50 hover:border-red-400'
+                        : 'bg-gradient-to-r from-red-50 to-pink-50 text-red-700 border border-red-200 hover:border-red-300'
+                    }`}
+                  >
+                    <LogOut className="w-5 h-5" />
+                    Выйти из аккаунта
+                  </button>
                 </div>
               </div>
-            )}
 
-            {/* Tasks */}
-            <div className={`${cardBg} rounded-xl border-2 ${borderColor} p-5 sm:p-6 shadow-lg hover:shadow-xl transition-all relative overflow-hidden ${
-              theme === 'dark' 
-                ? 'bg-gradient-to-br from-[#1a1a1a] to-[#0A0A0A]' 
-                : 'bg-gradient-to-br from-white to-gray-50'
-            }`}>
-              <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-[#4E6E49]/10 to-emerald-700/10 rounded-full blur-2xl -mr-12 -mt-12" />
-              <div className="relative z-10">
-                <h2 className={`text-xl font-bold ${headingColor} mb-5 flex items-center gap-2`}>
-                  <div className={`p-2 rounded-lg ${
-                    theme === 'dark' ? 'bg-[#4E6E49]/20' : 'bg-green-50'
-                  }`}>
-                    <CheckSquare className={`w-5 h-5 ${theme === 'dark' ? 'text-[#4E6E49]' : 'text-[#4E6E49]'}`} />
-                  </div>
-                  Мои задачи
-                </h2>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
-                  <div className={`p-4 rounded-xl border-2 transition-all hover:scale-105 ${
-                    theme === 'dark' ? 'bg-yellow-500/10 border-yellow-500/30 hover:border-yellow-500/50' : 'bg-yellow-50 border-yellow-200 hover:border-yellow-300'
-                  }`}>
-                    <div className={`text-xs font-semibold mb-2 ${
-                      theme === 'dark' ? 'text-yellow-400' : 'text-yellow-700'
-                    }`}>
-                      На согласовании
+              <div className="space-y-4 sm:space-y-5">
+                {rating && ratingBreakdown && (
+                  <div className="section-card rounded-2xl p-5 sm:p-6 border border-white/60 dark:border-white/10 shadow-xl">
+                    <div className="flex items-center justify-between mb-5">
+                      <div className="flex items-center gap-3">
+                        <div className={`p-2.5 rounded-xl ${theme === 'dark' ? 'bg-purple-500/20 text-purple-200' : 'bg-purple-50 text-purple-700'}`}>
+                          <TrendingUp className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <h2 className={`text-lg sm:text-xl font-bold ${headingColor}`}>Рейтинг эффективности</h2>
+                          <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Детальный разбор параметров</p>
+                        </div>
+                      </div>
+                      <div className="pill" data-active="true">
+                        <span className="font-bold">{rating.rating.toFixed(1)}%</span>
+                      </div>
                     </div>
-                    <div className={`text-3xl font-extrabold ${headingColor}`}>
-                      {pendingTasks}
-                    </div>
-                  </div>
-                  <div className={`p-4 rounded-xl border-2 transition-all hover:scale-105 ${
-                    theme === 'dark' ? 'bg-blue-500/10 border-blue-500/30 hover:border-blue-500/50' : 'bg-blue-50 border-blue-200 hover:border-blue-300'
-                  }`}>
-                    <div className={`text-xs font-semibold mb-2 ${
-                      theme === 'dark' ? 'text-blue-400' : 'text-blue-700'
-                    }`}>
-                      В работе
-                    </div>
-                    <div className={`text-3xl font-extrabold ${headingColor}`}>
-                      {inProgressTasks}
-                    </div>
-                  </div>
-                  <div className={`p-4 rounded-xl border-2 transition-all hover:scale-105 ${
-                    theme === 'dark' ? 'bg-[#4E6E49]/10 border-[#4E6E49]/30 hover:border-[#4E6E49]/50' : 'bg-green-50 border-green-200 hover:border-[#4E6E49]'
-                  }`}>
-                    <div className={`text-xs font-semibold mb-2 ${
-                      theme === 'dark' ? 'text-[#4E6E49]' : 'text-[#4E6E49]'
-                    }`}>
-                      Выполнена
-                    </div>
-                    <div className={`text-3xl font-extrabold ${headingColor}`}>
-                      {completedTasks}
-                    </div>
-                  </div>
-                  <div className={`p-4 rounded-xl border-2 transition-all hover:scale-105 ${
-                    theme === 'dark' ? 'bg-gray-500/10 border-gray-500/30 hover:border-gray-500/50' : 'bg-gray-50 border-gray-200 hover:border-gray-300'
-                  }`}>
-                    <div className={`text-xs font-semibold mb-2 ${
-                      theme === 'dark' ? 'text-gray-400' : 'text-gray-700'
-                    }`}>
-                      Всего
-                    </div>
-                    <div className={`text-3xl font-extrabold ${headingColor}`}>
-                      {tasks.length}
-                    </div>
-                  </div>
-                </div>
-                <button
-                  onClick={() => navigate('/tasks')}
-                  className={`w-full px-4 py-3 rounded-lg font-semibold transition-all transform hover:scale-[1.02] flex items-center justify-center gap-2 ${
-                    theme === 'dark'
-                      ? 'bg-gradient-to-r from-[#4E6E49]/20 to-emerald-700/20 hover:from-[#4E6E49]/30 hover:to-emerald-700/30 text-[#4E6E49] border-2 border-[#4E6E49]/50 hover:border-[#4E6E49]'
-                      : 'bg-gradient-to-r from-green-50 to-emerald-50 hover:from-green-100 hover:to-emerald-100 text-[#4E6E49] border-2 border-green-200 hover:border-[#4E6E49]'
-                  }`}
-                >
-                  <CheckSquare className="w-4 h-4" />
-                  Перейти к задачам
-                </button>
-              </div>
-            </div>
 
-            {/* Logout Button */}
-            <div className={`lg:col-span-2 ${cardBg} rounded-xl border-2 ${borderColor} p-5 sm:p-6 shadow-lg hover:shadow-xl transition-all relative overflow-hidden ${
-              theme === 'dark' 
-                ? 'bg-gradient-to-br from-[#1a1a1a] to-[#0A0A0A]' 
-                : 'bg-gradient-to-br from-white to-gray-50'
-            }`}>
-              <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-red-500/10 to-pink-500/10 rounded-full blur-2xl -mr-12 -mt-12" />
-              <div className="relative z-10">
-                <button
-                  onClick={handleLogout}
-                  className={`w-full px-6 py-3.5 rounded-lg font-semibold transition-all transform hover:scale-[1.02] flex items-center justify-center gap-2 ${
-                    theme === 'dark'
-                      ? 'bg-gradient-to-r from-red-500/20 to-pink-500/20 hover:from-red-500/30 hover:to-pink-500/30 text-red-400 border-2 border-red-500/50 hover:border-red-500'
-                      : 'bg-gradient-to-r from-red-50 to-pink-50 hover:from-red-100 hover:to-pink-100 text-red-700 border-2 border-red-200 hover:border-red-300'
-                  }`}
-                >
-                  <LogOut className="w-5 h-5" />
-                  Выйти из аккаунта
-                </button>
+                    <div className={`p-5 rounded-2xl border ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-white/70'} shadow-inner mb-5`}>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className={`text-xs uppercase tracking-wide ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Общая оценка</p>
+                          <p className={`text-4xl sm:text-5xl font-extrabold ${headingColor}`}>{rating.rating.toFixed(1)}%</p>
+                          <p className={`text-xs mt-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                            {rating.rating >= 70 ? 'Отличный результат! 🎉' : rating.rating >= 50 ? 'Хороший темп — продолжаем!' : 'Усилите часы, доход и активность.'}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <div className="pill" data-active="false">
+                            <span className="text-xs">Часы/нед</span>
+                            <strong>{ratingBreakdown.weeklyHours.toFixed(1)}</strong>
+                          </div>
+                          <div className="pill mt-2" data-active="false">
+                            <span className="text-xs">Доход/нед</span>
+                            <strong>{ratingBreakdown.weeklyEarnings.toFixed(0)} ₽</strong>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                      {[
+                        { label: 'Выходные', value: `${rating.daysOff} дн`, pts: ratingBreakdown.daysOffPoints, color: 'gray', icon: '📅' },
+                        { label: 'Больничные', value: `${rating.sickDays} дн`, pts: ratingBreakdown.sickDaysPoints, color: 'gray', icon: '🏥' },
+                        { label: 'Отпуск', value: `${rating.vacationDays} дн`, pts: ratingBreakdown.vacationDaysPoints, color: 'gray', icon: '🏖️' },
+                        { label: 'Часы', value: `${ratingBreakdown.weeklyHours.toFixed(1)} ч/нед`, pts: ratingBreakdown.weeklyHoursPoints, color: 'blue', icon: '⏰' },
+                        { label: 'Заработок', value: `${ratingBreakdown.weeklyEarnings.toFixed(0)} ₽/нед`, pts: ratingBreakdown.weeklyEarningsPoints, color: 'green', icon: '💰' },
+                        { label: 'Рефералы', value: `${rating.referrals}`, pts: ratingBreakdown.referralsPoints, color: 'purple', icon: '👥' },
+                        { label: 'Сообщения', value: `${ratingBreakdown.weeklyMessages} сообщ/нед`, pts: ratingBreakdown.weeklyMessagesPoints, color: 'orange', icon: '💬' },
+                      ].map(({ label, value, pts, color, icon }) => (
+                        <div
+                          key={label}
+                          className={`rounded-2xl border p-4 shadow-sm ${
+                            color === 'blue'
+                              ? theme === 'dark' ? 'bg-blue-500/10 border-blue-500/30' : 'bg-blue-50 border-blue-200'
+                              : color === 'green'
+                              ? theme === 'dark' ? 'bg-[#4E6E49]/10 border-[#4E6E49]/30' : 'bg-green-50 border-green-200'
+                              : color === 'purple'
+                              ? theme === 'dark' ? 'bg-purple-500/10 border-purple-500/30' : 'bg-purple-50 border-purple-200'
+                              : color === 'orange'
+                              ? theme === 'dark' ? 'bg-orange-500/10 border-orange-500/30' : 'bg-orange-50 border-orange-200'
+                              : theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'
+                          }`}
+                        >
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <p className={`text-xs uppercase tracking-wide ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>{label}</p>
+                              <p className={`text-lg font-bold ${headingColor}`}>{value}</p>
+                            </div>
+                            <span className="text-lg">{icon}</span>
+                          </div>
+                          <div className="mt-2 text-sm font-semibold">
+                            {pts.toFixed(1)}%
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className={`mt-4 p-4 rounded-2xl border ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-white/70'}`}>
+                      <h3 className={`text-sm font-bold ${headingColor} mb-2 flex items-center gap-2`}>
+                        <Info className="w-4 h-4" />
+                        Как рассчитывается рейтинг?
+                      </h3>
+                      <p className={`text-xs leading-relaxed ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                        Выходные, больничные, отпуск учитываются за месяц; часы, заработок, рефералы и сообщения — за неделю. Максимальный рейтинг: 100%.
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>

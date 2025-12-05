@@ -54,7 +54,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
               </div>
               <div className="leading-tight">
                 <p className={`text-xs uppercase tracking-[0.16em] ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                  ApeVault Panel
+                  ApeVault Black Ops
                 </p>
                 <p className={`text-xl font-extrabold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                   Панель команды
