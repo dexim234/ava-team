@@ -7,7 +7,6 @@ export const About = () => {
   const { theme } = useThemeStore()
   const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
   const subTextColor = theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-  const cardBg = theme === 'dark' ? 'bg-[#1a1a1a]' : 'bg-white'
 
   return (
     <Layout>
