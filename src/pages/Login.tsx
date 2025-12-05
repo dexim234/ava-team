@@ -4,7 +4,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuthStore } from '@/store/authStore'
 import { useThemeStore } from '@/store/themeStore'
 import { useAdminStore } from '@/store/adminStore'
-import { Moon, Sun, Shield, Sparkles, User, Users } from 'lucide-react'
+import { Moon, Sun, Shield, User, Users, Copy } from 'lucide-react'
 import logo from '@/assets/logo.png'
 
 // Declare Telegram WebApp types
@@ -202,31 +202,11 @@ export const Login = () => {
                   Защищенный доступ
                 </div>
                 <h2 className={`text-lg font-semibold ${theme === 'dark' ? 'text-gray-200' : 'text-gray-700'}`}>
-                  Быстрый доступ к закрытому контуру команды. Сохранили цвета бренда и привычный функционал.
+                  Доступ к ApeVault Black Ops. Брендовые цвета, тот же функционал.
                 </h2>
-                <div className="grid sm:grid-cols-2 gap-3">
-                  {[
-                    { icon: Sparkles, text: 'Обновлённый интерфейс' },
-                    { icon: Users, text: 'Режим участника / админа' },
-                    { icon: Shield, text: 'Тема сохраняется автоматически' },
-                    { icon: User, text: 'Доступ к ЛК и функционалу' },
-                  ].map(({ icon: Icon, text }) => (
-                    <div
-                      key={text}
-                      className={`flex items-center gap-2 px-3 py-2 rounded-xl border ${theme === 'dark' ? 'border-white/10 bg-white/5 text-gray-100' : 'border-gray-200 bg-white text-gray-800'} shadow-sm`}
-                    >
-                      <Icon className="w-4 h-4 text-[#4E6E49]" />
-                      <span className="text-sm font-semibold">{text}</span>
-                    </div>
-                  ))}
-                </div>
               </div>
 
-              <div className={`rounded-2xl p-4 border ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-white/70'}`}>
-                <p className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                  Выберите тему, роль и войдите с теми же данными, что и в боте. Все функции и цвета сохранены, но оформление стало более универсальным и чистым.
-                </p>
-              </div>
+              <div />
             </div>
 
             <div className="section-card rounded-2xl p-6 lg:p-7 border border-white/60 dark:border-white/10 shadow-xl">
@@ -288,19 +268,34 @@ export const Login = () => {
                       <User className="w-4 h-4 inline mr-2" />
                       Логин
                     </label>
-                    <input
-                      id="login"
-                      type="text"
-                      value={login}
-                      onChange={(e) => setLogin(e.target.value)}
-                      className={`w-full px-4 py-3 rounded-xl border transition-all ${
-                        theme === 'dark'
-                          ? 'bg-white/5 border-white/10 text-white placeholder-gray-500 focus:border-[#4E6E49]'
-                          : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400 focus:border-[#4E6E49]'
-                      } focus:outline-none focus:ring-4 focus:ring-[#4E6E49]/20`}
-                      placeholder="Введите ваш логин"
-                      autoComplete="username"
-                    />
+                    <div className="flex items-center gap-2">
+                      <input
+                        id="login"
+                        type="text"
+                        value={login}
+                        onChange={(e) => setLogin(e.target.value)}
+                        className={`w-full px-4 py-3 rounded-xl border transition-all ${
+                          theme === 'dark'
+                            ? 'bg-white/5 border-white/10 text-white placeholder-gray-500 focus:border-[#4E6E49]'
+                            : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400 focus:border-[#4E6E49]'
+                        } focus:outline-none focus:ring-4 focus:ring-[#4E6E49]/20`}
+                        placeholder="Введите ваш логин"
+                        autoComplete="username"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => navigator.clipboard.writeText(login)}
+                        className={`p-3 rounded-lg border transition ${
+                          theme === 'dark'
+                            ? 'border-white/10 bg-white/5 hover:border-white/30'
+                            : 'border-gray-200 bg-white hover:border-gray-300'
+                        }`}
+                        title="Скопировать логин"
+                        disabled={!login}
+                      >
+                        <Copy className="w-5 h-5" />
+                      </button>
+                    </div>
                   </div>
                 )}
 

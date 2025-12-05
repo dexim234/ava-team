@@ -333,14 +333,10 @@ export const FAQ = () => {
     <Layout>
       <div className="space-y-6">
         {/* Header */}
-        <div className={`rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8 ${cardBg} shadow-xl border-2 ${
-          theme === 'dark' 
-            ? 'border-blue-500/30 bg-gradient-to-br from-[#1a1a1a] via-[#1a1a1a] to-[#0A0A0A]' 
-            : 'border-blue-200 bg-gradient-to-br from-white via-blue-50/30 to-white'
-        } relative overflow-hidden mb-4 sm:mb-6`}>
+        <div className="section-card rounded-2xl p-5 sm:p-6 md:p-7 border border-white/60 dark:border-white/10 shadow-xl relative overflow-hidden mb-4 sm:mb-6">
           {/* Decorative elements */}
           <div className="absolute top-0 right-0 w-32 h-32 sm:w-64 sm:h-64 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-full blur-3xl -mr-16 sm:-mr-32 -mt-16 sm:-mt-32" />
-          <div className="absolute bottom-0 left-0 w-24 h-24 sm:w-48 sm:h-48 bg-gradient-to-tr from-yellow-500/10 to-orange-500/10 rounded-full blur-2xl -ml-12 sm:-ml-24 -mb-12 sm:-mb-24" />
+          <div className="absolute bottom-0 left-0 w-24 h-24 sm:w-48 sm:h-48 bg-gradient-to-tr from-[#4E6E49]/10 to-yellow-500/10 rounded-full blur-2xl -ml-12 sm:-ml-24 -mb-12 sm:-mb-24" />
           
           <div className="relative z-10 text-center space-y-3 sm:space-y-4">
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
@@ -358,7 +354,7 @@ export const FAQ = () => {
                   className={`text-2xl sm:text-3xl md:text-4xl font-extrabold ${headingColor} flex flex-wrap items-center justify-center gap-2 sm:gap-3`}
                 >
                   <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 text-transparent bg-clip-text">
-                    Часто задаваемые вопросы
+                    FAQ ApeVault Black Ops
                   </span>
                   <Sparkles
                     className={`hidden sm:inline-flex w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0 ${
@@ -375,7 +371,7 @@ export const FAQ = () => {
         </div>
 
         {/* Category Selector */}
-        <div className="mb-6">
+        <div className="mb-6 section-card rounded-2xl p-4 sm:p-5 border border-white/60 dark:border-white/10 shadow">
           <div className="flex flex-wrap gap-2 justify-center">
             {categories.map((category) => (
               <button
@@ -451,13 +447,7 @@ export const FAQ = () => {
               return (
                 <div
                   key={actualIndex}
-                  className={`${cardBg} rounded-xl shadow-lg border-2 ${
-                    isOpen 
-                      ? theme === 'dark' 
-                        ? 'border-blue-500/50 shadow-blue-500/10 ring-2 ring-blue-500/50' 
-                        : 'border-blue-300 shadow-blue-200/50 ring-2 ring-blue-300/50'
-                      : borderColor
-                  } overflow-hidden transition-all duration-300`}
+                  className="section-card rounded-2xl shadow-lg border border-white/60 dark:border-white/10 overflow-hidden transition-all duration-300"
                 >
                   <button
                     onClick={() => toggleItem(item)}

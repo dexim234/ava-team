@@ -264,9 +264,9 @@ export const Profile = () => {
           </div>
         ) : (
           <div className="space-y-5">
-            <div className="grid grid-cols-1 lg:grid-cols-[1.05fr_0.95fr] gap-4 sm:gap-5">
+            <div className="grid grid-cols-1 lg:grid-cols-[1.05fr_0.95fr] gap-4 sm:gap-5 items-stretch">
               <div className="space-y-4 sm:space-y-5">
-                <div className="section-card rounded-2xl p-5 sm:p-6 border border-white/60 dark:border-white/10 shadow-xl">
+                <div className="section-card rounded-2xl p-5 sm:p-6 border border-white/60 dark:border-white/10 shadow-xl h-full">
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-3">
                       <div className={`p-2.5 rounded-xl ${theme === 'dark' ? 'bg-blue-500/15 text-blue-200' : 'bg-blue-50 text-blue-700'}`}>
@@ -389,7 +389,7 @@ export const Profile = () => {
 
               <div className="space-y-4 sm:space-y-5">
                 {rating && ratingBreakdown && (
-                  <div className="section-card rounded-2xl p-5 sm:p-6 border border-white/60 dark:border-white/10 shadow-xl">
+                  <div className="section-card rounded-2xl p-5 sm:p-6 border border-white/60 dark:border-white/10 shadow-xl h-full">
                     <div className="flex items-center justify-between mb-5">
                       <div className="flex items-center gap-3">
                         <div className={`p-2.5 rounded-xl ${theme === 'dark' ? 'bg-purple-500/20 text-purple-200' : 'bg-purple-50 text-purple-700'}`}>
@@ -476,6 +476,28 @@ export const Profile = () => {
                     </div>
                   </div>
                 )}
+                <div className="section-card rounded-2xl p-5 sm:p-6 border border-white/60 dark:border-white/10 shadow-xl">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className={`p-2.5 rounded-xl ${theme === 'dark' ? 'bg-red-500/15 text-red-300' : 'bg-red-50 text-red-700'}`}>
+                      <LogOut className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h2 className={`text-lg font-bold ${headingColor}`}>Выход</h2>
+                      <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Завершить сессию и деактивировать доступ</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={handleLogout}
+                    className={`w-full px-6 py-3.5 rounded-lg font-semibold transition-all transform hover:-translate-y-0.5 flex items-center justify-center gap-2 ${
+                      theme === 'dark'
+                        ? 'bg-gradient-to-r from-red-500/25 to-pink-500/25 text-red-300 border border-red-500/50 hover:border-red-400'
+                        : 'bg-gradient-to-r from-red-50 to-pink-50 text-red-700 border border-red-200 hover:border-red-300'
+                    }`}
+                  >
+                    <LogOut className="w-5 h-5" />
+                    Выйти из аккаунта
+                  </button>
+                </div>
               </div>
             </div>
           </div>
