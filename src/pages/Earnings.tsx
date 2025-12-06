@@ -9,8 +9,6 @@ import { getEarnings } from '@/services/firestoreService'
 import { Earnings as EarningsType } from '@/types'
 import { Plus, DollarSign, TrendingUp, Sparkles, Wallet, PiggyBank } from 'lucide-react'
 import { getWeekRange, formatDate } from '@/utils/dateUtils'
-import { Link as RouterLink } from 'react-router-dom'
-import { useMemo } from 'react'
 
 export const Earnings = () => {
   const { theme } = useThemeStore()
@@ -27,12 +25,6 @@ export const Earnings = () => {
 
   const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
   const cardBg = theme === 'dark' ? 'bg-[#1a1a1a]' : 'bg-white'
-
-  const sortedByDate = useMemo(
-    () => [...earnings].sort((a, b) => (a.date < b.date ? 1 : -1)),
-    [earnings]
-  )
-  const recentEarnings = sortedByDate.slice(0, 4)
 
   const calculateStats = () => {
     const weekRange = getWeekRange()
@@ -141,7 +133,6 @@ export const Earnings = () => {
                   {[
                     { href: '#earn-stats', label: 'Обзор' },
                     { href: '#earn-history', label: 'История' },
-                    { href: '#earn-actions', label: 'Действия' },
                     { href: '#earn-insights', label: 'Инсайты' },
                   ].map((item) => (
                     <a
@@ -266,56 +257,6 @@ export const Earnings = () => {
                 onEdit={handleEdit}
                 onDelete={loadEarnings}
               />
-            </div>
-
-            {/* Actions */}
-            <div id="earn-actions" className={`rounded-2xl p-6 ${cardBg} border ${theme === 'dark' ? 'border-white/10' : 'border-gray-200'} shadow-lg space-y-4`}>
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                <div>
-                  <p className={`text-sm font-semibold ${headingColor}`}>Быстрые действия</p>
-                  <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Создавайте записи и переходите к разделам</p>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  <button
-                    onClick={() => setShowForm(true)}
-                    className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#4E6E49] to-emerald-700 text-white font-semibold shadow hover:shadow-lg active:scale-95 transition"
-                  >
-                    Добавить заработок
-                  </button>
-                  <RouterLink
-                    to="/rating"
-                    className={`px-4 py-2 rounded-xl font-semibold border transition ${theme === 'dark' ? 'border-white/10 text-white hover:border-[#4E6E49]/50' : 'border-gray-300 text-gray-800 hover:border-[#4E6E49]/50 hover:text-[#4E6E49]'}`}
-                  >
-                    Перейти в рейтинг
-                  </RouterLink>
-                  <RouterLink
-                    to="/tasks"
-                    className={`px-4 py-2 rounded-xl font-semibold border transition ${theme === 'dark' ? 'border-white/10 text-white hover:border-[#4E6E49]/50' : 'border-gray-300 text-gray-800 hover:border-[#4E6E49]/50 hover:text-[#4E6E49]'}`}
-                  >
-                    Задачи
-                  </RouterLink>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                {recentEarnings.map((item) => (
-                  <div
-                    key={item.id}
-                    className={`p-3 rounded-xl border ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-white'} shadow-sm`}
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <p className={`text-xs font-semibold ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                        {new Date(item.date).toLocaleDateString('ru-RU')}
-                      </p>
-                      <span className="text-[11px] px-2 py-1 rounded-full bg-[#4E6E49]/15 text-[#4E6E49]">
-                        {item.participants?.length || 1} уч.
-                      </span>
-                    </div>
-                    <p className="text-xl font-bold text-[#4E6E49]">{item.amount} ₽</p>
-                    <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Пул: {item.poolAmount} ₽</p>
-                  </div>
-                ))}
-              </div>
             </div>
 
             {/* Insights */}

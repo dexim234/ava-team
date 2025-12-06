@@ -32,7 +32,9 @@ export const Management = () => {
     slotsThisWeek: 0, 
     activeMembers: 0,
     upcomingSlots: 0,
-    completedSlots: 0
+    completedSlots: 0,
+    recommendedToAdd: 0,
+    topMembers: [] as string[],
   })
 
   const [isMobile, setIsMobile] = useState(false)
@@ -116,6 +118,9 @@ export const Management = () => {
     return hasFutureEndDate
   }
 
+  const getMemberName = (userId: string) =>
+    TEAM_MEMBERS.find((member) => member.id === userId)?.name || userId
+
   const loadStats = async () => {
     try {
       const weekDays = getWeekDays(new Date())
@@ -134,11 +139,23 @@ export const Management = () => {
       const upcomingSlots = weekSlots.filter(isSlotUpcoming).length
       const completedSlots = weekSlots.length - upcomingSlots
 
+      const recommendedToAdd = Math.max(0, 10 - weekSlots.length)
+      const memberCounts: Record<string, number> = {}
+      weekSlots.forEach((s) => {
+        memberCounts[s.userId] = (memberCounts[s.userId] || 0) + 1
+      })
+      const topMembers = Object.entries(memberCounts)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 3)
+        .map(([id]) => getMemberName(id))
+
       setStats({
         slotsThisWeek: weekSlots.length,
         activeMembers: uniqueMembers.size,
         upcomingSlots,
-        completedSlots
+        completedSlots,
+        recommendedToAdd,
+        topMembers,
       })
     } catch (error) {
       console.error('Error loading stats:', error)
@@ -215,151 +232,147 @@ export const Management = () => {
             <div className="absolute top-0 right-0 w-[26rem] h-[26rem] bg-gradient-to-bl from-blue-500/18 via-purple-500/12 to-transparent blur-3xl" />
             <div className="absolute bottom-[-140px] left-14 w-80 h-80 bg-gradient-to-tr from-amber-300/14 via-[#4E6E49]/12 to-transparent blur-3xl" />
           </div>
-          <div className="relative z-10 grid grid-cols-1 gap-6 xl:grid-cols-5 items-start">
-            <div className="col-span-1 xl:col-span-2 flex flex-col gap-3">
-              <div className="flex items-center gap-3">
+          <div className="relative z-10 grid grid-cols-1 gap-6 lg:grid-cols-[1.4fr_1fr] items-start">
+            <div className="flex flex-col gap-4">
+              <div className="flex items-start gap-3">
                 <div className="p-4 rounded-2xl bg-white/80 dark:bg-white/5 border border-white/40 dark:border-white/10 shadow-lg">
                   <CalendarCheck className="w-7 h-7 text-[#4E6E49]" />
                 </div>
-                <div className="space-y-1">
+                <div className="space-y-2">
                   <h1 className={`text-3xl sm:text-4xl font-extrabold ${headingColor}`}>
                     Расписание команды
                   </h1>
-                  <p className={`${labelColor} text-sm sm:text-base leading-snug max-w-xl`}>
-                    Управление слотами, сменами и статусами без лишнего визуального шума.
+                  <p className={`${labelColor} text-sm sm:text-base leading-snug max-w-2xl`}>
+                    Здесь можно управлять слотами, сменами и статусами.
                   </p>
                 </div>
               </div>
-            </div>
-            <div className="col-span-1 xl:col-span-3 grid grid-cols-2 sm:grid-cols-4 gap-3">
-              {[
-                { label: 'Слоты недели', value: stats.slotsThisWeek, tone: 'from-emerald-500 to-emerald-600', icon: Calendar },
-                { label: 'Предстоящие', value: stats.upcomingSlots, tone: 'from-sky-500 to-blue-600', icon: Clock },
-                { label: 'Завершено', value: stats.completedSlots, tone: 'from-slate-500 to-slate-700', icon: CalendarCheck },
-                { label: 'Участники', value: stats.activeMembers, tone: 'from-violet-500 to-fuchsia-500', icon: Table2 },
-              ].map((item) => {
-                const Icon = item.icon
-                return (
-                  <div
-                    key={item.label}
-                    className={`relative overflow-hidden rounded-2xl p-3 sm:p-4 border ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-white'} shadow-lg backdrop-blur`}
-                  >
-                    <div className="absolute inset-0 opacity-[0.12]" style={{ backgroundImage: 'radial-gradient(circle at 25% 20%, rgba(78,110,73,0.35), transparent 35%), radial-gradient(circle at 80% 0%, rgba(99,102,241,0.2), transparent 30%)' }} />
-                    <div className="relative flex items-center gap-3">
-                      <span className={`p-2 rounded-xl text-white shadow-lg bg-gradient-to-br ${item.tone}`}>
-                        <Icon className="w-4 h-4" />
+              <div className={`rounded-2xl border p-4 sm:p-5 backdrop-blur ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-green-100 bg-white/80'}`}>
+                <div className="grid sm:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <p className="text-xs uppercase tracking-wide text-[#4E6E49] font-semibold">Рекомендуется добавить</p>
+                    <div className="flex items-center gap-3">
+                      <span className="p-2 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-200 border border-emerald-500/30">
+                        +{stats.recommendedToAdd}
                       </span>
-                      <div className="space-y-1">
-                        <p className="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-                          {item.label}
-                        </p>
-                        <p className="text-3xl font-black text-slate-900 dark:text-white drop-shadow-sm leading-tight">
-                          {item.value}
-                        </p>
-                      </div>
+                      <p className={`text-sm ${labelColor}`}>минимум 10 слотов в неделю</p>
                     </div>
                   </div>
-                )
-              })}
+                  <div className="space-y-2">
+                    <p className="text-xs uppercase tracking-wide text-sky-500 font-semibold">Завершено слотов</p>
+                    <p className="text-3xl font-black text-slate-900 dark:text-white">{stats.completedSlots}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">на этой неделе</p>
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-xs uppercase tracking-wide text-purple-500 font-semibold">Активные участники</p>
+                    <div className="flex flex-wrap gap-2">
+                      {stats.topMembers.length > 0 ? stats.topMembers.map((name) => (
+                        <span key={name} className="px-3 py-1 rounded-full text-xs font-semibold border border-purple-200 dark:border-purple-800 bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-200">
+                          {name}
+                        </span>
+                      )) : (
+                        <span className="text-sm text-gray-500 dark:text-gray-400">Нет данных</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
         {/* Controls */}
         <div className={`rounded-2xl border ${theme === 'dark' ? 'border-gray-800 bg-[#0f1623]' : 'border-gray-200 bg-white'} shadow-xl p-4 sm:p-5 space-y-5`}>
-          <div className="grid grid-cols-1 xl:grid-cols-12 gap-4">
-            <div className="xl:col-span-7 space-y-3">
-              <div className="flex flex-col lg:flex-row gap-3 lg:items-center lg:justify-between">
-                <div className={`flex rounded-xl border ${theme === 'dark' ? 'border-gray-800 bg-gray-900/70' : 'border-gray-200 bg-gray-50'} overflow-hidden`}>
-                  <button
-                    onClick={() => handleViewModeChange('table')}
-                    aria-disabled={isMobile}
-                    className={`px-3 sm:px-4 py-2 text-sm font-semibold flex items-center gap-2 transition-all ${
-                      viewMode === 'table' && !isMobile
-                        ? 'bg-[#4E6E49] text-white shadow-lg'
-                        : isMobile
+          <div className="space-y-3">
+            <div className="flex flex-col lg:flex-row gap-3 lg:items-center lg:justify-between">
+              <div className={`flex rounded-xl border ${theme === 'dark' ? 'border-gray-800 bg-gray-900/70' : 'border-gray-200 bg-gray-50'} overflow-hidden`}>
+                <button
+                  onClick={() => handleViewModeChange('table')}
+                  aria-disabled={isMobile}
+                  className={`px-3 sm:px-4 py-2 text-sm font-semibold flex items-center gap-2 transition-all ${
+                    viewMode === 'table' && !isMobile
+                      ? 'bg-[#4E6E49] text-white shadow-lg'
+                      : isMobile
                         ? 'text-gray-400 cursor-not-allowed'
                         : theme === 'dark' ? 'text-gray-300 hover:bg-gray-800' : 'text-gray-700 hover:bg-white'
-                    }`}
-                  >
-                    <Table2 className="w-4 h-4" />
-                    Таблица
-                  </button>
-                  <button
-                    onClick={() => handleViewModeChange('week')}
-                    className={`px-3 sm:px-4 py-2 text-sm font-semibold flex items-center gap-2 transition-all ${
-                      viewMode === 'week'
-                        ? 'bg-[#4E6E49] text-white shadow-lg'
-                        : theme === 'dark' ? 'text-gray-300 hover:bg-gray-800' : 'text-gray-700 hover:bg-white'
-                    }`}
-                  >
-                    <Calendar className="w-4 h-4" />
-                    Неделя
-                  </button>
-                </div>
+                  }`}
+                >
+                  <Table2 className="w-4 h-4" />
+                  Таблица
+                </button>
+                <button
+                  onClick={() => handleViewModeChange('week')}
+                  className={`px-3 sm:px-4 py-2 text-sm font-semibold flex items-center gap-2 transition-all ${
+                    viewMode === 'week'
+                      ? 'bg-[#4E6E49] text-white shadow-lg'
+                      : theme === 'dark' ? 'text-gray-300 hover:bg-gray-800' : 'text-gray-700 hover:bg-white'
+                  }`}
+                >
+                  <Calendar className="w-4 h-4" />
+                  Неделя
+                </button>
+              </div>
 
-                <div className="flex flex-wrap gap-2">
-                  {[
-                    { key: 'all', label: 'Все', icon: <Calendar className="w-4 h-4" /> },
-                    { key: 'upcoming', label: 'Предстоящие', icon: <Clock className="w-4 h-4" /> },
-                    { key: 'completed', label: 'Завершённые', icon: <CalendarCheck className="w-4 h-4" /> },
-                  ].map((f) => (
-                    <button
-                      key={f.key}
-                      onClick={() => setSlotFilter(f.key as SlotFilter)}
-                      className={`px-3 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 transition-all border ${
-                        slotFilter === f.key
-                          ? 'bg-gradient-to-r from-[#4E6E49] to-emerald-600 text-white border-transparent shadow-lg'
-                          : theme === 'dark'
+              <div className="flex flex-wrap gap-2">
+                {[
+                  { key: 'all', label: 'Все', icon: <Calendar className="w-4 h-4" /> },
+                  { key: 'upcoming', label: 'Предстоящие', icon: <Clock className="w-4 h-4" /> },
+                  { key: 'completed', label: 'Завершённые', icon: <CalendarCheck className="w-4 h-4" /> },
+                ].map((f) => (
+                  <button
+                    key={f.key}
+                    onClick={() => setSlotFilter(f.key as SlotFilter)}
+                    className={`px-3 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 transition-all border ${
+                      slotFilter === f.key
+                        ? 'bg-gradient-to-r from-[#4E6E49] to-emerald-600 text-white border-transparent shadow-lg'
+                        : theme === 'dark'
                           ? 'border-gray-800 bg-gray-900/70 text-gray-200 hover:border-[#4E6E49]/40'
                           : 'border-gray-200 bg-gray-50 text-gray-700 hover:border-[#4E6E49]/40'
-                      }`}
-                    >
-                      {f.icon}
-                      {f.label}
-                    </button>
-                  ))}
-                </div>
+                    }`}
+                  >
+                    {f.icon}
+                    {f.label}
+                  </button>
+                ))}
               </div>
             </div>
+          </div>
 
-            <div className="xl:col-span-5">
-              <div className={`rounded-2xl border ${theme === 'dark' ? 'border-gray-800 bg-gray-900/70' : 'border-gray-100 bg-gray-50'} p-3 sm:p-4 space-y-3`}>
-                <div className="flex items-center justify-between">
-                  <p className={`text-sm font-semibold ${headingColor}`}>Действие</p>
-                  <span className="text-[11px] uppercase tracking-wide text-gray-500 dark:text-gray-400">выбор задачи</span>
-                </div>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                  {[
-                    { key: 'add-slot', label: 'Добавить слот', desc: 'Разовое или серия', icon: <PlusCircle className="w-5 h-5" />, tone: 'bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-100 dark:border-emerald-800', action: handleAddSlot },
-                    { key: 'delete-slots', label: 'Удалить слоты', desc: 'Очистить интервалы', icon: <Trash2 className="w-5 h-5" />, tone: 'bg-rose-100 text-rose-800 border-rose-200 dark:bg-rose-900/30 dark:text-rose-100 dark:border-rose-800', action: handleDeleteSlots },
-                    { key: 'dayoff', label: 'Выходной', desc: 'Отметить отдых', icon: <Moon className="w-5 h-5" />, tone: 'bg-teal-100 text-teal-800 border-teal-200 dark:bg-teal-900/30 dark:text-teal-100 dark:border-teal-800', action: () => handleAddStatus('dayoff') },
-                    { key: 'sick', label: 'Больничный', desc: 'Подтвердить отсутствие', icon: <HeartPulse className="w-5 h-5" />, tone: 'bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-900/30 dark:text-amber-100 dark:border-amber-700', action: () => handleAddStatus('sick') },
-                    { key: 'vacation', label: 'Отпуск', desc: 'Запланировать отпуск', icon: <Plane className="w-5 h-5" />, tone: 'bg-sky-100 text-sky-800 border-sky-200 dark:bg-sky-900/30 dark:text-sky-100 dark:border-sky-800', action: () => handleAddStatus('vacation') },
-                  ].map((action) => (
-                    <button
-                      key={action.key}
-                      onClick={() => {
-                        setActionType(action.key as ActionType)
-                        action.action()
-                      }}
-                      className={`text-left rounded-xl border px-3 py-2.5 transition-all shadow-sm flex items-center gap-3 ${
-                        actionType === action.key
-                          ? `${action.tone} ring-2 ring-[#4E6E49]/50 shadow-lg`
-                          : `${theme === 'dark' ? 'border-gray-800 bg-gray-950/60 text-gray-100' : 'border-gray-200 bg-white text-gray-900'} hover:-translate-y-0.5 hover:shadow-md`
-                      }`}
-                    >
-                      <span className={`p-2 rounded-lg ${actionType === action.key ? 'bg-white/30' : theme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'}`}>
-                        {action.icon}
-                      </span>
-                      <span className="flex flex-col">
-                        <span className="text-sm font-semibold">{action.label}</span>
-                        <span className="text-xs text-gray-500 dark:text-gray-400">{action.desc}</span>
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              </div>
+          {/* Actions block moved under filters */}
+          <div className={`rounded-2xl border ${theme === 'dark' ? 'border-gray-800 bg-gray-900/70' : 'border-gray-100 bg-gray-50'} p-3 sm:p-4 space-y-3`}>
+            <div className="flex items-center justify-between">
+              <p className={`text-sm font-semibold ${headingColor}`}>Действие</p>
+              <span className="text-[11px] uppercase tracking-wide text-gray-500 dark:text-gray-400">выбор задачи</span>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              {[
+                { key: 'add-slot', label: 'Добавить слот', desc: 'Разовое или серия', icon: <PlusCircle className="w-5 h-5" />, tone: 'bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-100 dark:border-emerald-800', action: handleAddSlot },
+                { key: 'delete-slots', label: 'Удалить слоты', desc: 'Очистить интервалы', icon: <Trash2 className="w-5 h-5" />, tone: 'bg-rose-100 text-rose-800 border-rose-200 dark:bg-rose-900/30 dark:text-rose-100 dark:border-rose-800', action: handleDeleteSlots },
+                { key: 'dayoff', label: 'Выходной', desc: 'Отметить отдых', icon: <Moon className="w-5 h-5" />, tone: 'bg-teal-100 text-teal-800 border-teal-200 dark:bg-teal-900/30 dark:text-teal-100 dark:border-teal-800', action: () => handleAddStatus('dayoff') },
+                { key: 'sick', label: 'Больничный', desc: 'Подтвердить отсутствие', icon: <HeartPulse className="w-5 h-5" />, tone: 'bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-900/30 dark:text-amber-100 dark:border-amber-700', action: () => handleAddStatus('sick') },
+                { key: 'vacation', label: 'Отпуск', desc: 'Запланировать отпуск', icon: <Plane className="w-5 h-5" />, tone: 'bg-sky-100 text-sky-800 border-sky-200 dark:bg-sky-900/30 dark:text-sky-100 dark:border-sky-800', action: () => handleAddStatus('vacation') },
+              ].map((action) => (
+                <button
+                  key={action.key}
+                  onClick={() => {
+                    setActionType(action.key as ActionType)
+                    action.action()
+                  }}
+                  className={`text-left rounded-xl border px-3 py-3 transition-all shadow-sm flex items-start gap-3 h-full ${
+                    actionType === action.key
+                      ? `${action.tone} ring-2 ring-[#4E6E49]/50 shadow-lg`
+                      : `${theme === 'dark' ? 'border-gray-800 bg-gray-950/60 text-gray-100' : 'border-gray-200 bg-white text-gray-900'} hover:-translate-y-0.5 hover:shadow-md`
+                  }`}
+                >
+                  <span className={`p-2 rounded-lg ${actionType === action.key ? 'bg-white/30' : theme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'}`}>
+                    {action.icon}
+                  </span>
+                  <span className="flex flex-col whitespace-normal leading-snug gap-0.5">
+                    <span className="text-sm font-semibold">{action.label}</span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">{action.desc}</span>
+                  </span>
+                </button>
+              ))}
             </div>
           </div>
 
