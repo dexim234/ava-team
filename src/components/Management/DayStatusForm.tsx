@@ -392,7 +392,7 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
             </aside>
 
             <div className="space-y-4">
-            {/* User selection for admin when adding new status */}
+              {/* User selection for admin when adding new status */}
             {adminBulkMode && (
               <div>
                 <label className={`block text-xs sm:text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>

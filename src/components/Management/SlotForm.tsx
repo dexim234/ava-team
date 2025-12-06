@@ -579,7 +579,7 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
 
             {/* Form column */}
             <div className="space-y-4">
-            {/* User selection for admin when adding new slot */}
+              {/* User selection for admin when adding new slot */}
             {adminBulkMode && (
               <div>
                 <label className={`block text-xs sm:text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
