@@ -502,27 +502,83 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
     }
   }
 
+  const targetDatesPreview = adminBulkMode ? getTargetDates() : [date]
+  const selectedNames = selectedUserIds.map((id) => getMemberName(id)).join(', ')
+  const timeSummary = slots.map((s) => `${s.start}–${s.end}${s.endDate ? ' (+1)' : ''}`)
+
   return (
-    <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-md flex items-start sm:items-center justify-center z-50 p-3 sm:p-4 overflow-y-auto touch-manipulation">
-      <div className={`w-full max-w-2xl rounded-2xl shadow-2xl border ${theme === 'dark' ? 'bg-gradient-to-br from-[#0f1625] via-[#0d1220] to-[#0b101c] border-white/10' : 'bg-gradient-to-br from-white via-slate-50 to-white border-slate-200'} max-h-[90vh] overflow-y-auto my-4 sm:my-8`}>
-        <div className="p-4 sm:p-6">
-          <div className="flex items-center justify-between mb-5 sm:mb-6">
+    <div className="fixed inset-0 bg-slate-950/75 backdrop-blur-xl flex items-start sm:items-center justify-center z-50 p-3 sm:p-6 overflow-y-auto touch-manipulation">
+      <div className={`w-full max-w-5xl rounded-3xl shadow-[0_24px_80px_rgba(0,0,0,0.45)] border ${theme === 'dark' ? 'bg-gradient-to-br from-[#0c1320] via-[#0b1220] to-[#08111b] border-white/10' : 'bg-gradient-to-br from-white via-slate-50 to-white border-slate-200'} max-h-[92vh] overflow-y-auto my-4 sm:my-8`}>
+        <div className="p-4 sm:p-6 lg:p-7">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="space-y-1">
-              <p className="text-xs uppercase tracking-[0.18em] text-[#4E6E49] font-semibold">Слот</p>
-              <h3 className={`text-xl sm:text-2xl font-bold ${headingColor} pr-2`}>
+              <div className="flex items-center gap-2 text-xs uppercase tracking-[0.18em] text-[#4E6E49] font-semibold">
+                <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-[#4E6E49]/10 text-[#4E6E49] border border-[#4E6E49]/30">
+                  {slot ? 'Редактирование' : 'Создание'} слота
+                </span>
+                <span className={`${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                  расписание
+                </span>
+              </div>
+              <h3 className={`text-2xl sm:text-3xl font-bold ${headingColor}`}>
                 {slot ? 'Редактировать слот' : 'Добавить слот'}
               </h3>
+              <p className={`${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} text-sm`}>
+                Новая оболочка с акцентом на шаги: участники → даты → время → заметки.
+              </p>
             </div>
-            <button
-              onClick={onClose}
-              className={`p-2 rounded-full border ${theme === 'dark' ? 'border-white/10 text-gray-200 hover:bg-white/5' : 'border-slate-200 text-slate-600 hover:bg-slate-100'} transition-colors touch-manipulation`}
-              aria-label="Закрыть"
-            >
-              <X className="w-4 h-4 sm:w-5 sm:h-5" />
-            </button>
+            <div className="flex items-center gap-2">
+              <div className={`px-3 py-2 rounded-xl border text-xs sm:text-sm ${theme === 'dark' ? 'border-white/10 bg-white/5 text-gray-200' : 'border-slate-200 bg-slate-50 text-slate-700'}`}>
+                {slot ? 'Редактирование' : 'Создание'} · {slots.length || 0} интервал(ов)
+              </div>
+              <button
+                onClick={onClose}
+                className={`p-2.5 rounded-full border ${theme === 'dark' ? 'border-white/10 text-gray-200 hover:bg-white/5' : 'border-slate-200 text-slate-600 hover:bg-slate-100'} transition-colors touch-manipulation`}
+                aria-label="Закрыть"
+              >
+                <X className="w-4 h-4 sm:w-5 sm:h-5" />
+              </button>
+            </div>
           </div>
 
-          <div className="space-y-4">
+          <div className="mt-5 grid lg:grid-cols-[0.9fr_1.6fr] gap-4 lg:gap-6">
+            {/* Navigation / summary column */}
+            <aside className={`rounded-2xl border ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-slate-200 bg-white'} p-4 sm:p-5 space-y-4 sticky top-4 self-start`}>
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-semibold">Навигация</p>
+                <span className="text-[11px] uppercase tracking-wide text-[#4E6E49] font-semibold">4 шага</span>
+              </div>
+              <div className="space-y-2">
+                {[
+                  { label: 'Участники', detail: selectedNames || 'Не выбрано', done: selectedUserIds.length > 0 || !!slot },
+                  { label: 'Даты', detail: targetDatesPreview.slice(0, 2).map((d) => formatDate(d, 'dd.MM')).join(', ') || 'Выберите дату', done: targetDatesPreview.length > 0 },
+                  { label: 'Время', detail: timeSummary.slice(0, 2).join(' · ') || 'Добавьте интервал', done: slots.length > 0 },
+                  { label: 'Комментарий', detail: comment ? 'Заполнен' : 'Необязателен', done: !!comment },
+                ].map((step, index) => (
+                  <div
+                    key={step.label}
+                    className={`flex items-start gap-3 rounded-xl border px-3 py-3 ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-slate-200 bg-slate-50'}`}
+                  >
+                    <span className={`mt-0.5 inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${step.done ? 'bg-[#4E6E49] text-white' : (theme === 'dark' ? 'bg-slate-800 text-gray-300' : 'bg-slate-200 text-slate-700')}`}>
+                      {index + 1}
+                    </span>
+                    <div className="flex-1">
+                      <p className="text-sm font-semibold">{step.label}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{step.detail}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className={`rounded-xl border px-3 py-3 space-y-2 ${theme === 'dark' ? 'border-emerald-900/50 bg-emerald-900/20' : 'border-emerald-100 bg-emerald-50'}`}>
+                <p className="text-xs uppercase tracking-wide text-emerald-600 font-semibold">Подсказка</p>
+                <p className="text-sm text-emerald-700 dark:text-emerald-200">
+                  Формы теперь разбиты на блоки: вы свободно переключаетесь между шагами, не теряя данных.
+                </p>
+              </div>
+            </aside>
+
+            {/* Form column */}
+            <div className="space-y-4">
             {/* User selection for admin when adding new slot */}
             {adminBulkMode && (
               <div>

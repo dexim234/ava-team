@@ -31,6 +31,15 @@ export const DeleteSlotsForm = ({ onClose, onSave }: DeleteSlotsFormProps) => {
   const [loading, setLoading] = useState(false)
 
   const weekDays = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']
+  const activeMode = deleteByWeekDay ? 'По дню недели' : deleteByDates ? 'По датам' : deleteByDateRange ? 'Диапазон' : 'Не выбран'
+  const selectionInfo = deleteByWeekDay
+    ? (selectedWeekDay !== null ? weekDays[selectedWeekDay] : 'День недели')
+    : deleteByDates
+    ? (selectedDates[0] ? `${formatDate(selectedDates[0], 'dd.MM')} +${Math.max(selectedDates.length - 1, 0)}` : 'Добавьте даты')
+    : deleteByDateRange
+    ? (dateRangeStart && dateRangeEnd ? `${formatDate(dateRangeStart, 'dd.MM')}–${formatDate(dateRangeEnd, 'dd.MM')}` : 'Укажите диапазон')
+    : 'Выберите режим'
+  const selectedNames = selectedUserIds.map((id) => TEAM_MEMBERS.find((m) => m.id === id)?.name || id).join(', ')
 
   const handleWeekDayToggle = (checked: boolean) => {
     if (checked) {
@@ -209,25 +218,68 @@ export const DeleteSlotsForm = ({ onClose, onSave }: DeleteSlotsFormProps) => {
   }
 
   return (
-    <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-md flex items-start sm:items-center justify-center z-50 p-4 sm:py-0 overflow-y-auto">
-      <div className={`w-full max-w-2xl rounded-2xl shadow-2xl border ${theme === 'dark' ? 'bg-gradient-to-br from-[#0f1625] via-[#0d1220] to-[#0b101c] border-white/10' : 'bg-gradient-to-br from-white via-slate-50 to-white border-slate-200'} max-h-[90vh] overflow-y-auto`}>
-        <div className="p-6">
-          <div className="flex items-center justify-between mb-6">
+    <div className="fixed inset-0 bg-slate-950/75 backdrop-blur-xl flex items-start sm:items-center justify-center z-50 p-4 sm:p-6 overflow-y-auto">
+      <div className={`w-full max-w-5xl rounded-3xl shadow-[0_24px_80px_rgba(0,0,0,0.45)] border ${theme === 'dark' ? 'bg-gradient-to-br from-[#0c1320] via-[#0b1220] to-[#08111b] border-white/10' : 'bg-gradient-to-br from-white via-slate-50 to-white border-slate-200'} max-h-[92vh] overflow-y-auto`}>
+        <div className="p-5 sm:p-6 lg:p-7">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="space-y-1">
-              <p className="text-xs uppercase tracking-[0.18em] text-[#4E6E49] font-semibold">Очистка</p>
-              <h3 className={`text-xl font-bold ${headingColor}`}>
+              <div className="flex items-center gap-2 text-xs uppercase tracking-[0.18em] text-[#4E6E49] font-semibold">
+                <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-[#4E6E49]/10 text-[#4E6E49] border border-[#4E6E49]/30">
+                  Очистка
+                </span>
+                <span className={`${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>расписание</span>
+              </div>
+              <h3 className={`text-2xl sm:text-3xl font-bold ${headingColor}`}>
                 Удаление слотов
               </h3>
+              <p className={`${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} text-sm`}>
+                Новый обзор: режим удаления, выбранные люди и диапазон видны сразу.
+              </p>
             </div>
             <button
               onClick={onClose}
-              className={`p-2 rounded-full border ${theme === 'dark' ? 'border-white/10 text-gray-200 hover:bg-white/5' : 'border-slate-200 text-slate-600 hover:bg-slate-100'}`}
+              className={`p-2.5 rounded-full border ${theme === 'dark' ? 'border-white/10 text-gray-200 hover:bg-white/5' : 'border-slate-200 text-slate-600 hover:bg-slate-100'}`}
             >
               <X className="w-5 h-5" />
             </button>
           </div>
 
-          <div className="space-y-4">
+          <div className="mt-5 grid lg:grid-cols-[0.95fr_1.45fr] gap-4 lg:gap-6">
+            {/* Navigation / summary */}
+            <aside className={`rounded-2xl border ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-slate-200 bg-white'} p-4 sm:p-5 space-y-4 sticky top-4 self-start`}>
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-semibold">Навигация</p>
+                <span className="text-[11px] uppercase tracking-wide text-[#4E6E49] font-semibold">3 шага</span>
+              </div>
+              <div className="space-y-2">
+                {[
+                  { label: 'Участники', detail: selectedNames || 'Не выбрано', done: selectedUserIds.length > 0 || !isAdmin },
+                  { label: 'Режим', detail: activeMode, done: activeMode !== 'Не выбран' },
+                  { label: 'Параметры', detail: selectionInfo, done: selectionInfo !== 'Выберите режим' },
+                ].map((step, index) => (
+                  <div
+                    key={step.label}
+                    className={`flex items-start gap-3 rounded-xl border px-3 py-3 ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-slate-200 bg-slate-50'}`}
+                  >
+                    <span className={`mt-0.5 inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${step.done ? 'bg-[#4E6E49] text-white' : (theme === 'dark' ? 'bg-slate-800 text-gray-300' : 'bg-slate-200 text-slate-700')}`}>
+                      {index + 1}
+                    </span>
+                    <div className="flex-1">
+                      <p className="text-sm font-semibold">{step.label}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{step.detail || '—'}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className={`rounded-xl border px-3 py-3 space-y-2 ${theme === 'dark' ? 'border-emerald-900/50 bg-emerald-900/20' : 'border-emerald-100 bg-emerald-50'}`}>
+                <p className="text-xs uppercase tracking-wide text-emerald-600 font-semibold">Подсказка</p>
+                <p className="text-sm text-emerald-700 dark:text-emerald-200">
+                  Выберите только один способ удаления: по дню, по списку дат или по диапазону.
+                </p>
+              </div>
+            </aside>
+
+            <div className="space-y-4">
             {/* User selection for admin */}
             {isAdmin && (
               <div>
