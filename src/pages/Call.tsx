@@ -21,6 +21,7 @@ export const CallPage = () => {
   const [editingCall, setEditingCall] = useState<Call | null>(null)
   const [copiedTicker, setCopiedTicker] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'completed' | 'cancelled' | 'reviewed'>('all')
 
   useEffect(() => {
     loadCalls()
@@ -165,6 +166,8 @@ export const CallPage = () => {
   const textColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
   const subtleColor = theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
   const borderColor = theme === 'dark' ? 'border-gray-800' : 'border-gray-200'
+  const pillInactive = theme === 'dark' ? 'bg-gray-800 text-gray-200 border border-gray-700' : 'bg-white text-gray-700 border border-gray-200'
+  const pillActive = 'bg-gradient-to-r from-[#4E6E49] to-emerald-600 text-white shadow-lg shadow-emerald-500/30'
 
   const networkColors: Record<string, { bg: string; text: string; icon: string }> = {
     solana: { bg: 'bg-purple-500/10', text: 'text-purple-400', icon: 'bg-purple-500' },
@@ -190,11 +193,13 @@ export const CallPage = () => {
     reviewed: { label: 'На рассмотрении', color: 'bg-gray-500/20 text-gray-600 dark:text-gray-400 border-gray-500/30' }
   }
 
-  const filteredCalls = calls.filter((call: Call) => 
-    call.ticker.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    call.pair.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    call.network.toLowerCase().includes(searchQuery.toLowerCase())
-  )
+  const filteredCalls = calls
+    .filter((call: Call) => 
+      call.ticker.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      call.pair.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      call.network.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+    .filter((call: Call) => statusFilter === 'all' ? true : call.status === statusFilter)
 
   return (
     <Layout>
@@ -258,6 +263,9 @@ export const CallPage = () => {
                   theme === 'dark' ? 'bg-gray-700/50' : 'bg-gray-50'
                 } ${textColor} focus:outline-none focus:ring-2 focus:ring-[#4E6E49]/50 transition-all`}
               />
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-500 dark:text-gray-400">
+                {filteredCalls.length}/{calls.length}
+              </div>
             </div>
           </div>
         </div>
@@ -265,17 +273,35 @@ export const CallPage = () => {
         {/* Statistics Section */}
         {showStats && calls.length > 0 && (
           <div className={`${bgColor} rounded-2xl p-6 shadow-xl border ${borderColor}`}>
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-6">
               <h2 className={`text-2xl font-bold ${textColor} flex items-center gap-2`}>
                 <BarChart3 className="w-6 h-6 text-[#4E6E49]" />
                 Аналитика
               </h2>
-              <button
-                onClick={() => setShowStats(!showStats)}
-                className={`p-2 rounded-lg ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
-              >
-                <X className={`w-5 h-5 ${subtleColor}`} />
-              </button>
+              <div className="flex flex-wrap gap-2">
+                {(['all','active','completed','cancelled','reviewed'] as const).map(status => (
+                  <button
+                    key={status}
+                    onClick={() => setStatusFilter(status)}
+                    className={`px-3 py-2 rounded-xl text-sm font-semibold transition-all ${
+                      statusFilter === status ? pillActive : pillInactive
+                    }`}
+                  >
+                    {status === 'all' && 'Все'}
+                    {status === 'active' && 'Активные'}
+                    {status === 'completed' && 'Завершенные'}
+                    {status === 'cancelled' && 'Отмененные'}
+                    {status === 'reviewed' && 'На рассмотрении'}
+                  </button>
+                ))}
+                <button
+                  onClick={() => setShowStats(!showStats)}
+                  className={`p-2 rounded-lg ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
+                  title="Скрыть аналитику"
+                >
+                  <X className={`w-5 h-5 ${subtleColor}`} />
+                </button>
+              </div>
             </div>
 
             {/* Total Stats */}

@@ -4,7 +4,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuthStore } from '@/store/authStore'
 import { useThemeStore } from '@/store/themeStore'
 import { useAdminStore } from '@/store/adminStore'
-import { Moon, Sun, Shield, User, Users, Copy } from 'lucide-react'
+import { Moon, Sun, Shield, User, Users } from 'lucide-react'
 import logo from '@/assets/logo.png'
 
 // Declare Telegram WebApp types
@@ -166,14 +166,14 @@ export const Login = () => {
   return (
     <div className={`min-h-screen relative overflow-hidden ${theme === 'dark' ? 'bg-[#0b0f17]' : 'bg-gradient-to-br from-slate-50 via-white to-slate-100'}`}>
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute -top-24 -left-12 w-96 h-96 bg-gradient-to-br from-[#4E6E49]/25 via-transparent to-transparent blur-3xl" />
-        <div className="absolute top-12 right-10 w-[520px] h-[520px] bg-gradient-to-bl from-blue-500/18 via-purple-500/16 to-transparent blur-3xl" />
-        <div className="absolute bottom-[-140px] left-12 w-96 h-96 bg-gradient-to-tr from-amber-400/12 to-[#4E6E49]/14 blur-3xl" />
-        <div className="floating-grid opacity-60 dark:opacity-35" />
+        <div className="absolute -top-32 -left-24 w-[520px] h-[520px] bg-gradient-to-br from-[#4E6E49]/35 via-emerald-400/20 to-transparent blur-3xl" />
+        <div className="absolute top-0 right-0 w-[620px] h-[620px] bg-gradient-to-bl from-blue-500/25 via-purple-500/20 to-transparent blur-3xl" />
+        <div className="absolute bottom-[-160px] left-20 w-[520px] h-[520px] bg-gradient-to-tr from-amber-400/18 via-[#4E6E49]/18 to-transparent blur-3xl" />
+        <div className="floating-grid opacity-70 dark:opacity-40" />
       </div>
 
-      <div className="max-w-5xl mx-auto px-4 lg:px-6 py-12 lg:py-16 relative z-10">
-        <div className="glass-panel rounded-[28px] p-4 sm:p-6 md:p-8 border border-white/70 dark:border-white/10 shadow-2xl overflow-hidden">
+      <div className="relative z-10 max-w-6xl mx-auto px-4 lg:px-6 min-h-screen flex items-center justify-center py-10">
+        <div className="glass-panel rounded-[28px] p-4 sm:p-6 md:p-8 border border-white/70 dark:border-white/10 shadow-2xl overflow-hidden w-full">
           <div className="accent-dots" />
           <div className="relative z-10 grid md:grid-cols-[1.05fr_0.95fr] gap-6 lg:gap-8 items-stretch">
             <div className="section-card rounded-2xl p-6 lg:p-7 border border-white/60 dark:border-white/10 shadow-xl flex flex-col items-center text-center gap-4">
@@ -249,7 +249,7 @@ export const Login = () => {
                       <User className="w-4 h-4 inline mr-2" />
                       Логин
                     </label>
-                    <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2">
                       <input
                         id="login"
                         type="text"
@@ -263,19 +263,6 @@ export const Login = () => {
                         placeholder="Введите ваш логин"
                         autoComplete="username"
                       />
-                      <button
-                        type="button"
-                        onClick={() => navigator.clipboard.writeText(login)}
-                        className={`p-3 rounded-lg border transition ${
-                          theme === 'dark'
-                            ? 'border-white/10 bg-white/5 hover:border-white/30'
-                            : 'border-gray-200 bg-white hover:border-gray-300'
-                        }`}
-                        title="Скопировать логин"
-                        disabled={!login}
-                      >
-                        <Copy className="w-5 h-5" />
-                      </button>
                     </div>
                   </div>
                 )}

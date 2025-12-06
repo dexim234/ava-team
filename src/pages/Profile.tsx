@@ -47,6 +47,7 @@ export const Profile = () => {
   const [rating, setRating] = useState<RatingData | null>(null)
   const [ratingBreakdown, setRatingBreakdown] = useState<ReturnType<typeof getRatingBreakdown> | null>(null)
   const [loading, setLoading] = useState(true)
+  const [loginCopied, setLoginCopied] = useState(false)
 
   const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
 
@@ -190,6 +191,14 @@ export const Profile = () => {
     }
   }
 
+  const handleCopyLogin = () => {
+    if (userData?.login) {
+      navigator.clipboard.writeText(userData.login)
+      setLoginCopied(true)
+      setTimeout(() => setLoginCopied(false), 2000)
+    }
+  }
+
   const userData = user || (isAdmin ? { name: 'Администратор', login: 'admin', password: 'admin' } : null)
   const pendingTasks = tasks.filter(t => t.status === 'pending').length
   const inProgressTasks = tasks.filter(t => t.status === 'in_progress').length
@@ -268,7 +277,16 @@ export const Profile = () => {
                     </div>
                     <div className={`p-4 rounded-xl border ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-white'} shadow-sm`}>
                       <p className={`text-xs font-semibold uppercase tracking-wide ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Логин</p>
-                      <p className={`mt-1 text-lg font-bold ${headingColor}`}>{userData.login}</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <p className={`text-lg font-bold ${headingColor}`}>{userData.login}</p>
+                      <button
+                        onClick={handleCopyLogin}
+                        className={`p-2 rounded-lg border transition ${loginCopied ? 'bg-[#4E6E49] text-white border-[#4E6E49]' : theme === 'dark' ? 'border-white/10 bg-white/5 hover:border-white/30' : 'border-gray-200 bg-white hover:border-gray-300'}`}
+                        title="Скопировать логин"
+                      >
+                        {loginCopied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                      </button>
+                    </div>
                     </div>
                   </div>
                   <div className="mt-4 space-y-2">
@@ -306,9 +324,12 @@ export const Profile = () => {
                     </div>
                   </div>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
-                    {[{label:'На согласовании',value:pendingTasks},{label:'В работе',value:inProgressTasks},{label:'Выполнена',value:completedTasks},{label:'Всего',value:tasks.length}].map(({label,value})=>(
-                      <div key={label} className={`p-4 rounded-xl border ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-gray-50'} shadow-sm`}>
-                        <div className={`text-xs font-semibold mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>{label}</div>
+                    {[{label:'На согласовании',value:pendingTasks,classes:theme==='dark'?'bg-amber-500/15 border-amber-500/30 text-amber-100':'bg-amber-50 border-amber-200 text-amber-900'},
+                      {label:'В работе',value:inProgressTasks,classes:theme==='dark'?'bg-blue-500/15 border-blue-500/30 text-blue-100':'bg-blue-50 border-blue-200 text-blue-900'},
+                      {label:'Выполнена',value:completedTasks,classes:theme==='dark'?'bg-emerald-500/15 border-emerald-500/30 text-emerald-50':'bg-emerald-50 border-emerald-200 text-emerald-900'},
+                      {label:'Всего',value:tasks.length,classes:theme==='dark'?'bg-gray-600/20 border-gray-500/40 text-gray-100':'bg-gray-50 border-gray-200 text-gray-800'}].map(({label,value,classes})=>(
+                      <div key={label} className={`p-4 rounded-xl border shadow-sm transition-all hover:translate-y-[-2px] ${classes}`}>
+                        <div className="text-xs font-semibold mb-2 opacity-80">{label}</div>
                         <div className={`text-3xl font-extrabold ${headingColor}`}>{value}</div>
                       </div>
                     ))}
@@ -349,11 +370,17 @@ export const Profile = () => {
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      {[{label:'Выходные',value:`${rating.daysOff} дн`,pts:ratingBreakdown.daysOffPoints},{label:'Больничные',value:`${rating.sickDays} дн`,pts:ratingBreakdown.sickDaysPoints},{label:'Отпуск',value:`${rating.vacationDays} дн`,pts:ratingBreakdown.vacationDaysPoints},{label:'Часы',value:`${ratingBreakdown.weeklyHours.toFixed(1)} ч/нед`,pts:ratingBreakdown.weeklyHoursPoints},{label:'Заработок',value:`${ratingBreakdown.weeklyEarnings.toFixed(0)} ₽/нед`,pts:ratingBreakdown.weeklyEarningsPoints},{label:'Рефералы',value:`${rating.referrals}`,pts:ratingBreakdown.referralsPoints},{label:'Сообщения',value:`${ratingBreakdown.weeklyMessages} сообщ/нед`,pts:ratingBreakdown.weeklyMessagesPoints}].map(item => (
-                        <div key={item.label} className={`p-3 rounded-xl border ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-gray-50'} shadow-sm`}>
-                          <div className={`text-xs font-semibold uppercase ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>{item.label}</div>
+                      {[{label:'Выходные',value:`${rating.daysOff} дн`,pts:ratingBreakdown.daysOffPoints,classes:theme==='dark'?'bg-slate-700/40 border-slate-600/60':'bg-slate-50 border-slate-200'},
+                        {label:'Больничные',value:`${rating.sickDays} дн`,pts:ratingBreakdown.sickDaysPoints,classes:theme==='dark'?'bg-amber-500/15 border-amber-500/30':'bg-amber-50 border-amber-200'},
+                        {label:'Отпуск',value:`${rating.vacationDays} дн`,pts:ratingBreakdown.vacationDaysPoints,classes:theme==='dark'?'bg-orange-500/15 border-orange-500/30':'bg-orange-50 border-orange-200'},
+                        {label:'Часы',value:`${ratingBreakdown.weeklyHours.toFixed(1)} ч/нед`,pts:ratingBreakdown.weeklyHoursPoints,classes:theme==='dark'?'bg-blue-500/15 border-blue-500/30':'bg-blue-50 border-blue-200'},
+                        {label:'Заработок',value:`${ratingBreakdown.weeklyEarnings.toFixed(0)} ₽/нед`,pts:ratingBreakdown.weeklyEarningsPoints,classes:theme==='dark'?'bg-emerald-500/15 border-emerald-500/30':'bg-emerald-50 border-emerald-200'},
+                        {label:'Рефералы',value:`${rating.referrals}`,pts:ratingBreakdown.referralsPoints,classes:theme==='dark'?'bg-purple-500/15 border-purple-500/30':'bg-purple-50 border-purple-200'},
+                        {label:'Сообщения',value:`${ratingBreakdown.weeklyMessages} сообщ/нед`,pts:ratingBreakdown.weeklyMessagesPoints,classes:theme==='dark'?'bg-pink-500/15 border-pink-500/30':'bg-pink-50 border-pink-200'}].map(item => (
+                        <div key={item.label} className={`p-3 rounded-xl border shadow-sm ${item.classes}`}>
+                          <div className="text-xs font-semibold uppercase opacity-80">{item.label}</div>
                           <div className={`text-lg font-bold ${headingColor}`}>{item.value}</div>
-                          <div className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>{item.pts.toFixed(1)}%</div>
+                          <div className={`text-sm ${theme === 'dark' ? 'text-gray-100' : 'text-gray-800'}`}>{item.pts.toFixed(1)}%</div>
                         </div>
                       ))}
                     </div>
