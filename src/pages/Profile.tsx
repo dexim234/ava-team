@@ -306,7 +306,7 @@ export const Profile = () => {
                     </div>
                   </div>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
-                    {[{label:'На согласовании',value:pendingTasks},{label:'В работе',value:inProgressTasks},{label:'Выполнена',value:completedTasks},{label:'Всего',value:tasks.length}].map(({label,value},idx)=>(
+                    {[{label:'На согласовании',value:pendingTasks},{label:'В работе',value:inProgressTasks},{label:'Выполнена',value:completedTasks},{label:'Всего',value:tasks.length}].map(({label,value})=>(
                       <div key={label} className={`p-4 rounded-xl border ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-gray-50'} shadow-sm`}>
                         <div className={`text-xs font-semibold mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>{label}</div>
                         <div className={`text-3xl font-extrabold ${headingColor}`}>{value}</div>
