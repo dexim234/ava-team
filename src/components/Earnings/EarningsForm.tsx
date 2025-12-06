@@ -5,7 +5,7 @@ import { useAdminStore } from '@/store/adminStore'
 import { useThemeStore } from '@/store/themeStore'
 import { addEarnings, updateEarnings, getWorkSlots } from '@/services/firestoreService'
 import { formatDate, getMoscowTime, canAddEarnings } from '@/utils/dateUtils'
-import { TEAM_MEMBERS, Earnings } from '@/types'
+import { TEAM_MEMBERS, Earnings, EARNINGS_CATEGORY_META, EarningsCategory } from '@/types'
 import { X } from 'lucide-react'
 
 interface EarningsFormProps {
@@ -13,6 +13,8 @@ interface EarningsFormProps {
   onSave: () => void
   editingEarning?: Earnings | null
 }
+
+const POOL_RATE = 0.45
 
 export const EarningsForm = ({ onClose, onSave, editingEarning }: EarningsFormProps) => {
   const { user } = useAuthStore()
@@ -24,12 +26,38 @@ export const EarningsForm = ({ onClose, onSave, editingEarning }: EarningsFormPr
   const [date, setDate] = useState(editingEarning?.date || formatDate(new Date(), 'yyyy-MM-dd'))
   const [selectedSlotId, setSelectedSlotId] = useState(editingEarning?.slotId || '')
   const [amount, setAmount] = useState(editingEarning?.amount.toString() || '')
-  const [poolAmount, setPoolAmount] = useState(editingEarning?.poolAmount.toString() || '')
+  const [category, setCategory] = useState<EarningsCategory>(editingEarning?.category || 'memecoins')
   const [multipleParticipants, setMultipleParticipants] = useState(editingEarning ? editingEarning.participants.length > 1 : false)
   const [selectedParticipants, setSelectedParticipants] = useState<string[]>(editingEarning ? editingEarning.participants.filter(id => id !== editingEarning.userId) : [])
   const [availableSlots, setAvailableSlots] = useState<any[]>([])
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+
+  const resolveParticipants = () => {
+    if (isEditing && editingEarning) {
+      return editingEarning.participants?.length ? editingEarning.participants : [editingEarning.userId]
+    }
+
+    if (isAdmin && !user) {
+      return selectedParticipants
+    }
+
+    if (!user) return []
+
+    if (multipleParticipants) {
+      return Array.from(new Set([user.id, ...selectedParticipants]))
+    }
+
+    return [user.id]
+  }
+
+  const plannedParticipants = resolveParticipants()
+  const participantDisplayCount = plannedParticipants.length
+  const participantCount = participantDisplayCount || 1
+  const amountNum = parseFloat(amount) || 0
+  const calculatedPool = amountNum > 0 ? parseFloat((amountNum * POOL_RATE).toFixed(2)) : 0
+  const netAmount = Math.max(amountNum - calculatedPool, 0)
+  const sharePerPerson = participantCount > 0 ? parseFloat((netAmount / participantCount).toFixed(2)) : 0
 
   useEffect(() => {
     loadSlots()
@@ -95,17 +123,23 @@ export const EarningsForm = ({ onClose, onSave, editingEarning }: EarningsFormPr
         return
       }
 
-      if (!amount || !poolAmount) {
-        setError('Заполните все поля')
+      if (!amount) {
+        setError('Укажите сумму заработка')
         setLoading(false)
         return
       }
 
       const amountNum = parseFloat(amount)
-      const poolNum = parseFloat(poolAmount)
+      const poolNum = parseFloat((amountNum * POOL_RATE).toFixed(2))
 
-      if (isNaN(amountNum) || isNaN(poolNum) || amountNum < 0 || poolNum < 0) {
-        setError('Введите корректные суммы')
+      if (isNaN(amountNum) || amountNum <= 0) {
+        setError('Введите корректную сумму заработка')
+        setLoading(false)
+        return
+      }
+
+      if (!category) {
+        setError('Выберите сферу заработка')
         setLoading(false)
         return
       }
@@ -138,6 +172,14 @@ export const EarningsForm = ({ onClose, onSave, editingEarning }: EarningsFormPr
         }
       }
 
+      const participants = resolveParticipants()
+
+      if (participants.length === 0) {
+        setError('Выберите хотя бы одного участника')
+        setLoading(false)
+        return
+      }
+
       if (isEditing && editingEarning) {
         // Update existing earnings
         await updateEarnings(editingEarning.id, {
@@ -145,24 +187,10 @@ export const EarningsForm = ({ onClose, onSave, editingEarning }: EarningsFormPr
           amount: amountNum,
           poolAmount: poolNum,
           slotId: selectedSlotId,
+          category,
         })
       } else {
         // Create new earnings for selected participants
-        // For admin without user, use selectedParticipants only
-        const participants = (isAdmin && !user)
-          ? selectedParticipants.length > 0 
-            ? selectedParticipants 
-            : []
-          : multipleParticipants && selectedParticipants.length > 0
-            ? [...selectedParticipants, user!.id]
-            : [user!.id]
-
-        if (participants.length === 0) {
-          setError('Выберите хотя бы одного участника')
-          setLoading(false)
-          return
-        }
-
         // Create a single earnings record with all participants
         // The amount is the same for all participants (not summed)
         // Use the first participant as the primary userId for the record
@@ -172,6 +200,7 @@ export const EarningsForm = ({ onClose, onSave, editingEarning }: EarningsFormPr
           amount: amountNum, // Единая сумма для всех участников
           poolAmount: poolNum, // Единая сумма пула для всех участников
           slotId: selectedSlotId,
+          category,
           participants: participants, // Все участники в одной записи
         })
       }
@@ -279,24 +308,36 @@ export const EarningsForm = ({ onClose, onSave, editingEarning }: EarningsFormPr
               />
             </div>
 
-            {/* Pool amount */}
-            <div>
-              <label className={`block text-xs sm:text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                Сумма в пул (руб.)
-              </label>
-              <input
-                type="number"
-                value={poolAmount}
-                onChange={(e) => setPoolAmount(e.target.value)}
-                className={`w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base rounded-lg border touch-manipulation ${
-                  theme === 'dark'
-                    ? 'bg-gray-700 border-gray-800 text-white'
-                    : 'bg-white border-gray-300 text-gray-900'
-                } focus:outline-none focus:ring-2 focus:ring-[#4E6E49]`}
-                placeholder="0"
-                min="0"
-                step="100"
-              />
+            {/* Category */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between gap-2">
+                <label className={`text-xs sm:text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                  Сфера заработка
+                </label>
+                <span className="text-[10px] sm:text-xs text-gray-400">Влияет на статистику</span>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {Object.entries(EARNINGS_CATEGORY_META).map(([key, meta]) => (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => setCategory(key as EarningsCategory)}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-left transition-all ${
+                      category === key
+                        ? 'border-[#4E6E49] bg-[#4E6E49]/10 text-[#4E6E49]'
+                        : theme === 'dark'
+                          ? 'border-gray-800 bg-gray-800/60 text-gray-200 hover:border-[#4E6E49]/40'
+                          : 'border-gray-200 bg-white text-gray-800 hover:border-[#4E6E49]/40'
+                    }`}
+                  >
+                    <span className="text-lg">{meta.emoji}</span>
+                    <div className="flex flex-col leading-tight">
+                      <span className="text-sm font-semibold">{meta.label}</span>
+                      <span className="text-[11px] text-gray-500">45% пул / 55% чистыми</span>
+                    </div>
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* Multiple participants - only for new earnings */}
@@ -333,6 +374,54 @@ export const EarningsForm = ({ onClose, onSave, editingEarning }: EarningsFormPr
                 )}
               </>
             )}
+
+            {/* Auto calculation */}
+            <div className={`p-4 rounded-xl border ${theme === 'dark' ? 'border-gray-800 bg-gray-900/60' : 'border-gray-200 bg-gray-50'}`}>
+              <div className="flex items-center justify-between gap-2 mb-3">
+                <div>
+                  <p className={`text-xs font-semibold ${theme === 'dark' ? 'text-gray-200' : 'text-gray-800'}`}>Авторасчет</p>
+                  <p className="text-[11px] text-gray-500">Пул 45% + деление между участниками</p>
+                </div>
+                <span className="text-[11px] px-2 py-1 rounded-full bg-[#4E6E49]/10 text-[#4E6E49] font-semibold">
+                  {participantDisplayCount || 0} участн.
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-3">
+                <div className={`p-3 rounded-lg ${theme === 'dark' ? 'bg-gray-800/70' : 'bg-white'}`}>
+                  <p className="text-[11px] text-gray-500">Пул (45%)</p>
+                  <p className="text-lg font-bold text-purple-500">{calculatedPool.toFixed(2)} ₽</p>
+                </div>
+                <div className={`p-3 rounded-lg ${theme === 'dark' ? 'bg-gray-800/70' : 'bg-white'}`}>
+                  <p className="text-[11px] text-gray-500">Чистыми после пула</p>
+                  <p className="text-lg font-bold text-emerald-500">{netAmount.toFixed(2)} ₽</p>
+                </div>
+                <div className={`p-3 rounded-lg ${theme === 'dark' ? 'bg-gray-800/70' : 'bg-white'}`}>
+                  <p className="text-[11px] text-gray-500">На каждого</p>
+                  <p className="text-lg font-bold text-[#4E6E49]">{sharePerPerson.toFixed(2)} ₽</p>
+                </div>
+              </div>
+
+              <div className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} mb-1`}>
+                Отмеченные участники получат по {sharePerPerson.toFixed(2)} ₽
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {plannedParticipants.length === 0 ? (
+                  <span className="text-xs text-gray-400">Нет выбранных участников</span>
+                ) : (
+                  plannedParticipants.map((pid) => (
+                    <span
+                      key={pid}
+                      className={`px-2.5 py-1 rounded-full text-xs font-semibold border ${
+                        theme === 'dark' ? 'border-gray-800 bg-gray-800/70 text-gray-100' : 'border-gray-200 bg-white text-gray-800'
+                      }`}
+                    >
+                      {TEAM_MEMBERS.find((m) => m.id === pid)?.name || pid}
+                    </span>
+                  ))
+                )}
+              </div>
+            </div>
 
             {error && (
               <div className="p-3 bg-red-500 text-white rounded-lg text-sm">

@@ -38,6 +38,18 @@ export interface DayStatus {
 }
 
 // Earnings types
+export type EarningsCategory = 'memecoins' | 'futures' | 'nft' | 'spot' | 'polymarket' | 'staking' | 'other'
+
+export const EARNINGS_CATEGORY_META: Record<EarningsCategory, { label: string; emoji: string; accent: string }> = {
+  memecoins: { label: 'Мемкоины', emoji: '🚀', accent: 'emerald' },
+  futures: { label: 'Фьючерсы', emoji: '📉', accent: 'blue' },
+  nft: { label: 'NFT', emoji: '🖼️', accent: 'purple' },
+  spot: { label: 'Спот', emoji: '💱', accent: 'amber' },
+  polymarket: { label: 'PolyMarket', emoji: '📊', accent: 'pink' },
+  staking: { label: 'Стейкинг', emoji: '🔒', accent: 'indigo' },
+  other: { label: 'Другое', emoji: '✨', accent: 'gray' },
+}
+
 export interface Earnings {
   id: string
   userId: string
@@ -45,6 +57,7 @@ export interface Earnings {
   amount: number
   poolAmount: number
   slotId: string
+  category: EarningsCategory
   participants: string[] // for shared earnings
 }
 

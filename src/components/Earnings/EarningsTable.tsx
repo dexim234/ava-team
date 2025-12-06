@@ -11,6 +11,7 @@ interface EarningsTableProps {
 
 export const EarningsTable = ({ earnings }: EarningsTableProps) => {
   const { theme } = useThemeStore()
+  const POOL_RATE = 0.45
 
   const weekRange = getWeekRange()
   const weekStart = formatDate(weekRange.start, 'yyyy-MM-dd')
@@ -29,14 +30,17 @@ export const EarningsTable = ({ earnings }: EarningsTableProps) => {
       return allParticipants.includes(userId) && e.date >= startDate && e.date <= endDate
     })
 
-    // Если у записи несколько участников, сумма делится поровну между ними
+    // Если у записи несколько участников, чистая сумма (после пула) делится поровну между ними
     const totalEarnings = userEarnings.reduce((sum, e) => {
       const participantCount = e.participants && e.participants.length > 0 ? e.participants.length : 1
-      return sum + (e.amount / participantCount)
+      const pool = e.poolAmount || e.amount * POOL_RATE
+      const net = Math.max(e.amount - pool, 0)
+      return sum + (net / participantCount)
     }, 0)
     const totalPool = userEarnings.reduce((sum, e) => {
       const participantCount = e.participants && e.participants.length > 0 ? e.participants.length : 1
-      return sum + (e.poolAmount / participantCount)
+      const pool = e.poolAmount || e.amount * POOL_RATE
+      return sum + (pool / participantCount)
     }, 0)
 
     return { totalEarnings, totalPool, count: userEarnings.length }
@@ -85,8 +89,8 @@ export const EarningsTable = ({ earnings }: EarningsTableProps) => {
               <thead>
                 <tr className={`${theme === 'dark' ? 'bg-gray-700/50' : 'bg-gray-100'}`}>
                   <th className={`px-4 py-3 text-left text-sm font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Участник</th>
-                  <th className={`px-4 py-3 text-right text-sm font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Заработок</th>
-                  <th className={`px-4 py-3 text-right text-sm font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Пул</th>
+                  <th className={`px-4 py-3 text-right text-sm font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Чистыми</th>
+                  <th className={`px-4 py-3 text-right text-sm font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Пул 45%</th>
                 </tr>
               </thead>
               <tbody>
@@ -123,8 +127,8 @@ export const EarningsTable = ({ earnings }: EarningsTableProps) => {
               <thead>
                 <tr className={`${theme === 'dark' ? 'bg-gray-700/50' : 'bg-gray-100'}`}>
                   <th className={`px-4 py-3 text-left text-sm font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Участник</th>
-                  <th className={`px-4 py-3 text-right text-sm font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Заработок</th>
-                  <th className={`px-4 py-3 text-right text-sm font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Пул</th>
+                  <th className={`px-4 py-3 text-right text-sm font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Чистыми</th>
+                  <th className={`px-4 py-3 text-right text-sm font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Пул 45%</th>
                 </tr>
               </thead>
               <tbody>

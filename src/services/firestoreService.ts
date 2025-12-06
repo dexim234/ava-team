@@ -252,6 +252,7 @@ export const getEarnings = async (userId?: string, startDate?: string, endDate?:
       amount: data?.amount || 0,
       poolAmount: data?.poolAmount || 0,
       slotId: data?.slotId || '',
+      category: data?.category || 'other',
       participants: data?.participants || [],
     } as Earnings
   })

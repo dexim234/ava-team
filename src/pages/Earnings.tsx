@@ -6,8 +6,8 @@ import { EarningsForm } from '@/components/Earnings/EarningsForm'
 import { EarningsTable } from '@/components/Earnings/EarningsTable'
 import { EarningsList } from '@/components/Earnings/EarningsList'
 import { getEarnings } from '@/services/firestoreService'
-import { Earnings as EarningsType } from '@/types'
-import { Plus, DollarSign, TrendingUp, Sparkles, Wallet, PiggyBank } from 'lucide-react'
+import { Earnings as EarningsType, EARNINGS_CATEGORY_META, EarningsCategory, TEAM_MEMBERS } from '@/types'
+import { Plus, DollarSign, TrendingUp, Sparkles, Wallet, PiggyBank, ChartPie } from 'lucide-react'
 import { getWeekRange, formatDate } from '@/utils/dateUtils'
 
 export const Earnings = () => {
@@ -19,12 +19,20 @@ export const Earnings = () => {
   const [stats, setStats] = useState({
     weekTotal: 0,
     weekPool: 0,
+    weekNet: 0,
     monthTotal: 0,
-    monthPool: 0
+    monthPool: 0,
+    monthNet: 0
   })
+  const POOL_RATE = 0.45
+  const categoryKeys = Object.keys(EARNINGS_CATEGORY_META) as EarningsCategory[]
 
   const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
   const cardBg = theme === 'dark' ? 'bg-[#1a1a1a]' : 'bg-white'
+  const getPoolValue = (earning: EarningsType) => earning.poolAmount || earning.amount * POOL_RATE
+  const getNetValue = (earning: EarningsType) => Math.max(earning.amount - getPoolValue(earning), 0)
+  const getParticipants = (earning: EarningsType) => earning.participants?.length ? earning.participants : [earning.userId]
+  const getUserName = (userId: string) => TEAM_MEMBERS.find((m) => m.id === userId)?.name || userId
 
   const calculateStats = () => {
     const weekRange = getWeekRange()
@@ -39,9 +47,11 @@ export const Earnings = () => {
 
     setStats({
       weekTotal: weekEarnings.reduce((sum: number, e: EarningsType) => sum + e.amount, 0),
-      weekPool: weekEarnings.reduce((sum: number, e: EarningsType) => sum + e.poolAmount, 0),
+      weekPool: weekEarnings.reduce((sum: number, e: EarningsType) => sum + getPoolValue(e), 0),
+      weekNet: weekEarnings.reduce((sum: number, e: EarningsType) => sum + getNetValue(e), 0),
       monthTotal: monthEarnings.reduce((sum: number, e: EarningsType) => sum + e.amount, 0),
-      monthPool: monthEarnings.reduce((sum: number, e: EarningsType) => sum + e.poolAmount, 0)
+      monthPool: monthEarnings.reduce((sum: number, e: EarningsType) => sum + getPoolValue(e), 0),
+      monthNet: monthEarnings.reduce((sum: number, e: EarningsType) => sum + getNetValue(e), 0)
     })
   }
 
@@ -50,9 +60,7 @@ export const Earnings = () => {
   }, [])
 
   useEffect(() => {
-    if (earnings.length > 0) {
-      calculateStats()
-    }
+    calculateStats()
   }, [earnings])
 
   const loadEarnings = async () => {
@@ -82,6 +90,52 @@ export const Earnings = () => {
     setEditingEarning(null)
     loadEarnings()
   }
+
+  const categoryBreakdown = categoryKeys.map((key) => {
+    const items = earnings.filter((e) => e.category === key)
+    const gross = items.reduce((sum, e) => sum + e.amount, 0)
+    const pool = items.reduce((sum, e) => sum + getPoolValue(e), 0)
+    const net = items.reduce((sum, e) => sum + getNetValue(e), 0)
+
+    const participantMap = new Map<string, number>()
+    items.forEach((e) => {
+      const participants = getParticipants(e)
+      const share = getNetValue(e) / Math.max(participants.length, 1)
+      participants.forEach((pid) => {
+        participantMap.set(pid, (participantMap.get(pid) || 0) + share)
+      })
+    })
+
+    const topParticipants = Array.from(participantMap.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 2)
+
+    return {
+      key: key as EarningsCategory,
+      gross,
+      pool,
+      net,
+      count: items.length,
+      topParticipants,
+    }
+  })
+
+  const contributorRanking = TEAM_MEMBERS.map((member) => {
+    const related = earnings.filter((e) => getParticipants(e).includes(member.id))
+    const net = related.reduce((sum, e) => {
+      const share = getNetValue(e) / Math.max(getParticipants(e).length, 1)
+      return sum + share
+    }, 0)
+    const poolShare = related.reduce((sum, e) => {
+      const share = getPoolValue(e) / Math.max(getParticipants(e).length, 1)
+      return sum + share
+    }, 0)
+
+    return { ...member, net, poolShare }
+  }).sort((a, b) => b.net - a.net)
+
+  const topCategory = [...categoryBreakdown].sort((a, b) => b.net - a.net)[0]
+  const topContributor = contributorRanking[0]
 
   return (
     <Layout>
@@ -172,11 +226,12 @@ export const Earnings = () => {
                 }`}>
                   <TrendingUp className={`w-5 h-5 ${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'}`} />
                 </div>
-                <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Неделя</p>
+                <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Неделя (чистыми)</p>
               </div>
               <p className={`text-2xl font-bold ${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'}`}>
-                {stats.weekTotal.toFixed(2)} ₽
+                {stats.weekNet.toFixed(2)} ₽
               </p>
+              <p className="text-[11px] text-gray-500 mt-1">Гросс: {stats.weekTotal.toFixed(2)} ₽</p>
             </div>
             <div className={`p-4 rounded-xl border-2 ${
               theme === 'dark' 
@@ -206,11 +261,12 @@ export const Earnings = () => {
                 }`}>
                   <Wallet className={`w-5 h-5 ${theme === 'dark' ? 'text-[#4E6E49]' : 'text-[#4E6E49]'}`} />
                 </div>
-                <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Месяц</p>
+                <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Месяц (чистыми)</p>
               </div>
               <p className={`text-2xl font-bold ${theme === 'dark' ? 'text-[#4E6E49]' : 'text-[#4E6E49]'}`}>
-                {stats.monthTotal.toFixed(2)} ₽
+                {stats.monthNet.toFixed(2)} ₽
               </p>
+              <p className="text-[11px] text-gray-500 mt-1">Гросс: {stats.monthTotal.toFixed(2)} ₽</p>
             </div>
             <div className={`p-4 rounded-xl border-2 ${
               theme === 'dark' 
@@ -228,6 +284,101 @@ export const Earnings = () => {
               <p className={`text-2xl font-bold ${theme === 'dark' ? 'text-orange-400' : 'text-orange-600'}`}>
                 {stats.monthPool.toFixed(2)} ₽
               </p>
+            </div>
+          </div>
+
+          {/* New analytics */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+            <div className={`lg:col-span-2 rounded-2xl p-5 ${cardBg} border ${theme === 'dark' ? 'border-white/10' : 'border-gray-200'} shadow-lg`}>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className={`p-2 rounded-lg ${theme === 'dark' ? 'bg-[#4E6E49]/20' : 'bg-green-100'}`}>
+                    <ChartPie className={`w-5 h-5 ${theme === 'dark' ? 'text-[#4E6E49]' : 'text-[#4E6E49]'}`} />
+                  </div>
+                  <div>
+                    <p className={`text-sm font-semibold ${theme === 'dark' ? 'text-gray-200' : 'text-gray-800'}`}>Сферы заработка</p>
+                    <p className="text-xs text-gray-500">Сколько приносит каждый поток</p>
+                  </div>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {categoryBreakdown.map((cat) => {
+                  const meta = EARNINGS_CATEGORY_META[cat.key]
+                  return (
+                    <div key={cat.key} className={`p-3 rounded-xl border ${theme === 'dark' ? 'border-gray-800 bg-gray-900/70' : 'border-gray-200 bg-white'} shadow-sm`}>
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <span className="text-lg">{meta.emoji}</span>
+                          <div>
+                            <p className="text-sm font-semibold">{meta.label}</p>
+                            <p className="text-[11px] text-gray-500">{cat.count} записей</p>
+                          </div>
+                        </div>
+                        <span className="text-sm font-bold text-[#4E6E49]">{cat.net.toFixed(0)} ₽</span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 mt-2 text-xs text-gray-500">
+                        <div>Пул: {cat.pool.toFixed(0)} ₽</div>
+                        <div>Гросс: {cat.gross.toFixed(0)} ₽</div>
+                      </div>
+                      <div className="mt-2">
+                        <p className="text-[11px] uppercase tracking-wide text-gray-500 mb-1">Топ участники</p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {cat.topParticipants.length === 0 ? (
+                            <span className="text-[11px] text-gray-500">Нет записей</span>
+                          ) : (
+                            cat.topParticipants.map(([pid, value]) => (
+                              <span
+                                key={pid}
+                                className={`px-2 py-1 rounded-full text-[11px] font-semibold ${
+                                  theme === 'dark' ? 'bg-gray-800 text-gray-100' : 'bg-gray-100 text-gray-800'
+                                }`}
+                              >
+                                {getUserName(pid)} · {value.toFixed(0)} ₽
+                              </span>
+                            ))
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+
+            <div className={`rounded-2xl p-5 ${cardBg} border ${theme === 'dark' ? 'border-white/10' : 'border-gray-200'} shadow-lg`}>
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <p className={`text-sm font-semibold ${theme === 'dark' ? 'text-gray-200' : 'text-gray-800'}`}>Лидеры по доходу</p>
+                  <p className="text-xs text-gray-500">Кто приносит больше всего чистыми</p>
+                </div>
+              </div>
+              <div className="space-y-3">
+                {contributorRanking.slice(0, 3).map((member, index) => (
+                  <div
+                    key={member.id}
+                    className={`flex items-center justify-between p-3 rounded-xl border ${
+                      theme === 'dark' ? 'border-gray-800 bg-gray-900/70' : 'border-gray-200 bg-white'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className={`w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold ${
+                        theme === 'dark' ? 'bg-gray-800 text-gray-100' : 'bg-gray-100 text-gray-800'
+                      }`}>{index + 1}</span>
+                      <div>
+                        <p className="text-sm font-semibold">{member.name}</p>
+                        <p className="text-[11px] text-gray-500">Пул: {member.poolShare.toFixed(0)} ₽</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-base font-bold text-[#4E6E49]">{member.net.toFixed(0)} ₽</p>
+                      <p className="text-[11px] text-gray-500">чистыми</p>
+                    </div>
+                  </div>
+                ))}
+                {contributorRanking.length === 0 && (
+                  <p className="text-sm text-gray-500">Нет данных по заработку</p>
+                )}
+              </div>
             </div>
           </div>
 
@@ -269,10 +420,26 @@ export const Earnings = () => {
               </div>
               <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
                 {[
-                  { label: 'Средний чек (нед.)', value: `${(stats.weekTotal / Math.max(earnings.length,1)).toFixed(0)} ₽`, tone: 'bg-blue-500/10 text-blue-600 dark:text-blue-200' },
-                  { label: 'Доля пула (нед.)', value: stats.weekTotal ? `${Math.round((stats.weekPool / stats.weekTotal)*100)}%` : '0%', tone: 'bg-purple-500/10 text-purple-600 dark:text-purple-200' },
-                  { label: 'Средний чек (мес.)', value: `${(stats.monthTotal / Math.max(earnings.length,1)).toFixed(0)} ₽`, tone: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-200' },
-                  { label: 'Доля пула (мес.)', value: stats.monthTotal ? `${Math.round((stats.monthPool / stats.monthTotal)*100)}%` : '0%', tone: 'bg-orange-500/10 text-orange-600 dark:text-orange-200' },
+                  { 
+                    label: 'Топ категория', 
+                    value: topCategory ? `${EARNINGS_CATEGORY_META[topCategory.key].label} · ${topCategory.net.toFixed(0)} ₽` : 'Нет данных', 
+                    tone: 'bg-blue-500/10 text-blue-600 dark:text-blue-200' 
+                  },
+                  { 
+                    label: 'Лидер команды', 
+                    value: topContributor ? `${topContributor.name} · ${topContributor.net.toFixed(0)} ₽` : 'Нет данных', 
+                    tone: 'bg-purple-500/10 text-purple-600 dark:text-purple-200' 
+                  },
+                  { 
+                    label: 'Доля пула (мес.)', 
+                    value: stats.monthTotal ? `${Math.round((stats.monthPool / stats.monthTotal)*100)}%` : '45%', 
+                    tone: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-200' 
+                  },
+                  { 
+                    label: 'Средняя выплата', 
+                    value: earnings.length ? `${(earnings.reduce((sum, e) => sum + getNetValue(e), 0) / earnings.length).toFixed(0)} ₽` : '0 ₽', 
+                    tone: 'bg-orange-500/10 text-orange-600 dark:text-orange-200' 
+                  },
                 ].map((item) => (
                   <div key={item.label} className={`p-3 rounded-xl ${item.tone} border ${theme === 'dark' ? 'border-white/10' : 'border-transparent'} shadow-sm`}>
                     <p className="text-[11px] uppercase tracking-wide opacity-70">{item.label}</p>

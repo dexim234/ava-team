@@ -367,9 +367,11 @@ export const Management = () => {
                   <span className={`p-2 rounded-lg ${actionType === action.key ? 'bg-white/30' : theme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'}`}>
                     {action.icon}
                   </span>
-                  <span className="flex flex-col whitespace-normal leading-snug gap-0.5">
-                    <span className="text-sm font-semibold">{action.label}</span>
-                    <span className="text-xs text-gray-500 dark:text-gray-400">{action.desc}</span>
+                  <span className="flex flex-col whitespace-normal leading-snug gap-0.5 w-full">
+                    <span className="text-sm font-semibold break-words">{action.label}</span>
+                    <span className="text-[11px] sm:text-xs text-gray-500 dark:text-gray-400 break-words leading-tight">
+                      {action.desc}
+                    </span>
                   </span>
                 </button>
               ))}

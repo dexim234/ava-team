@@ -4,8 +4,7 @@ import { useThemeStore } from '@/store/themeStore'
 import { useAuthStore } from '@/store/authStore'
 import { useAdminStore } from '@/store/adminStore'
 import { deleteEarnings } from '@/services/firestoreService'
-import { Earnings } from '@/types'
-import { TEAM_MEMBERS } from '@/types'
+import { Earnings, EARNINGS_CATEGORY_META, EarningsCategory, TEAM_MEMBERS } from '@/types'
 import { formatDate } from '@/utils/dateUtils'
 import { Edit2, Trash2 } from 'lucide-react'
 
@@ -20,6 +19,7 @@ export const EarningsList = ({ earnings, onEdit, onDelete }: EarningsListProps) 
   const { user } = useAuthStore()
   const { isAdmin } = useAdminStore()
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const POOL_RATE = 0.45
 
   const handleDelete = async (id: string) => {
     if (!confirm('Вы уверены, что хотите удалить эту запись о заработке?')) {
@@ -36,6 +36,21 @@ export const EarningsList = ({ earnings, onEdit, onDelete }: EarningsListProps) 
     } finally {
       setDeletingId(null)
     }
+  }
+
+  const getParticipants = (earning: Earnings) => {
+    return earning.participants && earning.participants.length > 0 ? earning.participants : [earning.userId]
+  }
+
+  const calcPool = (earning: Earnings) => earning.poolAmount || earning.amount * POOL_RATE
+  const calcNet = (earning: Earnings) => Math.max(earning.amount - calcPool(earning), 0)
+  const calcShare = (earning: Earnings) => {
+    const participants = getParticipants(earning)
+    return participants.length ? calcNet(earning) / participants.length : calcNet(earning)
+  }
+
+  const getCategoryMeta = (category: EarningsCategory) => {
+    return EARNINGS_CATEGORY_META[category] || EARNINGS_CATEGORY_META.other
   }
 
   const getUserName = (userId: string) => {
@@ -86,14 +101,19 @@ export const EarningsList = ({ earnings, onEdit, onDelete }: EarningsListProps) 
             <thead>
               <tr className={`${theme === 'dark' ? 'bg-gray-700/50' : 'bg-gray-100'}`}>
                 <th className={`px-4 py-3 text-left text-sm font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Дата</th>
-                <th className={`px-4 py-3 text-left text-sm font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Участник</th>
-                <th className={`px-4 py-3 text-right text-sm font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Заработок</th>
-                <th className={`px-4 py-3 text-right text-sm font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Пул</th>
+                <th className={`px-4 py-3 text-left text-sm font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Сфера</th>
+                <th className={`px-4 py-3 text-left text-sm font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Участники</th>
+                <th className={`px-4 py-3 text-right text-sm font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Чистыми</th>
+                <th className={`px-4 py-3 text-right text-sm font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Пул 45%</th>
                 <th className={`px-4 py-3 text-center text-sm font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Действия</th>
               </tr>
             </thead>
             <tbody>
               {sortedEarnings.map((earning) => {
+                const participants = getParticipants(earning)
+                const categoryMeta = getCategoryMeta(earning.category)
+                const netAmount = calcNet(earning)
+                const shareAmount = calcShare(earning)
                 const canEdit = canEditOrDelete(earning)
                 return (
                   <tr
@@ -105,9 +125,37 @@ export const EarningsList = ({ earnings, onEdit, onDelete }: EarningsListProps) 
                     <td className={`px-4 py-3 font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                       {formatDate(new Date(earning.date + 'T00:00:00'), 'dd.MM.yyyy')}
                     </td>
-                    <td className={`px-4 py-3 font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{getUserName(earning.userId)}</td>
-                    <td className={`px-4 py-3 text-right font-semibold ${theme === 'dark' ? 'text-[#4E6E49]' : 'text-[#4E6E49]'}`}>{earning.amount.toFixed(2)} ₽</td>
-                    <td className={`px-4 py-3 text-right font-semibold ${theme === 'dark' ? 'text-purple-400' : 'text-purple-600'}`}>{earning.poolAmount.toFixed(2)} ₽</td>
+                    <td className="px-4 py-3">
+                      <span className={`inline-flex items-center gap-2 px-2.5 py-1 rounded-full text-xs font-semibold ${
+                        theme === 'dark' ? 'bg-gray-800 text-gray-100' : 'bg-gray-100 text-gray-900'
+                      }`}>
+                        <span>{categoryMeta.emoji}</span>
+                        {categoryMeta.label}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex flex-wrap gap-2">
+                        {participants.map((pid) => (
+                          <span
+                            key={pid}
+                            className={`px-2.5 py-1 rounded-full text-xs font-semibold border ${
+                              theme === 'dark'
+                                ? 'border-gray-800 bg-gray-800/70 text-gray-100'
+                                : 'border-gray-200 bg-white text-gray-800'
+                            }`}
+                          >
+                            {getUserName(pid)}
+                          </span>
+                        ))}
+                      </div>
+                    </td>
+                    <td className={`px-4 py-3 text-right font-semibold ${theme === 'dark' ? 'text-[#4E6E49]' : 'text-[#4E6E49]'}`}>
+                      <div>{netAmount.toFixed(2)} ₽</div>
+                      <div className="text-xs text-gray-500">по {shareAmount.toFixed(2)} ₽</div>
+                    </td>
+                    <td className={`px-4 py-3 text-right font-semibold ${theme === 'dark' ? 'text-purple-400' : 'text-purple-600'}`}>
+                      {calcPool(earning).toFixed(2)} ₽
+                    </td>
                     <td className="px-4 py-3 text-center">
                       {canEdit ? (
                         <div className="flex items-center justify-center gap-2">
