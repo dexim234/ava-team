@@ -7,7 +7,7 @@ import { EarningsTable } from '@/components/Earnings/EarningsTable'
 import { EarningsList } from '@/components/Earnings/EarningsList'
 import { getEarnings } from '@/services/firestoreService'
 import { Earnings as EarningsType, EARNINGS_CATEGORY_META, EarningsCategory, TEAM_MEMBERS } from '@/types'
-import { Plus, DollarSign, TrendingUp, Sparkles, Wallet, PiggyBank, ChartPie } from 'lucide-react'
+import { Plus, DollarSign, TrendingUp, Sparkles, Wallet, PiggyBank, PieChart } from 'lucide-react'
 import { getWeekRange, formatDate } from '@/utils/dateUtils'
 
 export const Earnings = () => {
@@ -293,7 +293,7 @@ export const Earnings = () => {
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
                   <div className={`p-2 rounded-lg ${theme === 'dark' ? 'bg-[#4E6E49]/20' : 'bg-green-100'}`}>
-                    <ChartPie className={`w-5 h-5 ${theme === 'dark' ? 'text-[#4E6E49]' : 'text-[#4E6E49]'}`} />
+                    <PieChart className={`w-5 h-5 ${theme === 'dark' ? 'text-[#4E6E49]' : 'text-[#4E6E49]'}`} />
                   </div>
                   <div>
                     <p className={`text-sm font-semibold ${theme === 'dark' ? 'text-gray-200' : 'text-gray-800'}`}>Сферы заработка</p>
