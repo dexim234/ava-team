@@ -1126,6 +1126,7 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
         </div>
       </div>
     </div>
+  </div>
   )
 }
 

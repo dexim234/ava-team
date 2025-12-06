@@ -642,6 +642,7 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
         </div>
       </div>
     </div>
+  </div>
   )
 }
 

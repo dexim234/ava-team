@@ -494,6 +494,7 @@ export const DeleteSlotsForm = ({ onClose, onSave }: DeleteSlotsFormProps) => {
         </div>
       </div>
     </div>
+  </div>
   )
 }
 
