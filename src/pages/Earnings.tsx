@@ -9,6 +9,8 @@ import { getEarnings } from '@/services/firestoreService'
 import { Earnings as EarningsType } from '@/types'
 import { Plus, DollarSign, TrendingUp, Sparkles, Wallet, PiggyBank } from 'lucide-react'
 import { getWeekRange, formatDate } from '@/utils/dateUtils'
+import { Link as RouterLink } from 'react-router-dom'
+import { useMemo } from 'react'
 
 export const Earnings = () => {
   const { theme } = useThemeStore()
@@ -25,6 +27,12 @@ export const Earnings = () => {
 
   const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
   const cardBg = theme === 'dark' ? 'bg-[#1a1a1a]' : 'bg-white'
+
+  const sortedByDate = useMemo(
+    () => [...earnings].sort((a, b) => (a.date < b.date ? 1 : -1)),
+    [earnings]
+  )
+  const recentEarnings = sortedByDate.slice(0, 4)
 
   const calculateStats = () => {
     const weekRange = getWeekRange()
@@ -127,6 +135,28 @@ export const Earnings = () => {
                 <p className={`text-sm sm:text-base font-medium ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
                   Отслеживайте доходы и вклад каждого участника в общий успех
                 </p>
+
+                {/* Quick nav */}
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { href: '#earn-stats', label: 'Обзор' },
+                    { href: '#earn-history', label: 'История' },
+                    { href: '#earn-actions', label: 'Действия' },
+                    { href: '#earn-insights', label: 'Инсайты' },
+                  ].map((item) => (
+                    <a
+                      key={item.href}
+                      href={item.href}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition ${
+                        theme === 'dark'
+                          ? 'border-white/10 bg-white/5 text-white hover:border-[#4E6E49]/50'
+                          : 'border-gray-200 bg-white text-gray-800 hover:border-[#4E6E49]/50 hover:text-[#4E6E49]'
+                      }`}
+                    >
+                      {item.label}
+                    </a>
+                  ))}
+                </div>
               </div>
               <button
                 onClick={() => setShowForm(true)}
@@ -139,7 +169,7 @@ export const Earnings = () => {
           </div>
 
           {/* Stats cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <div id="earn-stats" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             <div className={`p-4 rounded-xl border-2 ${
               theme === 'dark' 
                 ? 'bg-blue-500/10 border-blue-500/30' 
@@ -229,12 +259,87 @@ export const Earnings = () => {
           </div>
         ) : (
           <>
-            <EarningsTable earnings={earnings} />
-            <EarningsList
-              earnings={earnings}
-              onEdit={handleEdit}
-              onDelete={loadEarnings}
-            />
+            <div id="earn-history" className="space-y-6">
+              <EarningsTable earnings={earnings} />
+              <EarningsList
+                earnings={earnings}
+                onEdit={handleEdit}
+                onDelete={loadEarnings}
+              />
+            </div>
+
+            {/* Actions */}
+            <div id="earn-actions" className={`rounded-2xl p-6 ${cardBg} border ${theme === 'dark' ? 'border-white/10' : 'border-gray-200'} shadow-lg space-y-4`}>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div>
+                  <p className={`text-sm font-semibold ${headingColor}`}>Быстрые действия</p>
+                  <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Создавайте записи и переходите к разделам</p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    onClick={() => setShowForm(true)}
+                    className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#4E6E49] to-emerald-700 text-white font-semibold shadow hover:shadow-lg active:scale-95 transition"
+                  >
+                    Добавить заработок
+                  </button>
+                  <RouterLink
+                    to="/rating"
+                    className={`px-4 py-2 rounded-xl font-semibold border transition ${theme === 'dark' ? 'border-white/10 text-white hover:border-[#4E6E49]/50' : 'border-gray-300 text-gray-800 hover:border-[#4E6E49]/50 hover:text-[#4E6E49]'}`}
+                  >
+                    Перейти в рейтинг
+                  </RouterLink>
+                  <RouterLink
+                    to="/tasks"
+                    className={`px-4 py-2 rounded-xl font-semibold border transition ${theme === 'dark' ? 'border-white/10 text-white hover:border-[#4E6E49]/50' : 'border-gray-300 text-gray-800 hover:border-[#4E6E49]/50 hover:text-[#4E6E49]'}`}
+                  >
+                    Задачи
+                  </RouterLink>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                {recentEarnings.map((item) => (
+                  <div
+                    key={item.id}
+                    className={`p-3 rounded-xl border ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-white'} shadow-sm`}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <p className={`text-xs font-semibold ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                        {new Date(item.date).toLocaleDateString('ru-RU')}
+                      </p>
+                      <span className="text-[11px] px-2 py-1 rounded-full bg-[#4E6E49]/15 text-[#4E6E49]">
+                        {item.participants?.length || 1} уч.
+                      </span>
+                    </div>
+                    <p className="text-xl font-bold text-[#4E6E49]">{item.amount} ₽</p>
+                    <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Пул: {item.poolAmount} ₽</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Insights */}
+            <div id="earn-insights" className={`rounded-2xl p-6 ${cardBg} border ${theme === 'dark' ? 'border-white/10' : 'border-gray-200'} shadow-lg space-y-4`}>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className={`text-sm font-semibold ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Инсайты</p>
+                  <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Где мы зарабатываем больше всего</p>
+                </div>
+              </div>
+              <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                {[
+                  { label: 'Средний чек (нед.)', value: `${(stats.weekTotal / Math.max(earnings.length,1)).toFixed(0)} ₽`, tone: 'bg-blue-500/10 text-blue-600 dark:text-blue-200' },
+                  { label: 'Доля пула (нед.)', value: stats.weekTotal ? `${Math.round((stats.weekPool / stats.weekTotal)*100)}%` : '0%', tone: 'bg-purple-500/10 text-purple-600 dark:text-purple-200' },
+                  { label: 'Средний чек (мес.)', value: `${(stats.monthTotal / Math.max(earnings.length,1)).toFixed(0)} ₽`, tone: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-200' },
+                  { label: 'Доля пула (мес.)', value: stats.monthTotal ? `${Math.round((stats.monthPool / stats.monthTotal)*100)}%` : '0%', tone: 'bg-orange-500/10 text-orange-600 dark:text-orange-200' },
+                ].map((item) => (
+                  <div key={item.label} className={`p-3 rounded-xl ${item.tone} border ${theme === 'dark' ? 'border-white/10' : 'border-transparent'} shadow-sm`}>
+                    <p className="text-[11px] uppercase tracking-wide opacity-70">{item.label}</p>
+                    <p className="text-xl font-extrabold">{item.value}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
           </>
         )}
 

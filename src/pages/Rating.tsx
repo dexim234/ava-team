@@ -1,5 +1,5 @@
 // Rating page
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Layout } from '@/components/Layout'
 import { useThemeStore } from '@/store/themeStore'
 import { RatingCard } from '@/components/Rating/RatingCard'
@@ -16,6 +16,7 @@ export const Rating = () => {
   const [referrals, setReferrals] = useState<Referral[]>([])
   const [showReferralForm, setShowReferralForm] = useState(false)
   const [activeReferral, setActiveReferral] = useState<Referral | null>(null)
+  const [sortMode, setSortMode] = useState<'rating' | 'name'>('rating')
 
   useEffect(() => {
     loadRatings()
@@ -144,6 +145,14 @@ export const Rating = () => {
   const subTextColor = theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
   const cardBg = theme === 'dark' ? 'bg-[#1a1a1a]' : 'bg-white'
 
+  const sortedRatings = useMemo(() => {
+    const arr = [...ratings]
+    if (sortMode === 'name') {
+      return arr.sort((a, b) => a.userId.localeCompare(b.userId))
+    }
+    return arr.sort((a, b) => b.rating - a.rating)
+  }, [ratings, sortMode])
+
   const handleAddReferral = () => {
     setActiveReferral(null)
     setShowReferralForm(true)
@@ -194,6 +203,25 @@ export const Rating = () => {
                 <p className={`text-sm sm:text-base font-medium ${subTextColor}`}>
                   Система оценки эффективности команды на основе ключевых метрик
                 </p>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { href: '#rating-team', label: 'Команда' },
+                    { href: '#rating-ref', label: 'Рефералы' },
+                    { href: '#rating-method', label: 'Методика' },
+                  ].map((item) => (
+                    <a
+                      key={item.href}
+                      href={item.href}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition ${
+                        theme === 'dark'
+                          ? 'border-white/10 bg-white/5 text-white hover:border-blue-400/50'
+                          : 'border-gray-200 bg-white text-gray-800 hover:border-blue-400 hover:text-blue-700'
+                      }`}
+                    >
+                      {item.label}
+                    </a>
+                  ))}
+                </div>
                 <div className={`p-5 rounded-xl border-2 ${
                   theme === 'dark' 
                     ? 'bg-[#1a1a1a]/50 border-blue-500/20' 
@@ -220,7 +248,7 @@ export const Rating = () => {
         </div>
 
         {/* Team KPD */}
-        <div className={`rounded-2xl p-8 ${cardBg} shadow-xl border-2 ${
+        <div id="rating-team" className={`rounded-2xl p-8 ${cardBg} shadow-xl border-2 ${
           theme === 'dark' 
             ? 'border-[#4E6E49]/30 bg-gradient-to-br from-[#1a1a1a] to-[#0A0A0A]' 
             : 'border-green-200 bg-gradient-to-br from-white to-green-50/20'
@@ -282,7 +310,7 @@ export const Rating = () => {
         </div>
 
         {/* Referral stats */}
-        <div className={`rounded-2xl p-8 ${cardBg} shadow-xl border-2 ${
+        <div id="rating-ref" className={`rounded-2xl p-8 ${cardBg} shadow-xl border-2 ${
           theme === 'dark' 
             ? 'border-pink-500/30 bg-gradient-to-br from-[#1a1a1a] to-[#0A0A0A]' 
             : 'border-pink-200 bg-gradient-to-br from-white to-pink-50/20'
@@ -380,7 +408,7 @@ export const Rating = () => {
         </div>
 
         {/* Rating cards section */}
-        <div className={`rounded-2xl p-8 ${cardBg} shadow-xl border-2 ${
+        <div id="rating-method" className={`rounded-2xl p-8 ${cardBg} shadow-xl border-2 ${
           theme === 'dark' 
             ? 'border-purple-500/30 bg-gradient-to-br from-[#1a1a1a] to-[#0A0A0A]' 
             : 'border-purple-200 bg-gradient-to-br from-white to-purple-50/20'
@@ -417,29 +445,64 @@ export const Rating = () => {
               </div>
             ) : (
               <>
-                <div className="flex items-center justify-between mb-6">
-                  <div className={`px-4 py-2 rounded-xl ${theme === 'dark' ? 'bg-gray-700/50' : 'bg-gray-100'} border ${theme === 'dark' ? 'border-gray-800' : 'border-gray-200'}`}>
-                    <span className={`text-sm font-semibold ${headingColor}`}>
-                      Показано участников: <span className="text-purple-500 dark:text-purple-400">{ratings.length}</span>
-                    </span>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 flex-1">
+                    {[
+                      { label: 'Топ-1', value: sortedRatings[0]?.rating ? `${sortedRatings[0].rating.toFixed(1)}%` : '—', tone: 'from-yellow-400/40 to-amber-500/40 text-yellow-900 dark:text-yellow-100' },
+                      { label: 'Средний рейтинг', value: `${teamKPD.toFixed(1)}%`, tone: 'from-emerald-400/30 to-emerald-600/30 text-emerald-900 dark:text-emerald-100' },
+                      { label: 'Участников', value: sortedRatings.length, tone: 'from-blue-400/30 to-indigo-500/30 text-indigo-900 dark:text-indigo-100' },
+                    ].map((item) => (
+                      <div key={item.label} className={`rounded-xl px-4 py-3 border ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-white'} shadow-sm`}>
+                        <p className="text-[11px] uppercase tracking-wide opacity-70">{item.label}</p>
+                        <p className={`text-2xl font-extrabold bg-gradient-to-r ${item.tone} text-transparent bg-clip-text`}>
+                          {item.value}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setSortMode('rating')}
+                      className={`px-3 py-2 rounded-lg text-sm font-semibold border transition ${
+                        sortMode === 'rating'
+                          ? 'bg-gradient-to-r from-[#4E6E49] to-emerald-700 text-white border-transparent shadow'
+                          : theme === 'dark'
+                          ? 'border-white/10 text-white hover:border-[#4E6E49]/50'
+                          : 'border-gray-300 text-gray-800 hover:border-[#4E6E49]/50 hover:text-[#4E6E49]'
+                      }`}
+                    >
+                      По рейтингу
+                    </button>
+                    <button
+                      onClick={() => setSortMode('name')}
+                      className={`px-3 py-2 rounded-lg text-sm font-semibold border transition ${
+                        sortMode === 'name'
+                          ? 'bg-gradient-to-r from-[#4E6E49] to-emerald-700 text-white border-transparent shadow'
+                          : theme === 'dark'
+                          ? 'border-white/10 text-white hover:border-[#4E6E49]/50'
+                          : 'border-gray-300 text-gray-800 hover:border-[#4E6E49]/50 hover:text-[#4E6E49]'
+                      }`}
+                    >
+                      По имени
+                    </button>
                   </div>
                 </div>
                 <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-                  {ratings.map((rating, index) => (
+                  {sortedRatings.map((rating, index) => (
                     <div key={rating.userId} className="relative transform transition-all duration-300 hover:scale-105">
-                      {index === 0 && ratings.length > 1 && (
+                      {index === 0 && sortedRatings.length > 1 && (
                         <div className="absolute -top-4 -right-4 z-20 bg-gradient-to-r from-yellow-400 to-yellow-500 text-yellow-900 text-xs font-extrabold px-4 py-2 rounded-full shadow-xl animate-pulse border-2 border-yellow-300 flex items-center gap-1">
                           <span className="text-base">🥇</span>
                           <span>ЛИДЕР</span>
                         </div>
                       )}
-                      {index === 1 && ratings.length > 2 && (
+                      {index === 1 && sortedRatings.length > 2 && (
                         <div className="absolute -top-4 -right-4 z-20 bg-gradient-to-r from-gray-300 to-gray-400 text-gray-800 text-xs font-extrabold px-4 py-2 rounded-full shadow-xl border-2 border-gray-200 flex items-center gap-1">
                           <span className="text-base">🥈</span>
                           <span>2-е место</span>
                         </div>
                       )}
-                      {index === 2 && ratings.length > 3 && (
+                      {index === 2 && sortedRatings.length > 3 && (
                         <div className="absolute -top-4 -right-4 z-20 bg-gradient-to-r from-orange-300 to-orange-400 text-orange-900 text-xs font-extrabold px-4 py-2 rounded-full shadow-xl border-2 border-orange-200 flex items-center gap-1">
                           <span className="text-base">🥉</span>
                           <span>3-е место</span>

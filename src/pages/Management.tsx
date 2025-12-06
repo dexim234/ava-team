@@ -228,18 +228,15 @@ export const Management = () => {
                   <span className="px-3 py-1 rounded-full text-xs font-semibold bg-[#4E6E49]/15 text-[#4E6E49] border border-[#4E6E49]/30">
                     Неделя активна
                   </span>
-                  <span className="px-3 py-1 rounded-full text-xs font-semibold bg-blue-500/10 text-blue-600 dark:text-blue-300 border border-blue-500/20">
-                    Быстрые действия
-                  </span>
                 </div>
               </div>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 w-full lg:w-auto">
               {[
-                { label: 'Слотов', value: stats.slotsThisWeek, tone: 'from-[#4E6E49]/12 to-emerald-500/12 text-[#4E6E49]' },
-                { label: 'Предстоящие', value: stats.upcomingSlots, tone: 'from-blue-500/12 to-indigo-500/12 text-blue-600' },
-                { label: 'Завершено', value: stats.completedSlots, tone: 'from-gray-500/12 to-gray-700/12 text-gray-700' },
-                { label: 'Участники', value: stats.activeMembers, tone: 'from-purple-500/12 to-pink-500/12 text-purple-600' },
+                { label: 'Слотов', value: stats.slotsThisWeek, tone: 'from-[#4E6E49]/18 to-emerald-500/16', text: 'text-[#1f3d2a]' },
+                { label: 'Предстоящие', value: stats.upcomingSlots, tone: 'from-blue-500/18 to-indigo-500/16', text: 'text-blue-900 dark:text-blue-100' },
+                { label: 'Завершено', value: stats.completedSlots, tone: 'from-gray-500/18 to-gray-700/16', text: 'text-gray-800 dark:text-gray-100' },
+                { label: 'Участники', value: stats.activeMembers, tone: 'from-purple-500/18 to-pink-500/16', text: 'text-purple-900 dark:text-purple-100' },
               ].map((item) => (
                 <div
                   key={item.label}
@@ -248,7 +245,7 @@ export const Management = () => {
                   <p className="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
                     {item.label}
                   </p>
-                  <p className={`text-2xl font-extrabold bg-gradient-to-r ${item.tone} text-transparent bg-clip-text`}>
+                  <p className={`text-2xl font-extrabold bg-gradient-to-r ${item.tone} text-transparent bg-clip-text drop-shadow-sm ${item.text}`}>
                     {item.value}
                   </p>
                 </div>
@@ -313,35 +310,35 @@ export const Management = () => {
               </div>
             </div>
 
-            <div className="flex flex-wrap gap-2 w-full lg:w-auto">
+              <div className="flex flex-wrap gap-2 w-full lg:w-auto">
               <button
                 onClick={handleAddSlot}
-                className="flex-1 lg:flex-none px-4 py-2 rounded-xl bg-gradient-to-r from-[#4E6E49] to-[#4E6E49] text-white font-semibold shadow-lg hover:shadow-xl transition"
+                className="flex-1 lg:flex-none px-4 py-2 rounded-xl bg-gradient-to-r from-[#4E6E49] to-emerald-700 text-white font-semibold shadow-lg hover:shadow-xl transition active:scale-95"
               >
                 Добавить слот
               </button>
               <button
                 onClick={handleDeleteSlots}
-                className="flex-1 lg:flex-none px-4 py-2 rounded-xl bg-gradient-to-r from-red-500 to-pink-500 text-white font-semibold shadow-lg hover:shadow-xl transition"
+                className="flex-1 lg:flex-none px-4 py-2 rounded-xl bg-gradient-to-r from-red-500 to-pink-500 text-white font-semibold shadow-lg hover:shadow-xl transition active:scale-95"
               >
                 Удалить слоты
               </button>
               <div className="flex flex-1 lg:flex-none gap-2">
                 <button
                   onClick={() => handleAddStatus('dayoff')}
-                  className="flex-1 px-3 py-2 rounded-xl bg-gradient-to-r from-yellow-500 to-yellow-600 text-white font-semibold shadow hover:shadow-lg"
+                className="flex-1 px-3 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-white font-semibold shadow hover:shadow-lg active:scale-95"
                 >
                   Выходной
                 </button>
                 <button
                   onClick={() => handleAddStatus('sick')}
-                  className="flex-1 px-3 py-2 rounded-xl bg-gradient-to-r from-purple-500 to-purple-600 text-white font-semibold shadow hover:shadow-lg"
+                className="flex-1 px-3 py-2 rounded-xl bg-gradient-to-r from-purple-500 to-purple-600 text-white font-semibold shadow hover:shadow-lg active:scale-95"
                 >
                   Больничный
                 </button>
                 <button
                   onClick={() => handleAddStatus('vacation')}
-                  className="flex-1 px-3 py-2 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 text-white font-semibold shadow hover:shadow-lg"
+                className="flex-1 px-3 py-2 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 text-white font-semibold shadow hover:shadow-lg active:scale-95"
                 >
                   Отпуск
                 </button>

@@ -10,6 +10,7 @@ import { TaskKanban } from '@/components/Tasks/TaskKanban'
 import { getTasks, deleteTask } from '@/services/firestoreService'
 import { Task, TaskCategory, TaskStatus } from '@/types'
 import { Plus, CheckSquare, Sparkles, List, LayoutGrid } from 'lucide-react'
+import { Link as RouterLink } from 'react-router-dom'
 
 export const Tasks = () => {
   const { theme } = useThemeStore()
@@ -105,6 +106,8 @@ export const Tasks = () => {
     closed: tasks.filter(t => t.status === 'closed').length,
   }
 
+  const myTasksCount = user ? tasks.filter(t => t.assignedTo?.includes(user.id)).length : 0
+
   return (
     <Layout>
       <div className="space-y-6">
@@ -131,11 +134,31 @@ export const Tasks = () => {
                 <p className={`text-sm sm:text-base ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
                   Управление задачами и заданиями команды
                 </p>
+
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {[
+                    { href: '#tasks-stats', label: 'Обзор' },
+                    { href: '#tasks-board', label: 'Доска' },
+                    { href: '#tasks-filters', label: 'Фильтры' },
+                  ].map((item) => (
+                    <a
+                      key={item.href}
+                      href={item.href}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition ${
+                        theme === 'dark'
+                          ? 'border-white/10 bg-white/5 text-white hover:border-[#4E6E49]/50'
+                          : 'border-gray-200 bg-white text-gray-800 hover:border-[#4E6E49]/50 hover:text-[#4E6E49]'
+                      }`}
+                    >
+                      {item.label}
+                    </a>
+                  ))}
+                </div>
               </div>
             </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+            <div id="tasks-stats" className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
               <div className={`p-3 sm:p-4 rounded-lg border-2 ${
                 theme === 'dark'
                   ? 'bg-yellow-500/10 border-yellow-500/30'
@@ -193,11 +216,25 @@ export const Tasks = () => {
                 </div>
               </div>
             </div>
+
+            {user && (
+              <div className="mt-4 flex flex-wrap gap-2">
+                <div className={`px-3 py-2 rounded-lg text-xs font-semibold border ${theme === 'dark' ? 'border-white/10 text-white bg-white/5' : 'border-gray-200 text-gray-800 bg-white'}`}>
+                  Мои задачи: {myTasksCount}
+                </div>
+                <RouterLink
+                  to="/profile"
+                  className={`px-3 py-2 rounded-lg text-xs font-semibold border ${theme === 'dark' ? 'border-white/10 text-white bg-white/5 hover:border-[#4E6E49]/50' : 'border-gray-200 text-gray-800 bg-white hover:border-[#4E6E49]/50 hover:text-[#4E6E49]'}`}
+                >
+                  Перейти в ЛК
+                </RouterLink>
+              </div>
+            )}
           </div>
         </div>
 
         {/* Filters and Add Button */}
-        <div className="flex flex-col lg:flex-row gap-4 sm:gap-6">
+        <div className="flex flex-col lg:flex-row gap-4 sm:gap-6" id="tasks-board">
           {/* Filters */}
           <div className="lg:w-80 flex-shrink-0">
             <TaskFilters
