@@ -223,6 +223,11 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
 
   const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
   const subtleColor = theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+  const statusTone = {
+    dayoff: 'bg-teal-100 text-teal-900 border border-teal-200 dark:bg-teal-900/30 dark:text-teal-100 dark:border-teal-800',
+    sick: 'bg-amber-100 text-amber-900 border border-amber-200 dark:bg-amber-900/30 dark:text-amber-100 dark:border-amber-700',
+    vacation: 'bg-sky-100 text-sky-900 border border-sky-200 dark:bg-sky-900/30 dark:text-sky-100 dark:border-sky-800',
+  } as const
 
   return (
     <div className={`rounded-lg ${theme === 'dark' ? 'bg-[#1a1a1a]' : 'bg-white'} shadow-md overflow-hidden`}>
@@ -257,13 +262,13 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
           return (
             <div
               key={dateStr}
-              className={`rounded-lg p-4 ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'}`}
+              className={`rounded-xl p-4 sm:p-5 border ${theme === 'dark' ? 'bg-gray-800/70 border-gray-700' : 'bg-gray-50 border-gray-200'}`}
             >
               <h3 className={`text-lg font-semibold mb-3 ${headingColor}`}>
                 {formatDate(day, 'dd.MM.yyyy')}
               </h3>
 
-              <div className="space-y-2">
+              <div className="space-y-3 sm:space-y-4">
                 {/* Statuses */}
                 {dayStatuses.map((status) => {
                   const statusUser = TEAM_MEMBERS.find((u) => u.id === status.userId)
@@ -282,22 +287,18 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
                   return (
                     <div
                       key={status.id}
-                      className={`group relative flex items-center justify-between p-4 rounded-xl shadow-xl border-2 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl ${
-                        status.type === 'dayoff'
-                          ? 'bg-gradient-to-r from-yellow-500 to-yellow-600 border-yellow-400/40 ring-2 ring-yellow-500/20 hover:ring-4 hover:ring-yellow-400/30'
-                          : status.type === 'sick'
-                          ? 'bg-gradient-to-r from-purple-500 to-purple-600 border-purple-400/40 ring-2 ring-purple-500/20 hover:ring-4 hover:ring-purple-400/30'
-                          : 'bg-gradient-to-r from-orange-500 to-orange-600 border-orange-400/40 ring-2 ring-orange-500/20 hover:ring-4 hover:ring-orange-400/30'
+                      className={`group relative flex items-center justify-between p-4 rounded-xl shadow-xl border-2 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl backdrop-blur ${
+                        statusTone[status.type]
                       }`}
                     >
                       <div className="flex items-center gap-2">
-                        <span className="text-white font-medium">{displayName}</span>
-                        <span className="text-white text-sm">
+                        <span className="font-semibold">{displayName}</span>
+                        <span className="text-sm">
                           {status.type === 'dayoff' ? 'Выходной' : status.type === 'sick' ? 'Больничный' : 'Отпуск'}
                         </span>
                         {status.comment && (
                           <div className="relative group">
-                            <Info className="w-4 h-4 text-white cursor-help" />
+                            <Info className="w-4 h-4 text-current cursor-help" />
                             <div className="absolute bottom-full left-0 mb-2 p-2 bg-[#0A0A0A] text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity z-10 whitespace-nowrap">
                               {status.comment}
                             </div>
@@ -309,32 +310,32 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
                           <>
                             <button
                               onClick={() => onEditStatus(status)}
-                              className="p-1 bg-white bg-opacity-20 hover:bg-opacity-30 rounded transition-colors"
+                              className={`p-1 rounded transition-colors ${theme === 'dark' ? 'bg-white/10 hover:bg-white/20 text-white' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-100'}`}
                             >
-                              <Edit className="w-4 h-4 text-white" />
+                              <Edit className="w-4 h-4 text-current" />
                             </button>
                             <button
                               onClick={() => handleDeleteStatus(status.id)}
-                              className="p-1 bg-white bg-opacity-20 hover:bg-opacity-30 rounded transition-colors"
+                              className={`p-1 rounded transition-colors ${theme === 'dark' ? 'bg-white/10 hover:bg-white/20 text-white' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-100'}`}
                             >
-                              <Trash2 className="w-4 h-4 text-white" />
+                              <Trash2 className="w-4 h-4 text-current" />
                             </button>
                           </>
                         ) : (
                           <>
                             <button
                               disabled
-                              className="p-1 bg-white bg-opacity-10 cursor-not-allowed rounded"
+                              className={`p-1 cursor-not-allowed rounded ${theme === 'dark' ? 'bg-white/5 text-white/60' : 'bg-gray-100 text-gray-400 border border-gray-200'}`}
                               title="Вы можете редактировать только свои статусы"
                             >
-                              <Edit className="w-4 h-4 text-white opacity-50" />
+                              <Edit className="w-4 h-4 text-current opacity-60" />
                             </button>
                             <button
                               disabled
-                              className="p-1 bg-white bg-opacity-10 cursor-not-allowed rounded"
+                              className={`p-1 cursor-not-allowed rounded ${theme === 'dark' ? 'bg-white/5 text-white/60' : 'bg-gray-100 text-gray-400 border border-gray-200'}`}
                               title="Вы можете удалять только свои статусы"
                             >
-                              <Trash2 className="w-4 h-4 text-white opacity-50" />
+                              <Trash2 className="w-4 h-4 text-current opacity-60" />
                             </button>
                           </>
                         )}
@@ -360,8 +361,8 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
                   const displayName = slotUserFallback?.name || slot.userId
                   const isUpcoming = isSlotUpcoming(slot)
                   const slotBg = isUpcoming 
-                    ? 'bg-gradient-to-r from-blue-500 to-blue-600 border-blue-400/30' 
-                    : 'bg-gradient-to-r from-gray-500 to-gray-600 border-gray-400/30'
+                    ? 'bg-gradient-to-r from-emerald-500 to-teal-600 border-emerald-300/40' 
+                    : 'bg-gradient-to-r from-slate-500 to-slate-700 border-slate-300/40'
                   const SlotIcon = isUpcoming ? CalendarIcon : CheckCircle2
                   
                   return (
@@ -369,8 +370,8 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
                       key={slot.id}
                       className={`group relative space-y-2 sm:space-y-3 p-3 sm:p-4 ${slotBg} rounded-lg sm:rounded-xl shadow-xl border-2 transition-all duration-300 hover:shadow-2xl active:scale-[0.98] sm:hover:scale-[1.03] mb-2 sm:mb-3 ${
                         isUpcoming 
-                          ? 'border-blue-400/40 hover:border-blue-300/60 ring-2 ring-blue-500/20 hover:ring-4 hover:ring-blue-400/30' 
-                          : 'border-gray-400/30 hover:border-gray-300/50 ring-2 ring-gray-500/10 hover:ring-4 hover:ring-gray-400/20'
+                          ? 'hover:border-emerald-200/80 ring-2 ring-emerald-200/40 hover:ring-4 hover:ring-emerald-200/60' 
+                          : 'hover:border-slate-200/80 ring-2 ring-slate-200/40 hover:ring-4 hover:ring-slate-200/60'
                       }`}
                     >
                       <div className="flex items-center justify-between border-b border-white/20 pb-2 sm:pb-3">
@@ -382,8 +383,8 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
                                 alt={displayName}
                                 className={`w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 lg:w-11 lg:h-11 rounded-full object-cover border-2 shadow-xl transition-all duration-300 group-hover/avatar:scale-110 group-hover/avatar:shadow-2xl ${
                                   isUpcoming 
-                                    ? 'border-white/50 ring-2 ring-white/40 ring-offset-2 ring-offset-blue-500/20 group-hover/avatar:ring-4 group-hover/avatar:ring-white/60' 
-                                    : 'border-white/40 ring-2 ring-white/30 ring-offset-2 ring-offset-gray-500/20 group-hover/avatar:ring-4 group-hover/avatar:ring-white/50'
+                                    ? 'border-white/50 ring-2 ring-white/40 ring-offset-2 ring-offset-emerald-400/30 group-hover/avatar:ring-4 group-hover/avatar:ring-white/60' 
+                                    : 'border-white/40 ring-2 ring-white/30 ring-offset-2 ring-offset-slate-400/30 group-hover/avatar:ring-4 group-hover/avatar:ring-white/50'
                                 }`}
                                 onError={(e) => {
                                   const target = e.target as HTMLImageElement
@@ -403,7 +404,7 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
                               {displayName.charAt(0).toUpperCase()}
                             </div>
                             <div className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 sm:w-3 sm:h-3 md:w-3.5 md:h-3.5 rounded-full border border-white sm:border-2 shadow-lg animate-pulse opacity-0 group-hover/avatar:opacity-100 transition-opacity duration-300 ${
-                              isUpcoming ? 'bg-blue-400' : 'bg-gray-400'
+                              isUpcoming ? 'bg-emerald-300' : 'bg-slate-400'
                             }`}></div>
                           </div>
                           <span className="text-white font-bold text-sm sm:text-base group-hover:scale-105 transition-transform duration-300 truncate">{displayName}</span>

@@ -234,6 +234,11 @@ export const ManagementTable = ({ selectedUserId, slotFilter, onEditSlot, onEdit
 
   const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
   const subtleColor = theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+  const statusTone = {
+    dayoff: 'bg-teal-100 text-teal-900 border border-teal-200 dark:bg-teal-900/40 dark:text-teal-100 dark:border-teal-800',
+    sick: 'bg-amber-100 text-amber-900 border border-amber-200 dark:bg-amber-900/40 dark:text-amber-100 dark:border-amber-700',
+    vacation: 'bg-sky-100 text-sky-900 border border-sky-200 dark:bg-sky-900/40 dark:text-sky-100 dark:border-sky-800',
+  } as const
 
   return (
     <div className={`rounded-lg ${theme === 'dark' ? 'bg-[#1a1a1a]' : 'bg-white'} shadow-md overflow-hidden`}>
@@ -354,8 +359,8 @@ export const ManagementTable = ({ selectedUserId, slotFilter, onEditSlot, onEdit
                             {(() => {
                               const isUpcoming = isSlotUpcoming(slot)
                               const slotBg = isUpcoming 
-                                ? 'bg-gradient-to-r from-blue-500 to-blue-600' 
-                                : 'bg-gradient-to-r from-gray-500 to-gray-600'
+                                ? 'bg-gradient-to-r from-emerald-500 to-teal-600' 
+                                : 'bg-gradient-to-r from-slate-500 to-slate-700'
                               const slotIcon = isUpcoming ? CalendarIcon : CheckCircle2
                               const SlotIcon = slotIcon
                               
@@ -363,7 +368,7 @@ export const ManagementTable = ({ selectedUserId, slotFilter, onEditSlot, onEdit
                                 <div key={slotIdx} className="space-y-1">
                                   {/* Main slot time */}
                                   <div className={`${slotBg} text-white rounded-md sm:rounded-lg px-2 sm:px-3 py-1 sm:py-1.5 text-[10px] sm:text-xs font-semibold shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl ${
-                                    isUpcoming ? 'hover:shadow-blue-500/50 ring-2 ring-blue-400/30' : 'hover:shadow-gray-500/50 ring-2 ring-gray-400/30'
+                                    isUpcoming ? 'hover:shadow-emerald-500/40 ring-2 ring-emerald-400/40' : 'hover:shadow-slate-500/40 ring-2 ring-slate-400/40'
                                   }`}>
                                     <div className="flex items-center justify-center gap-0.5 sm:gap-1 flex-wrap">
                                       <SlotIcon className="w-2.5 h-2.5 sm:w-3 sm:h-3 animate-pulse flex-shrink-0" />
@@ -441,13 +446,7 @@ export const ManagementTable = ({ selectedUserId, slotFilter, onEditSlot, onEdit
                         ) : status ? (
                           <div className="space-y-1">
                             <div
-                              className={`text-white rounded px-2 py-1 text-xs ${
-                                status.type === 'dayoff'
-                                  ? 'bg-yellow-500'
-                                  : status.type === 'sick'
-                                  ? 'bg-purple-500'
-                                  : 'bg-orange-500'
-                              }`}
+                              className={`rounded px-2 py-1 text-xs font-semibold ${statusTone[status.type]}`}
                             >
                               {status.type === 'dayoff' ? 'Выходной' : status.type === 'sick' ? 'Больничный' : 'Отпуск'}
                             </div>
