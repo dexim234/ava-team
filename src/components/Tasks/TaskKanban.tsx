@@ -5,9 +5,10 @@ import { useAuthStore } from '@/store/authStore'
 import { useAdminStore } from '@/store/adminStore'
 import { updateTask } from '@/services/firestoreService'
 import { Task, TaskStatus, TASK_STATUSES, TEAM_MEMBERS } from '@/types'
-import { MoreVertical, CheckSquare, Check, X, RotateCcw } from 'lucide-react'
+import { CalendarClock, Check, CheckSquare, Clock3, MoreVertical, RotateCcw, X } from 'lucide-react'
 import { formatDate } from '@/utils/dateUtils'
 import { TaskDeadlineBadge } from './TaskDeadlineBadge'
+import { CATEGORY_ICONS } from './categoryIcons'
 
 interface TaskKanbanProps {
   tasks: Task[]
@@ -503,9 +504,15 @@ export const TaskKanban = ({ tasks, onUpdate, onEdit, onDelete }: TaskKanbanProp
                             )}
                           </div>
                           </div>
-                          <div className={`flex items-center gap-1 flex-wrap ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                            <span>📅 {formatDate(new Date(task.dueDate), 'dd.MM.yyyy')}</span>
-                            <span>🕐 {task.dueTime}</span>
+                          <div className={`flex items-center gap-2 flex-wrap ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                            <span className="inline-flex items-center gap-1">
+                              <CalendarClock className="w-3.5 h-3.5" />
+                              {formatDate(new Date(task.dueDate), 'dd.MM.yyyy')}
+                            </span>
+                            <span className="inline-flex items-center gap-1">
+                              <Clock3 className="w-3.5 h-3.5" />
+                              {task.dueTime}
+                            </span>
                             <TaskDeadlineBadge dueDate={task.dueDate} dueTime={task.dueTime} theme={theme} size="compact" />
                           </div>
                           {task.description && (
@@ -514,8 +521,11 @@ export const TaskKanban = ({ tasks, onUpdate, onEdit, onDelete }: TaskKanbanProp
                             </p>
                           )}
                           <div className="flex items-center gap-2 flex-wrap">
-                            <span className={`px-1.5 py-0.5 rounded text-xs ${getStatusColor(status)} ${getStatusTextColor(status)}`}>
-                              {task.category === 'trading' ? '📈' : task.category === 'learning' ? '📚' : task.category === 'technical' ? '⚙️' : task.category === 'stream' ? '📺' : task.category === 'research' ? '🔬' : task.category === 'organization' ? '📋' : '📋'}
+                            <span className={`px-1.5 py-0.5 rounded text-xs inline-flex items-center gap-1 ${getStatusColor(status)} ${getStatusTextColor(status)}`}>
+                              {(() => {
+                                const Icon = CATEGORY_ICONS[task.category]
+                                return <Icon className="w-3.5 h-3.5" />
+                              })()}
                             </span>
                           </div>
                         </div>

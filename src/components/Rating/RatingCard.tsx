@@ -28,10 +28,12 @@ export const RatingCard = ({ rating }: RatingCardProps) => {
   const color = getRatingColor(rating.rating)
   const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
   const mutedColor = theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-  const cardBg = theme === 'dark' ? 'bg-[#1a1a1a]' : 'bg-white'
-  const borderColor = theme === 'dark' ? 'border-gray-800' : 'border-gray-200'
-  const hoverBg = theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-50'
+  const cardBg = theme === 'dark' ? 'bg-[#0f0f0f]' : 'bg-white'
+  const borderColor = theme === 'dark' ? 'border-white/10' : 'border-gray-200'
+  const hoverBg = theme === 'dark' ? 'hover:bg-white/5' : 'hover:bg-gray-50'
+  const softSurface = theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'
   const barWidth = rating.rating <= 0 ? '4%' : `${Math.min(rating.rating, 100)}%`
+  const lastUpdatedDate = rating.lastUpdated ? new Date(rating.lastUpdated) : null
 
   const getRatingEmoji = (ratingValue: number): string => {
     if (ratingValue >= 81) return '🏆'
@@ -51,7 +53,7 @@ export const RatingCard = ({ rating }: RatingCardProps) => {
       maxPoints: 10,
       explanation: '0-2 выходных в неделю = 10% к рейтингу. Более 2 выходных = 0%. Показывает стабильность присутствия.',
       threshold: '0-2 дня',
-      color: 'bg-yellow-500'
+      color: 'bg-amber-200 text-amber-900'
     },
     {
       icon: <Heart className="w-5 h-5" />,
@@ -61,7 +63,7 @@ export const RatingCard = ({ rating }: RatingCardProps) => {
       maxPoints: 10,
       explanation: 'До 7 дней больничного в месяц = 10% к рейтингу. Более 7 дней = 0%. Учитывается за последние 30 дней.',
       threshold: '≤7 дней',
-      color: 'bg-purple-500'
+      color: 'bg-purple-200 text-purple-900'
     },
     {
       icon: <Plane className="w-5 h-5" />,
@@ -71,7 +73,7 @@ export const RatingCard = ({ rating }: RatingCardProps) => {
       maxPoints: 10,
       explanation: 'До 7 дней отпуска в месяц = 10% к рейтингу. Более 7 дней = 0%. Учитывается за последние 30 дней.',
       threshold: '≤7 дней',
-      color: 'bg-orange-500'
+      color: 'bg-orange-200 text-orange-900'
     },
     {
       icon: <Clock className="w-5 h-5" />,
@@ -81,7 +83,7 @@ export const RatingCard = ({ rating }: RatingCardProps) => {
       maxPoints: 25,
       explanation: '30+ часов в неделю = 25% к рейтингу. 20-29 часов = 15%. Менее 20 часов = 0%. Показывает объем работы за неделю.',
       threshold: '≥30ч: 25% | ≥20ч: 15%',
-      color: 'bg-blue-500'
+      color: 'bg-blue-200 text-blue-900'
     },
     {
       icon: <DollarSign className="w-5 h-5" />,
@@ -91,7 +93,7 @@ export const RatingCard = ({ rating }: RatingCardProps) => {
       maxPoints: 30,
       explanation: '6000+ ₽ в неделю = 30% к рейтингу. 3000-5999 ₽ = 15%. Менее 3000 ₽ = 0%. Основной показатель эффективности.',
       threshold: '≥6000₽: 30% | ≥3000₽: 15%',
-      color: 'bg-[#4E6E49]'
+      color: 'bg-emerald-200 text-emerald-900'
     },
     {
       icon: <Users className="w-5 h-5" />,
@@ -101,7 +103,7 @@ export const RatingCard = ({ rating }: RatingCardProps) => {
       maxPoints: 30,
       explanation: '5% к рейтингу за каждого реферала. Максимум 30% (6 рефералов). Учитываются за последние 30 дней. Показывает активность по привлечению новых участников.',
       threshold: '5% за каждого (макс 30%)',
-      color: 'bg-pink-500'
+      color: 'bg-pink-200 text-pink-900'
     },
     {
       icon: <MessageSquare className="w-5 h-5" />,
@@ -111,38 +113,45 @@ export const RatingCard = ({ rating }: RatingCardProps) => {
       maxPoints: 15,
       explanation: 'Более 50 сообщений в неделю в группе = 15% к рейтингу. Менее 50 = 0%. Учитываются все типы сообщений (текст, фото, стикеры и т.д.). Показывает активность в общении.',
       threshold: '>50 сообщений',
-      color: 'bg-indigo-500'
+      color: 'bg-indigo-200 text-indigo-900'
     }
   ] : []
 
   const totalPoints = metrics.reduce((sum, m) => sum + m.points, 0)
 
   return (
-    <div className={`rounded-xl p-6 ${cardBg} shadow-lg border ${borderColor} transition-all hover:shadow-xl`}>
+    <div className={`rounded-2xl p-6 ${cardBg} shadow-md border ${borderColor} transition-colors`}>
       {/* Header with name and rating */}
-      <div className="mb-6">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h3 className={`text-2xl font-bold mb-1 ${headingColor}`}>{member?.name || 'Неизвестно'}</h3>
-            <div className="flex items-center gap-2">
+      <div className="mb-5 flex flex-col gap-3">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className={`text-[11px] uppercase tracking-[0.12em] ${mutedColor}`}>Участник</p>
+            <h3 className={`text-2xl font-bold ${headingColor} truncate`}>{member?.name || 'Неизвестно'}</h3>
+            <div className="flex items-center gap-2 mt-1">
               <span className={`text-lg font-bold`} style={{ color }}>{rating.rating.toFixed(1)}%</span>
-              <span className="text-2xl">{getRatingEmoji(rating.rating)}</span>
+              <span className="text-xl">{getRatingEmoji(rating.rating)}</span>
             </div>
+          </div>
+          <div className={`px-3 py-2 rounded-lg text-xs font-semibold ${softSurface} border ${borderColor}`}>
+            Последнее обновление<br />
+            <span className={`${mutedColor}`}>
+              {lastUpdatedDate ? lastUpdatedDate.toLocaleDateString('ru-RU') : '—'}
+            </span>
           </div>
         </div>
 
         {/* Main rating progress bar */}
-        <div className="mb-2">
-          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-8 overflow-hidden shadow-inner">
+        <div>
+          <div className="w-full bg-gray-200 dark:bg-gray-800 rounded-full h-6 overflow-hidden shadow-inner">
             <div
-              className="h-full transition-all duration-500 flex items-center justify-center text-sm font-bold text-white shadow-md"
+              className="h-full transition-all duration-500 flex items-center justify-center text-sm font-semibold text-white"
               style={{
                 width: barWidth,
                 backgroundColor: color,
                 minWidth: rating.rating <= 0 ? '40px' : undefined,
               }}
             >
-              {rating.rating >= 10 && <span>{rating.rating.toFixed(0)}%</span>}
+              {rating.rating >= 8 && <span>{rating.rating.toFixed(0)}%</span>}
             </div>
           </div>
           <div className="flex justify-between mt-1">
@@ -174,7 +183,7 @@ export const RatingCard = ({ rating }: RatingCardProps) => {
                   className={`w-full p-4 flex items-center justify-between ${hoverBg} transition-colors`}
                 >
                   <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <div className={`p-2 rounded-lg ${metric.color} text-white flex-shrink-0`}>
+                    <div className={`p-2 rounded-lg ${metric.color} flex-shrink-0`}>
                       {metric.icon}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -184,7 +193,7 @@ export const RatingCard = ({ rating }: RatingCardProps) => {
                           {metric.points}/{metric.maxPoints}
                         </span>
                       </div>
-                      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
+                      <div className="w-full bg-gray-200 dark:bg-gray-800 rounded-full h-2 overflow-hidden">
                         <div
                           className={`h-full transition-all duration-300 ${metric.color}`}
                           style={{ width: `${percentage}%` }}
@@ -200,7 +209,7 @@ export const RatingCard = ({ rating }: RatingCardProps) => {
                 </button>
                 
                 {isExpanded && (
-                  <div className={`px-4 pb-4 pt-2 border-t ${borderColor} ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'}`}>
+                  <div className={`px-4 pb-4 pt-2 border-t ${borderColor} ${softSurface}`}>
                     <p className={`text-sm ${mutedColor} leading-relaxed`}>
                       {metric.explanation}
                     </p>
@@ -216,11 +225,11 @@ export const RatingCard = ({ rating }: RatingCardProps) => {
       <div className={`pt-4 border-t ${borderColor}`}>
         <h4 className={`text-sm font-semibold mb-3 ${headingColor}`}>Дополнительная статистика</h4>
         <div className="grid grid-cols-2 gap-3 text-sm">
-          <div className={`p-3 rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'}`}>
+          <div className={`p-3 rounded-lg ${softSurface}`}>
             <div className={`text-xs ${mutedColor} mb-1`}>Заработок (месяц)</div>
             <div className={`text-lg font-bold ${headingColor}`}>{rating.earnings.toFixed(0)} ₽</div>
           </div>
-          <div className={`p-3 rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'}`}>
+          <div className={`p-3 rounded-lg ${softSurface}`}>
             <div className={`text-xs ${mutedColor} mb-1`}>В пул</div>
             <div className={`text-lg font-bold ${headingColor}`}>{rating.poolAmount.toFixed(0)} ₽</div>
           </div>

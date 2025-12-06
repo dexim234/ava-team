@@ -5,9 +5,25 @@ import { useAdminStore } from '@/store/adminStore'
 import { useThemeStore } from '@/store/themeStore'
 import { updateTask } from '@/services/firestoreService'
 import { Task, TaskStatus, TEAM_MEMBERS, TASK_CATEGORIES, TASK_STATUSES } from '@/types'
-import { Edit, Trash2, CheckCircle2, Clock, XCircle, User, Users, Calendar, AlertCircle, Check, X } from 'lucide-react'
+import {
+  AlertCircle,
+  Calendar,
+  Check,
+  CheckCircle2,
+  Clock,
+  Edit,
+  Feather,
+  Flame,
+  Radio,
+  Trash2,
+  User,
+  Users,
+  X,
+  XCircle,
+} from 'lucide-react'
 import { formatDate } from '@/utils/dateUtils'
 import { TaskDeadlineBadge } from './TaskDeadlineBadge'
+import { CATEGORY_ICONS } from './categoryIcons'
 
 interface TaskCardProps {
   task: Task
@@ -31,6 +47,7 @@ export const TaskCard = ({ task, onEdit, onDelete, onUpdate }: TaskCardProps) =>
   
   const categoryInfo = TASK_CATEGORIES[task.category]
   const statusInfo = TASK_STATUSES[task.status]
+  const CategoryIcon = CATEGORY_ICONS[task.category]
   const createdByUser = TEAM_MEMBERS.find((m) => m.id === task.createdBy)
   const assignees =
     task.assignees && task.assignees.length > 0
@@ -222,16 +239,18 @@ export const TaskCard = ({ task, onEdit, onDelete, onUpdate }: TaskCardProps) =>
             </div>
             <div className="flex flex-wrap items-center gap-2 sm:gap-3">
               {/* Category */}
-              <span className={`px-2.5 py-1 rounded-lg text-xs sm:text-sm font-medium ${getCategoryColor().bg} ${getCategoryColor().text}`}>
-                {categoryInfo.icon} {categoryInfo.label}
+              <span className={`px-2.5 py-1 rounded-lg text-xs sm:text-sm font-medium ${getCategoryColor().bg} ${getCategoryColor().text} inline-flex items-center gap-1.5`}>
+                <CategoryIcon className="w-4 h-4" />
+                {categoryInfo.label}
               </span>
               {/* Status */}
               <span className={`px-2.5 py-1 rounded-lg text-xs sm:text-sm font-medium border ${getStatusColor()}`}>
                 {statusInfo.label}
               </span>
               {/* Priority */}
-              <span className={`text-xs sm:text-sm font-medium ${getPriorityColor()}`}>
-                {task.priority === 'high' ? '🔴 Высокий' : task.priority === 'medium' ? '🟡 Средний' : '🟢 Низкий'}
+              <span className={`text-xs sm:text-sm font-medium inline-flex items-center gap-1.5 ${getPriorityColor()}`}>
+                {task.priority === 'high' ? <Flame className="w-4 h-4" /> : task.priority === 'medium' ? <Radio className="w-4 h-4" /> : <Feather className="w-4 h-4" />}
+                {task.priority === 'high' ? 'Высокий' : task.priority === 'medium' ? 'Средний' : 'Низкий'}
               </span>
             </div>
           </div>

@@ -9,7 +9,7 @@ import { TaskFilters } from '@/components/Tasks/TaskFilters'
 import { TaskKanban } from '@/components/Tasks/TaskKanban'
 import { getTasks, deleteTask } from '@/services/firestoreService'
 import { Task, TaskCategory, TaskStatus } from '@/types'
-import { Plus, CheckSquare, Sparkles, List, LayoutGrid } from 'lucide-react'
+import { BarChart3, CheckSquare, LayoutGrid, List, PieChart, Plus, Sparkles } from 'lucide-react'
 import { Link as RouterLink } from 'react-router-dom'
 
 export const Tasks = () => {
@@ -107,6 +107,10 @@ export const Tasks = () => {
   }
 
   const myTasksCount = user ? tasks.filter(t => t.assignedTo?.includes(user.id)).length : 0
+  const totalTasks = tasks.length
+  const completionRate = totalTasks ? Math.round(((stats.completed + stats.closed) / totalTasks) * 100) : 0
+  const workRate = totalTasks ? Math.round((stats.inProgress / totalTasks) * 100) : 0
+  const pendingRate = totalTasks ? Math.round((stats.pending / totalTasks) * 100) : 0
 
   return (
     <Layout>
@@ -158,62 +162,67 @@ export const Tasks = () => {
             </div>
 
             {/* Stats */}
-            <div id="tasks-stats" className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-              <div className={`p-3 sm:p-4 rounded-lg border-2 ${
-                theme === 'dark'
-                  ? 'bg-yellow-500/10 border-yellow-500/30'
-                  : 'bg-yellow-50 border-yellow-200'
-              }`}>
-                <div className={`text-xs sm:text-sm font-medium mb-1 ${
-                  theme === 'dark' ? 'text-yellow-400' : 'text-yellow-700'
-                }`}>
-                  На согласовании
+            <div id="tasks-stats" className="grid grid-cols-1 lg:grid-cols-[1.6fr_1fr] gap-4 sm:gap-5">
+              {/* Progress board */}
+              <div className={`rounded-xl border-2 p-4 sm:p-5 ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-green-100 bg-white/80'} backdrop-blur`}>
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <p className={`text-xs uppercase tracking-wide font-semibold ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Состояние пайплайна</p>
+                    <p className={`text-2xl sm:text-3xl font-extrabold ${headingColor}`}>{completionRate}% завершено</p>
+                  </div>
+                  <div className={`p-3 rounded-lg ${theme === 'dark' ? 'bg-emerald-500/10 border border-emerald-500/40' : 'bg-emerald-50 border border-emerald-200'}`}>
+                    <PieChart className={`w-6 h-6 ${theme === 'dark' ? 'text-emerald-200' : 'text-emerald-700'}`} />
+                  </div>
                 </div>
-                <div className={`text-xl sm:text-2xl font-bold ${headingColor}`}>
-                  {stats.pending}
-                </div>
-              </div>
-              <div className={`p-3 sm:p-4 rounded-lg border-2 ${
-                theme === 'dark'
-                  ? 'bg-blue-500/10 border-blue-500/30'
-                  : 'bg-blue-50 border-blue-200'
-              }`}>
-                <div className={`text-xs sm:text-sm font-medium mb-1 ${
-                  theme === 'dark' ? 'text-blue-400' : 'text-blue-700'
-                }`}>
-                  В работе
-                </div>
-                <div className={`text-xl sm:text-2xl font-bold ${headingColor}`}>
-                  {stats.inProgress}
-                </div>
-              </div>
-              <div className={`p-3 sm:p-4 rounded-lg border-2 ${
-                theme === 'dark'
-                  ? 'bg-[#4E6E49]/10 border-[#4E6E49]/30'
-                  : 'bg-green-50 border-green-200'
-              }`}>
-                <div className={`text-xs sm:text-sm font-medium mb-1 ${
-                  theme === 'dark' ? 'text-[#4E6E49]' : 'text-[#4E6E49]'
-                }`}>
-                  Выполнена
-                </div>
-                <div className={`text-xl sm:text-2xl font-bold ${headingColor}`}>
-                  {stats.completed}
+                <div className="space-y-3">
+                  {[
+                    { label: 'На согласовании', value: stats.pending, rate: pendingRate, color: 'bg-amber-500', tint: 'bg-amber-500/15' },
+                    { label: 'В работе', value: stats.inProgress, rate: workRate, color: 'bg-sky-500', tint: 'bg-sky-500/15' },
+                    { label: 'Выполнена', value: stats.completed, rate: completionRate, color: 'bg-emerald-500', tint: 'bg-emerald-500/15' },
+                  ].map((row) => (
+                    <div key={row.label} className="space-y-1">
+                      <div className="flex items-center justify-between text-sm font-semibold">
+                        <span className={headingColor}>{row.label}</span>
+                        <span className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>
+                          {row.value} · {row.rate}%
+                        </span>
+                      </div>
+                      <div className={`h-2 rounded-full ${row.tint}`}>
+                        <div
+                          className={`h-full rounded-full ${row.color}`}
+                          style={{ width: `${Math.min(row.rate, 100)}%` }}
+                        />
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
-              <div className={`p-3 sm:p-4 rounded-lg border-2 ${
-                theme === 'dark'
-                  ? 'bg-gray-500/10 border-gray-500/30'
-                  : 'bg-gray-50 border-gray-200'
-              }`}>
-                <div className={`text-xs sm:text-sm font-medium mb-1 ${
-                  theme === 'dark' ? 'text-gray-400' : 'text-gray-700'
-                }`}>
-                  Закрыта
-                </div>
-                <div className={`text-xl sm:text-2xl font-bold ${headingColor}`}>
-                  {stats.closed}
-                </div>
+
+              {/* Compact stats */}
+              <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                {[
+                  { label: 'Всего задач', value: totalTasks, icon: <BarChart3 className="w-5 h-5" />, tone: 'emerald' },
+                  { label: 'В работе', value: stats.inProgress, icon: <List className="w-5 h-5" />, tone: 'sky' },
+                  { label: 'На согласовании', value: stats.pending, icon: <Sparkles className="w-5 h-5" />, tone: 'amber' },
+                  { label: 'Закрыта', value: stats.closed, icon: <CheckSquare className="w-5 h-5" />, tone: 'slate' },
+                ].map((card) => {
+                  const toneMap: Record<string, { bg: string; text: string; border: string }> = {
+                    emerald: { bg: theme === 'dark' ? 'bg-emerald-500/10' : 'bg-emerald-50', text: theme === 'dark' ? 'text-emerald-200' : 'text-emerald-700', border: theme === 'dark' ? 'border-emerald-500/30' : 'border-emerald-200' },
+                    sky: { bg: theme === 'dark' ? 'bg-sky-500/10' : 'bg-sky-50', text: theme === 'dark' ? 'text-sky-200' : 'text-sky-700', border: theme === 'dark' ? 'border-sky-500/30' : 'border-sky-200' },
+                    amber: { bg: theme === 'dark' ? 'bg-amber-500/10' : 'bg-amber-50', text: theme === 'dark' ? 'text-amber-200' : 'text-amber-700', border: theme === 'dark' ? 'border-amber-500/30' : 'border-amber-200' },
+                    slate: { bg: theme === 'dark' ? 'bg-gray-500/10' : 'bg-gray-50', text: theme === 'dark' ? 'text-gray-200' : 'text-gray-700', border: theme === 'dark' ? 'border-gray-500/30' : 'border-gray-200' },
+                  }
+                  const tone = toneMap[card.tone]
+                  return (
+                    <div key={card.label} className={`p-3 sm:p-4 rounded-xl border ${tone.border} ${tone.bg} space-y-2`}>
+                      <div className="flex items-center justify-between">
+                        <span className={`text-xs font-semibold uppercase ${tone.text}`}>{card.label}</span>
+                        <span className={tone.text}>{card.icon}</span>
+                      </div>
+                      <p className={`text-2xl font-extrabold ${headingColor}`}>{card.value}</p>
+                    </div>
+                  )
+                })}
               </div>
             </div>
 

@@ -167,12 +167,12 @@ export const TEAM_MEMBERS: User[] = [
 ]
 
 export const TASK_CATEGORIES: Record<TaskCategory, { label: string; icon: string; color: string }> = {
-  trading: { label: 'Торговля', icon: '📈', color: 'green' },
-  learning: { label: 'Обучение', icon: '📚', color: 'blue' },
-  technical: { label: 'Техническая часть', icon: '⚙️', color: 'purple' },
-  stream: { label: 'Стрим', icon: '📺', color: 'red' },
-  research: { label: 'Изучение нового', icon: '🔬', color: 'yellow' },
-  organization: { label: 'Поиск и систематизация информации', icon: '📋', color: 'indigo' },
+  trading: { label: 'Торговля', icon: 'candles', color: 'green' },
+  learning: { label: 'Обучение', icon: 'book', color: 'blue' },
+  technical: { label: 'Техническая часть', icon: 'cpu', color: 'purple' },
+  stream: { label: 'Стрим', icon: 'broadcast', color: 'red' },
+  research: { label: 'Изучение нового', icon: 'flask', color: 'yellow' },
+  organization: { label: 'Поиск и систематизация информации', icon: 'clipboard', color: 'indigo' },
 }
 
 export const TASK_STATUSES: Record<TaskStatus, { label: string; color: string }> = {

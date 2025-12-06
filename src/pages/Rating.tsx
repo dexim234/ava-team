@@ -143,7 +143,21 @@ export const Rating = () => {
   const teamKPD = ratings.reduce((sum, r) => sum + r.rating, 0) / (ratings.length || 1)
   const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
   const subTextColor = theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-  const cardBg = theme === 'dark' ? 'bg-[#1a1a1a]' : 'bg-white'
+  const cardBg = theme === 'dark' ? 'bg-[#111]' : 'bg-white'
+  const calmBorder = theme === 'dark' ? 'border-white/10' : 'border-gray-200'
+
+  const sectionLinks = [
+    { href: '#rating-team', label: 'Команда', icon: '🌿' },
+    { href: '#rating-ref', label: 'Рефералы', icon: '🧲' },
+    { href: '#rating-method', label: 'Карточки', icon: '📇' },
+  ]
+
+  const ratingBands = [
+    { label: '80-100%', title: 'Эталон', desc: 'Стабильный вклад, примеры для команды', tone: 'text-emerald-700 dark:text-emerald-100', bg: 'bg-emerald-50 dark:bg-emerald-900/40 border-emerald-200/60 dark:border-emerald-700/60' },
+    { label: '60-79%', title: 'Уверенно', desc: 'Держат темп, есть потенциал роста', tone: 'text-blue-700 dark:text-blue-100', bg: 'bg-blue-50 dark:bg-blue-900/40 border-blue-200/60 dark:border-blue-700/60' },
+    { label: '40-59%', title: 'В пути', desc: 'Нужна точечная поддержка и фокус', tone: 'text-amber-700 dark:text-amber-100', bg: 'bg-amber-50 dark:bg-amber-900/40 border-amber-200/60 dark:border-amber-700/60' },
+    { label: '0-39%', title: 'Зона роста', desc: 'Запускаем план восстановления', tone: 'text-rose-700 dark:text-rose-100', bg: 'bg-rose-50 dark:bg-rose-900/40 border-rose-200/60 dark:border-rose-700/60' },
+  ]
 
   const sortedRatings = useMemo(() => {
     const arr = [...ratings]
@@ -152,6 +166,17 @@ export const Rating = () => {
     }
     return arr.sort((a, b) => b.rating - a.rating)
   }, [ratings, sortMode])
+
+  const ratingOverview = useMemo(() => {
+    if (!ratings.length) {
+      return { top: 0, median: 0, count: 0, high: 0 }
+    }
+    const sorted = [...ratings].sort((a, b) => b.rating - a.rating)
+    const top = sorted[0]?.rating || 0
+    const median = sorted[Math.floor((sorted.length - 1) / 2)]?.rating || top
+    const high = sorted.filter((r) => r.rating >= 80).length
+    return { top, median, count: sorted.length, high }
+  }, [ratings])
 
   const handleAddReferral = () => {
     setActiveReferral(null)
@@ -167,78 +192,95 @@ export const Rating = () => {
     <Layout>
       <div className="space-y-6">
         {/* Header */}
-        <div className={`rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8 ${cardBg} shadow-xl border-2 ${
-          theme === 'dark' 
-            ? 'border-blue-500/30 bg-gradient-to-br from-[#1a1a1a] via-[#1a1a1a] to-[#0A0A0A]' 
-            : 'border-blue-200 bg-gradient-to-br from-white via-blue-50/30 to-white'
-        } relative overflow-hidden`}>
-          {/* Decorative elements */}
-          <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-full blur-3xl -mr-32 -mt-32" />
-          <div className="absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-tr from-[#4E6E49]/10 to-yellow-500/10 rounded-full blur-2xl -ml-24 -mb-24" />
-          
-          <div className="relative z-10">
-            <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
-              <div className="flex-1 space-y-4">
-                <div className="flex items-center gap-3 sm:gap-4">
-                  <div
-                    className={`p-3 sm:p-4 rounded-xl sm:rounded-2xl shadow-lg ${
-                      theme === 'dark'
-                        ? 'bg-gradient-to-br from-blue-600 to-purple-600'
-                        : 'bg-gradient-to-br from-blue-500 to-purple-500'
-                    } text-white transform transition-transform active:scale-95 sm:hover:scale-110`}
-                  >
-                    <span className="text-2xl sm:text-3xl md:text-4xl">🏆</span>
-                  </div>
-                  <div className="flex-1">
-                    <h1
-                      className={`text-2xl sm:text-3xl md:text-4xl font-extrabold ${headingColor} flex items-center gap-2 sm:gap-3`}
-                    >
-                      <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 text-transparent bg-clip-text">
-                        Рейтинг участников
-                      </span>
-                      <span className="text-xl sm:text-2xl">⭐</span>
-                    </h1>
-                  </div>
+        <div
+          className={`rounded-2xl p-6 sm:p-8 ${cardBg} shadow-xl border ${calmBorder} relative overflow-hidden`}
+        >
+          <div className="absolute inset-0 opacity-60 pointer-events-none">
+            <div className="absolute -right-24 -top-24 h-72 w-72 bg-gradient-to-br from-emerald-400/10 via-blue-300/10 to-purple-300/10 blur-3xl" />
+            <div className="absolute -left-24 -bottom-24 h-64 w-64 bg-gradient-to-tr from-emerald-500/10 to-yellow-300/10 blur-3xl" />
+          </div>
+
+          <div className="relative z-10 space-y-6">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+              <div className="space-y-3 max-w-3xl">
+                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.15em] text-emerald-600 dark:text-emerald-300">
+                  <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                  Рейтинг команды
                 </div>
-                <p className={`text-sm sm:text-base font-medium ${subTextColor}`}>
-                  Система оценки эффективности команды на основе ключевых метрик
+                <h1 className={`text-3xl sm:text-4xl font-extrabold ${headingColor}`}>
+                  Спокойный обзор эффективности без визуального шума
+                </h1>
+                <p className={`text-sm sm:text-base leading-relaxed ${subTextColor}`}>
+                  7 ключевых метрик отражают вовлеченность, стабильность и вклад каждого. 
+                  Все показатели обновляются автоматически — раздел остался информативным, но стал спокойнее и понятнее.
                 </p>
-                <div className="flex flex-wrap gap-2">
-                  {[
-                    { href: '#rating-team', label: 'Команда' },
-                    { href: '#rating-ref', label: 'Рефералы' },
-                    { href: '#rating-method', label: 'Методика' },
-                  ].map((item) => (
-                    <a
-                      key={item.href}
-                      href={item.href}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition ${
-                        theme === 'dark'
-                          ? 'border-white/10 bg-white/5 text-white hover:border-blue-400/50'
-                          : 'border-gray-200 bg-white text-gray-800 hover:border-blue-400 hover:text-blue-700'
-                      }`}
-                    >
-                      {item.label}
-                    </a>
-                  ))}
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 w-full lg:w-auto">
+                {[
+                  { label: 'Топ-1', value: `${ratingOverview.top.toFixed(1)}%`, note: 'лидер недели' },
+                  { label: 'Медиана', value: `${ratingOverview.median.toFixed(1)}%`, note: 'ровный темп' },
+                  { label: '80%+', value: ratingOverview.high, note: 'устойчивые лидеры' },
+                ].map((item) => (
+                  <div
+                    key={item.label}
+                    className={`rounded-xl border ${calmBorder} ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'} p-3 flex flex-col gap-1`}
+                  >
+                    <span className={`text-[11px] uppercase tracking-wide ${subTextColor}`}>{item.label}</span>
+                    <span className={`text-2xl font-extrabold ${headingColor}`}>{item.value}</span>
+                    <span className={`text-xs ${subTextColor}`}>{item.note}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              {sectionLinks.map((item) => (
+                <a
+                  key={item.href}
+                  href={item.href}
+                  className={`px-3 py-2 rounded-full text-sm font-semibold border ${calmBorder} transition flex items-center gap-2 ${
+                    theme === 'dark'
+                      ? 'bg-white/5 hover:bg-white/10 text-white'
+                      : 'bg-white hover:bg-gray-50 text-gray-800'
+                  }`}
+                >
+                  <span>{item.icon}</span>
+                  {item.label}
+                </a>
+              ))}
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
+              {ratingBands.map((band) => (
+                <div
+                  key={band.label}
+                  className={`rounded-xl border ${band.bg} p-3 transition`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className={`text-xs font-semibold ${subTextColor}`}>{band.label}</span>
+                    <span className="text-lg">•</span>
+                  </div>
+                  <p className={`text-base font-semibold ${band.tone}`}>{band.title}</p>
+                  <p className={`text-sm ${subTextColor}`}>{band.desc}</p>
                 </div>
-                <div className={`p-5 rounded-xl border-2 ${
-                  theme === 'dark' 
-                    ? 'bg-[#1a1a1a]/50 border-blue-500/20' 
-                    : 'bg-blue-50/50 border-blue-200'
-                } mb-4`}>
-                  <p className={`text-sm leading-relaxed ${subTextColor}`}>
-                    Рейтинг рассчитывается на основе <strong className={headingColor}>7 параметров</strong>: 
-                    выходные, больничные, отпуск (за месяц), часы работы, заработок, рефералы и сообщения в группе (за неделю). 
-                    Каждый параметр дает определенное количество баллов. 
-                    <strong className={headingColor}> Максимальный рейтинг - 100%</strong>. 
-                    Рейтинг обновляется автоматически при изменении данных.
-                  </p>
-                </div>
+              ))}
+            </div>
+
+            <div className="flex flex-col md:flex-row gap-3 md:items-center md:justify-between">
+              <div className={`flex flex-wrap gap-2 text-xs ${subTextColor}`}>
+                {['Выходные','Больничные','Отпуск','Часы','Заработок','Рефералы','Сообщения'].map((item) => (
+                  <span
+                    key={item}
+                    className={`px-3 py-1 rounded-full border ${calmBorder} ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'}`}
+                  >
+                    {item}
+                  </span>
+                ))}
               </div>
               <button
                 onClick={handleAddReferral}
-                className={`w-full lg:w-auto px-6 py-4 bg-gradient-to-r from-[#4E6E49] to-[#4E6E49] hover:from-[#4E6E49] hover:to-[#4E6E49] text-white rounded-xl transition-all duration-200 flex items-center justify-center gap-2 font-semibold shadow-lg hover:shadow-xl hover:scale-105 transform`}
+                className="px-4 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl transition-all duration-200 flex items-center justify-center gap-2 font-semibold shadow-md w-full md:w-auto"
               >
                 <span className="text-xl">➕</span>
                 <span>Добавить реферала</span>
@@ -248,273 +290,213 @@ export const Rating = () => {
         </div>
 
         {/* Team KPD */}
-        <div id="rating-team" className={`rounded-2xl p-8 ${cardBg} shadow-xl border-2 ${
-          theme === 'dark' 
-            ? 'border-[#4E6E49]/30 bg-gradient-to-br from-[#1a1a1a] to-[#0A0A0A]' 
-            : 'border-green-200 bg-gradient-to-br from-white to-green-50/20'
-        } relative overflow-hidden`}>
-          {/* Decorative background */}
-          <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-[#4E6E49]/10 to-emerald-700/10 rounded-full blur-2xl -mr-20 -mt-20" />
-          
-          <div className="relative z-10">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-6 mb-6">
-              <div className={`p-4 rounded-2xl shadow-lg ${
-                theme === 'dark' 
-                  ? 'bg-gradient-to-br from-[#4E6E49] to-emerald-700' 
-                  : 'bg-gradient-to-br from-[#4E6E49] to-emerald-700'
-              } text-white flex-shrink-0`}>
-                <span className="text-3xl">📊</span>
-              </div>
-              <div className="flex-1">
-                <h3 className={`text-2xl font-extrabold mb-2 ${headingColor} flex items-center gap-2`}>
-                  <span className="bg-gradient-to-r from-[#4E6E49] to-emerald-700 text-transparent bg-clip-text">
-                    Средний КПД команды
-                  </span>
-                </h3>
-                <p className={`text-sm ${subTextColor} font-medium`}>
-                  Средний рейтинг всех участников команды за текущий период
-                </p>
-              </div>
-              <div className="text-center sm:text-right">
-                <div className={`text-5xl font-extrabold mb-1 ${
-                  theme === 'dark' 
-                    ? 'text-transparent bg-clip-text bg-gradient-to-r from-[#4E6E49] to-emerald-500' 
-                    : 'text-transparent bg-clip-text bg-gradient-to-r from-[#4E6E49] to-emerald-700'
-                }`}>
-                  {teamKPD.toFixed(1)}%
-                </div>
-                <p className={`text-xs ${subTextColor}`}>из 100%</p>
-              </div>
+        <div
+          id="rating-team"
+          className={`rounded-2xl p-6 sm:p-7 ${cardBg} shadow-lg border ${calmBorder}`}
+        >
+          <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+            <div className="space-y-2">
+              <p className={`text-xs uppercase tracking-[0.12em] ${subTextColor}`}>Команда</p>
+              <h3 className={`text-2xl font-bold ${headingColor}`}>Средний КПД за неделю</h3>
+              <p className={`text-sm ${subTextColor}`}>
+                Плавный прогресс-бар показывает динамику без лишнего визуального шума.
+              </p>
             </div>
-            <div className="flex items-center gap-4">
-              <div className="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-12 overflow-hidden shadow-inner border-2 border-gray-300 dark:border-gray-800">
-                <div
-                  className={`h-full bg-gradient-to-r ${
-                    teamKPD >= 80 
-                      ? 'from-[#4E6E49] to-emerald-700' 
-                      : teamKPD >= 50
-                      ? 'from-yellow-500 to-orange-500'
-                      : 'from-blue-500 to-purple-500'
-                  } transition-all duration-500 flex items-center justify-center shadow-lg`}
-                  style={{ width: `${Math.min(teamKPD, 100)}%` }}
-                >
-                  {teamKPD >= 10 && (
-                    <span className="text-white text-sm font-bold px-3">
-                      {teamKPD.toFixed(1)}%
-                    </span>
-                  )}
-                </div>
+            <div className="text-right">
+              <div className="text-5xl font-extrabold text-emerald-600 dark:text-emerald-300">{teamKPD.toFixed(1)}%</div>
+              <p className={`text-xs ${subTextColor}`}>из 100%</p>
+            </div>
+          </div>
+          <div className="mt-6">
+            <div className="w-full bg-gray-200 dark:bg-gray-800 rounded-full h-10 overflow-hidden border border-gray-200 dark:border-gray-700 shadow-inner">
+              <div
+                className={`h-full transition-all duration-500 flex items-center px-3 text-sm font-semibold text-white ${
+                  teamKPD >= 80
+                    ? 'bg-emerald-600'
+                    : teamKPD >= 50
+                    ? 'bg-amber-500'
+                    : 'bg-blue-500'
+                }`}
+                style={{ width: `${Math.min(teamKPD, 100)}%` }}
+              >
+                {teamKPD >= 5 && <span>{teamKPD.toFixed(1)}%</span>}
               </div>
             </div>
           </div>
         </div>
 
         {/* Referral stats */}
-        <div id="rating-ref" className={`rounded-2xl p-8 ${cardBg} shadow-xl border-2 ${
-          theme === 'dark' 
-            ? 'border-pink-500/30 bg-gradient-to-br from-[#1a1a1a] to-[#0A0A0A]' 
-            : 'border-pink-200 bg-gradient-to-br from-white to-pink-50/20'
-        } relative overflow-hidden`}>
-          {/* Decorative background */}
-          <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-pink-500/10 to-rose-500/10 rounded-full blur-2xl -mr-20 -mt-20" />
-          
-          <div className="relative z-10">
-            <div className="flex items-center gap-4 mb-6">
-              <div className={`p-4 rounded-2xl shadow-lg ${
-                theme === 'dark' 
-                  ? 'bg-gradient-to-br from-pink-600 to-rose-600' 
-                  : 'bg-gradient-to-br from-pink-500 to-rose-500'
-              } text-white flex-shrink-0`}>
-                <span className="text-3xl">👥</span>
-              </div>
-              <div className="flex-1">
-                <h3 className={`text-2xl font-extrabold mb-2 ${headingColor} flex items-center gap-2`}>
-                  <span className="bg-gradient-to-r from-pink-600 to-rose-600 text-transparent bg-clip-text">
-                    Рефералы за 30 дней
-                  </span>
-                </h3>
-                <p className={`text-sm ${subTextColor} font-medium`}>
-                  Всего добавлено: <strong className={`text-lg ${headingColor}`}>{referrals.length}</strong> рефералов
-                </p>
-              </div>
+        <div
+          id="rating-ref"
+          className={`rounded-2xl p-6 sm:p-7 ${cardBg} shadow-lg border ${calmBorder}`}
+        >
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
+            <div className="space-y-1">
+              <p className={`text-xs uppercase tracking-[0.12em] ${subTextColor}`}>Рефералы · 30 дней</p>
+              <h3 className={`text-2xl font-bold ${headingColor}`}>Привлеченные участники</h3>
+              <p className={`text-sm ${subTextColor}`}>Всего добавлено: <span className="font-semibold">{referrals.length}</span></p>
             </div>
-            <div className="grid gap-4 md:grid-cols-2">
-              {TEAM_MEMBERS.map((member) => {
-                const memberRefs = referrals.filter((referral) => referral.ownerId === member.id)
-                return (
-                  <div
-                    key={member.id}
-                    className={`p-4 rounded-lg border ${theme === 'dark' ? 'border-gray-800' : 'border-gray-200'} ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'}`}
-                  >
-                    <div className="flex items-center justify-between mb-3">
-                      <span className={`${headingColor} font-semibold`}>{member.name}</span>
-                      <span className={`px-3 py-1 rounded-full text-sm font-bold ${
-                        memberRefs.length > 0 
-                          ? theme === 'dark' ? 'bg-pink-600 text-white' : 'bg-pink-100 text-pink-700'
-                          : theme === 'dark' ? 'bg-gray-700 text-gray-400' : 'bg-gray-200 text-gray-600'
-                      }`}>
-                        {memberRefs.length} {memberRefs.length === 1 ? 'реферал' : memberRefs.length < 5 ? 'реферала' : 'рефералов'}
-                      </span>
-                    </div>
-                    {memberRefs.length > 0 && (
-                      <div className="space-y-2">
-                        {memberRefs.map((referral) => (
-                          <div
-                            key={referral.id}
-                            className={`rounded-lg border ${theme === 'dark' ? 'border-gray-800' : 'border-gray-300'} p-3 ${theme === 'dark' ? 'bg-[#1a1a1a]' : 'bg-white'} flex flex-col gap-2 transition-all hover:shadow-md`}
-                          >
-                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                              <div className="flex-1">
-                                <p className={`text-sm font-semibold ${headingColor} mb-1`}>
-                                  {referral.name}
-                                </p>
-                                <div className="flex flex-wrap gap-2 text-xs">
-                                  <span className={`px-2 py-1 rounded ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100'} ${subTextColor}`}>
-                                    ID: {referral.referralId}
-                                  </span>
-                                  {referral.age && (
-                                    <span className={`px-2 py-1 rounded ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100'} ${subTextColor}`}>
-                                      Возраст: {referral.age}
-                                    </span>
-                                  )}
-                                  <span className={`px-2 py-1 rounded ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100'} ${subTextColor}`}>
-                                    {new Date(referral.createdAt).toLocaleDateString('ru-RU')}
-                                  </span>
-                                </div>
-                              </div>
-                              <button
-                                onClick={() => handleEditReferral(referral)}
-                                className="self-start sm:self-auto px-3 py-1.5 text-sm bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors font-medium"
-                              >
-                                Редактировать
-                              </button>
-                            </div>
-                            {referral.comment && (
-                              <div className={`mt-2 pt-2 border-t ${theme === 'dark' ? 'border-gray-800' : 'border-gray-200'}`}>
-                                <p className={`text-xs ${subTextColor} italic`}>
-                                  💬 {referral.comment}
-                                </p>
-                              </div>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    )}
+            <div className="flex gap-2">
+              <span className="px-3 py-2 rounded-lg bg-emerald-100 text-emerald-800 text-sm font-semibold dark:bg-emerald-500/20 dark:text-emerald-100">
+                Тихий градиент, четкие цифры
+              </span>
+            </div>
+          </div>
+
+          <div className="grid gap-3 md:grid-cols-2">
+            {TEAM_MEMBERS.map((member) => {
+              const memberRefs = referrals.filter((referral) => referral.ownerId === member.id)
+              return (
+                <div
+                  key={member.id}
+                  className={`p-4 rounded-xl border ${calmBorder} ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'}`}
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <span className={`${headingColor} font-semibold`}>{member.name}</span>
+                    <span
+                      className={`px-3 py-1 rounded-full text-sm font-bold ${
+                        memberRefs.length > 0
+                          ? theme === 'dark' ? 'bg-emerald-600/70 text-white' : 'bg-emerald-100 text-emerald-800'
+                          : theme === 'dark' ? 'bg-white/5 text-gray-400' : 'bg-gray-100 text-gray-600'
+                      }`}
+                    >
+                      {memberRefs.length} {memberRefs.length === 1 ? 'реферал' : memberRefs.length < 5 ? 'реферала' : 'рефералов'}
+                    </span>
                   </div>
-                )
-              })}
-            </div>
+                  {memberRefs.length > 0 && (
+                    <div className="space-y-2">
+                      {memberRefs.map((referral) => (
+                        <div
+                          key={referral.id}
+                          className={`rounded-lg border ${calmBorder} ${theme === 'dark' ? 'bg-[#0f0f0f]' : 'bg-white'} p-3 flex flex-col gap-2 transition-all hover:shadow-sm`}
+                        >
+                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                            <div className="flex-1 min-w-0">
+                              <p className={`text-sm font-semibold ${headingColor} truncate`}>{referral.name}</p>
+                              <div className="flex flex-wrap gap-2 text-xs">
+                                <span className={`px-2 py-1 rounded ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-100'} ${subTextColor}`}>
+                                  ID: {referral.referralId}
+                                </span>
+                                {referral.age && (
+                                  <span className={`px-2 py-1 rounded ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-100'} ${subTextColor}`}>
+                                    {referral.age} лет
+                                  </span>
+                                )}
+                                <span className={`px-2 py-1 rounded ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-100'} ${subTextColor}`}>
+                                  {new Date(referral.createdAt).toLocaleDateString('ru-RU')}
+                                </span>
+                              </div>
+                            </div>
+                            <button
+                              onClick={() => handleEditReferral(referral)}
+                              className="self-start sm:self-auto px-3 py-1.5 text-sm bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors font-semibold"
+                            >
+                              Редактировать
+                            </button>
+                          </div>
+                          {referral.comment && (
+                            <div className={`mt-1 pt-2 border-t ${calmBorder}`}>
+                              <p className={`text-xs ${subTextColor} italic`}>💬 {referral.comment}</p>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )
+            })}
           </div>
         </div>
 
         {/* Rating cards section */}
-        <div id="rating-method" className={`rounded-2xl p-8 ${cardBg} shadow-xl border-2 ${
-          theme === 'dark' 
-            ? 'border-purple-500/30 bg-gradient-to-br from-[#1a1a1a] to-[#0A0A0A]' 
-            : 'border-purple-200 bg-gradient-to-br from-white to-purple-50/20'
-        } relative overflow-hidden`}>
-          {/* Decorative background */}
-          <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-purple-500/10 to-indigo-500/10 rounded-full blur-2xl -mr-20 -mt-20" />
-          
-          <div className="relative z-10">
-            <div className="flex items-center gap-4 mb-6">
-              <div className={`p-4 rounded-2xl shadow-lg ${
-                theme === 'dark' 
-                  ? 'bg-gradient-to-br from-purple-600 to-indigo-600' 
-                  : 'bg-gradient-to-br from-purple-500 to-indigo-500'
-              } text-white flex-shrink-0`}>
-                <span className="text-3xl">⭐</span>
-              </div>
-              <div className="flex-1">
-                <h3 className={`text-2xl font-extrabold mb-2 ${headingColor} flex items-center gap-2`}>
-                  <span className="bg-gradient-to-r from-purple-600 to-indigo-600 text-transparent bg-clip-text">
-                    Рейтинг участников
-                  </span>
-                </h3>
-                <p className={`text-sm ${subTextColor} font-medium`}>
-                  Детальная статистика по каждому участнику команды
-                </p>
-              </div>
+        <div
+          id="rating-method"
+          className={`rounded-2xl p-6 sm:p-7 ${cardBg} shadow-lg border ${calmBorder}`}
+        >
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
+            <div className="space-y-1">
+              <p className={`text-xs uppercase tracking-[0.12em] ${subTextColor}`}>Карточки участников</p>
+              <h3 className={`text-2xl font-bold ${headingColor}`}>Детальная статистика</h3>
+              <p className={`text-sm ${subTextColor}`}>Спокойные карточки с раскрываемыми метриками и аккуратными акцентами.</p>
             </div>
-
-            {loading ? (
-              <div className={`rounded-xl p-12 text-center ${theme === 'dark' ? 'bg-gray-700/50' : 'bg-gray-50'} border-2 ${theme === 'dark' ? 'border-gray-800' : 'border-gray-200'}`}>
-                <div className="animate-spin rounded-full h-16 w-16 border-4 border-purple-500 border-t-transparent mx-auto mb-4"></div>
-                <p className={`text-lg font-semibold ${headingColor}`}>Загрузка рейтинга...</p>
-                <p className={`text-sm ${subTextColor} mt-2`}>Подождите, собираем статистику</p>
-              </div>
-            ) : (
-              <>
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 flex-1">
-                    {[
-                      { label: 'Топ-1', value: sortedRatings[0]?.rating ? `${sortedRatings[0].rating.toFixed(1)}%` : '—', tone: 'from-yellow-400/40 to-amber-500/40 text-yellow-900 dark:text-yellow-100' },
-                      { label: 'Средний рейтинг', value: `${teamKPD.toFixed(1)}%`, tone: 'from-emerald-400/30 to-emerald-600/30 text-emerald-900 dark:text-emerald-100' },
-                      { label: 'Участников', value: sortedRatings.length, tone: 'from-blue-400/30 to-indigo-500/30 text-indigo-900 dark:text-indigo-100' },
-                    ].map((item) => (
-                      <div key={item.label} className={`rounded-xl px-4 py-3 border ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-white'} shadow-sm`}>
-                        <p className="text-[11px] uppercase tracking-wide opacity-70">{item.label}</p>
-                        <p className={`text-2xl font-extrabold bg-gradient-to-r ${item.tone} text-transparent bg-clip-text`}>
-                          {item.value}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => setSortMode('rating')}
-                      className={`px-3 py-2 rounded-lg text-sm font-semibold border transition ${
-                        sortMode === 'rating'
-                          ? 'bg-gradient-to-r from-[#4E6E49] to-emerald-700 text-white border-transparent shadow'
-                          : theme === 'dark'
-                          ? 'border-white/10 text-white hover:border-[#4E6E49]/50'
-                          : 'border-gray-300 text-gray-800 hover:border-[#4E6E49]/50 hover:text-[#4E6E49]'
-                      }`}
-                    >
-                      По рейтингу
-                    </button>
-                    <button
-                      onClick={() => setSortMode('name')}
-                      className={`px-3 py-2 rounded-lg text-sm font-semibold border transition ${
-                        sortMode === 'name'
-                          ? 'bg-gradient-to-r from-[#4E6E49] to-emerald-700 text-white border-transparent shadow'
-                          : theme === 'dark'
-                          ? 'border-white/10 text-white hover:border-[#4E6E49]/50'
-                          : 'border-gray-300 text-gray-800 hover:border-[#4E6E49]/50 hover:text-[#4E6E49]'
-                      }`}
-                    >
-                      По имени
-                    </button>
-                  </div>
-                </div>
-                <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-                  {sortedRatings.map((rating, index) => (
-                    <div key={rating.userId} className="relative transform transition-all duration-300 hover:scale-105">
-                      {index === 0 && sortedRatings.length > 1 && (
-                        <div className="absolute -top-4 -right-4 z-20 bg-gradient-to-r from-yellow-400 to-yellow-500 text-yellow-900 text-xs font-extrabold px-4 py-2 rounded-full shadow-xl animate-pulse border-2 border-yellow-300 flex items-center gap-1">
-                          <span className="text-base">🥇</span>
-                          <span>ЛИДЕР</span>
-                        </div>
-                      )}
-                      {index === 1 && sortedRatings.length > 2 && (
-                        <div className="absolute -top-4 -right-4 z-20 bg-gradient-to-r from-gray-300 to-gray-400 text-gray-800 text-xs font-extrabold px-4 py-2 rounded-full shadow-xl border-2 border-gray-200 flex items-center gap-1">
-                          <span className="text-base">🥈</span>
-                          <span>2-е место</span>
-                        </div>
-                      )}
-                      {index === 2 && sortedRatings.length > 3 && (
-                        <div className="absolute -top-4 -right-4 z-20 bg-gradient-to-r from-orange-300 to-orange-400 text-orange-900 text-xs font-extrabold px-4 py-2 rounded-full shadow-xl border-2 border-orange-200 flex items-center gap-1">
-                          <span className="text-base">🥉</span>
-                          <span>3-е место</span>
-                        </div>
-                      )}
-                      <RatingCard rating={rating} />
-                    </div>
-                  ))}
-                </div>
-              </>
-            )}
+            <div className="flex gap-2">
+              <button
+                onClick={() => setSortMode('rating')}
+                className={`px-3 py-2 rounded-lg text-sm font-semibold border ${calmBorder} ${
+                  sortMode === 'rating'
+                    ? 'bg-emerald-600 text-white'
+                    : theme === 'dark'
+                    ? 'bg-white/5 text-white hover:bg-white/10'
+                    : 'bg-white text-gray-800 hover:bg-gray-50'
+                }`}
+              >
+                По рейтингу
+              </button>
+              <button
+                onClick={() => setSortMode('name')}
+                className={`px-3 py-2 rounded-lg text-sm font-semibold border ${calmBorder} ${
+                  sortMode === 'name'
+                    ? 'bg-emerald-600 text-white'
+                    : theme === 'dark'
+                    ? 'bg-white/5 text-white hover:bg-white/10'
+                    : 'bg-white text-gray-800 hover:bg-gray-50'
+                }`}
+              >
+                По имени
+              </button>
+            </div>
           </div>
+
+          {loading ? (
+            <div className={`rounded-xl p-12 text-center ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'} border ${calmBorder}`}>
+              <div className="animate-spin rounded-full h-12 w-12 border-4 border-emerald-500 border-t-transparent mx-auto mb-4"></div>
+              <p className={`text-lg font-semibold ${headingColor}`}>Загрузка рейтинга...</p>
+              <p className={`text-sm ${subTextColor} mt-2`}>Подождите, собираем статистику</p>
+            </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+                {[
+                  { label: 'Топ-1', value: sortedRatings[0]?.rating ? `${sortedRatings[0].rating.toFixed(1)}%` : '—' },
+                  { label: 'Средний рейтинг', value: `${teamKPD.toFixed(1)}%` },
+                  { label: 'Медиана', value: `${ratingOverview.median.toFixed(1)}%` },
+                  { label: 'Участников', value: sortedRatings.length },
+                ].map((item) => (
+                  <div
+                    key={item.label}
+                    className={`rounded-xl border ${calmBorder} ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'} px-4 py-3`}
+                  >
+                    <p className={`text-[11px] uppercase tracking-wide ${subTextColor}`}>{item.label}</p>
+                    <p className={`text-2xl font-extrabold ${headingColor}`}>{item.value}</p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-5">
+                {sortedRatings.map((rating, index) => (
+                  <div key={rating.userId} className="relative">
+                    {index <= 2 && (
+                      <div className="absolute -top-3 -right-3">
+                        <span
+                          className={`px-3 py-1 rounded-full text-xs font-bold border ${calmBorder} ${
+                            index === 0
+                              ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-100'
+                              : index === 1
+                              ? 'bg-blue-100 text-blue-800 dark:bg-blue-500/20 dark:text-blue-100'
+                              : 'bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-100'
+                          }`}
+                        >
+                          {index === 0 ? '1 место' : index === 1 ? '2 место' : '3 место'}
+                        </span>
+                      </div>
+                    )}
+                    <RatingCard rating={rating} />
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
         </div>
       </div>
       {showReferralForm && (

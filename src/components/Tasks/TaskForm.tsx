@@ -7,6 +7,7 @@ import { addTask, updateTask } from '@/services/firestoreService'
 import { Task, TaskAssignee, TaskCategory, TEAM_MEMBERS, TASK_CATEGORIES } from '@/types'
 import { X, Calendar, Users, Tag, FileText, AlertCircle, Clock } from 'lucide-react'
 import { formatDate } from '@/utils/dateUtils'
+import { CATEGORY_ICONS } from './categoryIcons'
 
 interface TaskFormProps {
   onClose: () => void
@@ -286,11 +287,14 @@ export const TaskForm = ({ onClose, onSave, editingTask }: TaskFormProps) => {
                 onChange={(e) => setCategory(e.target.value as TaskCategory)}
                 className={`w-full px-4 py-2.5 rounded-lg border ${borderColor} ${inputBg} ${headingColor} focus:outline-none focus:ring-2 focus:ring-[#4E6E49]/50 transition-all`}
               >
-                {Object.entries(TASK_CATEGORIES).map(([key, { label, icon }]) => (
-                  <option key={key} value={key}>
-                    {icon} {label}
-                  </option>
-                ))}
+                {Object.entries(TASK_CATEGORIES).map(([key, { label }]) => {
+                  const Icon = CATEGORY_ICONS[key as TaskCategory]
+                  return (
+                    <option key={key} value={key}>
+                      {label} {Icon ? '•' : ''}
+                    </option>
+                  )
+                })}
               </select>
             </div>
 
