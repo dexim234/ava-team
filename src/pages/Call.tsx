@@ -216,23 +216,22 @@ export const CallPage = () => {
           
           <div className="relative z-10">
             <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between mb-6">
-              <div className="flex-1">
-                <div className="flex items-center gap-4 mb-4">
+              <div className="flex-1 space-y-2">
+                <div className="flex items-center gap-3">
                   <div className={`p-4 rounded-2xl shadow-lg ${
                     theme === 'dark' 
                       ? 'bg-gradient-to-br from-[#4E6E49] to-emerald-700' 
                       : 'bg-gradient-to-br from-[#4E6E49] to-emerald-700'
-                  } text-white transform transition-transform hover:scale-110`}>
+                  } text-white`}>
                     <Zap className="w-8 h-8" />
                   </div>
                   <div>
-                    <h1 className={`text-4xl font-extrabold mb-2 ${textColor} flex items-center gap-3`}>
-                      <span className="bg-gradient-to-r from-[#4E6E49] via-emerald-700 to-blue-600 text-transparent bg-clip-text">
+                    <h1 className={`text-4xl font-extrabold ${textColor} flex items-center gap-3`}>
+                      <span className="bg-gradient-to-r from-[#4E6E49] via-emerald-600 to-blue-600 text-transparent bg-clip-text">
                         Trading Signals
                       </span>
-                      <Sparkles className={`w-6 h-6 ${theme === 'dark' ? 'text-yellow-400' : 'text-yellow-500'} animate-pulse`} />
                     </h1>
-                    <p className={`text-base font-medium ${subtleColor} flex items-center gap-2`}>
+                    <p className={`text-sm font-medium ${subtleColor} flex items-center gap-2`}>
                       <span className="text-[#4E6E49]">●</span>
                       Управление торговыми сигналами для команды
                     </p>

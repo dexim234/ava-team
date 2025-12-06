@@ -29,23 +29,21 @@ export const CallForm = ({ onSuccess, onCancel, callToEdit }: CallFormProps) => 
     comment: callToEdit?.comment || '',
   })
 
-  const networks: Network[] = ['solana', 'bsc', 'ethereum', 'base', 'ton', 'tron', 'sui', 'cex']
-  const strategies: { value: Strategy; label: string }[] = [
-    { value: 'flip', label: '🔄 Флип' },
-    { value: 'medium', label: '📊 Среднесрок' },
-    { value: 'long', label: '⏰ Долгосрок' },
+  const networks: { value: Network; label: string; tone: string }[] = [
+    { value: 'solana', label: 'Solana', tone: 'bg-purple-500/15 text-purple-200 border-purple-400/40' },
+    { value: 'bsc', label: 'BSC', tone: 'bg-amber-500/15 text-amber-200 border-amber-400/40' },
+    { value: 'ethereum', label: 'Ethereum', tone: 'bg-blue-500/15 text-blue-200 border-blue-400/40' },
+    { value: 'base', label: 'Base', tone: 'bg-indigo-500/15 text-indigo-200 border-indigo-400/40' },
+    { value: 'ton', label: 'Ton', tone: 'bg-cyan-500/15 text-cyan-200 border-cyan-400/40' },
+    { value: 'tron', label: 'Tron', tone: 'bg-red-500/15 text-red-200 border-red-400/40' },
+    { value: 'sui', label: 'SUI', tone: 'bg-emerald-500/15 text-emerald-200 border-emerald-400/40' },
+    { value: 'cex', label: 'CEX', tone: 'bg-orange-500/15 text-orange-200 border-orange-400/40' },
   ]
-
-  const networkLabels: Record<Network, string> = {
-    solana: 'Solana',
-    bsc: 'BSC',
-    ethereum: 'Ethereum',
-    base: 'Base',
-    ton: 'Ton',
-    tron: 'Tron',
-    sui: 'SUI',
-    cex: 'CEX биржа'
-  }
+  const strategies: { value: Strategy; label: string; hint: string }[] = [
+    { value: 'flip', label: '🔄 Флип', hint: 'Краткосрочно (часы/дни)' },
+    { value: 'medium', label: '📊 Среднесрок', hint: 'Дни/недели' },
+    { value: 'long', label: '⏰ Долгосрок', hint: 'Недели/месяцы' },
+  ]
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -124,6 +122,8 @@ export const CallForm = ({ onSuccess, onCancel, callToEdit }: CallFormProps) => 
   const textColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
   const borderColor = theme === 'dark' ? 'border-gray-800' : 'border-gray-200'
   const inputBg = theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'
+  const pillOff = theme === 'dark' ? 'bg-gray-800 border-gray-700 text-gray-200 hover:border-gray-500' : 'bg-white border-gray-200 text-gray-700 hover:border-gray-400'
+  const pillOn = 'bg-gradient-to-r from-[#4E6E49] to-emerald-600 text-white shadow-lg shadow-emerald-500/30 border-transparent'
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -135,21 +135,24 @@ export const CallForm = ({ onSuccess, onCancel, callToEdit }: CallFormProps) => 
 
       {/* Network */}
       <div>
-        <label className={`block text-sm font-medium ${textColor} mb-2`}>
-          Сеть *
-        </label>
-        <select
-          value={formData.network}
-          onChange={(e) => setFormData({ ...formData, network: e.target.value as Network })}
-          className={`w-full px-4 py-2 rounded-lg border ${borderColor} ${inputBg} ${textColor} focus:outline-none focus:ring-2 focus:ring-[#4E6E49]`}
-          required
-        >
+        <div className="flex items-center justify-between mb-2">
+          <label className={`block text-sm font-medium ${textColor}`}>Сеть *</label>
+          <span className="text-[11px] text-gray-500 dark:text-gray-400">Кликните для выбора</span>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
           {networks.map((network) => (
-            <option key={network} value={network}>
-              {networkLabels[network]}
-            </option>
+            <button
+              key={network.value}
+              type="button"
+              onClick={() => setFormData({ ...formData, network: network.value })}
+              className={`flex items-center justify-center gap-2 px-3 py-2 rounded-lg border text-sm font-semibold transition-all ${
+                formData.network === network.value ? pillOn : pillOff
+              } ${formData.network === network.value ? '' : network.tone}`}
+            >
+              {network.label}
+            </button>
           ))}
-        </select>
+        </div>
       </div>
 
       {/* Ticker */}
@@ -214,21 +217,25 @@ export const CallForm = ({ onSuccess, onCancel, callToEdit }: CallFormProps) => 
 
       {/* Strategy */}
       <div>
-        <label className={`block text-sm font-medium ${textColor} mb-2`}>
-          Стратегия *
-        </label>
-        <select
-          value={formData.strategy}
-          onChange={(e) => setFormData({ ...formData, strategy: e.target.value as Strategy })}
-          className={`w-full px-4 py-2 rounded-lg border ${borderColor} ${inputBg} ${textColor} focus:outline-none focus:ring-2 focus:ring-[#4E6E49]`}
-          required
-        >
+        <div className="flex items-center justify-between mb-2">
+          <label className={`block text-sm font-medium ${textColor}`}>Стратегия *</label>
+          <span className="text-[11px] text-gray-500 dark:text-gray-400">Кликните для выбора</span>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
           {strategies.map((strategy) => (
-            <option key={strategy.value} value={strategy.value}>
-              {strategy.label}
-            </option>
+            <button
+              key={strategy.value}
+              type="button"
+              onClick={() => setFormData({ ...formData, strategy: strategy.value })}
+              className={`flex flex-col items-start gap-1 px-3 py-3 rounded-lg border text-sm transition-all ${
+                formData.strategy === strategy.value ? pillOn : pillOff
+              }`}
+            >
+              <span className="font-semibold">{strategy.label}</span>
+              <span className="text-[11px] opacity-80">{strategy.hint}</span>
+            </button>
           ))}
-        </select>
+        </div>
       </div>
 
       {/* Risks */}

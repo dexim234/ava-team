@@ -166,9 +166,9 @@ export const Login = () => {
   return (
     <div className={`min-h-screen relative overflow-hidden ${theme === 'dark' ? 'bg-[#0b0f17]' : 'bg-gradient-to-br from-slate-50 via-white to-slate-100'}`}>
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute -top-32 -left-24 w-[520px] h-[520px] bg-gradient-to-br from-[#4E6E49]/35 via-emerald-400/20 to-transparent blur-3xl" />
-        <div className="absolute top-0 right-0 w-[620px] h-[620px] bg-gradient-to-bl from-blue-500/25 via-purple-500/20 to-transparent blur-3xl" />
-        <div className="absolute bottom-[-160px] left-20 w-[520px] h-[520px] bg-gradient-to-tr from-amber-400/18 via-[#4E6E49]/18 to-transparent blur-3xl" />
+        <div className="absolute -top-28 -left-20 w-[540px] h-[540px] bg-gradient-to-br from-[#4E6E49]/36 via-emerald-400/22 to-transparent blur-[90px]" />
+        <div className="absolute bottom-[-180px] right-[-120px] w-[640px] h-[640px] bg-gradient-to-tr from-blue-500/24 via-purple-500/20 to-transparent blur-[120px]" />
+        <div className="absolute top-[50%] left-[-140px] w-[420px] h-[420px] bg-gradient-to-br from-amber-400/16 via-[#4E6E49]/16 to-transparent blur-[100px]" />
         <div className="floating-grid opacity-70 dark:opacity-40" />
       </div>
 
@@ -187,6 +187,21 @@ export const Login = () => {
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-[#4E6E49]/15 to-emerald-500/10 text-[#4E6E49] text-xs font-semibold">
                 <Shield className="w-4 h-4" />
                 Защищенный доступ
+              </div>
+
+              <div className={`w-full mt-4 rounded-xl border ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-white/80'} p-4 text-left space-y-3`}>
+                <div className="flex items-center gap-2 text-sm font-semibold">
+                  <Shield className="w-4 h-4 text-[#4E6E49]" />
+                  <span className={theme === 'dark' ? 'text-white' : 'text-gray-900'}>Правила и доступ</span>
+                </div>
+                <ul className={`text-xs leading-relaxed space-y-1 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                  <li>• Пользуемся данными из бота: логин + пароль.</li>
+                  <li>• Админ пароль: только для доверенных (режим администратора).</li>
+                  <li>• Правила: <a className="text-[#4E6E49] font-semibold" href="https://telegra.ph/Reglament-provedeniya-torgovyh-sessij-pravila-soobshchestva-ApeVault-dlya-trejderov-i-kollerov-11-20" target="_blank" rel="noreferrer">читать</a>.</li>
+                </ul>
+                <div className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                  Администратор: <span className="font-semibold">@artyommedoed</span>
+                </div>
               </div>
             </div>
 
