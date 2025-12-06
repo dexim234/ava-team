@@ -6,7 +6,7 @@ import { ManagementTable } from '@/components/Management/ManagementTable'
 import { ManagementWeekView } from '@/components/Management/ManagementWeekView'
 import { SlotForm } from '@/components/Management/SlotForm'
 import { DayStatusForm } from '@/components/Management/DayStatusForm'
-import { Calendar, Table2, Plus, Trash2, Users, Clock, CalendarCheck, Sparkles, Heart } from 'lucide-react'
+import { Calendar, Table2, Clock, CalendarCheck } from 'lucide-react'
 import { TEAM_MEMBERS } from '@/types'
 import { DeleteSlotsForm } from '@/components/Management/DeleteSlotsForm'
 import { getWorkSlots, getDayStatuses } from '@/services/firestoreService'
@@ -182,7 +182,6 @@ export const Management = () => {
     }, 500)
   }
 
-  const cardBg = theme === 'dark' ? 'bg-[#1a1a1a]' : 'bg-white'
   const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
   const labelColor = theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
   const contentCardClass = `rounded-xl sm:rounded-2xl p-4 sm:p-5 border ${
