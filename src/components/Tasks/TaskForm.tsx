@@ -196,7 +196,7 @@ export const TaskForm = ({ onClose, onSave, editingTask }: TaskFormProps) => {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto overscroll-contain">
+    <div className="fixed inset-0 bg-black/50 flex items-start sm:items-center justify-center z-[70] p-4 overflow-y-auto overscroll-contain">
       <div className={`${cardBg} rounded-xl sm:rounded-2xl shadow-2xl w-full max-w-2xl max-h-[calc(100dvh-96px)] sm:max-h-[calc(100dvh-96px)] overflow-hidden border-2 ${
         theme === 'dark' 
           ? 'border-[#4E6E49]/30 bg-gradient-to-br from-[#1a1a1a] via-[#1a1a1a] to-[#0A0A0A]' 

@@ -441,7 +441,7 @@ export const CallPage = () => {
 
         {/* Form Modal */}
         {showForm && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200 overscroll-contain">
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[70] flex items-start sm:items-center justify-center p-4 overflow-y-auto overscroll-contain animate-in fade-in duration-200">
             <div className={`${bgColor} rounded-2xl shadow-2xl border ${borderColor} max-w-2xl w-full max-h-[85dvh] sm:max-h-[calc(100dvh-96px)] overflow-hidden animate-in slide-in-from-bottom-4 duration-300`}>
               <div className="flex flex-col h-full min-h-0">
                 <div className="p-8 flex items-center justify-between shrink-0">
@@ -465,7 +465,7 @@ export const CallPage = () => {
 
         {/* Delete Confirmation Modal */}
         {showDeleteModal && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200 overscroll-contain">
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[70] flex items-start sm:items-center justify-center p-4 overflow-y-auto overscroll-contain animate-in fade-in duration-200">
             <div className={`${bgColor} rounded-2xl shadow-2xl border ${borderColor} max-w-md w-full max-h-[70dvh] sm:max-h-[calc(100dvh-96px)] overflow-hidden animate-in slide-in-from-bottom-4 duration-300`}>
               <div className="flex flex-col h-full min-h-0 p-8 space-y-6 overflow-y-auto overscroll-contain">
                 <div className="flex items-center gap-4">
