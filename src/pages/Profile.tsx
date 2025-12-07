@@ -11,7 +11,6 @@ import {
   getReferrals,
   getWorkSlots,
   getWeeklyMessages,
-  getCalls,
   getUserNotes,
   addNote,
   updateNote,
@@ -62,7 +61,6 @@ export const Profile = () => {
     net: number
     weekly: { gross: number; pool: number; net: number }
   } | null>(null)
-  const [callStats, setCallStats] = useState<{ total: number; active: number; completed: number }>({ total: 0, active: 0, completed: 0 })
   const [notes, setNotes] = useState<Note[]>([])
   const [noteDraft, setNoteDraft] = useState<Note>({
     id: '',
@@ -170,16 +168,6 @@ export const Profile = () => {
 
         const currentReferrals = await getReferrals(undefined, monthIsoStart, monthIsoEnd)
         const userReferrals = currentReferrals.filter((referral) => referral.ownerId === userId).length
-
-        try {
-          const userCalls = await getCalls({ userId })
-          const activeCalls = userCalls.filter((c) => c.status === 'active').length
-          const completedCalls = userCalls.filter((c) => c.status === 'completed' || c.status === 'reviewed').length
-          setCallStats({ total: userCalls.length, active: activeCalls, completed: completedCalls })
-        } catch (err) {
-          console.error('Error loading calls', err)
-          setCallStats({ total: 0, active: 0, completed: 0 })
-        }
 
         const updatedData: Omit<RatingData, 'rating'> = {
           userId,
@@ -525,15 +513,23 @@ export const Profile = () => {
                       </button>
                     </div>
                   </div>
-                  <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                    <div className={`p-4 rounded-xl border ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-white'} shadow-sm`}>
-                      <p className={`text-xs font-semibold uppercase tracking-wide ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Мои коллы</p>
-                      <p className={`mt-1 text-lg font-bold ${headingColor}`}>{callStats.total}</p>
-                      <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Активных: {callStats.active} · Завершённых: {callStats.completed}</p>
-                    </div>
+                  <div className="mt-4 grid gap-3 sm:grid-cols-1">
                     <div className={`p-4 rounded-xl border ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-white'} shadow-sm`}>
                       <p className={`text-xs font-semibold uppercase tracking-wide ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Учебная панель (преподаватель)</p>
-                      <p className={`mt-1 text-sm font-semibold ${headingColor}`}>в разработке</p>
+                      <div className="mt-2 space-y-2 text-sm">
+                        <div className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                          <span className="font-semibold">Имя: </span>
+                          <span className="font-medium">в разработке</span>
+                        </div>
+                        <div className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                          <span className="font-semibold">Логин: </span>
+                          <span className="font-medium">в разработке</span>
+                        </div>
+                        <div className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                          <span className="font-semibold">Пароль: </span>
+                          <span className="font-medium">в разработке</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -595,9 +591,6 @@ export const Profile = () => {
                     <div className="flex items-center gap-2">
                       <StickyNote className="w-4 h-4 text-[#4E6E49]" />
                       <p className={`text-sm font-semibold ${headingColor}`}>Мои заметки</p>
-                      <span className="text-[11px] px-2 py-1 rounded-full border border-white/20 bg-white/10 dark:border-gray-200/40 dark:bg-gray-100/60 text-xs text-gray-700 dark:text-gray-900">
-                        Видит автор и админ
-                      </span>
                     </div>
                     <div className="grid gap-2 sm:grid-cols-2">
                       <input
@@ -711,13 +704,15 @@ export const Profile = () => {
                       </div>
                     )}
                   </div>
-                  <button
-                    onClick={() => navigate('/tasks')}
-                    className={`w-full px-4 py-3 rounded-lg font-semibold transition-all flex items-center justify-center gap-2 ${theme === 'dark' ? 'bg-gradient-to-r from-[#4E6E49]/20 to-emerald-700/20 text-[#4E6E49] border border-[#4E6E49]/40' : 'bg-gradient-to-r from-green-50 to-emerald-50 text-[#4E6E49] border border-green-200'}`}
-                  >
-                    <CheckSquare className="w-4 h-4" />
-                    Перейти к задачам
-                  </button>
+                  <div className="mt-4">
+                    <button
+                      onClick={() => navigate('/tasks')}
+                      className={`w-full px-4 py-3 rounded-lg font-semibold transition-all flex items-center justify-center gap-2 ${theme === 'dark' ? 'bg-gradient-to-r from-[#4E6E49]/20 to-emerald-700/20 text-[#4E6E49] border border-[#4E6E49]/40' : 'bg-gradient-to-r from-green-50 to-emerald-50 text-[#4E6E49] border border-green-200'}`}
+                    >
+                      <CheckSquare className="w-4 h-4" />
+                      Перейти к задачам
+                    </button>
+                  </div>
                 </div>
               </div>
 
