@@ -1,7 +1,7 @@
 // About community page (minimalist redesign)
 import { Layout } from '@/components/Layout'
 import { useThemeStore } from '@/store/themeStore'
-import { Info, ArrowUpRight, Target, Users, BookOpen, Mail, Sparkles } from 'lucide-react'
+import { Info, ArrowUpRight, BookOpen, Mail, Sparkles } from 'lucide-react'
 import valuesIllustration from '../../assets/image-779ddbd9-e512-4bda-8983-af1ab9237b7c.png'
 
 export const About = () => {
