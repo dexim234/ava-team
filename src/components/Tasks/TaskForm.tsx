@@ -297,9 +297,6 @@ export const TaskForm = ({ onClose, onSave, editingTask }: TaskFormProps) => {
                   <Tag className="w-4 h-4" />
                   Категория
                 </label>
-                <span className={`text-[11px] ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                  Центрируем текст и убрали лишние точки
-                </span>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
                 {Object.entries(TASK_CATEGORIES).map(([key, { label }]) => {
@@ -324,9 +321,6 @@ export const TaskForm = ({ onClose, onSave, editingTask }: TaskFormProps) => {
                       <span className="flex items-center gap-2 justify-center">
                         <Icon className="w-4 h-4" />
                         <span className="break-words">{label}</span>
-                      </span>
-                      <span className={`text-[11px] ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                        Подходит для этой задачи?
                       </span>
                     </button>
                   )

@@ -680,10 +680,13 @@ export const getTasks = async (filters?: {
 
 export const updateTask = async (id: string, updates: Partial<Task>): Promise<void> => {
   const taskRef = doc(db, 'tasks', id)
-  const cleanUpdates = {
-    ...updates,
-    updatedAt: new Date().toISOString(),
-  }
+  // Remove undefined fields to avoid Firestore errors
+  const cleanUpdates = Object.fromEntries(
+    Object.entries({
+      ...updates,
+      updatedAt: new Date().toISOString(),
+    }).filter(([_, value]) => value !== undefined)
+  )
   await updateDoc(taskRef, cleanUpdates as any)
 }
 

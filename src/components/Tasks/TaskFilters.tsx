@@ -157,7 +157,7 @@ export const TaskFilters = ({
               } flex items-center gap-2 justify-start text-left w-full`}
             >
               <Gauge className="w-4 h-4" />
-              Все задачи
+              Целиком
             </button>
             {Object.entries(TASK_STATUSES).map(([key, { label, color }]) => {
               const colorStyles: Record<string, string> = {
