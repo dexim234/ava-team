@@ -45,10 +45,24 @@ export const TaskForm = ({ onClose, onSave, editingTask }: TaskFormProps) => {
 
   // Lock background scroll while modal is open
   useEffect(() => {
-    const originalOverflow = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
+    const originalStyle = document.body.getAttribute('style')
+    const originalPaddingRight = window.innerWidth - document.documentElement.clientWidth
+    
+    // Store scroll position and lock it
+    const scrollY = window.scrollY
+    document.body.style.position = 'fixed'
+    document.body.style.top = `-${scrollY}px`
+    document.body.style.width = '100%'
+    document.body.style.paddingRight = `${originalPaddingRight}px`
+    
     return () => {
-      document.body.style.overflow = originalOverflow
+      // Restore scroll position
+      const scrollY = parseInt(document.body.style.top || '0', 10) * -1
+      document.body.style.position = ''
+      document.body.style.top = ''
+      document.body.style.width = ''
+      document.body.style.paddingRight = ''
+      window.scrollTo(0, scrollY)
     }
   }, [])
 

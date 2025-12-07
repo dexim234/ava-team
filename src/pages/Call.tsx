@@ -25,14 +25,28 @@ export const CallPage = () => {
 
   // Prevent background scrolling when any modal is open
   useEffect(() => {
-    const originalOverflow = document.body.style.overflow
+    const originalStyle = document.body.getAttribute('style')
+    const originalPaddingRight = window.innerWidth - document.documentElement.clientWidth
+    
     if (showForm || showDeleteModal) {
-      document.body.style.overflow = 'hidden'
+      // Store scroll position and lock it
+      const scrollY = window.scrollY
+      document.body.style.position = 'fixed'
+      document.body.style.top = `-${scrollY}px`
+      document.body.style.width = '100%'
+      document.body.style.paddingRight = `${originalPaddingRight}px`
     } else {
-      document.body.style.overflow = ''
+      // Restore scroll position
+      const scrollY = parseInt(document.body.style.top || '0', 10) * -1
+      document.body.style.position = ''
+      document.body.style.top = ''
+      document.body.style.width = ''
+      document.body.style.paddingRight = ''
+      window.scrollTo(0, scrollY)
     }
+    
     return () => {
-      document.body.style.overflow = originalOverflow
+      document.body.setAttribute('style', originalStyle || '')
     }
   }, [showForm, showDeleteModal])
 
