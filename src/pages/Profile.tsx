@@ -171,10 +171,15 @@ export const Profile = () => {
         const currentReferrals = await getReferrals(undefined, monthIsoStart, monthIsoEnd)
         const userReferrals = currentReferrals.filter((referral) => referral.ownerId === userId).length
 
-        const userCalls = await getCalls({ userId })
-        const activeCalls = userCalls.filter((c) => c.status === 'active').length
-        const completedCalls = userCalls.filter((c) => c.status === 'completed' || c.status === 'reviewed').length
-        setCallStats({ total: userCalls.length, active: activeCalls, completed: completedCalls })
+        try {
+          const userCalls = await getCalls({ userId })
+          const activeCalls = userCalls.filter((c) => c.status === 'active').length
+          const completedCalls = userCalls.filter((c) => c.status === 'completed' || c.status === 'reviewed').length
+          setCallStats({ total: userCalls.length, active: activeCalls, completed: completedCalls })
+        } catch (err) {
+          console.error('Error loading calls', err)
+          setCallStats({ total: 0, active: 0, completed: 0 })
+        }
 
         const updatedData: Omit<RatingData, 'rating'> = {
           userId,
@@ -219,12 +224,40 @@ export const Profile = () => {
           },
         })
 
-        if (user) {
-          const userNotes = await getUserNotes(user.id, isAdmin)
-          setNotes(userNotes)
-        } else if (isAdmin) {
-          const allNotes = await getUserNotes(undefined, true)
-          setNotes(allNotes)
+        const notesCacheKey = user?.id ? `notes-cache-${user.id}` : null
+        const saveLocalNotes = (list: Note[]) => {
+          if (notesCacheKey) {
+            try {
+              localStorage.setItem(notesCacheKey, JSON.stringify(list))
+            } catch (err) {
+              console.error('Error caching notes locally', err)
+            }
+          }
+        }
+
+        try {
+          if (user) {
+            const userNotes = await getUserNotes(user.id, isAdmin)
+            setNotes(userNotes)
+            saveLocalNotes(userNotes)
+          } else if (isAdmin) {
+            const allNotes = await getUserNotes(undefined, true)
+            setNotes(allNotes)
+            saveLocalNotes(allNotes)
+          }
+        } catch (err) {
+          console.error('Error loading notes', err)
+          if (notesCacheKey) {
+            try {
+              const cached = localStorage.getItem(notesCacheKey)
+              if (cached) {
+                const parsed = JSON.parse(cached) as Note[]
+                setNotes(parsed)
+              }
+            } catch (cacheErr) {
+              console.error('Error loading cached notes', cacheErr)
+            }
+          }
         }
       }
     } catch (error) {
@@ -237,6 +270,17 @@ export const Profile = () => {
   const handleSaveNote = async () => {
     if (!user?.id) return
     if (!noteDraft.title.trim() && !noteDraft.text.trim()) return
+
+    const notesCacheKey = user?.id ? `notes-cache-${user.id}` : null
+    const saveLocalNotes = (list: Note[]) => {
+      if (notesCacheKey) {
+        try {
+          localStorage.setItem(notesCacheKey, JSON.stringify(list))
+        } catch (err) {
+          console.error('Error caching notes locally', err)
+        }
+      }
+    }
 
     try {
       if (noteDraft.id) {
@@ -251,6 +295,7 @@ export const Profile = () => {
             : n
         )
         setNotes(next)
+        saveLocalNotes(next)
       } else {
         const newId = await addNote({
           userId: user.id,
@@ -259,7 +304,7 @@ export const Profile = () => {
           priority: noteDraft.priority,
         })
         const now = new Date().toISOString()
-        setNotes([
+        const next = [
           {
             id: newId,
             userId: user.id,
@@ -270,7 +315,9 @@ export const Profile = () => {
             updatedAt: now,
           },
           ...notes,
-        ])
+        ]
+        setNotes(next)
+        saveLocalNotes(next)
       }
     } catch (err) {
       console.error('Error saving note', err)
@@ -285,9 +332,22 @@ export const Profile = () => {
   }
 
   const handleDeleteNote = async (id: string) => {
+    const notesCacheKey = user?.id ? `notes-cache-${user.id}` : null
+    const saveLocalNotes = (list: Note[]) => {
+      if (notesCacheKey) {
+        try {
+          localStorage.setItem(notesCacheKey, JSON.stringify(list))
+        } catch (err) {
+          console.error('Error caching notes locally', err)
+        }
+      }
+    }
+
     try {
       await deleteNote(id)
-      setNotes(notes.filter((n) => n.id !== id))
+      const next = notes.filter((n) => n.id !== id)
+      setNotes(next)
+      saveLocalNotes(next)
       if (noteDraft.id === id) {
         setNoteDraft({ id: '', userId: '', title: '', text: '', priority: 'medium', createdAt: '', updatedAt: '' })
       }
@@ -465,7 +525,7 @@ export const Profile = () => {
                       </button>
                     </div>
                   </div>
-                  <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                  <div className="mt-4 grid gap-3 sm:grid-cols-2">
                     <div className={`p-4 rounded-xl border ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-white'} shadow-sm`}>
                       <p className={`text-xs font-semibold uppercase tracking-wide ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Мои коллы</p>
                       <p className={`mt-1 text-lg font-bold ${headingColor}`}>{callStats.total}</p>
@@ -473,10 +533,6 @@ export const Profile = () => {
                     </div>
                     <div className={`p-4 rounded-xl border ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-white'} shadow-sm`}>
                       <p className={`text-xs font-semibold uppercase tracking-wide ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Учебная панель (преподаватель)</p>
-                      <p className={`mt-1 text-sm font-semibold ${headingColor}`}>в разработке</p>
-                    </div>
-                    <div className={`p-4 rounded-xl border ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-white'} shadow-sm`}>
-                      <p className={`text-xs font-semibold uppercase tracking-wide ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Учебная панель (куратор)</p>
                       <p className={`mt-1 text-sm font-semibold ${headingColor}`}>в разработке</p>
                     </div>
                   </div>
