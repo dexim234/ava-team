@@ -4,7 +4,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuthStore } from '@/store/authStore'
 import { useThemeStore } from '@/store/themeStore'
 import { useAdminStore } from '@/store/adminStore'
-import { Moon, Sun, Shield, User, Users } from 'lucide-react'
+import { Moon, Sun, Shield, User, Users, HelpCircle } from 'lucide-react'
 import logo from '@/assets/logo.png'
 
 // Declare Telegram WebApp types
@@ -325,11 +325,18 @@ export const Login = () => {
                 </button>
               </form>
 
-              <div className={`mt-6 pt-6 border-t ${theme === 'dark' ? 'border-white/10' : 'border-gray-200'} flex items-center justify-between gap-3`}>
+              <div className={`mt-6 pt-6 border-t ${theme === 'dark' ? 'border-white/10' : 'border-gray-200'} flex items-center justify-between gap-3 flex-wrap`}>
                 <div className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
                   Защищенная система для команды ApeVault
                 </div>
-                <div />
+                <button
+                  type="button"
+                  onClick={() => navigate('/faq')}
+                  className="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold border border-transparent bg-white/70 hover:bg-white shadow-sm transition-colors dark:bg-white/10 dark:hover:bg-white/20 dark:text-white text-gray-800"
+                >
+                  <HelpCircle className="w-4 h-4" />
+                  FAQ
+                </button>
               </div>
             </div>
           </div>

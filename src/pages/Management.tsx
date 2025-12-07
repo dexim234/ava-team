@@ -417,13 +417,13 @@ export const Management = () => {
 
         {/* Content view */}
         <div className={contentCardClass}>
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 text-left">
+          <div className="flex items-center justify-between flex-wrap gap-2 mb-4 text-left">
             <div className="text-left">
               <p className={`text-sm sm:text-base font-semibold ${headingColor}`}>Расписание</p>
               <p className={`text-xs sm:text-sm ${labelColor}`}>Слоты и статусы за выбранную неделю</p>
             </div>
             {isMobile && (
-              <span className="self-end sm:self-auto text-xs px-3 py-1 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-300">
+              <span className="text-xs px-3 py-1 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-300">
                 Мобильный вид
               </span>
             )}

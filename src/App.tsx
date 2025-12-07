@@ -94,11 +94,7 @@ function App() {
         />
         <Route
           path="/faq"
-          element={
-            <ProtectedRoute>
-              <FAQ />
-            </ProtectedRoute>
-          }
+          element={<FAQ />}
         />
         <Route
           path="/admin"
