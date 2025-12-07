@@ -228,6 +228,8 @@ body.dark .nav-chip[data-active='false'] {
 .modal-scroll {
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+  overflow-y: auto;
 }
 
 .nav-chip:focus-visible,
