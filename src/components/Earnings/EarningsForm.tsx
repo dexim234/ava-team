@@ -47,10 +47,13 @@ export const EarningsForm = ({ onClose, onSave, editingEarning }: EarningsFormPr
 
   // Lock background scroll while modal is open
   useEffect(() => {
-    const originalOverflow = document.body.style.overflow
+    const originalBodyOverflow = document.body.style.overflow
+    const originalHtmlOverflow = document.documentElement.style.overflow
     document.body.style.overflow = 'hidden'
+    document.documentElement.style.overflow = 'hidden'
     return () => {
-      document.body.style.overflow = originalOverflow
+      document.body.style.overflow = originalBodyOverflow
+      document.documentElement.style.overflow = originalHtmlOverflow
     }
   }, [])
 
@@ -310,7 +313,7 @@ export const EarningsForm = ({ onClose, onSave, editingEarning }: EarningsFormPr
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 sm:p-6 touch-manipulation overflow-y-auto overscroll-contain">
-      <div className={`w-full max-w-[540px] sm:max-w-3xl rounded-2xl sm:rounded-3xl shadow-xl ${theme === 'dark' ? 'bg-[#1a1a1a]' : 'bg-white'} max-h-[calc(100dvh-72px)] overflow-y-auto`}>
+      <div className={`w-full max-w-[540px] sm:max-w-3xl rounded-2xl sm:rounded-3xl shadow-xl ${theme === 'dark' ? 'bg-[#1a1a1a]' : 'bg-white'} max-h-[85dvh] sm:max-h-[calc(100dvh-72px)] overflow-hidden`}>
         <div className="p-4 sm:p-6 flex flex-col h-full">
           <div className="flex items-center justify-between mb-4 sm:mb-6">
             <h3 className={`text-lg sm:text-xl font-bold ${headingColor} pr-2`}>{isEditing ? 'Редактировать заработок' : 'Добавить заработок'}</h3>
@@ -323,7 +326,7 @@ export const EarningsForm = ({ onClose, onSave, editingEarning }: EarningsFormPr
             </button>
           </div>
 
-          <div className="space-y-3 sm:space-y-4 overflow-y-auto pr-1 pb-6">
+          <div className="space-y-3 sm:space-y-4 overflow-y-auto overscroll-contain pr-1 pb-6 flex-1">
             {/* Date */}
             <div>
               <label className={`flex flex-col sm:flex-row sm:items-center sm:justify-between text-xs sm:text-sm font-medium mb-2 gap-1 sm:gap-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
