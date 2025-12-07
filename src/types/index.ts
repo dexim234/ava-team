@@ -93,25 +93,126 @@ export interface Referral {
 }
 
 // Call (Trading Signal) types
-export type Network = 'solana' | 'bsc' | 'ethereum' | 'base' | 'ton' | 'tron' | 'sui' | 'cex'
-export type Strategy = 'flip' | 'medium' | 'long'
+export type Network = 'solana' | 'ethereum' | 'bsc' | 'ton' | 'base' | 'sui' | 'monad'
+export type CallCategory = 'memecoins' | 'futures' | 'nft' | 'spot' | 'polymarket' | 'staking'
 export type CallStatus = 'active' | 'completed' | 'cancelled' | 'reviewed'
+export type CallRiskLevel = 'low' | 'medium' | 'high' | 'ultra'
+export type CallSentiment = 'buy' | 'sell' | 'hold' | 'alert'
+
+export type FuturesDirection = 'long' | 'short'
+export type FuturesSignalType = 'breakout' | 'retest' | 'range' | 'scalping' | 'swing'
+export type NftSignalType = 'buy' | 'sell' | 'mint'
+export type StakingAction = 'enter' | 'exit' | 'rebalance'
+
+export interface MemecoinSignalFields {
+  coinName: string
+  ticker: string
+  network: Network
+  contract?: string
+  signalType: CallSentiment
+  reason: string
+  entryCap: string
+  targets: string
+  stopLoss?: string
+  riskLevel: CallRiskLevel
+  risks: string
+  holdPlan: 'flip' | 'short' | 'medium' | 'long'
+  liquidityLocked?: boolean
+  traderComment?: string
+}
+
+export interface FuturesSignalFields {
+  pair: string
+  direction: FuturesDirection
+  leverage: string
+  entryPrice?: string
+  entryZone: string
+  targets: string
+  stopLoss: string
+  signalStyle: FuturesSignalType
+  positionSize: string
+  reason: string
+  timeframe: '1m' | '5m' | '15m' | '1h' | '4h'
+  risks: string
+  riskLevel?: CallRiskLevel
+}
+
+export interface NftSignalFields {
+  collectionLink: string
+  nftLink: string
+  marketplace: string
+  network: Network
+  entryPrice: string
+  rarity?: string
+  signalType: NftSignalType
+  reason: string
+  holdingHorizon: 'flip' | 'short' | 'medium' | 'long'
+  minLiquidity: string
+  targetPrice: string
+  traderComment?: string
+  risks?: string
+}
+
+export interface SpotSignalFields {
+  coin: string
+  entryCap: string
+  targets: string
+  stopLoss?: string
+  holdingHorizon: 'short' | 'medium' | 'long'
+  reason: string
+  positionSize: string
+  risks: string
+  traderComment?: string
+  riskLevel?: CallRiskLevel
+}
+
+export interface PolymarketSignalFields {
+  event: string
+  positionType: 'yes' | 'no'
+  entryPrice: string // in %
+  expectedProbability: string
+  reason: string
+  eventDeadline: string
+  riskLevel: CallRiskLevel
+  maxStake: string
+  risks: string
+  targetPlan: string
+}
+
+export interface StakingSignalFields {
+  coin: string
+  platform: string
+  term: 'flexible' | '30d' | '90d' | 'fixed'
+  apy: string
+  minDeposit: string
+  protocolRisk: CallRiskLevel
+  action: StakingAction
+  reason: string
+  risks: string
+  traderComment?: string
+}
+
+export interface CallDetails {
+  memecoins?: MemecoinSignalFields
+  futures?: FuturesSignalFields
+  nft?: NftSignalFields
+  spot?: SpotSignalFields
+  polymarket?: PolymarketSignalFields
+  staking?: StakingSignalFields
+}
 
 export interface Call {
   id: string
-  userId: string // ID трейдера
-  network: Network
-  ticker: string // Тикер токена (например, PEPE)
-  pair: string // Пара токена (например, PEPE/USDT)
-  entryPoint: string // Точка входа или диапазон (например, "0.001" или "0.001-0.002")
-  target: string // Цель/ориентиры по прибыли (например, "0.002, 0.003, 0.005")
-  strategy: Strategy // Флип, среднесрок, долгосрок
-  risks: string // Риски
-  cancelConditions?: string // Условия отмены или пересмотра колла
-  comment?: string // Комментарий по ситуации
-  createdAt: string // ISO timestamp
+  userId: string
+  category: CallCategory
   status: CallStatus
-  
+  createdAt: string // ISO timestamp
+  details: CallDetails
+  sentiment?: CallSentiment
+  riskLevel?: CallRiskLevel
+  tags?: string[]
+  comment?: string // Общий комментарий
+
   // Данные для отображения (заполняются из API)
   maxProfit?: number // MAX прибыль в %
   currentPnL?: number // Текущий PNL с момента сигнала в %

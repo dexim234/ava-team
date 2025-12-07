@@ -1,14 +1,62 @@
-// Call page for team - Trading signals management
-import { useState, useEffect, useMemo } from 'react'
+// Call page redesigned for multi-domain signals
+import { useState, useEffect, useMemo, type JSX } from 'react'
 import { useThemeStore } from '@/store/themeStore'
 import { useAuthStore } from '@/store/authStore'
 import { Layout } from '@/components/Layout'
 import { CallForm } from '@/components/Call/CallForm'
 import { getCalls, deleteCall } from '@/services/firestoreService'
-import type { Call } from '@/types'
+import type { Call, CallCategory, CallRiskLevel } from '@/types'
 import { TEAM_MEMBERS } from '@/types'
-import { Plus, X, Edit, Trash2, Copy, Check, Clock, Target, AlertCircle, FileText, Sparkles, Zap, Search, BarChart3, TrendingUp, Users, Award, Activity } from 'lucide-react'
+import {
+  Plus,
+  X,
+  Edit,
+  Trash2,
+  Copy,
+  Check,
+  Search,
+  BarChart3,
+  Zap,
+  Sparkles,
+  Filter,
+  Shield,
+  Flame,
+  Activity,
+  Rocket,
+  LineChart,
+  Images,
+  Coins,
+  Target,
+  AlertTriangle,
+} from 'lucide-react'
 import { useScrollLock } from '@/hooks/useScrollLock'
+
+type StatusFilter = 'all' | 'active' | 'completed' | 'cancelled' | 'reviewed'
+type RiskFilter = 'all' | CallRiskLevel
+
+const CATEGORY_META: Record<CallCategory, { label: string; gradient: string; chip: string; icon: JSX.Element }> = {
+  memecoins: { label: 'Мемкоины', gradient: 'from-emerald-500 to-emerald-700', chip: 'bg-emerald-500/15 text-emerald-500', icon: <Rocket className="w-4 h-4" /> },
+  futures: { label: 'Фьючерсы', gradient: 'from-blue-500 to-indigo-600', chip: 'bg-blue-500/15 text-blue-500', icon: <LineChart className="w-4 h-4" /> },
+  nft: { label: 'NFT', gradient: 'from-purple-500 to-pink-500', chip: 'bg-purple-500/15 text-purple-500', icon: <Images className="w-4 h-4" /> },
+  spot: { label: 'Спот', gradient: 'from-amber-500 to-orange-500', chip: 'bg-amber-500/15 text-amber-600', icon: <Coins className="w-4 h-4" /> },
+  polymarket: { label: 'Polymarket', gradient: 'from-rose-500 to-red-500', chip: 'bg-rose-500/15 text-rose-500', icon: <Target className="w-4 h-4" /> },
+  staking: { label: 'Стейкинг', gradient: 'from-cyan-500 to-blue-500', chip: 'bg-cyan-500/15 text-cyan-500', icon: <Shield className="w-4 h-4" /> },
+}
+
+const statusLabels: Record<StatusFilter, { label: string; className: string }> = {
+  all: { label: 'Все', className: '' },
+  active: { label: 'Активен', className: 'bg-emerald-500/15 text-emerald-500 border border-emerald-500/20' },
+  completed: { label: 'Завершен', className: 'bg-blue-500/15 text-blue-500 border border-blue-500/20' },
+  cancelled: { label: 'Отменен', className: 'bg-red-500/15 text-red-500 border border-red-500/20' },
+  reviewed: { label: 'На рассмотрении', className: 'bg-gray-500/15 text-gray-500 border border-gray-500/20' },
+}
+
+const riskBadges: Record<CallRiskLevel, string> = {
+  low: 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20',
+  medium: 'bg-blue-500/10 text-blue-600 border border-blue-500/20',
+  high: 'bg-amber-500/10 text-amber-600 border border-amber-500/20',
+  ultra: 'bg-red-500/10 text-red-600 border border-red-500/20',
+}
 
 export const CallPage = () => {
   const { theme } = useThemeStore()
@@ -17,12 +65,15 @@ export const CallPage = () => {
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
-  const [showStats, setShowStats] = useState(true)
   const [deleteCallId, setDeleteCallId] = useState<string | null>(null)
   const [editingCall, setEditingCall] = useState<Call | null>(null)
-  const [copiedTicker, setCopiedTicker] = useState<string | null>(null)
+  const [formCategory, setFormCategory] = useState<CallCategory>('memecoins')
+  const [copiedValue, setCopiedValue] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
-  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'completed' | 'cancelled' | 'reviewed'>('all')
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
+  const [categoryFilter, setCategoryFilter] = useState<'all' | CallCategory>('all')
+  const [riskFilter, setRiskFilter] = useState<RiskFilter>('all')
+  const [showAnalytics, setShowAnalytics] = useState(true)
 
   useScrollLock(showForm || showDeleteModal)
 
@@ -33,13 +84,8 @@ export const CallPage = () => {
   const loadCalls = async () => {
     setLoading(true)
     try {
-      // Load all calls (not filtered by userId) to show team's signals
       const fetchedCalls = await getCalls()
       setCalls(fetchedCalls)
-      console.log('Loaded calls:', fetchedCalls.length, 'User ID:', user?.id)
-      if (fetchedCalls.length > 0) {
-        console.log('First call userId:', fetchedCalls[0].userId)
-      }
     } catch (error) {
       console.error('Error loading calls:', error)
       setCalls([])
@@ -48,78 +94,10 @@ export const CallPage = () => {
     }
   }
 
-  // Calculate statistics
-  const stats = useMemo(() => {
-    const traderStats: Record<string, {
-      name: string
-      totalCalls: number
-      activeCalls: number
-      completedCalls: number
-      cancelledCalls: number
-      avgPnL: number
-      totalPnL: number
-      maxProfit: number
-    }> = {}
-
-    calls.forEach((call) => {
-      const trader = TEAM_MEMBERS.find(t => t.id === call.userId)
-      const traderId = call.userId || 'unknown'
-      const traderName = trader?.name || 'Неизвестный'
-
-      if (!traderStats[traderId]) {
-        traderStats[traderId] = {
-          name: traderName,
-          totalCalls: 0,
-          activeCalls: 0,
-          completedCalls: 0,
-          cancelledCalls: 0,
-          avgPnL: 0,
-          totalPnL: 0,
-          maxProfit: 0
-        }
-      }
-
-      traderStats[traderId].totalCalls++
-      if (call.status === 'active') traderStats[traderId].activeCalls++
-      if (call.status === 'completed') traderStats[traderId].completedCalls++
-      if (call.status === 'cancelled') traderStats[traderId].cancelledCalls++
-
-      if (call.currentPnL !== undefined) {
-        traderStats[traderId].totalPnL += call.currentPnL
-      }
-      if (call.maxProfit !== undefined && call.maxProfit > traderStats[traderId].maxProfit) {
-        traderStats[traderId].maxProfit = call.maxProfit
-      }
-    })
-
-    // Calculate average PnL
-    Object.keys(traderStats).forEach((traderId) => {
-      const stat = traderStats[traderId]
-      if (stat.totalCalls > 0) {
-        stat.avgPnL = stat.totalPnL / stat.totalCalls
-      }
-    })
-
-    return Object.values(traderStats).sort((a, b) => b.totalCalls - a.totalCalls)
-  }, [calls])
-
-  const totalStats = useMemo(() => {
-    const total = calls.length
-    const active = calls.filter(c => c.status === 'active').length
-    const completed = calls.filter(c => c.status === 'completed').length
-    const cancelled = calls.filter(c => c.status === 'cancelled').length
-    const avgPnL = calls.length > 0
-      ? calls.reduce((sum, c) => sum + (c.currentPnL || 0), 0) / calls.length
-      : 0
-    const bestCall = calls.reduce((best, c) => {
-      if (c.maxProfit !== undefined && (!best || (best.maxProfit || 0) < c.maxProfit)) {
-        return c
-      }
-      return best
-    }, null as Call | null)
-
-    return { total, active, completed, cancelled, avgPnL, bestCall }
-  }, [calls])
+  const bgColor = theme === 'dark' ? 'bg-[#121212]' : 'bg-white'
+  const textColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
+  const subtleColor = theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+  const borderColor = theme === 'dark' ? 'border-gray-800' : 'border-gray-200'
 
   const handleSuccess = () => {
     setShowForm(false)
@@ -134,6 +112,7 @@ export const CallPage = () => {
 
   const handleEdit = (call: Call) => {
     setEditingCall(call)
+    setFormCategory(call.category)
     setShowForm(true)
   }
 
@@ -155,298 +134,391 @@ export const CallPage = () => {
     }
   }
 
-  const copyTicker = async (ticker: string) => {
+  const copyValue = async (value: string) => {
     try {
-      await navigator.clipboard.writeText(ticker)
-      setCopiedTicker(ticker)
-      setTimeout(() => setCopiedTicker(null), 2000)
+      await navigator.clipboard.writeText(value)
+      setCopiedValue(value)
+      setTimeout(() => setCopiedValue(null), 1800)
     } catch (error) {
       console.error('Failed to copy:', error)
     }
   }
 
-  const bgColor = theme === 'dark' ? 'bg-[#1a1a1a]' : 'bg-white'
-  const textColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
-  const subtleColor = theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-  const borderColor = theme === 'dark' ? 'border-gray-800' : 'border-gray-200'
-  const pillInactive = theme === 'dark' ? 'bg-gray-800 text-gray-200 border border-gray-700' : 'bg-white text-gray-700 border border-gray-200'
-  const pillActive = 'bg-gradient-to-r from-[#4E6E49] to-emerald-600 text-white shadow-lg shadow-emerald-500/30'
+  const getDetails = (call: Call) => (call.details as any)?.[call.category] || {}
 
-  const networkColors: Record<string, { bg: string; text: string; icon: string }> = {
-    solana: { bg: 'bg-purple-500/10', text: 'text-purple-400', icon: 'bg-purple-500' },
-    bsc: { bg: 'bg-yellow-500/10', text: 'text-yellow-400', icon: 'bg-yellow-500' },
-    ethereum: { bg: 'bg-blue-500/10', text: 'text-blue-400', icon: 'bg-blue-500' },
-    base: { bg: 'bg-indigo-500/10', text: 'text-indigo-400', icon: 'bg-indigo-500' },
-    ton: { bg: 'bg-cyan-500/10', text: 'text-cyan-400', icon: 'bg-cyan-500' },
-    tron: { bg: 'bg-red-500/10', text: 'text-red-400', icon: 'bg-red-500' },
-    sui: { bg: 'bg-[#4E6E49]/10', text: 'text-[#4E6E49]', icon: 'bg-[#4E6E49]' },
-    cex: { bg: 'bg-orange-500/10', text: 'text-orange-400', icon: 'bg-orange-500' }
+  const getPrimaryTitle = (call: Call) => {
+    const d = getDetails(call)
+    switch (call.category) {
+      case 'memecoins':
+        return d.coinName || d.ticker || 'Мемкоин'
+      case 'futures':
+        return d.pair || 'Фьючерс'
+      case 'nft':
+        return d.collectionLink || 'NFT коллекция'
+      case 'spot':
+        return d.coin || 'Спот'
+      case 'polymarket':
+        return d.event || 'Polymarket событие'
+      case 'staking':
+        return d.coin || 'Стейкинг'
+      default:
+        return 'Сигнал'
+    }
   }
 
-  const strategyLabels: Record<string, { label: string; icon: string; color: string }> = {
-    flip: { label: 'Флип', icon: '🔄', color: 'bg-yellow-500/20 text-yellow-600 dark:text-yellow-400 border-yellow-500/30' },
-    medium: { label: 'Среднесрок', icon: '📊', color: 'bg-blue-500/20 text-blue-600 dark:text-blue-400 border-blue-500/30' },
-    long: { label: 'Долгосрок', icon: '⏰', color: 'bg-purple-500/20 text-purple-600 dark:text-purple-400 border-purple-500/30' }
+  const getSecondary = (call: Call) => {
+    const d = getDetails(call)
+    switch (call.category) {
+      case 'memecoins':
+        return `${d.ticker || ''} ${d.network ? `• ${String(d.network).toUpperCase()}` : ''}`.trim()
+      case 'futures':
+        return `${d.direction === 'long' ? 'Long' : 'Short'} • ${d.timeframe || ''}`
+      case 'nft':
+        return `${d.marketplace || ''}${d.network ? ` • ${String(d.network).toUpperCase()}` : ''}`
+      case 'spot':
+        return d.holdingHorizon ? `Горизонт: ${d.holdingHorizon}` : ''
+      case 'polymarket':
+        return `${d.positionType === 'yes' ? 'YES' : 'NO'} • ${d.entryPrice || ''}`
+      case 'staking':
+        return `${d.platform || ''}${d.term ? ` • ${d.term}` : ''}`
+      default:
+        return ''
+    }
   }
 
-  const statusLabels: Record<string, { label: string; color: string }> = {
-    active: { label: 'Активен', color: 'bg-[#4E6E49]/20 text-[#4E6E49] dark:text-[#4E6E49] border-[#4E6E49]/30' },
-    completed: { label: 'Завершен', color: 'bg-blue-500/20 text-blue-600 dark:text-blue-400 border-blue-500/30' },
-    cancelled: { label: 'Отменен', color: 'bg-red-500/20 text-red-600 dark:text-red-400 border-red-500/30' },
-    reviewed: { label: 'На рассмотрении', color: 'bg-gray-500/20 text-gray-600 dark:text-gray-400 border-gray-500/30' }
+  const getRiskLevel = (call: Call): CallRiskLevel => call.riskLevel || getDetails(call).riskLevel || getDetails(call).protocolRisk || 'medium'
+
+  const composeSearchString = (call: Call) => {
+    const d = getDetails(call)
+    const base = [
+      call.category,
+      call.status,
+      call.comment,
+      d.coinName,
+      d.ticker,
+      d.pair,
+      d.reason,
+      d.targets,
+      d.event,
+      d.marketplace,
+      d.platform,
+      d.entryCap,
+      d.entryZone,
+      d.network,
+    ]
+    return base.filter(Boolean).join(' ').toLowerCase()
   }
 
   const filteredCalls = calls
-    .filter((call: Call) => 
-      call.ticker.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      call.pair.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      call.network.toLowerCase().includes(searchQuery.toLowerCase())
+    .filter((call) => {
+      if (statusFilter !== 'all' && call.status !== statusFilter) return false
+      if (categoryFilter !== 'all' && call.category !== categoryFilter) return false
+      if (riskFilter !== 'all' && getRiskLevel(call) !== riskFilter) return false
+      if (searchQuery.trim()) {
+        return composeSearchString(call).includes(searchQuery.toLowerCase())
+      }
+      return true
+    })
+
+  const categoryStats = useMemo(() => {
+    return calls.reduce<Record<CallCategory, { total: number; active: number }>>((acc, call) => {
+      if (!acc[call.category]) acc[call.category] = { total: 0, active: 0 }
+      acc[call.category].total += 1
+      if (call.status === 'active') acc[call.category].active += 1
+      return acc
+    }, {
+      memecoins: { total: 0, active: 0 },
+      futures: { total: 0, active: 0 },
+      nft: { total: 0, active: 0 },
+      spot: { total: 0, active: 0 },
+      polymarket: { total: 0, active: 0 },
+      staking: { total: 0, active: 0 },
+    })
+  }, [calls])
+
+  const totals = useMemo(() => ({
+    total: calls.length,
+    active: calls.filter((c) => c.status === 'active').length,
+    completed: calls.filter((c) => c.status === 'completed').length,
+    highRisk: calls.filter((c) => getRiskLevel(c) === 'high' || getRiskLevel(c) === 'ultra').length,
+  }), [calls])
+
+  const pillInactive = theme === 'dark' ? 'bg-gray-800 text-gray-200 border border-gray-700' : 'bg-white text-gray-700 border border-gray-200'
+  const pillActive = 'bg-gradient-to-r from-[#4E6E49] to-emerald-600 text-white shadow-lg shadow-emerald-500/30'
+
+  const renderQuickStat = (label: string, value: string | number, accent: string) => (
+    <div className={`p-4 rounded-xl border ${borderColor} ${theme === 'dark' ? 'bg-gray-800/60' : 'bg-gray-50'}`}>
+      <p className={`text-xs uppercase tracking-wider ${subtleColor}`}>{label}</p>
+      <p className={`text-2xl font-bold ${accent}`}>{value}</p>
+    </div>
+  )
+
+  const renderFieldsGrid = (call: Call) => {
+    const d = getDetails(call)
+    const blocks: { label: string; value?: string; icon?: JSX.Element }[] = []
+
+    switch (call.category) {
+      case 'memecoins':
+        blocks.push(
+          { label: 'Тип', value: d.signalType?.toUpperCase() },
+          { label: 'Сеть', value: d.network ? String(d.network).toUpperCase() : '' },
+          { label: 'Вход (кап.)', value: d.entryCap },
+          { label: 'Цели', value: d.targets },
+          { label: 'SL', value: d.stopLoss },
+          { label: 'План', value: d.holdPlan },
+          { label: 'Ликвидность', value: d.liquidityLocked ? 'Залочена' : '—' },
+        )
+        break
+      case 'futures':
+        blocks.push(
+          { label: 'Направление', value: d.direction ? d.direction.toUpperCase() : '' },
+          { label: 'Плечо', value: d.leverage },
+          { label: 'Вход', value: d.entryZone || d.entryPrice },
+          { label: 'Цели', value: d.targets },
+          { label: 'SL', value: d.stopLoss },
+          { label: 'Стиль', value: d.signalStyle },
+          { label: 'Размер позиции', value: d.positionSize },
+        )
+        break
+      case 'nft':
+        blocks.push(
+          { label: 'Маркетплейс', value: d.marketplace },
+          { label: 'Сеть', value: d.network ? String(d.network).toUpperCase() : '' },
+          { label: 'Вход', value: d.entryPrice },
+          { label: 'Рарность', value: d.rarity },
+          { label: 'Ликвидность', value: d.minLiquidity },
+          { label: 'Target', value: d.targetPrice },
+          { label: 'Тип', value: d.signalType },
+        )
+        break
+      case 'spot':
+        blocks.push(
+          { label: 'Вход (кап.)', value: d.entryCap },
+          { label: 'Цели', value: d.targets },
+          { label: 'SL', value: d.stopLoss },
+          { label: 'Горизонт', value: d.holdingHorizon },
+          { label: 'Размер', value: d.positionSize },
+        )
+        break
+      case 'polymarket':
+        blocks.push(
+          { label: 'Позиция', value: d.positionType === 'yes' ? 'YES' : 'NO' },
+          { label: 'Вход %', value: d.entryPrice },
+          { label: 'Ожидание %', value: d.expectedProbability },
+          { label: 'Срок', value: d.eventDeadline },
+          { label: 'Макс ставка', value: d.maxStake },
+          { label: 'Цель', value: d.targetPlan },
+        )
+        break
+      case 'staking':
+        blocks.push(
+          { label: 'Платформа', value: d.platform },
+          { label: 'Срок', value: d.term },
+          { label: 'APY', value: d.apy },
+          { label: 'Мин. депозит', value: d.minDeposit },
+          { label: 'Тип', value: d.action },
+          { label: 'Риск протокола', value: d.protocolRisk },
+        )
+        break
+    }
+
+    return (
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+        {blocks.filter(b => b.value).map((block) => (
+          <div key={block.label} className={`p-3 rounded-xl border ${borderColor} ${theme === 'dark' ? 'bg-gray-800/60' : 'bg-gray-50'}`}>
+            <p className={`text-[11px] uppercase tracking-wider ${subtleColor}`}>{block.label}</p>
+            <p className={`${textColor} font-semibold truncate`}>{block.value}</p>
+          </div>
+        ))}
+      </div>
     )
-    .filter((call: Call) => statusFilter === 'all' ? true : call.status === statusFilter)
+  }
+
+  const renderNarrative = (title: string, value?: string) => {
+    if (!value) return null
+    return (
+      <div className={`p-4 rounded-xl border ${borderColor} ${theme === 'dark' ? 'bg-gray-800/60' : 'bg-gray-50'}`}>
+        <p className={`text-xs uppercase tracking-wider ${subtleColor} mb-1`}>{title}</p>
+        <p className={`${textColor} leading-relaxed text-sm whitespace-pre-line`}>{value}</p>
+      </div>
+    )
+  }
 
   return (
     <Layout>
       <div className="space-y-6">
-        {/* Header */}
-        <div className={`rounded-2xl p-8 ${bgColor} shadow-xl border-2 ${
-          theme === 'dark' 
-            ? 'border-[#4E6E49]/30 bg-gradient-to-br from-[#1a1a1a] via-[#1a1a1a] to-[#0A0A0A]' 
-            : 'border-green-200 bg-gradient-to-br from-white via-green-50/30 to-white'
-        } relative overflow-hidden`}>
-          {/* Decorative elements */}
-          <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-[#4E6E49]/10 to-emerald-700/10 rounded-full blur-3xl -mr-32 -mt-32" />
-          <div className="absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-tr from-blue-500/10 to-purple-500/10 rounded-full blur-2xl -ml-24 -mb-24" />
-          
-          <div className="relative z-10">
-            <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between mb-6">
-              <div className="flex-1 space-y-2">
-                <div className="flex items-center gap-3">
-                  <div className={`p-4 rounded-2xl shadow-lg ${
-                    theme === 'dark' 
-                      ? 'bg-gradient-to-br from-[#4E6E49] to-emerald-700' 
-                      : 'bg-gradient-to-br from-[#4E6E49] to-emerald-700'
-                  } text-white`}>
-                    <Zap className="w-8 h-8" />
-                  </div>
-                  <div>
-                    <h1 className={`text-4xl font-extrabold ${textColor} flex items-center gap-3`}>
-                      <span className="bg-gradient-to-r from-[#4E6E49] via-emerald-600 to-blue-600 text-transparent bg-clip-text">
-                        Trading Signals
-                      </span>
-                    </h1>
-                    <p className={`text-sm font-medium ${subtleColor} flex items-center gap-2`}>
-                      <span className="text-[#4E6E49]">●</span>
-                      Управление торговыми сигналами для команды
-                    </p>
-                  </div>
+        {/* Hero */}
+        <div className={`rounded-2xl p-8 ${bgColor} shadow-xl border-2 ${theme === 'dark' ? 'border-[#4E6E49]/20' : 'border-green-100'} relative overflow-hidden`}>
+          <div className="absolute inset-0 bg-gradient-to-r from-[#4E6E49]/5 via-transparent to-emerald-600/10" />
+          <div className="relative z-10 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+            <div className="space-y-3">
+              <div className="flex items-center gap-3">
+                <div className="p-4 rounded-2xl bg-gradient-to-br from-[#4E6E49] to-emerald-700 text-white shadow-lg">
+                  <Zap className="w-7 h-7" />
+                </div>
+                <div>
+                  <p className="text-sm uppercase tracking-[0.25em] text-[#4E6E49]">Signals Hub</p>
+                  <h1 className={`text-4xl font-extrabold ${textColor}`}>Call: мульти-сигналы</h1>
+                  <p className={`${subtleColor} text-sm`}>Мемы, фьючи, спот, NFT, Polymarket и стейкинг в одном окне.</p>
                 </div>
               </div>
-              <button
-                onClick={() => {
-                  setEditingCall(null)
-                  setShowForm(true)
-                }}
-                className={`w-full lg:w-auto px-6 py-4 bg-gradient-to-r from-[#4E6E49] to-[#4E6E49] hover:from-[#4E6E49] hover:to-[#4E6E49] text-white rounded-xl transition-all duration-200 flex items-center justify-center gap-2 font-semibold shadow-lg hover:shadow-xl hover:scale-105 transform`}
-              >
-                <Plus className="w-5 h-5" />
-                <span>Создать сигнал</span>
-              </button>
+              <div className="flex flex-wrap gap-3">
+                <button
+                  onClick={() => { setEditingCall(null); setFormCategory('memecoins'); setShowForm(true) }}
+                  className="inline-flex items-center gap-2 px-4 py-3 rounded-xl text-white bg-gradient-to-r from-[#4E6E49] to-emerald-600 shadow-lg hover:shadow-xl transition-all"
+                >
+                  <Plus className="w-5 h-5" />
+                  Новый сигнал
+                </button>
+                <div className="flex items-center gap-2 px-4 py-3 rounded-xl border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 bg-emerald-500/10">
+                  <Activity className="w-4 h-4" />
+                  <span className="text-sm font-semibold">Активных: {totals.active}</span>
+                </div>
+                <div className="flex items-center gap-2 px-4 py-3 rounded-xl border border-amber-500/30 text-amber-600 dark:text-amber-400 bg-amber-500/10">
+                  <Flame className="w-4 h-4" />
+                  <span className="text-sm font-semibold">High risk: {totals.highRisk}</span>
+                </div>
+              </div>
             </div>
-
-            {/* Search */}
-            <div className="relative">
-              <Search className={`absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 ${subtleColor}`} />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
-                placeholder="Поиск по тикеру, паре или сети..."
-                className={`w-full pl-12 pr-4 py-3 rounded-xl border-2 ${borderColor} ${
-                  theme === 'dark' ? 'bg-gray-700/50' : 'bg-gray-50'
-                } ${textColor} focus:outline-none focus:ring-2 focus:ring-[#4E6E49]/50 transition-all`}
-              />
-              <div className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-500 dark:text-gray-400">
-                {filteredCalls.length}/{calls.length}
+            <div className="w-full lg:w-96">
+              <div className={`rounded-2xl border ${borderColor} ${theme === 'dark' ? 'bg-gray-900/70' : 'bg-white'} p-3 shadow-inner`}>
+                <div className="flex items-center gap-2 mb-2">
+                  <Search className={`w-4 h-4 ${subtleColor}`} />
+                  <p className={`text-sm font-semibold ${textColor}`}>Поиск по всем сферам</p>
+                  <span className="ml-auto text-xs text-gray-500 dark:text-gray-400">{filteredCalls.length}/{calls.length}</span>
+                </div>
+                <input
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="тикер, событие, сеть, причина..."
+                  className={`w-full px-3 py-2 rounded-xl border ${borderColor} ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-50'} ${textColor} focus:outline-none focus:ring-2 focus:ring-[#4E6E49]/60`}
+                />
               </div>
             </div>
           </div>
         </div>
 
-        {/* Statistics Section */}
-        {showStats && calls.length > 0 && (
-          <div className={`${bgColor} rounded-2xl p-6 shadow-xl border ${borderColor}`}>
-            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-6">
-              <h2 className={`text-2xl font-bold ${textColor} flex items-center gap-2`}>
-                <BarChart3 className="w-6 h-6 text-[#4E6E49]" />
-                Аналитика
-              </h2>
-              <div className="flex flex-wrap gap-2">
-                {(['all','active','completed','cancelled','reviewed'] as const).map(status => (
-                  <button
-                    key={status}
-                    onClick={() => setStatusFilter(status)}
-                    className={`px-3 py-2 rounded-xl text-sm font-semibold transition-all ${
-                      statusFilter === status ? pillActive : pillInactive
-                    }`}
-                  >
-                    {status === 'all' && 'Все'}
-                    {status === 'active' && 'Активные'}
-                    {status === 'completed' && 'Завершенные'}
-                    {status === 'cancelled' && 'Отмененные'}
-                    {status === 'reviewed' && 'На рассмотрении'}
-                  </button>
-                ))}
+        {/* Category mini-cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+          {(Object.keys(CATEGORY_META) as CallCategory[]).map((cat) => {
+            const meta = CATEGORY_META[cat]
+            const stats = categoryStats[cat]
+            return (
+              <button
+                key={cat}
+                onClick={() => { setFormCategory(cat); setEditingCall(null); setShowForm(true) }}
+                className={`relative overflow-hidden rounded-2xl border ${borderColor} ${theme === 'dark' ? 'bg-gray-900/70' : 'bg-white'} p-4 text-left shadow-md hover:shadow-xl transition-all`}
+              >
+                <div className={`absolute inset-0 opacity-70 bg-gradient-to-r ${meta.gradient}`} />
+                <div className="relative z-10 flex items-start justify-between">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2 text-white">
+                      {meta.icon}
+                      <p className="font-semibold">{meta.label}</p>
+                    </div>
+                    <p className="text-xs text-white/80">Всего {stats?.total || 0} • Активных {stats?.active || 0}</p>
+                  </div>
+                  <div className="bg-white/20 text-white rounded-full px-3 py-1 text-xs font-semibold">Добавить</div>
+                </div>
+              </button>
+            )
+          })}
+        </div>
+
+        {/* Filters + analytics */}
+        <div className={`rounded-2xl border ${borderColor} ${theme === 'dark' ? 'bg-gray-900/70' : 'bg-white'} p-5 space-y-4`}>
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-2 text-sm font-semibold">
+              <Filter className={`w-4 h-4 ${subtleColor}`} />
+              <span className={textColor}>Фильтры</span>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {(Object.keys(statusLabels) as StatusFilter[]).map((status) => (
                 <button
-                  onClick={() => setShowStats(!showStats)}
-                  className={`p-2 rounded-lg ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
-                  title="Скрыть аналитику"
+                  key={status}
+                  onClick={() => setStatusFilter(status)}
+                  className={`px-3 py-1.5 rounded-xl text-sm font-semibold transition-all ${
+                    statusFilter === status ? pillActive : pillInactive
+                  }`}
                 >
-                  <X className={`w-5 h-5 ${subtleColor}`} />
+                  {statusLabels[status].label}
                 </button>
-              </div>
+              ))}
             </div>
-
-            {/* Total Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-              <div className={`p-4 rounded-xl ${theme === 'dark' ? 'bg-blue-500/10 border border-blue-500/20' : 'bg-blue-50 border border-blue-200'}`}>
-                <div className="flex items-center gap-2 mb-2">
-                  <Activity className="w-5 h-5 text-blue-500" />
-                  <p className={`text-xs font-semibold uppercase tracking-wider ${subtleColor}`}>Всего сигналов</p>
-                </div>
-                <p className={`text-2xl font-bold ${textColor}`}>{totalStats.total}</p>
-              </div>
-              <div className={`p-4 rounded-xl ${theme === 'dark' ? 'bg-[#4E6E49]/10 border border-[#4E6E49]/20' : 'bg-green-50 border border-green-200'}`}>
-                <div className="flex items-center gap-2 mb-2">
-                  <Zap className="w-5 h-5 text-[#4E6E49]" />
-                  <p className={`text-xs font-semibold uppercase tracking-wider ${subtleColor}`}>Активных</p>
-                </div>
-                <p className={`text-2xl font-bold ${textColor}`}>{totalStats.active}</p>
-              </div>
-              <div className={`p-4 rounded-xl ${theme === 'dark' ? 'bg-purple-500/10 border border-purple-500/20' : 'bg-purple-50 border border-purple-200'}`}>
-                <div className="flex items-center gap-2 mb-2">
-                  <Check className="w-5 h-5 text-purple-500" />
-                  <p className={`text-xs font-semibold uppercase tracking-wider ${subtleColor}`}>Завершено</p>
-                </div>
-                <p className={`text-2xl font-bold ${textColor}`}>{totalStats.completed}</p>
-              </div>
-              <div className={`p-4 rounded-xl ${theme === 'dark' ? 'bg-orange-500/10 border border-orange-500/20' : 'bg-orange-50 border border-orange-200'}`}>
-                <div className="flex items-center gap-2 mb-2">
-                  <TrendingUp className="w-5 h-5 text-orange-500" />
-                  <p className={`text-xs font-semibold uppercase tracking-wider ${subtleColor}`}>Средний PNL</p>
-                </div>
-                <p className={`text-2xl font-bold ${totalStats.avgPnL >= 0 ? 'text-[#4E6E49]' : 'text-red-500'}`}>
-                  {totalStats.avgPnL >= 0 ? '+' : ''}{totalStats.avgPnL.toFixed(2)}%
-                </p>
-              </div>
-            </div>
-
-            {/* Best Call */}
-            {totalStats.bestCall && (
-              <div className={`p-4 rounded-xl mb-6 ${theme === 'dark' ? 'bg-gradient-to-r from-[#4E6E49]/10 to-[#4E6E49]/10 border border-[#4E6E49]/20' : 'bg-gradient-to-r from-green-50 to-green-100 border border-green-200'}`}>
-                <div className="flex items-center gap-2 mb-2">
-                  <Award className="w-5 h-5 text-[#4E6E49]" />
-                  <p className={`text-sm font-semibold ${textColor}`}>Лучший сигнал</p>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className={`font-bold ${textColor}`}>{totalStats.bestCall.pair}</p>
-                    <p className={`text-xs ${subtleColor}`}>Тикер: {totalStats.bestCall.ticker}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className={`text-2xl font-bold text-[#4E6E49]`}>
-                      +{totalStats.bestCall.maxProfit?.toFixed(2) || '0.00'}%
-                    </p>
-                    <p className={`text-xs ${subtleColor}`}>MAX прибыль</p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Trader Statistics */}
-            <div>
-              <h3 className={`text-lg font-bold ${textColor} mb-4 flex items-center gap-2`}>
-                <Users className="w-5 h-5 text-[#4E6E49]" />
-                Статистика по трейдерам
-              </h3>
-              <div className="space-y-3">
-                {stats.map((stat) => (
-                  <div
-                    key={stat.name}
-                    className={`p-4 rounded-xl border ${borderColor} ${theme === 'dark' ? 'bg-gray-700/30' : 'bg-gray-50'}`}
-                  >
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-r from-[#4E6E49] to-[#4E6E49] flex items-center justify-center text-white font-bold">
-                          {stat.name[0]}
-                        </div>
-                        <div>
-                          <p className={`font-bold ${textColor}`}>{stat.name}</p>
-                          <p className={`text-xs ${subtleColor}`}>Всего сигналов: {stat.totalCalls}</p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className={`text-lg font-bold ${stat.avgPnL >= 0 ? 'text-[#4E6E49]' : 'text-red-500'}`}>
-                          {stat.avgPnL >= 0 ? '+' : ''}{stat.avgPnL.toFixed(2)}%
-                        </p>
-                        <p className={`text-xs ${subtleColor}`}>Средний PNL</p>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-4 gap-2">
-                      <div className={`p-2 rounded-lg text-center ${theme === 'dark' ? 'bg-[#4E6E49]/10' : 'bg-green-50'}`}>
-                        <p className={`text-sm font-bold ${textColor}`}>{stat.activeCalls}</p>
-                        <p className={`text-xs ${subtleColor}`}>Активных</p>
-                      </div>
-                      <div className={`p-2 rounded-lg text-center ${theme === 'dark' ? 'bg-blue-500/10' : 'bg-blue-50'}`}>
-                        <p className={`text-sm font-bold ${textColor}`}>{stat.completedCalls}</p>
-                        <p className={`text-xs ${subtleColor}`}>Завершено</p>
-                      </div>
-                      <div className={`p-2 rounded-lg text-center ${theme === 'dark' ? 'bg-red-500/10' : 'bg-red-50'}`}>
-                        <p className={`text-sm font-bold ${textColor}`}>{stat.cancelledCalls}</p>
-                        <p className={`text-xs ${subtleColor}`}>Отменено</p>
-                      </div>
-                      <div className={`p-2 rounded-lg text-center ${theme === 'dark' ? 'bg-purple-500/10' : 'bg-purple-50'}`}>
-                        <p className={`text-sm font-bold text-purple-500`}>+{stat.maxProfit.toFixed(1)}%</p>
-                        <p className={`text-xs ${subtleColor}`}>MAX</p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+            <div className="flex flex-wrap gap-2 ml-auto">
+              <button
+                onClick={() => setShowAnalytics((v) => !v)}
+                className={`px-3 py-2 rounded-lg text-sm font-semibold border ${borderColor} ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-50'}`}
+              >
+                {showAnalytics ? 'Скрыть аналитику' : 'Показать аналитику'}
+              </button>
             </div>
           </div>
-        )}
 
-        {/* Toggle Stats Button */}
-        {calls.length > 0 && !showStats && (
-          <button
-            onClick={() => setShowStats(true)}
-            className={`w-full ${bgColor} rounded-xl p-4 shadow-lg border ${borderColor} hover:shadow-xl transition-all flex items-center justify-center gap-2 ${
-              theme === 'dark' ? 'hover:bg-gray-700/50' : 'hover:bg-gray-50'
-            }`}
-          >
-            <BarChart3 className="w-5 h-5 text-[#4E6E49]" />
-            <span className={`font-semibold ${textColor}`}>Показать аналитику</span>
-          </button>
-        )}
+          <div className="flex flex-wrap gap-2">
+            <span className={`text-xs ${subtleColor} uppercase tracking-wider`}>Сфера:</span>
+            <button
+              onClick={() => setCategoryFilter('all')}
+              className={`px-3 py-1.5 rounded-full text-sm font-semibold border ${categoryFilter === 'all' ? pillActive : pillInactive}`}
+            >
+              Все
+            </button>
+            {(Object.keys(CATEGORY_META) as CallCategory[]).map((cat) => (
+              <button
+                key={cat}
+                onClick={() => setCategoryFilter(categoryFilter === cat ? 'all' : cat)}
+                className={`px-3 py-1.5 rounded-full text-sm font-semibold border ${categoryFilter === cat ? pillActive : pillInactive}`}
+              >
+                {CATEGORY_META[cat].label}
+              </button>
+            ))}
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            <span className={`text-xs ${subtleColor} uppercase tracking-wider`}>Риск:</span>
+            {(['all', 'low', 'medium', 'high', 'ultra'] as RiskFilter[]).map((risk) => (
+              <button
+                key={risk}
+                onClick={() => setRiskFilter(risk)}
+                className={`px-3 py-1.5 rounded-full text-sm font-semibold border ${riskFilter === risk ? pillActive : pillInactive}`}
+              >
+                {risk === 'all' ? 'Все' : risk}
+              </button>
+            ))}
+          </div>
+
+          {showAnalytics && (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {renderQuickStat('Всего сигналов', totals.total, textColor)}
+              {renderQuickStat('Активных', totals.active, 'text-emerald-500')}
+              {renderQuickStat('Завершено', totals.completed, 'text-blue-500')}
+              {renderQuickStat('High risk', totals.highRisk, 'text-amber-500')}
+            </div>
+          )}
+        </div>
 
         {/* Form Modal */}
         {showForm && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[70] flex items-start sm:items-center justify-center p-4 overflow-y-auto overflow-x-hidden overscroll-contain modal-scroll animate-in fade-in duration-200">
-            <div className={`${bgColor} rounded-2xl shadow-2xl border ${borderColor} max-w-2xl w-full max-h-[85dvh] sm:max-h-[calc(100dvh-96px)] flex flex-col overflow-hidden animate-in slide-in-from-bottom-4 duration-300`}>
-              <div className="flex-shrink-0 p-8 flex items-center justify-between">
-                <h2 className={`text-3xl font-bold ${textColor}`}>
-                  {editingCall ? 'Редактировать сигнал' : 'Создать новый сигнал'}
-                </h2>
-                <button
-                  onClick={handleCancel}
-                  className={`p-2 rounded-xl transition-colors flex-shrink-0 ${theme === 'dark' ? 'hover:bg-gray-700 text-gray-200' : 'hover:bg-gray-100 text-gray-700'}`}
-                  aria-label="Закрыть"
-                >
-                  <X className="w-6 h-6" />
-                </button>
-              </div>
-              <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain modal-scroll px-8 pb-10 min-w-0">
-                <CallForm callToEdit={editingCall} onSuccess={handleSuccess} onCancel={handleCancel} />
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[70] flex items-start sm:items-center justify-center p-4 overflow-y-auto overscroll-contain">
+            <div className={`${bgColor} rounded-2xl shadow-2xl border ${borderColor} max-w-3xl w-full max-h-[90dvh] overflow-hidden`}>
+              <div className="flex flex-col h-full min-h-0">
+                <div className="p-6 flex items-center justify-between border-b border-gray-800/50">
+                  <h2 className={`text-2xl font-bold ${textColor}`}>{editingCall ? 'Редактировать сигнал' : 'Создать сигнал'}</h2>
+                  <button
+                    onClick={handleCancel}
+                    className={`p-2 rounded-xl ${theme === 'dark' ? 'hover:bg-gray-800' : 'hover:bg-gray-100'}`}
+                  >
+                    <X className={`w-5 h-5 ${subtleColor}`} />
+                  </button>
+                </div>
+                <div className="flex-1 overflow-y-auto px-6 pb-6">
+                  <CallForm
+                    callToEdit={editingCall}
+                    onSuccess={handleSuccess}
+                    onCancel={handleCancel}
+                    initialCategory={formCategory}
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -454,51 +526,26 @@ export const CallPage = () => {
 
         {/* Delete Confirmation Modal */}
         {showDeleteModal && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[70] flex items-start sm:items-center justify-center p-4 overflow-y-auto overflow-x-hidden overscroll-contain modal-scroll animate-in fade-in duration-200">
-            <div className={`${bgColor} rounded-2xl shadow-2xl border ${borderColor} max-w-md w-full max-h-[70dvh] sm:max-h-[calc(100dvh-96px)] flex flex-col overflow-hidden animate-in slide-in-from-bottom-4 duration-300`}>
-              <div className="flex-shrink-0 p-8 pb-4 flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 rounded-full bg-red-500/10">
-                    <AlertCircle className="w-8 h-8 text-red-500" />
-                  </div>
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[70] flex items-start sm:items-center justify-center p-4 overflow-y-auto overscroll-contain">
+            <div className={`${bgColor} rounded-2xl shadow-2xl border ${borderColor} max-w-md w-full`}>
+              <div className="p-6 space-y-4">
+                <div className="flex items-center gap-3">
+                  <AlertTriangle className="w-6 h-6 text-red-500" />
                   <div>
-                    <h3 className={`text-2xl font-bold ${textColor}`}>Удалить сигнал?</h3>
+                    <h3 className={`text-xl font-bold ${textColor}`}>Удалить сигнал?</h3>
                     <p className={subtleColor}>Это действие нельзя отменить</p>
                   </div>
                 </div>
-                <button
-                  onClick={() => {
-                    setShowDeleteModal(false)
-                    setDeleteCallId(null)
-                  }}
-                  className={`p-2 rounded-xl transition-colors flex-shrink-0 ${theme === 'dark' ? 'hover:bg-gray-700 text-gray-200' : 'hover:bg-gray-100 text-gray-700'}`}
-                  aria-label="Закрыть"
-                >
-                  <X className="w-6 h-6" />
-                </button>
-              </div>
-              <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain modal-scroll px-8 pb-8 min-w-0">
-                <div className="flex gap-4">
+                <div className="flex gap-3">
                   <button
-                    onClick={() => {
-                      setShowDeleteModal(false)
-                      setDeleteCallId(null)
-                    }}
-                    className={`flex-1 px-6 py-3 rounded-xl font-semibold transition-colors ${
-                      theme === 'dark'
-                        ? 'bg-gray-700 hover:bg-gray-600 text-white'
-                        : 'bg-gray-200 hover:bg-gray-300 text-gray-900'
-                    }`}
+                    onClick={() => { setShowDeleteModal(false); setDeleteCallId(null) }}
+                    className={`flex-1 px-4 py-3 rounded-xl border ${borderColor} ${theme === 'dark' ? 'text-white' : 'text-gray-800'}`}
                   >
                     Отмена
                   </button>
                   <button
                     onClick={handleDeleteConfirm}
-                    className={`flex-1 px-6 py-3 rounded-xl font-semibold transition-colors ${
-                      theme === 'dark'
-                        ? 'bg-red-600 hover:bg-red-700 text-white'
-                        : 'bg-red-500 hover:bg-red-600 text-white'
-                    }`}
+                    className="flex-1 px-4 py-3 rounded-xl bg-red-600 text-white font-semibold hover:bg-red-700"
                   >
                     Удалить
                   </button>
@@ -513,215 +560,104 @@ export const CallPage = () => {
           <>
             {loading ? (
               <div className={`${bgColor} rounded-2xl p-12 text-center ${borderColor} border shadow-xl`}>
-                <div className="animate-spin rounded-full h-16 w-16 border-4 border-[#4E6E49] border-t-transparent mx-auto mb-4"></div>
+                <div className="animate-spin rounded-full h-14 w-14 border-4 border-[#4E6E49] border-t-transparent mx-auto mb-4"></div>
                 <p className={`${subtleColor} text-lg`}>Загрузка сигналов...</p>
               </div>
             ) : calls.length === 0 ? (
               <div className={`${bgColor} rounded-2xl p-12 text-center ${borderColor} border shadow-xl`}>
-                <Sparkles className={`w-20 h-20 mx-auto mb-6 ${subtleColor}`} />
-                <h3 className={`text-2xl font-bold ${textColor} mb-2`}>Нет сигналов</h3>
-                <p className={subtleColor}>Создайте первый торговый сигнал для команды</p>
+                <Sparkles className={`w-16 h-16 mx-auto mb-4 ${subtleColor}`} />
+                <p className={`text-xl font-bold ${textColor}`}>Пока пусто</p>
+                <p className={subtleColor}>Создайте первый сигнал в новой структуре</p>
               </div>
             ) : filteredCalls.length === 0 ? (
               <div className={`${bgColor} rounded-2xl p-12 text-center ${borderColor} border shadow-xl`}>
-                <Sparkles className={`w-20 h-20 mx-auto mb-6 ${subtleColor}`} />
-                <h3 className={`text-2xl font-bold ${textColor} mb-2`}>Ничего не найдено</h3>
-                <p className={subtleColor}>Попробуйте изменить запрос</p>
-                <p className={`${subtleColor} text-xs mt-2`}>
-                  Найдено сигналов: {calls.length}, отфильтровано: {filteredCalls.length}
-                </p>
+                <Sparkles className={`w-16 h-16 mx-auto mb-4 ${subtleColor}`} />
+                <p className={`text-xl font-bold ${textColor}`}>Нет совпадений</p>
+                <p className={subtleColor}>Сигналы есть ({calls.length}), но фильтр ничего не нашел.</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 gap-6">
-                {filteredCalls.map((call: Call) => {
+              <div className="grid grid-cols-1 gap-5">
+                {filteredCalls.map((call) => {
+                  const meta = CATEGORY_META[call.category]
+                  const statusMeta = statusLabels[call.status as StatusFilter] || statusLabels.active
+                  const riskLevel = getRiskLevel(call)
+                  const details = getDetails(call)
                   const trader = TEAM_MEMBERS.find(t => t.id === call.userId)
-                  const network = networkColors[call.network] || { bg: 'bg-gray-500/10', text: 'text-gray-400', icon: 'bg-gray-500' }
-                  const strategy = strategyLabels[call.strategy] || strategyLabels.flip
-                  const status = statusLabels[call.status] || statusLabels.active
-                  const isCopied = copiedTicker === call.ticker
-                  
+                  const keyCopyValue = details.ticker || details.pair || details.coin || getPrimaryTitle(call)
+                  const createdDate = new Date(call.createdAt).toLocaleDateString('ru-RU', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+
                   return (
-                    <div
-                      key={call.id}
-                      className={`${bgColor} rounded-2xl p-6 shadow-xl border ${borderColor} hover:shadow-2xl transition-all duration-300 group relative overflow-hidden`}
-                    >
-                      {/* Gradient accent */}
-                      <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#4E6E49] via-[#4E6E49] to-[#4E6E49] ${call.status === 'active' ? 'opacity-100' : 'opacity-50'}`}></div>
-
-                      {/* Header Section */}
-                      <div className="flex items-start justify-between mb-6">
-                        <div className="flex-1">
-                          {/* Network Badge & Trader */}
-                          <div className="flex items-center gap-3 mb-4">
-                            <div className={`${network.bg} ${network.text} px-4 py-2 rounded-xl font-bold text-sm flex items-center gap-2 border ${borderColor}`}>
-                              <div className={`w-2 h-2 rounded-full ${network.icon}`}></div>
-                              {call.network.toUpperCase()}
-                            </div>
-                            <span className={`px-3 py-1 rounded-lg text-xs font-medium border ${status.color}`}>
-                              {status.label}
-                            </span>
-                            {trader && (
-                              <div className="flex items-center gap-2">
-                                <div className="w-6 h-6 rounded-full bg-gradient-to-r from-[#4E6E49] to-[#4E6E49] flex items-center justify-center text-white text-xs font-bold">
-                                  {trader.name[0]}
-                                </div>
-                                <span className={`text-xs ${subtleColor}`}>{trader.name}</span>
+                    <div key={call.id} className={`${bgColor} rounded-2xl border ${borderColor} shadow-lg overflow-hidden`}>
+                      <div className="border-b border-gray-800/30 flex items-center justify-between px-4 py-3">
+                        <div className="flex items-center gap-2">
+                          <span className={`flex items-center gap-2 px-3 py-1 rounded-lg text-sm font-semibold ${meta.chip}`}>
+                            {meta.icon}
+                            {meta.label}
+                          </span>
+                          <span className={`px-3 py-1 rounded-lg text-xs font-semibold ${statusMeta.className}`}>{statusMeta.label}</span>
+                          <span className={`px-3 py-1 rounded-lg text-xs font-semibold ${riskBadges[riskLevel]}`}>Риск: {riskLevel}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {trader && (
+                            <div className="flex items-center gap-2">
+                              <div className="w-8 h-8 rounded-full bg-gradient-to-r from-[#4E6E49] to-emerald-600 text-white flex items-center justify-center text-sm font-bold">
+                                {trader.name[0]}
                               </div>
-                            )}
-                          </div>
+                              <span className={`text-xs ${subtleColor}`}>{trader.name}</span>
+                            </div>
+                          )}
+                          <span className={`text-xs ${subtleColor}`}>{createdDate}</span>
+                          <button
+                            onClick={() => handleEdit(call)}
+                            className={`p-2 rounded-lg ${theme === 'dark' ? 'hover:bg-gray-800' : 'hover:bg-gray-100'}`}
+                          >
+                            <Edit className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteClick(call.id)}
+                            className={`p-2 rounded-lg ${theme === 'dark' ? 'hover:bg-gray-800' : 'hover:bg-gray-100'}`}
+                          >
+                            <Trash2 className="w-4 h-4 text-red-500" />
+                          </button>
+                        </div>
+                      </div>
 
-                          {/* Token Pair - Main Info */}
-                          <div className="mb-3">
-                            <h2 className={`text-3xl font-bold ${textColor} mb-1`}>{call.pair}</h2>
-                            <p className={`text-xs ${subtleColor} uppercase tracking-wider`}>Торговая пара</p>
+                      <div className="p-5 space-y-4">
+                        <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                          <div>
+                            <p className={`text-2xl font-bold ${textColor}`}>{getPrimaryTitle(call)}</p>
+                            <p className={`text-sm ${subtleColor}`}>{getSecondary(call)}</p>
                           </div>
-
-                          {/* Ticker ID - Less Prominent */}
-                          <div className="flex items-center gap-2 mb-4">
-                            <span className={`font-mono text-sm ${subtleColor} bg-gray-100 dark:bg-gray-700/50 px-2 py-1 rounded`}>
-                              № {call.ticker}
-                            </span>
+                          <div className="flex items-center gap-2">
                             <button
-                              onClick={() => copyTicker(call.ticker)}
-                              className={`p-1.5 rounded-lg transition-all ${
-                                theme === 'dark' ? 'bg-gray-700/50 hover:bg-gray-600' : 'bg-gray-100 hover:bg-gray-200'
-                              }`}
-                              title="Скопировать тикер"
+                              onClick={() => copyValue(keyCopyValue)}
+                              className={`px-3 py-2 rounded-xl border ${borderColor} ${theme === 'dark' ? 'hover:bg-gray-800' : 'hover:bg-gray-100'} text-sm font-semibold flex items-center gap-2`}
                             >
-                              {isCopied ? (
-                                <Check className="w-4 h-4 text-[#4E6E49]" />
-                              ) : (
-                                <Copy className={`w-4 h-4 ${subtleColor}`} />
-                              )}
+                              {copiedValue === keyCopyValue ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
+                              {copiedValue === keyCopyValue ? 'Скопировано' : 'Скопировать'}
                             </button>
                           </div>
                         </div>
 
-                        {/* Action Buttons */}
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => handleEdit(call)}
-                            className={`p-3 rounded-xl transition-all duration-200 ${
-                              theme === 'dark'
-                                ? 'bg-blue-500/10 hover:bg-blue-500/20 text-blue-400'
-                                : 'bg-blue-50 hover:bg-blue-100 text-blue-600'
-                            }`}
-                            title="Редактировать"
-                          >
-                            <Edit className="w-5 h-5" />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteClick(call.id)}
-                            className={`p-3 rounded-xl transition-all duration-200 ${
-                              theme === 'dark'
-                                ? 'bg-red-500/10 hover:bg-red-500/20 text-red-400'
-                                : 'bg-red-50 hover:bg-red-100 text-red-600'
-                            }`}
-                            title="Удалить"
-                          >
-                            <Trash2 className="w-5 h-5" />
-                          </button>
-                        </div>
-                      </div>
+                        {renderFieldsGrid(call)}
 
-                      {/* Performance Metrics */}
-                      {(call.maxProfit !== undefined || call.currentPnL !== undefined) && (
-                        <div className="grid grid-cols-2 gap-3 mb-4">
-                          {call.maxProfit !== undefined && (
-                            <div className={`p-3 rounded-xl ${theme === 'dark' ? 'bg-[#4E6E49]/10 border border-[#4E6E49]/20' : 'bg-green-50 border border-green-200'}`}>
-                              <p className={`text-xs font-semibold uppercase tracking-wider ${subtleColor} mb-1`}>MAX прибыль</p>
-                              <p className={`text-xl font-bold text-[#4E6E49]`}>+{call.maxProfit.toFixed(2)}%</p>
-                            </div>
-                          )}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          {renderNarrative('Причина входа', details.reason)}
+                          {renderNarrative('Комментарий трейдера', details.traderComment || call.comment)}
+                          {renderNarrative('Риски', details.risks)}
                           {call.currentPnL !== undefined && (
-                            <div className={`p-3 rounded-xl ${theme === 'dark' ? call.currentPnL >= 0 ? 'bg-[#4E6E49]/10 border border-[#4E6E49]/20' : 'bg-red-500/10 border border-red-500/20' : call.currentPnL >= 0 ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}>
-                              <p className={`text-xs font-semibold uppercase tracking-wider ${subtleColor} mb-1`}>Текущий PNL</p>
-                              <p className={`text-xl font-bold ${call.currentPnL >= 0 ? 'text-[#4E6E49]' : 'text-red-500'}`}>
-                                {call.currentPnL >= 0 ? '+' : ''}{call.currentPnL.toFixed(2)}%
-                              </p>
+                            <div className={`p-4 rounded-xl border ${borderColor} ${theme === 'dark' ? 'bg-gray-800/60' : 'bg-gray-50'}`}>
+                              <p className={`text-xs uppercase tracking-wider ${subtleColor} mb-1`}>Текущий PNL</p>
+                              <p className={`text-xl font-bold ${call.currentPnL >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>{call.currentPnL >= 0 ? '+' : ''}{call.currentPnL.toFixed(2)}%</p>
+                            </div>
+                          )}
+                          {call.maxProfit !== undefined && (
+                            <div className={`p-4 rounded-xl border ${borderColor} ${theme === 'dark' ? 'bg-gray-800/60' : 'bg-gray-50'}`}>
+                              <p className={`text-xs uppercase tracking-wider ${subtleColor} mb-1`}>MAX прибыль</p>
+                              <p className="text-xl font-bold text-emerald-500">+{call.maxProfit.toFixed(2)}%</p>
                             </div>
                           )}
                         </div>
-                      )}
-
-                      {/* Details Grid */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                        {/* Entry Point */}
-                        <div className={`p-4 rounded-xl ${theme === 'dark' ? 'bg-gray-700/30' : 'bg-green-50/50'} border ${borderColor}`}>
-                          <div className="flex items-center gap-2 mb-2">
-                            <Target className={`w-4 h-4 ${theme === 'dark' ? 'text-[#4E6E49]' : 'text-[#4E6E49]'}`} />
-                            <p className={`text-xs font-semibold uppercase tracking-wider ${subtleColor}`}>Вход (капитализация)</p>
-                          </div>
-                          <p className={`${textColor} font-medium`}>{call.entryPoint}</p>
-                        </div>
-
-                        {/* Target */}
-                        <div className={`p-4 rounded-xl ${theme === 'dark' ? 'bg-gray-700/30' : 'bg-blue-50/50'} border ${borderColor}`}>
-                          <div className="flex items-center gap-2 mb-2">
-                            <Target className={`w-4 h-4 ${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'}`} />
-                            <p className={`text-xs font-semibold uppercase tracking-wider ${subtleColor}`}>Цели (капитализация)</p>
-                          </div>
-                          <p className={`${textColor} font-medium`}>{call.target}</p>
-                        </div>
-
-                        {/* Strategy */}
-                        <div className={`p-4 rounded-xl ${theme === 'dark' ? 'bg-gray-700/30' : 'bg-purple-50/50'} border ${borderColor}`}>
-                          <div className="flex items-center gap-2 mb-2">
-                            <Zap className={`w-4 h-4 ${theme === 'dark' ? 'text-purple-400' : 'text-purple-600'}`} />
-                            <p className={`text-xs font-semibold uppercase tracking-wider ${subtleColor}`}>Стратегия</p>
-                          </div>
-                          <span className={`inline-block px-3 py-1 rounded-lg text-xs font-medium border ${strategy.color}`}>
-                            {strategy.icon} {strategy.label}
-                          </span>
-                        </div>
-
-                        {/* Created Date */}
-                        <div className={`p-4 rounded-xl ${theme === 'dark' ? 'bg-gray-700/30' : 'bg-gray-50/50'} border ${borderColor}`}>
-                          <div className="flex items-center gap-2 mb-2">
-                            <Clock className={`w-4 h-4 ${subtleColor}`} />
-                            <p className={`text-xs font-semibold uppercase tracking-wider ${subtleColor}`}>Создан</p>
-                          </div>
-                          <p className={`${textColor} text-sm`}>
-                            {new Date(call.createdAt).toLocaleDateString('ru-RU', {
-                              day: '2-digit',
-                              month: 'short',
-                              year: 'numeric',
-                              hour: '2-digit',
-                              minute: '2-digit'
-                            })}
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* Risks & Conditions */}
-                      <div className="space-y-3 mb-4">
-                        <div className={`p-4 rounded-xl ${theme === 'dark' ? 'bg-red-500/5 border-red-500/20' : 'bg-red-50/50 border-red-200/50'} border`}>
-                          <div className="flex items-center gap-2 mb-2">
-                            <AlertCircle className={`w-4 h-4 ${theme === 'dark' ? 'text-red-400' : 'text-red-600'}`} />
-                            <p className={`text-xs font-semibold uppercase tracking-wider ${theme === 'dark' ? 'text-red-400' : 'text-red-600'}`}>Риски</p>
-                          </div>
-                          <p className={`${textColor} text-sm leading-relaxed`}>{call.risks}</p>
-                        </div>
-
-                        {call.cancelConditions && (
-                          <div className={`p-4 rounded-xl ${theme === 'dark' ? 'bg-orange-500/5 border-orange-500/20' : 'bg-orange-50/50 border-orange-200/50'} border`}>
-                            <div className="flex items-center gap-2 mb-2">
-                              <AlertCircle className={`w-4 h-4 ${theme === 'dark' ? 'text-orange-400' : 'text-orange-600'}`} />
-                              <p className={`text-xs font-semibold uppercase tracking-wider ${theme === 'dark' ? 'text-orange-400' : 'text-orange-600'}`}>Условия отмены</p>
-                            </div>
-                            <p className={`${textColor} text-sm leading-relaxed`}>{call.cancelConditions}</p>
-                          </div>
-                        )}
-
-                        {call.comment && (
-                          <div className={`p-4 rounded-xl ${theme === 'dark' ? 'bg-gray-700/30' : 'bg-gray-50/50'} border ${borderColor}`}>
-                            <div className="flex items-center gap-2 mb-2">
-                              <FileText className={`w-4 h-4 ${subtleColor}`} />
-                              <p className={`text-xs font-semibold uppercase tracking-wider ${subtleColor}`}>Комментарий</p>
-                            </div>
-                            <p className={`${textColor} text-sm leading-relaxed`}>{call.comment}</p>
-                          </div>
-                        )}
                       </div>
                     </div>
                   )

@@ -451,8 +451,7 @@ export const deleteReferral = async (id: string) => {
 // Call (Trading Signal) functions
 export const addCall = async (callData: Omit<Call, 'id'>): Promise<string> => {
   console.log('📝 Service site: Creating call:', {
-    ticker: callData.ticker,
-    network: callData.network,
+    category: callData.category,
     userId: callData.userId,
     status: callData.status,
     createdAt: callData.createdAt
@@ -474,8 +473,8 @@ export const addCall = async (callData: Omit<Call, 'id'>): Promise<string> => {
 
 export const getCalls = async (filters?: {
   userId?: string
-  network?: string
-  strategy?: string
+  category?: string
+  riskLevel?: string
   status?: string
   activeOnly?: boolean
 }): Promise<Call[]> => {
@@ -492,6 +491,10 @@ export const getCalls = async (filters?: {
   // Add status filter if provided (don't combine with activeOnly status)
   if (filters?.status && !filters?.activeOnly) {
     constraints.push(where('status', '==', filters.status))
+  }
+
+  if (filters?.category) {
+    constraints.push(where('category', '==', filters.category))
   }
   
   // Add activeOnly filters
@@ -516,17 +519,49 @@ export const getCalls = async (filters?: {
   const snapshot = await getDocs(q)
   let calls = snapshot.docs.map((doc) => {
     const data = doc.data() as any
+    const category = (data.category as Call['category']) || 'memecoins'
+
+    // Legacy compatibility: map flat fields into memecoin structure if details are absent
+    const legacyMemecoin = (!data.details && data.ticker) ? {
+      memecoins: {
+        coinName: data.pair || data.ticker,
+        ticker: data.ticker || '',
+        network: data.network || 'solana',
+        contract: data.contract,
+        signalType: (data.sentiment || 'buy') as Call['sentiment'],
+        reason: data.comment || data.risks || '',
+        entryCap: data.entryPoint || '',
+        targets: data.target || '',
+        stopLoss: data.cancelConditions,
+        riskLevel: data.riskLevel || 'medium',
+        risks: data.risks || '',
+        holdPlan: 'short',
+        liquidityLocked: false,
+        traderComment: data.comment,
+      }
+    } : {}
+
+    const details = (data.details as Call['details']) || legacyMemecoin || {}
+    const riskLevel =
+      (data.riskLevel as Call['riskLevel']) ||
+      details.memecoins?.riskLevel ||
+      details.polymarket?.riskLevel ||
+      details.staking?.protocolRisk ||
+      details.spot?.riskLevel ||
+      details.futures?.riskLevel
+
+    const sentiment =
+      (data.sentiment as Call['sentiment']) ||
+      details.memecoins?.signalType ||
+      (details.futures?.direction === 'long' ? 'buy' : details.futures?.direction === 'short' ? 'sell' : undefined)
+
     return {
       id: doc.id,
       userId: data.userId || '',
-      network: data.network || '',
-      ticker: data.ticker || '',
-      pair: data.pair || '',
-      entryPoint: data.entryPoint || '',
-      target: data.target || '',
-      strategy: data.strategy || 'flip',
-      risks: data.risks || '',
-      cancelConditions: data.cancelConditions,
+      category,
+      details,
+      sentiment,
+      riskLevel,
       comment: data.comment,
       createdAt: data.createdAt || new Date().toISOString(),
       status: data.status || 'active',
@@ -535,16 +570,17 @@ export const getCalls = async (filters?: {
       currentMarketCap: data.currentMarketCap,
       signalMarketCap: data.signalMarketCap,
       currentPrice: data.currentPrice,
-      entryPrice: data.entryPrice
+      entryPrice: data.entryPrice,
+      tags: data.tags || [],
     } as Call
   })
 
   // Apply additional filters in memory
-  if (filters?.network) {
-    calls = calls.filter(c => c.network === filters.network)
+  if (filters?.category) {
+    calls = calls.filter(c => c.category === filters.category)
   }
-  if (filters?.strategy) {
-    calls = calls.filter(c => c.strategy === filters.strategy)
+  if (filters?.riskLevel) {
+    calls = calls.filter(c => c.riskLevel === filters.riskLevel)
   }
 
   // Filter by active (24 hours) if needed
