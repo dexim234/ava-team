@@ -2,7 +2,22 @@
 import { Link, useLocation } from 'react-router-dom'
 import { useThemeStore } from '@/store/themeStore'
 import { useAdminStore } from '@/store/adminStore'
-import { Moon, Sun, Shield, Zap, Settings, Calendar, DollarSign, CheckSquare, TrendingUp, HelpCircle, User, ChevronDown } from 'lucide-react'
+import {
+  Moon,
+  Sun,
+  Shield,
+  Zap,
+  Settings,
+  Calendar,
+  DollarSign,
+  CheckSquare,
+  TrendingUp,
+  HelpCircle,
+  User,
+  ChevronDown,
+  Info,
+  ArrowUpRight,
+} from 'lucide-react'
 import logo from '@/assets/logo.png'
 import { useState, useEffect } from 'react'
 
@@ -11,6 +26,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
   const { isAdmin } = useAdminStore()
   const location = useLocation()
   const [showFunctionalityMenu, setShowFunctionalityMenu] = useState(false)
+  const [showAboutMenu, setShowAboutMenu] = useState(false)
 
   const functionalitySubItems = [
     { path: '/management', label: 'Расписание', icon: Calendar },
@@ -19,11 +35,18 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
     { path: '/rating', label: 'Рейтинг', icon: TrendingUp },
   ]
 
+  const aboutSubItems = [
+    { path: '/faq', label: 'FAQ', icon: HelpCircle },
+    { path: '/about', label: 'О сообществе', icon: Info },
+  ]
+
   const isFunctionalityActive = functionalitySubItems.some(item => location.pathname === item.path)
   const isFunctionalitySubItemActive = (path: string) => location.pathname === path
+  const isAboutActive = aboutSubItems.some(item => location.pathname === item.path)
 
   useEffect(() => {
     setShowFunctionalityMenu(false)
+    setShowAboutMenu(false)
   }, [location.pathname])
 
   return (
@@ -61,11 +84,15 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
               >
                 <Zap className="w-4 h-4" />
                 <span>Call</span>
+                <ArrowUpRight className="w-4 h-4 opacity-70" />
               </Link>
 
               <div className="relative">
                 <button
-                  onClick={() => setShowFunctionalityMenu(!showFunctionalityMenu)}
+                  onClick={() => {
+                    setShowFunctionalityMenu(!showFunctionalityMenu)
+                    setShowAboutMenu(false)
+                  }}
                   data-active={isFunctionalityActive}
                   className="nav-chip"
                 >
@@ -93,7 +120,51 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                             }`}
                           >
                             <item.icon className="w-4 h-4 flex-shrink-0" />
-                            <span className="font-semibold">{item.label}</span>
+                          <span className="font-semibold flex-1">{item.label}</span>
+                          <ArrowUpRight className="w-4 h-4 opacity-70" />
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+
+              <div className="relative">
+                <button
+                  onClick={() => {
+                    setShowAboutMenu(!showAboutMenu)
+                    setShowFunctionalityMenu(false)
+                  }}
+                  data-active={isAboutActive}
+                  className="nav-chip"
+                >
+                  <Info className="w-4 h-4" />
+                  <span>О нас</span>
+                  <ChevronDown className={`w-4 h-4 transition-transform ${showAboutMenu ? 'rotate-180' : ''}`} />
+                </button>
+                {showAboutMenu && (
+                  <>
+                    <div className="fixed inset-0 z-40" onClick={() => setShowAboutMenu(false)} />
+                    <div className="absolute top-[calc(100%+12px)] left-0 min-w-[220px] glass-panel rounded-2xl border border-white/40 dark:border-white/10 shadow-2xl z-50 overflow-hidden">
+                      <div className="accent-dots" />
+                      <div className="relative z-10 divide-y divide-gray-100/60 dark:divide-white/5">
+                        {aboutSubItems.map((item) => (
+                          <Link
+                            key={item.path}
+                            to={item.path}
+                            onClick={() => setShowAboutMenu(false)}
+                            className={`flex items-center gap-3 px-4 py-3 transition-colors ${
+                              location.pathname === item.path
+                                ? 'bg-gradient-to-r from-[#4E6E49]/15 to-[#4E6E49]/5 text-[#4E6E49] dark:from-[#4E6E49]/20 dark:text-[#4E6E49]'
+                                : theme === 'dark'
+                                ? 'hover:bg-white/5 text-gray-200'
+                                : 'hover:bg-gray-50 text-gray-800'
+                            }`}
+                          >
+                            <item.icon className="w-4 h-4 flex-shrink-0" />
+                            <span className="font-semibold flex-1">{item.label}</span>
+                            <ArrowUpRight className="w-4 h-4 opacity-70" />
                           </Link>
                         ))}
                       </div>
@@ -103,21 +174,13 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
               </div>
 
               <Link
-                to="/faq"
-                data-active={location.pathname === '/faq'}
-                className="nav-chip"
-              >
-                <HelpCircle className="w-4 h-4" />
-                <span>FAQ</span>
-              </Link>
-
-              <Link
                 to="/profile"
                 data-active={location.pathname === '/profile'}
                 className="nav-chip"
               >
                 <User className="w-4 h-4" />
                 <span>ЛК</span>
+                <ArrowUpRight className="w-4 h-4 opacity-70" />
               </Link>
 
               {isAdmin && (
@@ -128,6 +191,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                 >
                   <Shield className="w-4 h-4" />
                   <span>Админ</span>
+                  <ArrowUpRight className="w-4 h-4 opacity-70" />
                 </Link>
               )}
             </nav>
@@ -169,28 +233,46 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                 className={`flex flex-col items-center justify-center gap-1 py-3 ${location.pathname === '/call' ? 'text-[#4E6E49]' : theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}
               >
                 <Zap className="w-5 h-5" />
-                <span className="text-[11px] font-semibold">Call</span>
+                <div className="flex items-center gap-1">
+                  <span className="text-[11px] font-semibold">Call</span>
+                  <ArrowUpRight className="w-3 h-3 opacity-70" />
+                </div>
               </Link>
               <button
-                onClick={() => setShowFunctionalityMenu(!showFunctionalityMenu)}
+                onClick={() => {
+                  setShowFunctionalityMenu(!showFunctionalityMenu)
+                  setShowAboutMenu(false)
+                }}
                 className={`flex flex-col items-center justify-center gap-1 py-3 ${isFunctionalityActive ? 'text-[#4E6E49]' : theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}
               >
                 <Settings className="w-5 h-5" />
-                <span className="text-[11px] font-semibold">Функционал</span>
+                <div className="flex items-center gap-1">
+                  <span className="text-[11px] font-semibold">Функционал</span>
+                  <ChevronDown className="w-3 h-3 opacity-70" />
+                </div>
               </button>
-              <Link
-                to="/faq"
-                className={`flex flex-col items-center justify-center gap-1 py-3 ${location.pathname === '/faq' ? 'text-[#4E6E49]' : theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}
+              <button
+                onClick={() => {
+                  setShowAboutMenu(!showAboutMenu)
+                  setShowFunctionalityMenu(false)
+                }}
+                className={`flex flex-col items-center justify-center gap-1 py-3 ${isAboutActive ? 'text-[#4E6E49]' : theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}
               >
-                <HelpCircle className="w-5 h-5" />
-                <span className="text-[11px] font-semibold">FAQ</span>
-              </Link>
+                <Info className="w-5 h-5" />
+                <div className="flex items-center gap-1">
+                  <span className="text-[11px] font-semibold">О нас</span>
+                  <ChevronDown className="w-3 h-3 opacity-70" />
+                </div>
+              </button>
               <Link
                 to="/profile"
                 className={`flex flex-col items-center justify-center gap-1 py-3 ${location.pathname === '/profile' ? 'text-[#4E6E49]' : theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}
               >
                 <User className="w-5 h-5" />
-                <span className="text-[11px] font-semibold">ЛК</span>
+                <div className="flex items-center gap-1">
+                  <span className="text-[11px] font-semibold">ЛК</span>
+                  <ArrowUpRight className="w-3 h-3 opacity-70" />
+                </div>
               </Link>
             </div>
           </div>
@@ -216,7 +298,36 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                   }`}
                 >
                   <item.icon className="w-4 h-4 flex-shrink-0" />
-                  <span className="font-semibold">{item.label}</span>
+                <span className="font-semibold flex-1">{item.label}</span>
+                <ArrowUpRight className="w-4 h-4 opacity-70" />
+                </Link>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showAboutMenu && (
+        <div className="lg:hidden fixed inset-0 z-40 bg-black/40 backdrop-blur-sm" onClick={() => setShowAboutMenu(false)}>
+          <div className="absolute bottom-24 left-1/2 -translate-x-1/2 w-[88%] max-w-sm glass-panel rounded-2xl shadow-2xl border border-white/50 dark:border-white/10 overflow-hidden">
+            <div className="accent-dots" />
+            <div className="relative z-10 divide-y divide-gray-100/60 dark:divide-white/5">
+              {aboutSubItems.map((item) => (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  onClick={() => setShowAboutMenu(false)}
+                  className={`flex items-center gap-3 px-4 py-3 transition-colors ${
+                    location.pathname === item.path
+                      ? 'bg-gradient-to-r from-[#4E6E49]/15 to-[#4E6E49]/5 text-[#4E6E49] dark:from-[#4E6E49]/20 dark:text-[#4E6E49]'
+                      : theme === 'dark'
+                      ? 'hover:bg-white/5 text-gray-200'
+                      : 'hover:bg-gray-50 text-gray-800'
+                  }`}
+                >
+                  <item.icon className="w-4 h-4 flex-shrink-0" />
+                  <span className="font-semibold flex-1">{item.label}</span>
+                  <ArrowUpRight className="w-4 h-4 opacity-70" />
                 </Link>
               ))}
             </div>

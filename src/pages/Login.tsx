@@ -4,8 +4,8 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuthStore } from '@/store/authStore'
 import { useThemeStore } from '@/store/themeStore'
 import { useAdminStore } from '@/store/adminStore'
-import { Moon, Sun, Shield, User, Users, HelpCircle } from 'lucide-react'
-import logo from '@/assets/logo.png'
+import { Moon, Sun, Shield, User, Users, HelpCircle, ArrowUpRight } from 'lucide-react'
+import logo from '../assets/logo.png'
 
 // Declare Telegram WebApp types
 declare global {
@@ -336,6 +336,7 @@ export const Login = () => {
                 >
                   <HelpCircle className="w-4 h-4" />
                   FAQ
+                  <ArrowUpRight className="w-3.5 h-3.5 opacity-80" />
                 </button>
               </div>
             </div>
