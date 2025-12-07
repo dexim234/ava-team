@@ -58,7 +58,6 @@ const riskBadges: Record<CallRiskLevel, string> = {
 
 export const CallPage = () => {
   const { theme } = useThemeStore()
-  const { user } = useAuthStore()
   const [calls, setCalls] = useState<Call[]>([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
