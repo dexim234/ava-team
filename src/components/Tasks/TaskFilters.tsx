@@ -210,7 +210,7 @@ export const TaskFilters = ({
               }`}
             >
               <SlidersHorizontal className="w-4 h-4" />
-              Все направления
+              Всё
             </button>
             {Object.entries(TASK_CATEGORIES).map(([key, { label }]) => {
               const Icon = CATEGORY_ICONS[key as TaskCategory]

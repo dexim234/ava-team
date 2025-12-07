@@ -169,15 +169,15 @@ export const TEAM_MEMBERS: User[] = [
 
 export const TASK_CATEGORIES: Record<TaskCategory, { label: string; icon: string; color: string }> = {
   trading: { label: 'Торговля', icon: 'candles', color: 'green' },
-  learning: { label: 'Обучение', icon: 'book', color: 'blue' },
-  technical: { label: 'Техническая часть', icon: 'cpu', color: 'purple' },
+  learning: { label: 'обучение', icon: 'book', color: 'blue' },
+  technical: { label: 'ТЧ', icon: 'cpu', color: 'purple' },
   stream: { label: 'Стрим', icon: 'broadcast', color: 'red' },
-  research: { label: 'Изучение нового', icon: 'flask', color: 'yellow' },
-  organization: { label: 'Поиск и систематизация информации', icon: 'clipboard', color: 'indigo' },
+  research: { label: 'Изучение', icon: 'flask', color: 'yellow' },
+  organization: { label: 'Ресёрч', icon: 'clipboard', color: 'indigo' },
 }
 
 export const TASK_STATUSES: Record<TaskStatus, { label: string; color: string }> = {
-  pending: { label: 'Рассмотрение', color: 'yellow' },
+  pending: { label: 'Проверка', color: 'yellow' },
   in_progress: { label: 'В работе', color: 'blue' },
   completed: { label: 'Выполнена', color: 'green' },
   closed: { label: 'Закрыта', color: 'gray' },

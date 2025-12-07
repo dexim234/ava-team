@@ -16,7 +16,6 @@ export const Rating = () => {
   const [referrals, setReferrals] = useState<Referral[]>([])
   const [showReferralForm, setShowReferralForm] = useState(false)
   const [activeReferral, setActiveReferral] = useState<Referral | null>(null)
-  const [sortMode, setSortMode] = useState<'rating' | 'name'>('rating')
 
   useEffect(() => {
     loadRatings()
@@ -160,12 +159,8 @@ export const Rating = () => {
   ]
 
   const sortedRatings = useMemo(() => {
-    const arr = [...ratings]
-    if (sortMode === 'name') {
-      return arr.sort((a, b) => a.userId.localeCompare(b.userId))
-    }
-    return arr.sort((a, b) => b.rating - a.rating)
-  }, [ratings, sortMode])
+    return [...ratings].sort((a, b) => b.rating - a.rating)
+  }, [ratings])
 
   const ratingOverview = useMemo(() => {
     if (!ratings.length) {
@@ -418,34 +413,9 @@ export const Rating = () => {
             <div className="space-y-1">
               <p className={`text-xs uppercase tracking-[0.12em] ${subTextColor}`}>Карточки участников</p>
               <h3 className={`text-2xl font-bold ${headingColor}`}>Детальная статистика</h3>
-              <p className={`text-sm ${subTextColor}`}>Спокойные карточки с раскрываемыми метриками и аккуратными акцентами.</p>
+              
             </div>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setSortMode('rating')}
-                className={`px-3 py-2 rounded-lg text-sm font-semibold border ${calmBorder} ${
-                  sortMode === 'rating'
-                    ? 'bg-emerald-600 text-white'
-                    : theme === 'dark'
-                    ? 'bg-white/5 text-white hover:bg-white/10'
-                    : 'bg-white text-gray-800 hover:bg-gray-50'
-                }`}
-              >
-                По рейтингу
-              </button>
-              <button
-                onClick={() => setSortMode('name')}
-                className={`px-3 py-2 rounded-lg text-sm font-semibold border ${calmBorder} ${
-                  sortMode === 'name'
-                    ? 'bg-emerald-600 text-white'
-                    : theme === 'dark'
-                    ? 'bg-white/5 text-white hover:bg-white/10'
-                    : 'bg-white text-gray-800 hover:bg-gray-50'
-                }`}
-              >
-                По имени
-              </button>
-            </div>
+            
           </div>
 
           {loading ? (
