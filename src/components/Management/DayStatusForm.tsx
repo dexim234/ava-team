@@ -330,9 +330,9 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
   const selectedNames = selectedUserIds.map((id) => getMemberName(id)).join(', ')
 
   return (
-    <div className="fixed inset-0 bg-slate-950/75 backdrop-blur-xl flex items-start sm:items-center justify-center z-50 p-3 sm:p-6 overflow-y-auto touch-manipulation">
-      <div className={`w-full max-w-4xl rounded-3xl shadow-[0_24px_80px_rgba(0,0,0,0.45)] border ${theme === 'dark' ? 'bg-gradient-to-br from-[#0c1320] via-[#0b1220] to-[#08111b] border-white/10' : 'bg-gradient-to-br from-white via-slate-50 to-white border-slate-200'} max-h-[92vh] overflow-y-auto my-4 sm:my-8`}>
-        <div className="p-4 sm:p-6 lg:p-7">
+    <div className="fixed inset-0 bg-slate-950/75 backdrop-blur-xl flex items-center justify-center z-50 p-4 sm:p-6 touch-manipulation">
+      <div className={`w-full max-w-4xl rounded-3xl shadow-[0_24px_80px_rgba(0,0,0,0.45)] border ${theme === 'dark' ? 'bg-gradient-to-br from-[#0c1320] via-[#0b1220] to-[#08111b] border-white/10' : 'bg-gradient-to-br from-white via-slate-50 to-white border-slate-200'} max-h-[80vh] sm:max-h-[88vh] overflow-hidden`}>
+        <div className="p-4 sm:p-6 lg:p-7 flex flex-col h-full">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="space-y-1">
               <div className="flex items-center gap-2 text-xs uppercase tracking-[0.18em] text-[#4E6E49] font-semibold">
@@ -356,9 +356,9 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
             </button>
           </div>
 
-          <div className="mt-5 grid lg:grid-cols-[0.9fr_1.4fr] gap-4 lg:gap-6">
+          <div className="mt-5 grid lg:grid-cols-[0.9fr_1.4fr] gap-4 lg:gap-6 flex-1 overflow-hidden">
             {/* Navigation / summary */}
-            <aside className={`rounded-2xl border ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-slate-200 bg-white'} p-4 sm:p-5 space-y-4 sticky top-4 self-start`}>
+            <aside className={`rounded-2xl border ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-slate-200 bg-white'} p-4 sm:p-5 space-y-4 sticky top-0 self-start max-h-full overflow-y-auto`}>
               <div className="flex items-center justify-between">
                 <p className="text-sm font-semibold">Навигация</p>
                 <span className="text-[11px] uppercase tracking-wide text-[#4E6E49] font-semibold">3 шага</span>
@@ -391,7 +391,7 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
               </div>
             </aside>
 
-            <div className="space-y-4">
+            <div className="space-y-4 overflow-y-auto pr-1">
               {/* User selection for admin when adding new status */}
             {adminBulkMode && (
               <div>

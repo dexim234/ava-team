@@ -284,8 +284,8 @@ export const Management = () => {
         {/* Controls */}
         <div className={`rounded-2xl border ${theme === 'dark' ? 'border-gray-800 bg-[#0f1623]' : 'border-gray-200 bg-white'} shadow-xl p-4 sm:p-5 space-y-5`}>
           <div className="space-y-3">
-            <div className="flex flex-col lg:flex-row gap-3 lg:items-center lg:justify-between">
-              <div className={`inline-flex flex-wrap items-center gap-2 rounded-xl border ${theme === 'dark' ? 'border-gray-800 bg-gray-900/70' : 'border-gray-200 bg-gray-50'} px-2 py-1 w-auto`}>
+            <div className="flex flex-wrap items-center gap-3 lg:justify-between">
+              <div className={`flex items-center gap-2 rounded-xl border ${theme === 'dark' ? 'border-gray-800 bg-gray-900/70' : 'border-gray-200 bg-gray-50'} px-1.5 py-1 shrink-0`}>
                 <button
                   onClick={() => handleViewModeChange('table')}
                   aria-disabled={isMobile}
@@ -313,7 +313,7 @@ export const Management = () => {
                 </button>
               </div>
 
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2 shrink">
                 {[
                   { key: 'all', label: 'Все', icon: <Calendar className="w-4 h-4" /> },
                   { key: 'upcoming', label: 'Предстоящие', icon: <Clock className="w-4 h-4" /> },
@@ -344,7 +344,7 @@ export const Management = () => {
               <p className={`text-sm font-semibold ${headingColor}`}>Действие</p>
               <span className="text-[11px] uppercase tracking-wide text-gray-500 dark:text-gray-400">выбор задачи</span>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
               {[
                 { key: 'add-slot', label: 'Добавить слот', desc: 'Разовое или серия', icon: <PlusCircle className="w-5 h-5" />, tone: 'bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-100 dark:border-emerald-800', action: handleAddSlot },
                 { key: 'delete-slots', label: 'Удалить слоты', desc: 'Очистить интервалы', icon: <Trash2 className="w-5 h-5" />, tone: 'bg-rose-100 text-rose-800 border-rose-200 dark:bg-rose-900/30 dark:text-rose-100 dark:border-rose-800', action: handleDeleteSlots },
@@ -417,13 +417,13 @@ export const Management = () => {
 
         {/* Content view */}
         <div className={contentCardClass}>
-          <div className="flex items-center justify-between mb-4">
+          <div className={`flex items-center mb-4 ${isMobile ? 'justify-center text-center' : 'justify-between'}`}>
             <div>
               <p className={`text-sm sm:text-base font-semibold ${headingColor}`}>Расписание</p>
               <p className={`text-xs sm:text-sm ${labelColor}`}>Слоты и статусы за выбранную неделю</p>
             </div>
             {isMobile && (
-              <span className="text-xs px-3 py-1 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-300">
+              <span className="text-xs px-3 py-1 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-300 mx-auto">
                 Мобильный вид
               </span>
             )}

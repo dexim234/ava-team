@@ -101,12 +101,6 @@ export const EarningsForm = ({ onClose, onSave, editingEarning }: EarningsFormPr
     return { gross, pool, net, share }
   }, [amount, extraWalletsAmount, participantCount])
 
-  const extraWalletsTotal = useMemo(() => {
-    const count = parseInt(extraWalletsCount || '0', 10)
-    if (!Number.isFinite(count) || count <= 0) return 0
-    return parseFloat((currentTotals.net * count).toFixed(2))
-  }, [extraWalletsCount, currentTotals.net])
-
   useEffect(() => {
     loadSlots()
   }, [date, user, isEditing])
@@ -306,9 +300,9 @@ export const EarningsForm = ({ onClose, onSave, editingEarning }: EarningsFormPr
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start sm:items-center justify-center z-50 p-3 sm:p-4 overflow-y-auto touch-manipulation">
-      <div className={`w-full max-w-[540px] sm:max-w-3xl rounded-lg sm:rounded-xl shadow-xl ${theme === 'dark' ? 'bg-[#1a1a1a]' : 'bg-white'} max-h-[85vh] sm:max-h-[90vh] overflow-y-auto my-4 sm:my-8`}>
-        <div className="p-4 sm:p-6">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 sm:p-6 touch-manipulation">
+      <div className={`w-full max-w-[540px] sm:max-w-3xl rounded-2xl sm:rounded-3xl shadow-xl ${theme === 'dark' ? 'bg-[#1a1a1a]' : 'bg-white'} max-h-[80vh] sm:max-h-[88vh] overflow-hidden`}>
+        <div className="p-4 sm:p-6 flex flex-col h-full">
           <div className="flex items-center justify-between mb-4 sm:mb-6">
             <h3 className={`text-lg sm:text-xl font-bold ${headingColor} pr-2`}>{isEditing ? 'Редактировать заработок' : 'Добавить заработок'}</h3>
             <button
@@ -320,7 +314,7 @@ export const EarningsForm = ({ onClose, onSave, editingEarning }: EarningsFormPr
             </button>
           </div>
 
-          <div className="space-y-3 sm:space-y-4">
+          <div className="space-y-3 sm:space-y-4 overflow-y-auto pr-1">
             {/* Date */}
             <div>
               <label className={`flex flex-col sm:flex-row sm:items-center sm:justify-between text-xs sm:text-sm font-medium mb-2 gap-1 sm:gap-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
@@ -439,10 +433,6 @@ export const EarningsForm = ({ onClose, onSave, editingEarning }: EarningsFormPr
                 </div>
                 <div className="space-y-1 text-[11px] text-gray-500">
                   <p>Общая сумма = основная + доп. кошельки. Пул 45% считается с общей суммы.</p>
-                  <p>
-                    Формула доп. кошельков: чистыми после пула ({currentTotals.net.toFixed(2)} ₽) × кол-во доп. кошельков ({parseInt(extraWalletsCount || '0', 10) || 0})
-                    = {extraWalletsTotal.toFixed(2)} ₽. Кол-во указываем сразу за всех отмеченных участников.
-                  </p>
                 </div>
               </div>
             </div>
@@ -631,14 +621,6 @@ export const EarningsForm = ({ onClose, onSave, editingEarning }: EarningsFormPr
                 className="flex-1 px-4 py-2.5 sm:py-2 bg-[#4E6E49] hover:bg-[#4E6E49] disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg sm:rounded-xl transition-colors text-sm sm:text-base font-medium touch-manipulation active:scale-95 disabled:active:scale-100"
               >
                 {loading ? 'Сохранение...' : isEditing ? 'Сохранить' : 'Сохранить все'}
-              </button>
-              <button
-                onClick={onClose}
-                className={`px-4 py-2.5 sm:py-2 rounded-lg sm:rounded-xl transition-colors text-sm sm:text-base font-medium touch-manipulation active:scale-95 ${
-                  theme === 'dark' ? 'bg-gray-700 hover:bg-gray-600 active:bg-gray-500' : 'bg-gray-200 hover:bg-gray-300 active:bg-gray-400'
-                }`}
-              >
-                Отмена
               </button>
             </div>
           </div>
