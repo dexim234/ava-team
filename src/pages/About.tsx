@@ -11,8 +11,8 @@ export const About = () => {
 
   const principles = [
     {
-      title: 'Децентрализация — наш фундамент',
-      note: 'Поддерживаем технологии, которые исключают посредников и дают людям контроль над финансами и данными.',
+      title: 'Финансовая грамотность',
+      note: 'Учимся управлять рисками, понимать токеномику и принимать решения на основе анализа, а не эмоций.',
       accent: 'from-emerald-200 to-teal-200',
     },
     {
@@ -320,6 +320,15 @@ export const About = () => {
                 <p className="text-xs uppercase tracking-wide text-amber-600 dark:text-amber-200 font-semibold">Обратная связь</p>
                 <p className={`text-lg font-extrabold ${headingColor}`}>Командный чат</p>
                 <p className={`text-sm ${subTextColor}`}>Оперативные вопросы по продуктам и сессиям.</p>
+                <a
+                  href="https://t.me/+vPZdPwPaaKI1MjAy"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 text-sm font-semibold text-[#4E6E49] hover:text-emerald-600"
+                >
+                  Присоединиться
+                  <ArrowUpRight className="w-4 h-4" />
+                </a>
               </div>
             </div>
           </div>
