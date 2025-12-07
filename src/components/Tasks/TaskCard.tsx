@@ -109,21 +109,35 @@ export const TaskCard = ({ task, onEdit, onDelete, onUpdate }: TaskCardProps) =>
     try {
       const now = new Date().toISOString()
       const newStatus: 'approved' | 'rejected' = action === 'approve' ? 'approved' : 'rejected'
-      
-      const updatedApprovals: Task['approvals'] = task.approvals.map(a =>
-        a.userId === user.id
-          ? { ...a, status: newStatus, comment: action === 'reject' ? rejectionComment || undefined : undefined, updatedAt: now }
-          : a
+      const commentValue = action === 'reject' ? (rejectionComment || '').trim() : ''
+
+      const cleanApproval = (approval: Task['approvals'][number]) => {
+        const base = {
+          ...approval,
+          status: newStatus,
+          updatedAt: now,
+        }
+        if (commentValue) {
+          return { ...base, comment: commentValue }
+        }
+        const { comment, ...rest } = base
+        return rest
+      }
+
+      const updatedApprovals: Task['approvals'] = task.approvals.map((a) =>
+        a.userId === user.id ? cleanApproval(a) : a
       )
 
       // If user hasn't approved yet, add their approval
       if (!userApproval) {
-        updatedApprovals.push({
+        const baseApproval = {
           userId: user.id,
           status: newStatus,
-          comment: action === 'reject' ? rejectionComment || undefined : undefined,
           updatedAt: now,
-        })
+        }
+        updatedApprovals.push(
+          commentValue ? { ...baseApproval, comment: commentValue } : baseApproval
+        )
       }
 
       const updates: Partial<Task> = {

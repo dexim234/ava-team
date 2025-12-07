@@ -222,20 +222,36 @@ export const TaskKanban = ({ tasks, onUpdate, onEdit, onDelete }: TaskKanbanProp
     try {
       const now = new Date().toISOString()
       const newStatus: 'approved' | 'rejected' = action === 'approve' ? 'approved' : 'rejected'
+      const commentValue = action === 'reject' ? (rejectionComment || '').trim() : ''
+
+      const buildApproval = (approval: Task['approvals'][number]) => {
+        const base = {
+          ...approval,
+          status: newStatus,
+          updatedAt: now,
+        }
+        if (commentValue) {
+          return { ...base, comment: commentValue }
+        }
+        const { comment, ...rest } = base
+        return rest
+      }
       
-      const updatedApprovals: Task['approvals'] = task.approvals.map(a => 
+      const updatedApprovals: Task['approvals'] = task.approvals.map((a) => 
         a.userId === user.id 
-          ? { ...a, status: newStatus, comment: action === 'reject' ? rejectionComment || undefined : undefined, updatedAt: now }
+          ? buildApproval(a)
           : a
       )
 
       if (!task.approvals.find(a => a.userId === user.id)) {
-        updatedApprovals.push({
+        const baseApproval = {
           userId: user.id,
           status: newStatus,
-          comment: action === 'reject' ? rejectionComment || undefined : undefined,
           updatedAt: now,
-        })
+        }
+        updatedApprovals.push(
+          commentValue ? { ...baseApproval, comment: commentValue } : baseApproval
+        )
       }
 
       const updates: Partial<Task> = {

@@ -203,6 +203,28 @@ export const Profile = () => {
   const pendingTasks = tasks.filter(t => t.status === 'pending').length
   const inProgressTasks = tasks.filter(t => t.status === 'in_progress').length
   const completedTasks = tasks.filter(t => t.status === 'completed').length
+  const taskStatusMeta: Record<Task['status'], { label: string; classes: string }> = {
+    pending: {
+      label: 'Проверка',
+      classes: theme === 'dark' ? 'bg-amber-500/15 text-amber-100 border-amber-500/30' : 'bg-amber-50 text-amber-900 border-amber-200',
+    },
+    in_progress: {
+      label: 'В работе',
+      classes: theme === 'dark' ? 'bg-blue-500/15 text-blue-100 border-blue-500/30' : 'bg-blue-50 text-blue-900 border-blue-200',
+    },
+    completed: {
+      label: 'Выполнена',
+      classes: theme === 'dark' ? 'bg-emerald-500/15 text-emerald-50 border-emerald-500/30' : 'bg-emerald-50 text-emerald-900 border-emerald-200',
+    },
+    closed: {
+      label: 'Закрыта',
+      classes: theme === 'dark' ? 'bg-gray-600/20 text-gray-100 border-gray-500/40' : 'bg-gray-50 text-gray-800 border-gray-200',
+    },
+    rejected: {
+      label: 'Отклонена',
+      classes: theme === 'dark' ? 'bg-red-500/20 text-red-100 border-red-500/40' : 'bg-red-50 text-red-800 border-red-200',
+    },
+  }
 
   if (!userData) {
     return (
@@ -334,6 +356,38 @@ export const Profile = () => {
                       </div>
                     ))}
                   </div>
+                  {tasks.length > 0 && (
+                    <div className="space-y-2 mb-4">
+                      <p className={`text-sm font-semibold ${theme === 'dark' ? 'text-gray-200' : 'text-gray-800'}`}>
+                        Активные задачи
+                      </p>
+                      <div className="space-y-2">
+                        {tasks.slice(0, 3).map((task) => (
+                          <div
+                            key={task.id}
+                            className={`p-3 rounded-lg border ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-gray-50'} shadow-sm`}
+                          >
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="min-w-0">
+                                <p className={`text-sm font-semibold ${headingColor} truncate`}>{task.title}</p>
+                                <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                                  Дедлайн: {task.dueDate ? formatDate(new Date(task.dueDate), 'dd.MM.yyyy') : '—'} {task.dueTime || ''}
+                                </p>
+                              </div>
+                              <span className={`text-[11px] px-2 py-1 rounded-full border ${taskStatusMeta[task.status].classes}`}>
+                                {taskStatusMeta[task.status].label}
+                              </span>
+                            </div>
+                            {task.description && (
+                              <p className={`text-xs mt-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'} line-clamp-2`}>
+                                {task.description}
+                              </p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                   <button
                     onClick={() => navigate('/tasks')}
                     className={`w-full px-4 py-3 rounded-lg font-semibold transition-all flex items-center justify-center gap-2 ${theme === 'dark' ? 'bg-gradient-to-r from-[#4E6E49]/20 to-emerald-700/20 text-[#4E6E49] border border-[#4E6E49]/40' : 'bg-gradient-to-r from-green-50 to-emerald-50 text-[#4E6E49] border border-green-200'}`}

@@ -285,11 +285,11 @@ export const Management = () => {
         <div className={`rounded-2xl border ${theme === 'dark' ? 'border-gray-800 bg-[#0f1623]' : 'border-gray-200 bg-white'} shadow-xl p-4 sm:p-5 space-y-5`}>
           <div className="space-y-3">
             <div className="flex flex-col lg:flex-row gap-3 lg:items-center lg:justify-between">
-              <div className={`flex rounded-xl border ${theme === 'dark' ? 'border-gray-800 bg-gray-900/70' : 'border-gray-200 bg-gray-50'} overflow-hidden`}>
+              <div className={`inline-flex flex-wrap items-center gap-2 rounded-xl border ${theme === 'dark' ? 'border-gray-800 bg-gray-900/70' : 'border-gray-200 bg-gray-50'} px-2 py-1 w-auto`}>
                 <button
                   onClick={() => handleViewModeChange('table')}
                   aria-disabled={isMobile}
-                  className={`px-3 sm:px-4 py-2 text-sm font-semibold flex items-center gap-2 transition-all ${
+                  className={`px-3 sm:px-4 py-2 text-sm font-semibold flex items-center gap-2 transition-all rounded-lg ${
                     viewMode === 'table' && !isMobile
                       ? 'bg-[#4E6E49] text-white shadow-lg'
                       : isMobile
@@ -302,7 +302,7 @@ export const Management = () => {
                 </button>
                 <button
                   onClick={() => handleViewModeChange('week')}
-                  className={`px-3 sm:px-4 py-2 text-sm font-semibold flex items-center gap-2 transition-all ${
+                  className={`px-3 sm:px-4 py-2 text-sm font-semibold flex items-center gap-2 transition-all rounded-lg ${
                     viewMode === 'week'
                       ? 'bg-[#4E6E49] text-white shadow-lg'
                       : theme === 'dark' ? 'text-gray-300 hover:bg-gray-800' : 'text-gray-700 hover:bg-white'
@@ -368,7 +368,7 @@ export const Management = () => {
                     {action.icon}
                   </span>
                   <span className="flex flex-col whitespace-normal leading-snug gap-0.5 w-full">
-                    <span className="text-sm font-semibold break-words">{action.label}</span>
+                    <span className="text-[13px] sm:text-sm font-semibold break-words leading-tight">{action.label}</span>
                     <span className="text-[11px] sm:text-xs text-gray-500 dark:text-gray-400 break-words leading-tight">
                       {action.desc}
                     </span>

@@ -287,25 +287,25 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
                   return (
                     <div
                       key={status.id}
-                      className={`group relative flex items-center justify-between p-4 rounded-xl shadow-xl border-2 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl backdrop-blur ${
+                      className={`group relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 rounded-xl shadow-xl border-2 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl backdrop-blur text-center sm:text-left ${
                         statusTone[status.type]
                       }`}
                     >
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 justify-center sm:justify-start w-full">
                         <span className="font-semibold">{displayName}</span>
                         <span className="text-sm">
                           {status.type === 'dayoff' ? 'Выходной' : status.type === 'sick' ? 'Больничный' : 'Отпуск'}
                         </span>
                         {status.comment && (
-                          <div className="relative group">
+                          <div className="relative group self-center sm:self-auto">
                             <Info className="w-4 h-4 text-current cursor-help" />
-                            <div className="absolute bottom-full left-0 mb-2 p-2 bg-[#0A0A0A] text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity z-10 whitespace-nowrap">
+                            <div className="absolute bottom-full left-1/2 sm:left-0 -translate-x-1/2 sm:translate-x-0 mb-2 p-2 bg-[#0A0A0A] text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity z-10 whitespace-nowrap">
                               {status.comment}
                             </div>
                           </div>
                         )}
                       </div>
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 justify-center sm:justify-end w-full">
                         {(isAdmin || user?.id === status.userId) ? (
                           <>
                             <button
@@ -466,15 +466,15 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
                             </div>
                             {/* Breaks */}
                             {s.breaks && s.breaks.length > 0 && (
-                              <div className="space-y-1 ml-6">
-                                <div className={`text-[10px] ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} font-medium`}>Перерывы:</div>
+                              <div className="space-y-1 w-full">
+                                <div className={`text-[10px] ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} font-medium text-center sm:text-left`}>Перерывы:</div>
                                 {s.breaks.map((breakItem, breakIdx) => (
                                   <div key={breakIdx} className={`${theme === 'dark' ? 'bg-gray-700/95' : 'bg-white'} ${theme === 'dark' ? 'text-gray-200' : 'text-gray-900'} border-2 ${theme === 'dark' ? 'border-orange-500/60' : 'border-orange-300'} rounded-md sm:rounded-lg px-2 sm:px-3 py-1 sm:py-1.5 text-[10px] sm:text-xs font-semibold shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl ${
                                     theme === 'dark' 
                                       ? 'hover:border-orange-400/80 hover:shadow-orange-500/30 ring-2 ring-orange-500/20 hover:ring-4 hover:ring-orange-400/40' 
                                       : 'hover:border-orange-400 hover:shadow-orange-400/30 ring-2 ring-orange-300/20 hover:ring-4 hover:ring-orange-300/40'
-                                  }`}>
-                                    <span className="flex items-center gap-1 sm:gap-1.5 justify-center flex-wrap">
+                                  } w-full`}>
+                                    <span className="flex items-center gap-1 sm:gap-1.5 justify-center flex-wrap w-full">
                                       <span className={`w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full ${theme === 'dark' ? 'bg-orange-400' : 'bg-orange-500'} animate-pulse flex-shrink-0`}></span>
                                       <span className="whitespace-nowrap">{breakItem.start} - {breakItem.end}</span>
                                     </span>

@@ -2,7 +2,7 @@
 import { Link, useLocation } from 'react-router-dom'
 import { useThemeStore } from '@/store/themeStore'
 import { useAdminStore } from '@/store/adminStore'
-import { Moon, Sun, Shield, Zap, Settings, Calendar, DollarSign, CheckSquare, TrendingUp, HelpCircle, User, ChevronDown, Info } from 'lucide-react'
+import { Moon, Sun, Shield, Zap, Settings, Calendar, DollarSign, CheckSquare, TrendingUp, HelpCircle, User, ChevronDown } from 'lucide-react'
 import logo from '@/assets/logo.png'
 import { useState, useEffect } from 'react'
 
@@ -21,7 +21,6 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
   ]
 
   const aboutSubItems = [
-    { path: '/about', label: 'О сообществе', icon: Info },
     { path: '/faq', label: 'FAQ', icon: HelpCircle },
   ]
 
@@ -117,8 +116,8 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                   data-active={isAboutActive}
                   className="nav-chip"
                 >
-                  <Info className="w-4 h-4" />
-                  <span>О нас</span>
+                  <HelpCircle className="w-4 h-4" />
+                  <span>FAQ</span>
                   <ChevronDown className={`w-4 h-4 transition-transform ${showAboutMenu ? 'rotate-180' : ''}`} />
                 </button>
                 {showAboutMenu && (
@@ -221,8 +220,8 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                 onClick={() => setShowAboutMenu(!showAboutMenu)}
                 className={`flex flex-col items-center justify-center gap-1 py-3 ${isAboutActive ? 'text-[#4E6E49]' : theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}
               >
-                <Info className="w-5 h-5" />
-                <span className="text-[11px] font-semibold">О нас</span>
+                <HelpCircle className="w-5 h-5" />
+                <span className="text-[11px] font-semibold">FAQ</span>
               </button>
               <Link
                 to="/profile"

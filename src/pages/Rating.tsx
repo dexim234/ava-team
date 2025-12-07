@@ -294,7 +294,7 @@ export const Rating = () => {
               <p className={`text-xs uppercase tracking-[0.12em] ${subTextColor}`}>Команда</p>
               <h3 className={`text-2xl font-bold ${headingColor}`}>Средний КПД за неделю</h3>
               <p className={`text-sm ${subTextColor}`}>
-                Плавный прогресс-бар показывает динамику без лишнего визуального шума.
+                Плавный прогресс-бар показывает динамику всей команды.
               </p>
             </div>
             <div className="text-right">
@@ -330,11 +330,6 @@ export const Rating = () => {
               <p className={`text-xs uppercase tracking-[0.12em] ${subTextColor}`}>Рефералы · 30 дней</p>
               <h3 className={`text-2xl font-bold ${headingColor}`}>Привлеченные участники</h3>
               <p className={`text-sm ${subTextColor}`}>Всего добавлено: <span className="font-semibold">{referrals.length}</span></p>
-            </div>
-            <div className="flex gap-2">
-              <span className="px-3 py-2 rounded-lg bg-emerald-100 text-emerald-800 text-sm font-semibold dark:bg-emerald-500/20 dark:text-emerald-100">
-                Тихий градиент, четкие цифры
-              </span>
             </div>
           </div>
 

@@ -101,6 +101,12 @@ export const EarningsForm = ({ onClose, onSave, editingEarning }: EarningsFormPr
     return { gross, pool, net, share }
   }, [amount, extraWalletsAmount, participantCount])
 
+  const extraWalletsTotal = useMemo(() => {
+    const count = parseInt(extraWalletsCount || '0', 10)
+    if (!Number.isFinite(count) || count <= 0) return 0
+    return parseFloat((currentTotals.net * count).toFixed(2))
+  }, [extraWalletsCount, currentTotals.net])
+
   useEffect(() => {
     loadSlots()
   }, [date, user, isEditing])
@@ -301,7 +307,7 @@ export const EarningsForm = ({ onClose, onSave, editingEarning }: EarningsFormPr
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start sm:items-center justify-center z-50 p-3 sm:p-4 overflow-y-auto touch-manipulation">
-      <div className={`w-full max-w-3xl rounded-lg sm:rounded-xl shadow-xl ${theme === 'dark' ? 'bg-[#1a1a1a]' : 'bg-white'} max-h-[90vh] overflow-y-auto my-4 sm:my-8`}>
+      <div className={`w-full max-w-[540px] sm:max-w-3xl rounded-lg sm:rounded-xl shadow-xl ${theme === 'dark' ? 'bg-[#1a1a1a]' : 'bg-white'} max-h-[85vh] sm:max-h-[90vh] overflow-y-auto my-4 sm:my-8`}>
         <div className="p-4 sm:p-6">
           <div className="flex items-center justify-between mb-4 sm:mb-6">
             <h3 className={`text-lg sm:text-xl font-bold ${headingColor} pr-2`}>{isEditing ? 'Редактировать заработок' : 'Добавить заработок'}</h3>
@@ -326,7 +332,7 @@ export const EarningsForm = ({ onClose, onSave, editingEarning }: EarningsFormPr
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
                 disabled={!isAdmin && !isEditing}
-                className={`w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base rounded-lg border touch-manipulation ${
+                className={`w-full max-w-[240px] sm:max-w-xs px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base rounded-lg border touch-manipulation ${
                   theme === 'dark'
                     ? 'bg-gray-700 border-gray-800 text-white'
                     : 'bg-white border-gray-300 text-gray-900'
@@ -414,7 +420,7 @@ export const EarningsForm = ({ onClose, onSave, editingEarning }: EarningsFormPr
                   </div>
                   <div>
                     <label className={`block text-xs sm:text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                      Доход с доп. кошельков (руб.)
+                      Доп. кошельки (руб.)
                     </label>
                     <input
                       type="number"
@@ -431,9 +437,13 @@ export const EarningsForm = ({ onClose, onSave, editingEarning }: EarningsFormPr
                     />
                   </div>
                 </div>
-                <p className="text-[11px] text-gray-500">
-                  Общая сумма = основная + доп. кошельки. Пул 45% считается с общей суммы.
-                </p>
+                <div className="space-y-1 text-[11px] text-gray-500">
+                  <p>Общая сумма = основная + доп. кошельки. Пул 45% считается с общей суммы.</p>
+                  <p>
+                    Формула доп. кошельков: чистыми после пула ({currentTotals.net.toFixed(2)} ₽) × кол-во доп. кошельков ({parseInt(extraWalletsCount || '0', 10) || 0})
+                    = {extraWalletsTotal.toFixed(2)} ₽. Кол-во указываем сразу за всех отмеченных участников.
+                  </p>
+                </div>
               </div>
             </div>
 
