@@ -7,6 +7,7 @@ import { addEarnings, getWorkSlots, updateEarnings } from '@/services/firestoreS
 import { canAddEarnings, formatDate, getMoscowTime } from '@/utils/dateUtils'
 import { EARNINGS_CATEGORY_META, Earnings, EarningsCategory, TEAM_MEMBERS } from '@/types'
 import { X, Rocket, LineChart, Image, Coins, BarChart3, ShieldCheck, Sparkles, Trash2, PlusCircle } from 'lucide-react'
+import { useScrollLock } from '@/hooks/useScrollLock'
 
 interface EarningsFormProps {
   onClose: () => void
@@ -45,27 +46,7 @@ export const EarningsForm = ({ onClose, onSave, editingEarning }: EarningsFormPr
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
-  // Lock background scroll while modal is open
-  useEffect(() => {
-    const originalPaddingRight = window.innerWidth - document.documentElement.clientWidth
-    
-    // Store scroll position and lock it
-    const scrollY = window.scrollY
-    document.body.style.position = 'fixed'
-    document.body.style.top = `-${scrollY}px`
-    document.body.style.width = '100%'
-    document.body.style.paddingRight = `${originalPaddingRight}px`
-    
-    return () => {
-      // Restore scroll position
-      const scrollY = parseInt(document.body.style.top || '0', 10) * -1
-      document.body.style.position = ''
-      document.body.style.top = ''
-      document.body.style.width = ''
-      document.body.style.paddingRight = ''
-      window.scrollTo(0, scrollY)
-    }
-  }, [])
+  useScrollLock()
 
   const getCategoryIcon = (key: EarningsCategory, className = 'w-4 h-4') => {
     switch (key) {
@@ -322,10 +303,10 @@ export const EarningsForm = ({ onClose, onSave, editingEarning }: EarningsFormPr
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start sm:items-center justify-center z-[70] p-4 sm:p-6 touch-manipulation">
-      <div className={`w-full max-w-[540px] sm:max-w-3xl rounded-2xl sm:rounded-3xl shadow-xl ${theme === 'dark' ? 'bg-[#1a1a1a]' : 'bg-white'} max-h-[85dvh] sm:max-h-[calc(100dvh-96px)]`}>
-        <div className="p-4 sm:p-6 flex flex-col h-full">
-          <div className="flex items-center justify-between mb-4 sm:mb-6 shrink-0">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start sm:items-center justify-center z-[70] p-4 sm:p-6 touch-manipulation overflow-y-auto overscroll-contain modal-scroll">
+      <div className={`w-full max-w-[540px] sm:max-w-3xl rounded-2xl sm:rounded-3xl shadow-xl ${theme === 'dark' ? 'bg-[#1a1a1a]' : 'bg-white'} max-h-[85dvh] sm:max-h-[calc(100dvh-96px)] overflow-hidden`}>
+        <div className="p-4 sm:p-6 flex flex-col h-full min-h-0 overflow-y-auto modal-scroll">
+          <div className="flex items-center justify-between mb-4 sm:mb-6">
             <h3 className={`text-lg sm:text-xl font-bold ${headingColor} pr-2`}>{isEditing ? 'Редактировать заработок' : 'Добавить заработок'}</h3>
             <button
               onClick={onClose}
@@ -336,7 +317,7 @@ export const EarningsForm = ({ onClose, onSave, editingEarning }: EarningsFormPr
             </button>
           </div>
 
-          <div className="space-y-3 sm:space-y-4 overflow-y-auto overscroll-contain pr-1 flex-1 min-h-0">
+          <div className="space-y-3 sm:space-y-4 overflow-y-auto overscroll-contain pr-1 pb-8 flex-1 min-h-0">
             {/* Date */}
             <div>
               <label className={`flex flex-col sm:flex-row sm:items-center sm:justify-between text-xs sm:text-sm font-medium mb-2 gap-1 sm:gap-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>

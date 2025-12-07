@@ -1,5 +1,5 @@
 // Form for adding/editing tasks
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useAuthStore } from '@/store/authStore'
 import { useAdminStore } from '@/store/adminStore'
 import { useThemeStore } from '@/store/themeStore'
@@ -8,6 +8,7 @@ import { Task, TaskAssignee, TaskCategory, TEAM_MEMBERS, TASK_CATEGORIES } from 
 import { X, Calendar, Users, Tag, FileText, AlertCircle, Clock, AlarmClock, Sparkles } from 'lucide-react'
 import { CATEGORY_ICONS } from './categoryIcons'
 import { formatDate } from '@/utils/dateUtils'
+import { useScrollLock } from '@/hooks/useScrollLock'
 
 interface TaskFormProps {
   onClose: () => void
@@ -43,27 +44,7 @@ export const TaskForm = ({ onClose, onSave, editingTask }: TaskFormProps) => {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
-  // Lock background scroll while modal is open
-  useEffect(() => {
-    const originalPaddingRight = window.innerWidth - document.documentElement.clientWidth
-    
-    // Store scroll position and lock it
-    const scrollY = window.scrollY
-    document.body.style.position = 'fixed'
-    document.body.style.top = `-${scrollY}px`
-    document.body.style.width = '100%'
-    document.body.style.paddingRight = `${originalPaddingRight}px`
-    
-    return () => {
-      // Restore scroll position
-      const scrollY = parseInt(document.body.style.top || '0', 10) * -1
-      document.body.style.position = ''
-      document.body.style.top = ''
-      document.body.style.width = ''
-      document.body.style.paddingRight = ''
-      window.scrollTo(0, scrollY)
-    }
-  }, [])
+  useScrollLock()
 
   const priorityOptions: { value: 'low' | 'medium' | 'high'; label: string; desc: string; tone: string }[] = [
     { value: 'high', label: 'Высокий', desc: 'Нужен приоритет и быстрый старт', tone: theme === 'dark' ? 'bg-red-500/15 border-red-500/40 text-red-100' : 'bg-red-50 border-red-200 text-red-700' },
@@ -209,7 +190,7 @@ export const TaskForm = ({ onClose, onSave, editingTask }: TaskFormProps) => {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-start sm:items-center justify-center z-[70] p-4">
+    <div className="fixed inset-0 bg-black/50 flex items-start sm:items-center justify-center z-[70] p-4 overflow-y-auto overscroll-contain modal-scroll">
       <div className={`${cardBg} rounded-xl sm:rounded-2xl shadow-2xl w-full max-w-2xl max-h-[calc(100dvh-96px)] sm:max-h-[calc(100dvh-96px)] overflow-hidden border-2 ${
         theme === 'dark' 
           ? 'border-[#4E6E49]/30 bg-gradient-to-br from-[#1a1a1a] via-[#1a1a1a] to-[#0A0A0A]' 
@@ -233,7 +214,7 @@ export const TaskForm = ({ onClose, onSave, editingTask }: TaskFormProps) => {
           </div>
 
           {/* Form Content */}
-          <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 flex-1 min-h-0 overflow-y-auto overscroll-contain">
+          <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 flex-1 min-h-0 overflow-y-auto overscroll-contain modal-scroll pb-10">
           {error && (
             <div className={`p-3 rounded-lg bg-red-500/10 border border-red-500/30 flex items-center gap-2 text-red-500`}>
               <AlertCircle className="w-5 h-5 flex-shrink-0" />

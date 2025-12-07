@@ -7,6 +7,7 @@ import { addDayStatus, updateDayStatus, getDayStatuses } from '@/services/firest
 import { formatDate, isSameDate, getDatesInRange, normalizeDatesList } from '@/utils/dateUtils'
 import { X } from 'lucide-react'
 import { DayStatus, TEAM_MEMBERS } from '@/types'
+import { useScrollLock } from '@/hooks/useScrollLock'
 
 interface DayStatusFormProps {
   type: 'dayoff' | 'sick' | 'vacation'
@@ -38,27 +39,7 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
 
   const adminBulkMode = isAdmin && !status
 
-  // Lock background scroll while modal is open
-  useEffect(() => {
-    const originalPaddingRight = window.innerWidth - document.documentElement.clientWidth
-    
-    // Store scroll position and lock it
-    const scrollY = window.scrollY
-    document.body.style.position = 'fixed'
-    document.body.style.top = `-${scrollY}px`
-    document.body.style.width = '100%'
-    document.body.style.paddingRight = `${originalPaddingRight}px`
-    
-    return () => {
-      // Restore scroll position
-      const scrollY = parseInt(document.body.style.top || '0', 10) * -1
-      document.body.style.position = ''
-      document.body.style.top = ''
-      document.body.style.width = ''
-      document.body.style.paddingRight = ''
-      window.scrollTo(0, scrollY)
-    }
-  }, [])
+  useScrollLock()
 
   useEffect(() => {
     if (!isMultiDay) {
@@ -352,10 +333,10 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
   const selectedNames = selectedUserIds.map((id) => getMemberName(id)).join(', ')
 
   return (
-    <div className="fixed inset-0 bg-slate-950/75 backdrop-blur-xl flex items-start sm:items-center justify-center z-[70] p-4 sm:p-6 touch-manipulation">
-      <div className={`w-full max-w-4xl rounded-3xl shadow-[0_24px_80px_rgba(0,0,0,0.45)] border ${theme === 'dark' ? 'bg-gradient-to-br from-[#0c1320] via-[#0b1220] to-[#08111b] border-white/10' : 'bg-gradient-to-br from-white via-slate-50 to-white border-slate-200'} max-h-[85dvh] sm:max-h-[calc(100dvh-96px)]`}>
-        <div className="p-4 sm:p-6 lg:p-7 flex flex-col h-full">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between shrink-0">
+    <div className="fixed inset-0 bg-slate-950/75 backdrop-blur-xl flex items-start sm:items-center justify-center z-[70] p-4 sm:p-6 touch-manipulation overflow-y-auto overscroll-contain modal-scroll">
+      <div className={`w-full max-w-4xl rounded-3xl shadow-[0_24px_80px_rgba(0,0,0,0.45)] border ${theme === 'dark' ? 'bg-gradient-to-br from-[#0c1320] via-[#0b1220] to-[#08111b] border-white/10' : 'bg-gradient-to-br from-white via-slate-50 to-white border-slate-200'} max-h-[85dvh] sm:max-h-[calc(100dvh-96px)] overflow-hidden`}>
+        <div className="p-4 sm:p-6 lg:p-7 flex flex-col h-full min-h-0 overflow-y-auto modal-scroll">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="space-y-1">
               <div className="flex items-center gap-2 text-xs uppercase tracking-[0.18em] text-[#4E6E49] font-semibold">
                 <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-[#4E6E49]/10 text-[#4E6E49] border border-[#4E6E49]/30">
@@ -413,7 +394,7 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
               </div>
             </aside>
 
-            <div className="space-y-4 overflow-y-auto overscroll-contain pr-1 flex-1 min-h-0">
+            <div className="space-y-4 overflow-y-auto overscroll-contain pr-1 pb-6 flex-1 min-h-0">
               {/* User selection for admin when adding new status */}
             {adminBulkMode && (
               <div>
