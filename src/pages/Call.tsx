@@ -442,7 +442,7 @@ export const CallPage = () => {
         {/* Form Modal */}
         {showForm && (
           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200 overscroll-contain">
-            <div className={`${bgColor} rounded-2xl p-8 shadow-2xl border ${borderColor} max-w-2xl w-full max-h-[90vh] overflow-y-auto animate-in slide-in-from-bottom-4 duration-300`}>
+            <div className={`${bgColor} rounded-2xl p-8 shadow-2xl border ${borderColor} max-w-2xl w-full max-h-[calc(100dvh-72px)] overflow-y-auto animate-in slide-in-from-bottom-4 duration-300`}>
               <div className="flex items-center justify-between mb-6">
                 <h2 className={`text-3xl font-bold ${textColor}`}>
                   {editingCall ? 'Редактировать сигнал' : 'Создать новый сигнал'}
