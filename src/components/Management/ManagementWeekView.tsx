@@ -248,17 +248,6 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
     return daySlots
   }
 
-  const getStatusesForDay = (date: string): DayStatus[] => {
-    return statuses.filter((s) => {
-      // If status has endDate, check if date falls within the range
-      if (s.endDate) {
-        return s.date <= date && s.endDate >= date
-      }
-      // Otherwise, check exact match
-      return s.date === date
-    })
-  }
-
   const navigateWeek = (direction: 'prev' | 'next') => {
     const newDate = new Date(selectedWeek)
     if (direction === 'prev') {
@@ -314,6 +303,7 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
           const dateStr = formatDate(day, 'yyyy-MM-dd')
           const daySlots = getSlotsForDay(dateStr)
           const weekStartStr = formatDate(weekDays[0], 'yyyy-MM-dd')
+          const dayStatusRanges = statusRanges.filter((range) => range.start <= dateStr && range.end >= dateStr)
 
           return (
             <div
@@ -326,8 +316,7 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
 
               <div className="space-y-3 sm:space-y-4">
                 {/* Statuses */}
-                {statusRanges
-                  .filter((range) => range.start <= dateStr && range.end >= dateStr)
+                {dayStatusRanges
                   .map((range) => {
                     const statusUser = TEAM_MEMBERS.find((u) => u.id === range.userId)
                     // Fallback: try to find by old ID format if not found
@@ -567,7 +556,7 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
                   )
                 })}
 
-                {daySlots.length === 0 && dayStatuses.length === 0 && (
+                {daySlots.length === 0 && dayStatusRanges.length === 0 && (
                   <p className={`text-sm ${subtleColor}`}>
                     Нет данных
                   </p>
