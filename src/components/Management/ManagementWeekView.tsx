@@ -366,7 +366,7 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
               <div className="space-y-3 sm:space-y-4">
                 {/* Statuses */}
                 {dayStatuses.map((status) => {
-                  const { member: statusUser, displayName } = resolveUser(status.userId)
+                  const { displayName } = resolveUser(status.userId)
                   return (
                     <div
                       key={status.id}
