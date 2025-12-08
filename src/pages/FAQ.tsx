@@ -17,8 +17,9 @@ import {
   Eye,
   CheckSquare,
   BookOpen,
+  ChevronDown,
 } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 interface FAQItem {
   question: string
@@ -313,6 +314,7 @@ const faqData: FAQItemWithCategory[] = [
 export const FAQ = () => {
   const { theme } = useThemeStore()
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
+  const [openItems, setOpenItems] = useState<Record<string, boolean>>({})
   const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
   const subTextColor = theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
   const textColor = theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
@@ -324,6 +326,13 @@ export const FAQ = () => {
     : faqData.filter(item => item.category === selectedCategory)
 
   const selectedCategoryInfo = categories.find(c => c.id === selectedCategory)
+  const groupedFAQs = filteredFAQs.reduce<Record<string, FAQItemWithCategory[]>>((acc, item) => {
+    acc[item.category] = acc[item.category] ? [...acc[item.category], item] : [item]
+    return acc
+  }, {})
+  const visibleCategories = selectedCategory === 'all'
+    ? categories.filter((c) => c.id !== 'all')
+    : categories.filter((c) => c.id === selectedCategory)
 
   const formatAnswer = (answer: string) => {
     const paragraphs = answer.split('\n')
@@ -337,6 +346,14 @@ export const FAQ = () => {
       </div>
     )
   }
+
+  const toggleItem = (id: string) => {
+    setOpenItems((prev) => ({ ...prev, [id]: !prev[id] }))
+  }
+
+  useEffect(() => {
+    setOpenItems({})
+  }, [selectedCategory])
 
   return (
     <Layout>
@@ -502,86 +519,77 @@ export const FAQ = () => {
 
         {/* FAQ Items */}
         <div className="space-y-4">
-          {filteredFAQs.length === 0 ? (
-            <div className={`${cardBg} rounded-xl p-8 text-center border ${borderColor}`}>
-              <p className={textColor}>В этой категории пока нет вопросов</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
-              {filteredFAQs.map((item, idx) => {
-                const actualIndex = faqData.indexOf(item)
-                const categoryInfo = categories.find(c => c.id === item.category)
-                const badgeColor = categoryInfo
-                  ? theme === 'dark'
-                    ? categoryInfo.darkColor
-                    : categoryInfo.color
-                  : theme === 'dark'
-                  ? 'text-gray-300'
-                  : 'text-gray-600'
-                
-                return (
-                  <div
-                    key={actualIndex}
-                    className={`relative overflow-hidden rounded-2xl border ${
-                      theme === 'dark'
-                        ? 'bg-[#0f1115] border-white/10 shadow-[0_12px_40px_-24px_rgba(0,0,0,0.8)]'
-                        : 'bg-white border-gray-100 shadow-[0_12px_32px_-20px_rgba(15,23,42,0.25)]'
-                    }`}
-                  >
-                    <div
-                      className={`absolute inset-0 bg-gradient-to-br ${
-                        theme === 'dark'
-                          ? 'from-white/5 via-white/0 to-blue-500/10'
-                          : 'from-blue-50 via-white to-purple-50'
-                      }`}
-                    />
-                    <div className="relative z-10 p-5 flex flex-col gap-3">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="flex items-center gap-3">
-                          <span
-                            className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold ${
-                              theme === 'dark'
-                                ? 'bg-white/10 text-white border border-white/10'
-                                : 'bg-white/90 text-gray-900 border border-white shadow-sm'
-                            }`}
-                          >
-                            {String(idx + 1).padStart(2, '0')}
-                          </span>
-                          <div
-                            className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-semibold border ${
-                              theme === 'dark' ? 'bg-[#1a1a1a]/80 border-gray-800' : 'bg-gray-100 border-gray-200'
-                            } ${badgeColor}`}
-                          >
-                            {categoryInfo?.icon}
-                            <span className="uppercase tracking-wide">
-                              {categoryInfo ? categoryInfo.name : 'Общее'}
-                            </span>
-                          </div>
-                        </div>
-                        <span
-                          className={`p-2 rounded-lg ${
-                            theme === 'dark' ? 'bg-white/5 text-white' : 'bg-white text-gray-700 shadow-sm border border-gray-100'
-                          }`}
-                        >
-                          <Sparkles className="w-4 h-4" />
-                        </span>
-                      </div>
-                      <h3 className={`text-lg sm:text-xl font-bold ${headingColor}`}>
-                        {item.question}
-                      </h3>
-                      <div
-                        className={`rounded-xl p-4 text-sm leading-relaxed border ${
-                          theme === 'dark'
-                            ? 'bg-white/5 text-gray-200 border-white/10'
-                            : 'bg-blue-50/80 text-gray-800 border-blue-100'
-                        }`}
-                      >
-                        {formatAnswer(item.answer)}
-                      </div>
+          {visibleCategories.map((category) => {
+            const items = groupedFAQs[category.id] || []
+            if (items.length === 0) return null
+            const badgeColor = theme === 'dark' ? category.darkColor : category.color
+
+            return (
+              <div
+                key={category.id}
+                className={`rounded-2xl border overflow-hidden ${
+                  theme === 'dark'
+                    ? 'bg-[#0f1115] border-white/10 shadow-[0_12px_40px_-24px_rgba(0,0,0,0.8)]'
+                    : 'bg-white border-gray-100 shadow-[0_12px_32px_-20px_rgba(15,23,42,0.25)]'
+                }`}
+              >
+                <div className={`flex items-center justify-between gap-3 px-4 sm:px-5 py-4 border-b ${theme === 'dark' ? 'border-white/10' : 'border-gray-100'}`}>
+                  <div className="flex items-center gap-3">
+                    <span className={badgeColor}>{category.icon}</span>
+                    <div>
+                      <p className={`text-sm font-semibold ${headingColor}`}>{category.name}</p>
+                      <p className={`text-xs ${subTextColor}`}>{items.length} {items.length === 1 ? 'вопрос' : items.length < 5 ? 'вопроса' : 'вопросов'}</p>
                     </div>
                   </div>
-                )
-              })}
+                  <span className={`text-[11px] px-2 py-1 rounded-lg font-semibold border ${
+                    theme === 'dark' ? 'border-white/10 bg-white/5 text-white' : 'border-gray-200 bg-gray-50 text-gray-700'
+                  }`}>
+                    Нажмите, чтобы раскрыть
+                  </span>
+                </div>
+
+                <div className={`divide-y ${theme === 'dark' ? 'divide-white/10' : 'divide-gray-100'}`}>
+                  {items.map((item) => {
+                    const itemId = `${category.id}-${item.question}`
+                    const isOpen = !!openItems[itemId]
+
+                    return (
+                      <div key={itemId} className="px-4 sm:px-5 py-3">
+                        <button
+                          type="button"
+                          onClick={() => toggleItem(itemId)}
+                          className="w-full flex items-start justify-between gap-3 text-left"
+                          aria-expanded={isOpen}
+                        >
+                          <span className={`font-semibold ${headingColor}`}>{item.question}</span>
+                          <ChevronDown
+                            className={`w-4 h-4 shrink-0 transition-transform ${
+                              theme === 'dark' ? 'text-gray-300' : 'text-gray-500'
+                            } ${isOpen ? 'rotate-180' : ''}`}
+                          />
+                        </button>
+                        {isOpen && (
+                          <div
+                            className={`mt-3 rounded-xl border px-4 py-3 text-sm leading-relaxed ${
+                              theme === 'dark'
+                                ? 'bg-white/5 text-gray-200 border-white/10'
+                                : 'bg-blue-50/80 text-gray-800 border-blue-100'
+                            }`}
+                          >
+                            {formatAnswer(item.answer)}
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            )
+          })}
+
+          {visibleCategories.every((c) => (groupedFAQs[c.id] || []).length === 0) && (
+            <div className={`${cardBg} rounded-xl p-8 text-center border ${borderColor}`}>
+              <p className={textColor}>В этой категории пока нет вопросов</p>
             </div>
           )}
         </div>

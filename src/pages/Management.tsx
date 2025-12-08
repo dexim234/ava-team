@@ -34,7 +34,7 @@ type ActionType = 'add-slot' | 'delete-slots' | 'dayoff' | 'sick' | 'vacation'
 
 export const Management = () => {
   const { theme } = useThemeStore()
-  const [viewMode, setViewMode] = useState<ViewMode>('table')
+  const [viewMode, setViewMode] = useState<ViewMode>('week')
   const [slotFilter, setSlotFilter] = useState<SlotFilter>('all')
   const [showSlotForm, setShowSlotForm] = useState(false)
   const [showDeleteSlotsForm, setShowDeleteSlotsForm] = useState(false)
@@ -289,6 +289,48 @@ export const Management = () => {
       ? 'bg-[#0A0A0A]/40 border-gray-800 shadow-[0_20px_60px_rgba(0,0,0,0.5)]'
       : 'bg-white border-gray-200 shadow-[0_20px_60px_rgba(15,23,42,0.08)]'
   }`
+  const statToneMap: Record<string, { bg: string; text: string; border: string }> = {
+    emerald: {
+      bg: theme === 'dark' ? 'bg-emerald-500/10' : 'bg-emerald-50',
+      text: theme === 'dark' ? 'text-emerald-100' : 'text-emerald-800',
+      border: theme === 'dark' ? 'border-emerald-500/30' : 'border-emerald-200',
+    },
+    purple: {
+      bg: theme === 'dark' ? 'bg-purple-500/10' : 'bg-purple-50',
+      text: theme === 'dark' ? 'text-purple-100' : 'text-purple-800',
+      border: theme === 'dark' ? 'border-purple-500/30' : 'border-purple-200',
+    },
+    amber: {
+      bg: theme === 'dark' ? 'bg-amber-500/10' : 'bg-amber-50',
+      text: theme === 'dark' ? 'text-amber-100' : 'text-amber-800',
+      border: theme === 'dark' ? 'border-amber-500/30' : 'border-amber-200',
+    },
+    slate: {
+      bg: theme === 'dark' ? 'bg-gray-500/10' : 'bg-gray-50',
+      text: theme === 'dark' ? 'text-gray-100' : 'text-gray-800',
+      border: theme === 'dark' ? 'border-gray-500/30' : 'border-gray-200',
+    },
+    blue: {
+      bg: theme === 'dark' ? 'bg-blue-500/10' : 'bg-blue-50',
+      text: theme === 'dark' ? 'text-blue-100' : 'text-blue-800',
+      border: theme === 'dark' ? 'border-blue-500/30' : 'border-blue-200',
+    },
+    green: {
+      bg: theme === 'dark' ? 'bg-green-500/10' : 'bg-green-50',
+      text: theme === 'dark' ? 'text-green-100' : 'text-green-800',
+      border: theme === 'dark' ? 'border-green-500/30' : 'border-green-200',
+    },
+    sky: {
+      bg: theme === 'dark' ? 'bg-sky-500/10' : 'bg-sky-50',
+      text: theme === 'dark' ? 'text-sky-100' : 'text-sky-800',
+      border: theme === 'dark' ? 'border-sky-500/30' : 'border-sky-200',
+    },
+    pink: {
+      bg: theme === 'dark' ? 'bg-pink-500/10' : 'bg-pink-50',
+      text: theme === 'dark' ? 'text-pink-100' : 'text-pink-800',
+      border: theme === 'dark' ? 'border-pink-500/30' : 'border-pink-200',
+    },
+  }
 
   const handleViewModeChange = (mode: ViewMode) => {
     setViewMode(mode)
@@ -300,56 +342,56 @@ export const Management = () => {
       value: `${Math.max(stats.recommendedDay, 0)} в день`,
       note: `Неделя: ${Math.max(stats.recommendedWeek, 0)} до цели 15`,
       icon: <ArrowUpRight className="w-4 h-4" />,
-      tone: 'from-emerald-500 to-blue-500',
+      tone: 'emerald',
     },
     {
       label: 'Активные участники',
       value: stats.activeMembers,
       note: 'за неделю',
       icon: <Users className="w-4 h-4" />,
-      tone: 'from-purple-500 to-pink-500',
+      tone: 'purple',
     },
     {
       label: 'Самый активный участник недели',
       value: stats.mostActive || 'Нет данных',
       note: 'по слотам',
       icon: <Activity className="w-4 h-4" />,
-      tone: 'from-amber-500 to-orange-500',
+      tone: 'amber',
     },
     {
       label: 'Самые неактивные участники недели',
       value: stats.leastActive.length ? stats.leastActive.join(', ') : 'Нет данных',
       note: 'минимум слотов',
       icon: <ArrowDownRight className="w-4 h-4" />,
-      tone: 'from-slate-500 to-gray-700',
+      tone: 'slate',
     },
     {
       label: 'Осталось слотов на неделе',
       value: stats.remainingSlots,
       note: 'предстоящие',
       icon: <Hourglass className="w-4 h-4" />,
-      tone: 'from-sky-500 to-blue-600',
+      tone: 'blue',
     },
     {
       label: 'Завершено слотов на неделе',
       value: stats.completedSlots,
       note: 'факт',
       icon: <CalendarCheck className="w-4 h-4" />,
-      tone: 'from-emerald-600 to-teal-500',
+      tone: 'green',
     },
     {
       label: 'Таймер ближайшего слота',
       value: timerLabels.nextStart,
       note: 'до старта',
       icon: <Timer className="w-4 h-4" />,
-      tone: 'from-indigo-500 to-blue-500',
+      tone: 'sky',
     },
     {
       label: 'До окончания активного слота',
       value: timerLabels.activeRemaining,
       note: 'если слот идёт',
       icon: <Clock className="w-4 h-4" />,
-      tone: 'from-rose-500 to-red-500',
+      tone: 'pink',
     },
   ]
 
@@ -360,13 +402,13 @@ export const Management = () => {
         {/* Hero */}
         <div className={`relative overflow-hidden rounded-2xl p-5 sm:p-6 md:p-7 border-2 shadow-2xl ${
           theme === 'dark'
-            ? 'bg-gradient-to-br from-[#1a1f2b] via-[#121a27] to-[#0c131e] border-[#4E6E49]/35'
+            ? 'bg-gradient-to-br from-[#1b2435] via-[#121a27] to-[#0c131e] border-[#4E6E49]/35'
             : 'bg-gradient-to-br from-white via-green-50/30 to-white border-green-200'
         }`}>
           <div className="absolute inset-0 pointer-events-none">
-            <div className="absolute -top-32 -left-16 w-80 h-80 bg-gradient-to-br from-[#4E6E49]/16 via-transparent to-transparent blur-3xl" />
-            <div className="absolute top-0 right-0 w-[26rem] h-[26rem] bg-gradient-to-bl from-blue-400/14 via-purple-400/10 to-transparent blur-3xl" />
-            <div className="absolute bottom-[-140px] left-14 w-80 h-80 bg-gradient-to-tr from-amber-300/10 via-[#4E6E49]/10 to-transparent blur-3xl" />
+            <div className="absolute -top-32 -left-16 w-80 h-80 bg-gradient-to-br from-[#4E6E49]/18 via-transparent to-transparent blur-3xl" />
+            <div className="absolute top-0 right-0 w-[26rem] h-[26rem] bg-gradient-to-bl from-blue-400/16 via-emerald-400/12 to-transparent blur-3xl" />
+            <div className="absolute bottom-[-140px] left-14 w-80 h-80 bg-gradient-to-tr from-amber-300/12 via-[#4E6E49]/12 to-transparent blur-3xl" />
           </div>
           <div className="relative z-10 grid grid-cols-1 gap-5">
             <div className="flex items-start gap-3">
@@ -385,27 +427,32 @@ export const Management = () => {
 
             <div className={`rounded-2xl border p-4 sm:p-5 backdrop-blur ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-green-100 bg-white/80'}`}>
               <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                {statCards.map((item) => (
-                  <div
-                    key={item.label}
-                    className={`rounded-xl border p-3 flex flex-col gap-1.5 shadow-sm ${
-                      theme === 'dark'
-                        ? 'border-white/8 bg-[#0d121c]'
-                        : 'border-gray-200 bg-white'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between gap-2">
-                      <p className="text-[11px] sm:text-xs font-semibold text-[#4E6E49] leading-tight">{item.label}</p>
-                      <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-semibold text-white bg-gradient-to-r ${item.tone}`}>
-                        {item.icon}
-                      </span>
+                {statCards.map((item) => {
+                  const tone = statToneMap[item.tone]
+                  return (
+                    <div
+                      key={item.label}
+                      className={`p-4 rounded-xl border ${tone.border} ${tone.bg} shadow-sm space-y-2`}
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <p className={`text-[11px] sm:text-xs font-semibold uppercase tracking-wide ${tone.text}`}>
+                          {item.label}
+                        </p>
+                        <span
+                          className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-semibold border ${tone.border} ${tone.text} ${
+                            theme === 'dark' ? 'bg-white/5' : 'bg-white/80'
+                          }`}
+                        >
+                          {item.icon}
+                        </span>
+                      </div>
+                      <p className={`text-lg sm:text-2xl font-extrabold ${headingColor}`}>
+                        {item.value}
+                      </p>
+                      <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>{item.note}</p>
                     </div>
-                    <p className={`text-lg sm:text-xl font-bold ${headingColor}`}>
-                      {item.value}
-                    </p>
-                    <p className={`text-xs ${labelColor}`}>{item.note}</p>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             </div>
           </div>

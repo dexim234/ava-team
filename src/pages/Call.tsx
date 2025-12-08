@@ -95,6 +95,44 @@ export const CallPage = () => {
   const textColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
   const subtleColor = theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
   const borderColor = theme === 'dark' ? 'border-gray-800' : 'border-gray-200'
+  const categoryTone: Record<CallCategory, { bg: string; text: string; border: string; chipBg: string }> = {
+    memecoins: {
+      bg: theme === 'dark' ? 'bg-emerald-500/10' : 'bg-emerald-50',
+      text: theme === 'dark' ? 'text-emerald-100' : 'text-emerald-800',
+      border: theme === 'dark' ? 'border-emerald-500/30' : 'border-emerald-200',
+      chipBg: theme === 'dark' ? 'bg-emerald-500/20' : 'bg-emerald-500/10',
+    },
+    futures: {
+      bg: theme === 'dark' ? 'bg-sky-500/10' : 'bg-sky-50',
+      text: theme === 'dark' ? 'text-sky-100' : 'text-sky-800',
+      border: theme === 'dark' ? 'border-sky-500/30' : 'border-sky-200',
+      chipBg: theme === 'dark' ? 'bg-sky-500/20' : 'bg-sky-500/10',
+    },
+    nft: {
+      bg: theme === 'dark' ? 'bg-purple-500/10' : 'bg-purple-50',
+      text: theme === 'dark' ? 'text-purple-100' : 'text-purple-800',
+      border: theme === 'dark' ? 'border-purple-500/30' : 'border-purple-200',
+      chipBg: theme === 'dark' ? 'bg-purple-500/20' : 'bg-purple-500/10',
+    },
+    spot: {
+      bg: theme === 'dark' ? 'bg-amber-500/10' : 'bg-amber-50',
+      text: theme === 'dark' ? 'text-amber-100' : 'text-amber-800',
+      border: theme === 'dark' ? 'border-amber-500/30' : 'border-amber-200',
+      chipBg: theme === 'dark' ? 'bg-amber-500/20' : 'bg-amber-500/10',
+    },
+    polymarket: {
+      bg: theme === 'dark' ? 'bg-rose-500/10' : 'bg-rose-50',
+      text: theme === 'dark' ? 'text-rose-100' : 'text-rose-800',
+      border: theme === 'dark' ? 'border-rose-500/30' : 'border-rose-200',
+      chipBg: theme === 'dark' ? 'bg-rose-500/20' : 'bg-rose-500/10',
+    },
+    staking: {
+      bg: theme === 'dark' ? 'bg-cyan-500/10' : 'bg-cyan-50',
+      text: theme === 'dark' ? 'text-cyan-100' : 'text-cyan-800',
+      border: theme === 'dark' ? 'border-cyan-500/30' : 'border-cyan-200',
+      chipBg: theme === 'dark' ? 'bg-cyan-500/20' : 'bg-cyan-500/10',
+    },
+  }
 
   const handleSuccess = () => {
     setShowForm(false)
@@ -346,16 +384,27 @@ export const CallPage = () => {
     <Layout>
       <div className="space-y-6">
         {/* Hero */}
-        <div className={`rounded-2xl p-6 sm:p-7 ${theme === 'dark' ? 'bg-[#0f1218]' : 'bg-white'} shadow-xl border ${borderColor} relative overflow-hidden`}>
+        <div className={`relative overflow-hidden rounded-2xl p-6 sm:p-7 md:p-8 border-2 shadow-2xl ${
+          theme === 'dark'
+            ? 'bg-gradient-to-br from-[#151c2a] via-[#0f1623] to-[#0a101b] border-[#4E6E49]/35'
+            : 'bg-gradient-to-br from-white via-emerald-50/25 to-white border-emerald-200'
+        }`}>
+          <div className="absolute inset-0 pointer-events-none">
+            <div className="absolute -top-24 -left-16 w-64 h-64 bg-gradient-to-br from-[#4E6E49]/18 via-transparent to-transparent blur-3xl" />
+            <div className="absolute top-0 right-0 w-72 h-72 bg-gradient-to-bl from-sky-400/14 via-emerald-400/12 to-transparent blur-3xl" />
+            <div className="absolute bottom-[-120px] left-12 w-64 h-64 bg-gradient-to-tr from-amber-300/14 via-[#4E6E49]/12 to-transparent blur-3xl" />
+          </div>
           <div className="relative z-10 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <div className="space-y-2">
+            <div className="space-y-3">
               <div className="flex items-center gap-3">
-                <div className="p-3 rounded-2xl bg-gradient-to-br from-sky-500 to-teal-500 text-white shadow-md">
+                <div className="p-3 rounded-2xl bg-gradient-to-br from-[#4E6E49] via-emerald-500 to-sky-500 text-white shadow-lg shadow-emerald-500/30">
                   <Zap className="w-6 h-6" />
                 </div>
                 <div>
-                  <p className="text-xs uppercase tracking-[0.2em] text-[#4E6E49]">Signals Hub</p>
-                  <h1 className={`text-2xl sm:text-3xl font-bold ${textColor}`}>Call: мульти-сигналы</h1>
+                  <p className="text-[11px] uppercase tracking-[0.2em] text-[#4E6E49]">Signals Hub</p>
+                  <h1 className="text-2xl sm:text-3xl font-extrabold bg-gradient-to-r from-[#4E6E49] via-emerald-500 to-sky-500 bg-clip-text text-transparent">
+                    Call: мульти-сигналы
+                  </h1>
                   <p className={`${subtleColor} text-sm`}>Мемы, фьючи, спот, NFT, Polymarket и стейкинг в одном окне.</p>
                 </div>
               </div>
@@ -363,16 +412,16 @@ export const CallPage = () => {
             <div className="flex flex-wrap items-center gap-3">
               <button
                 onClick={() => { setEditingCall(null); setFormCategory('memecoins'); setShowForm(true) }}
-                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-white bg-gradient-to-r from-sky-500 to-teal-500 shadow-md hover:shadow-lg transition-all"
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-white bg-gradient-to-r from-[#4E6E49] via-emerald-600 to-sky-600 shadow-lg hover:shadow-xl transition-all"
               >
                 <Plus className="w-5 h-5" />
                 Новый сигнал
               </button>
-              <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 bg-emerald-500/10">
+              <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-emerald-500/30 text-emerald-600 dark:text-emerald-300 bg-emerald-500/10">
                 <Activity className="w-4 h-4" />
                 <span className="text-sm font-semibold">Активных: {totals.active}</span>
               </div>
-              <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-amber-500/30 text-amber-600 dark:text-amber-400 bg-amber-500/10">
+              <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-amber-500/30 text-amber-600 dark:text-amber-200 bg-amber-500/10">
                 <Flame className="w-4 h-4" />
                 <span className="text-sm font-semibold">High risk: {totals.highRisk}</span>
               </div>
@@ -380,27 +429,30 @@ export const CallPage = () => {
           </div>
         </div>
 
-        {/* Category mini-cards */}
+        {/* Category mini-cards (aligned with Tasks style) */}
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
           {(Object.keys(CATEGORY_META) as CallCategory[]).map((cat) => {
             const meta = CATEGORY_META[cat]
             const stats = categoryStats[cat]
+            const tone = categoryTone[cat]
             return (
               <button
                 key={cat}
                 onClick={() => { setFormCategory(cat); setEditingCall(null); setShowForm(true) }}
-                className={`relative overflow-hidden rounded-2xl border ${borderColor} ${theme === 'dark' ? 'bg-gray-900/70' : 'bg-white'} p-4 text-left shadow-md hover:shadow-lg transition-all`}
+                className={`p-4 rounded-xl border ${tone.border} ${tone.bg} text-left shadow-sm hover:shadow-lg transition-all hover:-translate-y-0.5 space-y-2`}
               >
-                <div className={`absolute inset-0 opacity-55 bg-gradient-to-r ${meta.gradient}`} />
-                <div className="relative z-10 flex items-start justify-between">
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2 text-white">
-                      {meta.icon}
-                      <p className="font-semibold">{meta.label}</p>
-                    </div>
-                    <p className="text-xs text-white/80">Всего {stats?.total || 0} • Активных {stats?.active || 0}</p>
+                <div className="flex items-start justify-between gap-3">
+                  <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-semibold border border-transparent ${tone.text}`}>
+                    {meta.icon}
+                    <span>{meta.label}</span>
                   </div>
-                  <div className="bg-white/20 text-white rounded-full px-3 py-1 text-xs font-semibold">Добавить</div>
+                  <span className={`px-3 py-1 rounded-full text-[11px] font-semibold border ${tone.border} ${tone.text} ${theme === 'dark' ? 'bg-white/5' : 'bg-white/80'}`}>
+                    Добавить
+                  </span>
+                </div>
+                <div>
+                  <p className={`text-2xl font-extrabold ${textColor}`}>{stats?.total || 0}</p>
+                  <p className={`text-xs ${subtleColor}`}>Всего сигналов • Активных {stats?.active || 0}</p>
                 </div>
               </button>
             )
