@@ -38,7 +38,6 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
   const [currentStart, setCurrentStart] = useState('')
   const [currentEnd, setCurrentEnd] = useState('')
   const [crossesMidnight, setCrossesMidnight] = useState(false)
-  const [currentEndDate, setCurrentEndDate] = useState('')
   const [currentBreakStart, setCurrentBreakStart] = useState('')
   const [currentBreakEnd, setCurrentBreakEnd] = useState('')
   const [editingTimeSlotIndex, setEditingTimeSlotIndex] = useState<number | null>(null)
@@ -79,23 +78,6 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
     }
   }, [dateMode])
 
-  useEffect(() => {
-    // Auto-calculate end date if crossing midnight
-    if (crossesMidnight && date && currentStart && currentEnd) {
-      if (currentStart >= currentEnd) {
-        // Slot crosses midnight - end date is next day
-        const startDate = new Date(date)
-        startDate.setDate(startDate.getDate() + 1)
-        setCurrentEndDate(formatDate(startDate, 'yyyy-MM-dd'))
-      } else {
-        // Same day slot
-        setCurrentEndDate('')
-      }
-    } else {
-      setCurrentEndDate('')
-    }
-  }, [crossesMidnight, date, currentStart, currentEnd])
-
   const addOrUpdateTimeSlot = () => {
     if (!currentStart || !currentEnd) {
       setError('Заполните время начала и окончания')
@@ -110,17 +92,12 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
       return
     }
 
-    // Calculate end date if crossing midnight
+    // Calculate end date if crossing midnight (always next day relative to selected date)
     let endDate: string | undefined = undefined
     if (slotCrossesMidnight && date) {
-      if (currentEndDate) {
-        endDate = currentEndDate
-      } else {
-        // Auto-calculate: next day
-        const startDate = new Date(date)
-        startDate.setDate(startDate.getDate() + 1)
-        endDate = formatDate(startDate, 'yyyy-MM-dd')
-      }
+      const startDate = new Date(date)
+      startDate.setDate(startDate.getDate() + 1)
+      endDate = formatDate(startDate, 'yyyy-MM-dd')
     }
 
     // Add slot without breaks initially (breaks can be added separately)
@@ -143,7 +120,6 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
     setCurrentStart('')
     setCurrentEnd('')
     setCrossesMidnight(false)
-    setCurrentEndDate('')
     setCurrentBreakStart('')
     setCurrentBreakEnd('')
     setEditingTimeSlotIndex(null)
@@ -160,7 +136,6 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
     setCurrentStart(slotToEdit.start)
     setCurrentEnd(slotToEdit.end)
     setCrossesMidnight(slotCrossesMidnight)
-    setCurrentEndDate(slotToEdit.endDate || '')
     setEditingTimeSlotIndex(index)
     // Сброс редактирования перерывов, чтобы не конфликтовать с редактированием времени
     setCurrentSlotIndex(null)
@@ -176,7 +151,6 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
     setCurrentStart('')
     setCurrentEnd('')
     setCrossesMidnight(false)
-    setCurrentEndDate('')
     setError('')
   }
 
@@ -831,9 +805,6 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
                     checked={crossesMidnight}
                     onChange={(e) => {
                       setCrossesMidnight(e.target.checked)
-                      if (!e.target.checked) {
-                        setCurrentEndDate('')
-                      }
                     }}
                     className={`w-4 h-4 rounded border-2 ${
                       theme === 'dark'
@@ -849,30 +820,6 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
                   </label>
                 </div>
 
-                {/* End date input (if crossing midnight) */}
-                {crossesMidnight && (
-                  <div>
-                    <label className={`block text-xs sm:text-sm font-medium mb-1 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                      Дата окончания (автоматически: следующий день после начала)
-                    </label>
-                    <input
-                      type="date"
-                      value={currentEndDate}
-                      onChange={(e) => setCurrentEndDate(e.target.value)}
-                      min={date}
-                      className={`w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base rounded-lg border touch-manipulation ${
-                        theme === 'dark'
-                          ? 'bg-gray-700 border-gray-800 text-white'
-                          : 'bg-white border-gray-300 text-gray-900'
-                      } focus:outline-none focus:ring-2 focus:ring-[#4E6E49]`}
-                    />
-                    {currentEndDate && (
-                      <p className={`mt-1 text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                        Слот: {date} {currentStart} → {currentEndDate} {currentEnd}
-                      </p>
-                    )}
-                  </div>
-                )}
                 <div className="flex flex-col sm:flex-row gap-2">
                   <button
                     onClick={addOrUpdateTimeSlot}

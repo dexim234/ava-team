@@ -39,6 +39,9 @@ import {
   Percent,
   Building2,
   ScrollText,
+  Gauge,
+  Timer,
+  MessageSquare,
 } from 'lucide-react'
 import { useScrollLock } from '@/hooks/useScrollLock'
 
@@ -397,60 +400,87 @@ export const CallPage = () => {
     const tone = categoryTone[call.category]
     const metrics: MetricLine[] = []
 
+    const addMetric = (label: string, value: string | undefined, icon: JSX.Element, copyValue?: string) => {
+      if (!value) return
+      metrics.push({ label, value, icon, copyValue })
+    }
+
     switch (call.category) {
       case 'memecoins':
-        metrics.push(
-          { label: 'Тикер', value: d.ticker, copyValue: d.ticker, icon: <Hash className="w-4 h-4" /> },
-          { label: 'Сеть', value: d.network ? String(d.network).toUpperCase() : '', icon: <Globe2 className="w-4 h-4" /> },
-          { label: 'Контракт', value: shortenValue(d.contract), copyValue: d.contract, icon: <FileCode className="w-4 h-4" /> },
-          { label: 'Зона входа', value: d.entryCap, icon: <MapPin className="w-4 h-4" /> },
-          { label: 'Уровень риска', value: riskLabels[risk] || risk, icon: <ShieldAlert className="w-4 h-4" /> },
-        )
+        addMetric('Монета', d.coinName, <Coins className="w-4 h-4" />)
+        addMetric('Тикер', d.ticker, <Hash className="w-4 h-4" />, d.ticker)
+        addMetric('Сеть', d.network ? String(d.network).toUpperCase() : '', <Globe2 className="w-4 h-4" />)
+        addMetric('Контракт', shortenValue(d.contract), <FileCode className="w-4 h-4" />, d.contract)
+        addMetric('Тип сигнала', d.signalType ? d.signalType.toUpperCase() : '', <Wand2 className="w-4 h-4" />)
+        addMetric('Зона входа', d.entryCap, <MapPin className="w-4 h-4" />)
+        addMetric('Цели', d.targets, <Target className="w-4 h-4" />)
+        addMetric('SL', d.stopLoss, <Octagon className="w-4 h-4" />)
+        addMetric('План', horizonLabels[d.holdPlan] || d.holdPlan, <Clock3 className="w-4 h-4" />)
+        addMetric('Ликвидность', d.liquidityLocked ? 'Залочена' : '', <Shield className="w-4 h-4" />)
+        addMetric('Риск', riskLabels[risk] || risk, <ShieldAlert className="w-4 h-4" />)
+        addMetric('Риски', d.risks, <AlertTriangle className="w-4 h-4" />)
+        addMetric('Комментарий', d.traderComment, <MessageSquare className="w-4 h-4" />)
         break
       case 'futures':
-        metrics.push(
-          { label: 'Пара', value: d.pair, copyValue: d.pair, icon: <Activity className="w-4 h-4" /> },
-          { label: 'Направление', value: d.direction ? d.direction.toUpperCase() : '', icon: <TrendingUp className="w-4 h-4" /> },
-          { label: 'Цели', value: d.targets, icon: <Target className="w-4 h-4" /> },
-          { label: 'Зона входа', value: d.entryZone || d.entryPrice, icon: <MapPin className="w-4 h-4" /> },
-          { label: 'SL', value: d.stopLoss, icon: <Octagon className="w-4 h-4" /> },
-          { label: 'Уровень риска', value: riskLabels[risk] || risk, icon: <ShieldAlert className="w-4 h-4" /> },
-        )
+        addMetric('Пара', d.pair, <Activity className="w-4 h-4" />, d.pair)
+        addMetric('Направление', d.direction ? d.direction.toUpperCase() : '', <TrendingUp className="w-4 h-4" />)
+        addMetric('Плечо', d.leverage, <Gauge className="w-4 h-4" />)
+        addMetric('Зона входа', d.entryZone || d.entryPrice, <MapPin className="w-4 h-4" />)
+        addMetric('Цели', d.targets, <Target className="w-4 h-4" />)
+        addMetric('SL', d.stopLoss, <Octagon className="w-4 h-4" />)
+        addMetric('Стиль', d.signalStyle, <Wand2 className="w-4 h-4" />)
+        addMetric('Размер позиции', d.positionSize, <Percent className="w-4 h-4" />)
+        addMetric('Таймфрейм', d.timeframe, <Timer className="w-4 h-4" />)
+        addMetric('Риск', riskLabels[risk] || risk, <ShieldAlert className="w-4 h-4" />)
+        addMetric('Риски', d.risks, <AlertTriangle className="w-4 h-4" />)
         break
       case 'nft':
-        metrics.push(
-          { label: 'NFT', value: shortenValue(d.nftLink), copyValue: d.nftLink, icon: <Link2 className="w-4 h-4" /> },
-          { label: 'Сеть', value: d.network ? String(d.network).toUpperCase() : '', icon: <Network className="w-4 h-4" /> },
-          { label: 'Редкость', value: d.rarity, icon: <Sparkles className="w-4 h-4" /> },
-          { label: 'Тип сигнала', value: d.signalType ? d.signalType.toUpperCase() : '', icon: <Wand2 className="w-4 h-4" /> },
-          { label: 'Срок удержания', value: horizonLabels[d.holdingHorizon] || d.holdingHorizon, icon: <Clock3 className="w-4 h-4" /> },
-        )
+        addMetric('Коллекция', shortenValue((d as any).collectionLink), <Link2 className="w-4 h-4" />, (d as any).collectionLink)
+        addMetric('NFT', shortenValue(d.nftLink), <Link2 className="w-4 h-4" />, d.nftLink)
+        addMetric('Маркетплейс', d.marketplace, <Building2 className="w-4 h-4" />)
+        addMetric('Сеть', d.network ? String(d.network).toUpperCase() : '', <Network className="w-4 h-4" />)
+        addMetric('Вход', d.entryPrice, <MapPin className="w-4 h-4" />)
+        addMetric('Редкость', d.rarity, <Sparkles className="w-4 h-4" />)
+        addMetric('Тип сигнала', d.signalType ? d.signalType.toUpperCase() : '', <Wand2 className="w-4 h-4" />)
+        addMetric('Срок удержания', horizonLabels[d.holdingHorizon] || d.holdingHorizon, <Clock3 className="w-4 h-4" />)
+        addMetric('Мин. ликвидность', d.minLiquidity, <Gauge className="w-4 h-4" />)
+        addMetric('Target', d.targetPrice, <Target className="w-4 h-4" />)
+        addMetric('Риски', d.risks, <AlertTriangle className="w-4 h-4" />)
+        addMetric('Комментарий', d.traderComment, <MessageSquare className="w-4 h-4" />)
         break
       case 'spot':
-        metrics.push(
-          { label: 'Монета', value: d.coin, icon: <Coins className="w-4 h-4" /> },
-          { label: 'Зона входа', value: d.entryCap, icon: <MapPin className="w-4 h-4" /> },
-          { label: 'Цели', value: d.targets, icon: <Target className="w-4 h-4" /> },
-          { label: 'Горизонт удержания', value: horizonLabels[d.holdingHorizon] || d.holdingHorizon, icon: <Clock3 className="w-4 h-4" /> },
-        )
+        addMetric('Монета', d.coin, <Coins className="w-4 h-4" />)
+        addMetric('Зона входа', d.entryCap, <MapPin className="w-4 h-4" />)
+        addMetric('Цели', d.targets, <Target className="w-4 h-4" />)
+        addMetric('SL', d.stopLoss, <Octagon className="w-4 h-4" />)
+        addMetric('Горизонт', horizonLabels[d.holdingHorizon] || d.holdingHorizon, <Clock3 className="w-4 h-4" />)
+        addMetric('Размер', d.positionSize, <Percent className="w-4 h-4" />)
+        addMetric('Риск', d.riskLevel ? riskLabels[d.riskLevel] : undefined, <ShieldAlert className="w-4 h-4" />)
+        addMetric('Риски', d.risks, <AlertTriangle className="w-4 h-4" />)
+        addMetric('Комментарий', d.traderComment, <MessageSquare className="w-4 h-4" />)
         break
       case 'polymarket':
         const positionType = d.positionType as 'yes' | 'no' | undefined
-        metrics.push(
-          { label: 'Событие', value: d.event, icon: <ScrollText className="w-4 h-4" /> },
-          { label: 'Тип', value: positionType ? positionLabels[positionType] : '', icon: <Shield className="w-4 h-4" /> },
-          { label: 'Срок исхода', value: formatDeadlineLabel(d.eventDeadline), icon: <CalendarClock className="w-4 h-4" /> },
-          { label: 'Риск', value: riskLabels[risk] || risk, icon: <ShieldAlert className="w-4 h-4" /> },
-        )
+        addMetric('Событие', d.event, <ScrollText className="w-4 h-4" />)
+        addMetric('Тип', positionType ? positionLabels[positionType] : '', <Shield className="w-4 h-4" />)
+        addMetric('Вход %', formatPercent(d.entryPrice), <Percent className="w-4 h-4" />)
+        addMetric('Ожидание %', formatPercent(d.expectedProbability), <Gauge className="w-4 h-4" />)
+        addMetric('Цель', d.targetPlan, <Target className="w-4 h-4" />)
+        addMetric('Макс ставка', d.maxStake, <Coins className="w-4 h-4" />)
+        addMetric('Срок исхода', formatDeadlineLabel(d.eventDeadline), <CalendarClock className="w-4 h-4" />)
+        addMetric('Риск', riskLabels[risk] || risk, <ShieldAlert className="w-4 h-4" />)
+        addMetric('Риски', d.risks, <AlertTriangle className="w-4 h-4" />)
         break
       case 'staking':
-        metrics.push(
-          { label: 'Монета', value: d.coin, icon: <Coins className="w-4 h-4" /> },
-          { label: 'Платформа', value: d.platform, icon: <Building2 className="w-4 h-4" /> },
-          { label: 'Срок', value: termLabels[d.term] || d.term, icon: <CalendarClock className="w-4 h-4" /> },
-          { label: 'APY', value: formatPercent(d.apy), icon: <Percent className="w-4 h-4" /> },
-          { label: 'Тип сигнала', value: actionLabels[d.action] || d.action, icon: <Shield className="w-4 h-4" /> },
-        )
+        addMetric('Монета', d.coin, <Coins className="w-4 h-4" />)
+        addMetric('Платформа', d.platform, <Building2 className="w-4 h-4" />)
+        addMetric('Срок', termLabels[d.term] || d.term, <CalendarClock className="w-4 h-4" />)
+        addMetric('APY', formatPercent(d.apy), <Percent className="w-4 h-4" />)
+        addMetric('Мин. депозит', d.minDeposit, <Coins className="w-4 h-4" />)
+        addMetric('Тип сигнала', actionLabels[d.action] || d.action, <Shield className="w-4 h-4" />)
+        addMetric('Риск протокола', d.protocolRisk ? riskLabels[d.protocolRisk] : undefined, <ShieldAlert className="w-4 h-4" />)
+        addMetric('Риски', d.risks, <AlertTriangle className="w-4 h-4" />)
+        addMetric('Комментарий', d.traderComment, <MessageSquare className="w-4 h-4" />)
         break
     }
 
