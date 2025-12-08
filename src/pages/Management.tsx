@@ -284,11 +284,16 @@ export const Management = () => {
 
   const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
   const labelColor = theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
-  const contentCardClass = `rounded-xl sm:rounded-2xl p-4 sm:p-5 border ${
+  const sectionCardClass = `rounded-2xl border-2 ${
     theme === 'dark'
-      ? 'bg-[#0A0A0A]/40 border-gray-800 shadow-[0_20px_60px_rgba(0,0,0,0.5)]'
-      : 'bg-white border-gray-200 shadow-[0_20px_60px_rgba(15,23,42,0.08)]'
+      ? 'border-[#4E6E49]/25 bg-[#0f1623] shadow-[0_24px_80px_rgba(0,0,0,0.55)]'
+      : 'border-green-100 bg-white shadow-[0_20px_60px_rgba(15,23,42,0.08)]'
   }`
+  const surfaceCardClass = `rounded-2xl border ${
+    theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-gray-50'
+  }`
+  const softTextColor = theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+  const contentCardClass = `${sectionCardClass} p-4 sm:p-5`
   const statToneMap: Record<string, { bg: string; text: string; border: string }> = {
     emerald: {
       bg: theme === 'dark' ? 'bg-emerald-500/10' : 'bg-emerald-50',
@@ -400,41 +405,77 @@ export const Management = () => {
     <Layout>
       <div className="space-y-5 sm:space-y-7">
         {/* Hero */}
-        <div className={`relative overflow-hidden rounded-2xl p-5 sm:p-6 md:p-7 border-2 shadow-2xl ${
-          theme === 'dark'
-            ? 'bg-gradient-to-br from-[#1b2435] via-[#121a27] to-[#0c131e] border-[#4E6E49]/35'
-            : 'bg-gradient-to-br from-white via-green-50/30 to-white border-green-200'
-        }`}>
+        <div
+          id="schedule-overview"
+          className={`relative overflow-hidden ${sectionCardClass} p-5 sm:p-6 md:p-8 ${
+            theme === 'dark'
+              ? 'bg-gradient-to-br from-[#1b2435] via-[#121a27] to-[#0c131e]'
+              : 'bg-gradient-to-br from-white via-green-50/30 to-white'
+          }`}
+        >
           <div className="absolute inset-0 pointer-events-none">
             <div className="absolute -top-32 -left-16 w-80 h-80 bg-gradient-to-br from-[#4E6E49]/18 via-transparent to-transparent blur-3xl" />
             <div className="absolute top-0 right-0 w-[26rem] h-[26rem] bg-gradient-to-bl from-blue-400/16 via-emerald-400/12 to-transparent blur-3xl" />
             <div className="absolute bottom-[-140px] left-14 w-80 h-80 bg-gradient-to-tr from-amber-300/12 via-[#4E6E49]/12 to-transparent blur-3xl" />
           </div>
           <div className="relative z-10 grid grid-cols-1 gap-5">
-            <div className="flex items-start gap-3">
-              <div className="p-4 rounded-2xl bg-white/80 dark:bg-white/5 border border-white/40 dark:border-white/10 shadow-lg">
-                <CalendarCheck className="w-7 h-7 text-[#4E6E49]" />
+            <div className="flex flex-col gap-4 sm:gap-6 lg:flex-row lg:items-start lg:justify-between">
+              <div className="flex items-start gap-3">
+                <div className="p-4 rounded-2xl bg-white/80 dark:bg-white/5 border border-white/40 dark:border-white/10 shadow-lg">
+                  <CalendarCheck className="w-7 h-7 text-[#4E6E49]" />
+                </div>
+                <div className="space-y-2">
+                  <h1 className="text-xl sm:text-3xl font-extrabold">
+                    <span className="bg-gradient-to-r from-[#4E6E49] via-emerald-700 to-yellow-600 text-transparent bg-clip-text">
+                      Расписание команды
+                    </span>
+                  </h1>
+                  <p className={`${labelColor} text-sm sm:text-base leading-snug max-w-2xl`}>
+                    Здесь можно управлять слотами, сменами и статусами.
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {[
+                      { href: '#schedule-overview', label: 'Обзор' },
+                      { href: '#schedule-actions', label: 'Действия' },
+                      { href: '#schedule-view', label: 'Расписание' },
+                    ].map((item) => (
+                      <a
+                        key={item.href}
+                        href={item.href}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition ${
+                          theme === 'dark'
+                            ? 'border-white/10 bg-white/5 text-white hover:border-[#4E6E49]/50'
+                            : 'border-gray-200 bg-white text-gray-800 hover:border-[#4E6E49]/50 hover:text-[#4E6E49]'
+                        }`}
+                      >
+                        {item.label}
+                      </a>
+                    ))}
+                  </div>
+                </div>
               </div>
-              <div className="space-y-2">
-                <h1 className="text-xl sm:text-3xl font-extrabold">
-                  <span className="bg-gradient-to-r from-[#4E6E49] via-emerald-700 to-yellow-600 text-transparent bg-clip-text">
-                    Расписание команды
-                  </span>
-                </h1>
-                <p className={`${labelColor} text-sm sm:text-base leading-snug max-w-2xl`}>
-                  Здесь можно управлять слотами, сменами и статусами.
-                </p>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
+                <button
+                  onClick={() => {
+                    setActionType('add-slot')
+                    handleAddSlot()
+                  }}
+                  className="w-full sm:w-auto px-4 sm:px-6 py-3 sm:py-4 bg-gradient-to-r from-[#4E6E49] to-[#4E6E49] hover:from-[#4E6E49] hover:to-[#4E6E49] text-white rounded-lg sm:rounded-xl transition-all duration-200 flex items-center justify-center gap-2 text-sm sm:text-base font-semibold shadow-lg hover:shadow-xl active:scale-95 sm:hover:scale-105 transform touch-manipulation"
+                >
+                  <PlusCircle className="w-5 h-5 flex-shrink-0" />
+                  <span className="whitespace-nowrap">Добавить слот</span>
+                </button>
               </div>
             </div>
 
-            <div className={`rounded-2xl border p-4 sm:p-5 backdrop-blur ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-green-100 bg-white/80'}`}>
+            <div className={`${surfaceCardClass} backdrop-blur p-4 sm:p-5`}>
               <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
                 {statCards.map((item) => {
                   const tone = statToneMap[item.tone]
                   return (
                     <div
                       key={item.label}
-                      className={`p-4 rounded-xl border ${tone.border} ${tone.bg} shadow-sm space-y-2`}
+                      className={`p-4 rounded-xl border-2 ${tone.border} ${tone.bg} shadow-sm space-y-2`}
                     >
                       <div className="flex items-start justify-between gap-3">
                         <p className={`text-[11px] sm:text-xs font-semibold uppercase tracking-wide ${tone.text}`}>
@@ -451,7 +492,7 @@ export const Management = () => {
                       <p className={`text-lg sm:text-2xl font-extrabold ${headingColor}`}>
                         {item.value}
                       </p>
-                      <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>{item.note}</p>
+                      <p className={`text-xs ${softTextColor}`}>{item.note}</p>
                     </div>
                   )
                 })}
@@ -461,7 +502,10 @@ export const Management = () => {
         </div>
 
         {/* Controls */}
-        <div className={`rounded-2xl border ${theme === 'dark' ? 'border-gray-800 bg-[#0f1623]' : 'border-gray-200 bg-white'} shadow-xl p-4 sm:p-5 space-y-5`}>
+        <div
+          id="schedule-actions"
+          className={`${sectionCardClass} p-4 sm:p-5 space-y-5`}
+        >
           <div className="space-y-3">
             <div className="flex flex-wrap items-center gap-3 lg:justify-between">
               <div className={`flex items-center gap-2 rounded-xl border ${theme === 'dark' ? 'border-gray-800 bg-gray-900/70' : 'border-gray-200 bg-gray-50'} px-1.5 py-1 shrink-0`}>
@@ -515,7 +559,7 @@ export const Management = () => {
           </div>
 
           {/* Actions block moved under filters */}
-          <div className={`rounded-2xl border ${theme === 'dark' ? 'border-gray-800 bg-gray-900/70' : 'border-gray-100 bg-gray-50'} p-3 sm:p-4 space-y-3`}>
+          <div className={`${surfaceCardClass} p-3 sm:p-4 space-y-3`}>
             <div className="flex items-center justify-between">
               <p className={`text-sm font-semibold ${headingColor}`}>Действие</p>
               <span className="text-[11px] uppercase tracking-wide text-gray-500 dark:text-gray-400">выбор задачи</span>
@@ -554,7 +598,7 @@ export const Management = () => {
             </div>
           </div>
 
-          <div className="flex flex-col gap-2">
+          <div className={`${surfaceCardClass} p-3 sm:p-4 space-y-2`}>
             <p className={`text-sm font-semibold ${headingColor}`}>Участники</p>
             <div className="flex gap-2 overflow-x-auto pb-1">
               <button
@@ -592,7 +636,7 @@ export const Management = () => {
         </div>
 
         {/* Content view */}
-        <div className={contentCardClass}>
+        <div id="schedule-view" className={contentCardClass}>
           <div className="flex items-center justify-between flex-wrap gap-2 mb-4 text-left">
             <div className="text-left">
               <p className={`text-sm sm:text-base font-semibold ${headingColor}`}>Расписание</p>
