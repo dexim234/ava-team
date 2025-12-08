@@ -396,7 +396,7 @@ export const CallPage = () => {
 
   const renderCategoryMetrics = (call: Call) => {
     const d = getDetails(call)
-    const risk = getRiskLevel(call)
+    const risk = getRiskLevel(call) as CallRiskLevel
     const tone = categoryTone[call.category]
     const metrics: MetricLine[] = []
 
@@ -455,7 +455,7 @@ export const CallPage = () => {
         addMetric('SL', d.stopLoss, <Octagon className="w-4 h-4" />)
         addMetric('Горизонт', horizonLabels[d.holdingHorizon] || d.holdingHorizon, <Clock3 className="w-4 h-4" />)
         addMetric('Размер', d.positionSize, <Percent className="w-4 h-4" />)
-        addMetric('Риск', d.riskLevel ? riskLabels[d.riskLevel] : undefined, <ShieldAlert className="w-4 h-4" />)
+        addMetric('Риск', d.riskLevel ? riskLabels[d.riskLevel as CallRiskLevel] : undefined, <ShieldAlert className="w-4 h-4" />)
         addMetric('Риски', d.risks, <AlertTriangle className="w-4 h-4" />)
         addMetric('Комментарий', d.traderComment, <MessageSquare className="w-4 h-4" />)
         break
@@ -478,7 +478,7 @@ export const CallPage = () => {
         addMetric('APY', formatPercent(d.apy), <Percent className="w-4 h-4" />)
         addMetric('Мин. депозит', d.minDeposit, <Coins className="w-4 h-4" />)
         addMetric('Тип сигнала', actionLabels[d.action] || d.action, <Shield className="w-4 h-4" />)
-        addMetric('Риск протокола', d.protocolRisk ? riskLabels[d.protocolRisk] : undefined, <ShieldAlert className="w-4 h-4" />)
+        addMetric('Риск протокола', d.protocolRisk ? riskLabels[d.protocolRisk as CallRiskLevel] : undefined, <ShieldAlert className="w-4 h-4" />)
         addMetric('Риски', d.risks, <AlertTriangle className="w-4 h-4" />)
         addMetric('Комментарий', d.traderComment, <MessageSquare className="w-4 h-4" />)
         break
