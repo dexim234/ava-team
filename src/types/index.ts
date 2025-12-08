@@ -335,7 +335,7 @@ export const TASK_CATEGORIES: Record<TaskCategory, { label: string; icon: string
 export const TASK_STATUSES: Record<TaskStatus, { label: string; color: string }> = {
   pending: { label: 'Проверка', color: 'yellow' },
   in_progress: { label: 'В работе', color: 'blue' },
-  approval: { label: 'Согласование', color: 'purple' },
+  approval: { label: 'Апрув', color: 'purple' },
   completed: { label: 'Выполнено', color: 'green' },
   closed: { label: 'Закрыто', color: 'gray' },
   rejected: { label: 'Отклонена', color: 'red' },

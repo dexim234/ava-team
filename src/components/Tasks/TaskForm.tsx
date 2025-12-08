@@ -137,10 +137,6 @@ export const TaskForm = ({ onClose, onSave, editingTask }: TaskFormProps) => {
     }
   }
 
-  const handleDeputyChange = (userId: string, responsibility: string) => {
-    setDeputies((prev) => prev.map((d) => (d.userId === userId ? { ...d, responsibility } : d)))
-  }
-
   const handleStageChange = (stageId: string, updates: Partial<TaskStage>) => {
     setStages((prev) =>
       prev.map((stage) => (stage.id === stageId ? { ...stage, ...updates } : stage))
@@ -570,9 +566,6 @@ export const TaskForm = ({ onClose, onSave, editingTask }: TaskFormProps) => {
                   <Sparkles className="w-4 h-4" />
                   Приоритет
                 </label>
-                <span className={`text-[11px] ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                  Влияет на порядок в списке и уведомления
-                </span>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3">
                 {priorityOptions.map((option) => (
@@ -619,7 +612,7 @@ export const TaskForm = ({ onClose, onSave, editingTask }: TaskFormProps) => {
 
           {/* Timing */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="p-3 rounded-lg border-2 flex flex-col gap-2 transition-all shadow-sm bg-white/60 dark:bg-[#1a1a1a]/60"
+            <div className="p-3 rounded-lg border-2 flex flex-col gap-2 transition-all shadow-sm bg-white/60 dark:bg-[#1a1a1a]/60 w-full max-w-[360px] sm:max-w-none"
               style={{ borderColor: theme === 'dark' ? '#2f2f2f' : '#e5e7eb' }}>
               <label className={`text-sm font-medium ${headingColor} flex items-center gap-2`}>
                 <AlarmClock className="w-4 h-4" />
@@ -636,7 +629,7 @@ export const TaskForm = ({ onClose, onSave, editingTask }: TaskFormProps) => {
                 Помогает планировать последовательность задач и уведомлений.
               </p>
             </div>
-            <div className="p-3 rounded-lg border-2 flex flex-col gap-2 transition-all shadow-sm bg-white/60 dark:bg-[#1a1a1a]/60"
+            <div className="p-3 rounded-lg border-2 flex flex-col gap-2 transition-all shadow-sm bg-white/60 dark:bg-[#1a1a1a]/60 w-full max-w-[360px] sm:max-w-none"
               style={{ borderColor: theme === 'dark' ? '#2f2f2f' : '#e5e7eb' }}>
               <label className={`text-sm font-medium ${headingColor} flex items-center gap-2`}>
                 <Calendar className="w-4 h-4" />
@@ -654,7 +647,7 @@ export const TaskForm = ({ onClose, onSave, editingTask }: TaskFormProps) => {
                 Ограничение по датам учитывает сегодняшнюю дату автоматически.
               </p>
             </div>
-            <div className="p-3 rounded-lg border-2 flex flex-col gap-2 transition-all shadow-sm bg-white/60 dark:bg-[#1a1a1a]/60"
+            <div className="p-3 rounded-lg border-2 flex flex-col gap-2 transition-all shadow-sm bg-white/60 dark:bg-[#1a1a1a]/60 w-full max-w-[360px] sm:max-w-none"
               style={{ borderColor: theme === 'dark' ? '#2f2f2f' : '#e5e7eb' }}>
               <label className={`text-sm font-medium ${headingColor} flex items-center gap-2`}>
                 <Clock className="w-4 h-4" />
@@ -715,7 +708,6 @@ export const TaskForm = ({ onClose, onSave, editingTask }: TaskFormProps) => {
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <label className={`block text-sm font-medium ${headingColor}`}>Замы (несколько)</label>
-                <span className="text-xs text-gray-500">Добавьте зоны ответственности</span>
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
                 {TEAM_MEMBERS.map((member) => {
@@ -745,14 +737,6 @@ export const TaskForm = ({ onClose, onSave, editingTask }: TaskFormProps) => {
                           {member.name}
                         </span>
                       </div>
-                      {isSelected && (
-                        <input
-                          value={deputies.find((d) => d.userId === member.id)?.responsibility || ''}
-                          onChange={(e) => handleDeputyChange(member.id, e.target.value)}
-                          className={`mt-2 w-full px-2 py-1.5 rounded border ${borderColor} ${theme === 'dark' ? 'bg-[#1a1a1a] text-gray-100' : 'bg-white text-gray-700'}`}
-                          placeholder="Зона ответственности"
-                        />
-                      )}
                     </button>
                   )
                 })}

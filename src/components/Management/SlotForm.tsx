@@ -453,8 +453,32 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
     const todayStr = formatDate(today, 'yyyy-MM-dd')
     const isPastDate = (dateStr: string) => dateStr < todayStr
 
+    const daysBetween = (from: string, to: string) => {
+      const a = new Date(from)
+      const b = new Date(to)
+      a.setHours(0, 0, 0, 0)
+      b.setHours(0, 0, 0, 0)
+      return Math.round((b.getTime() - a.getTime()) / (1000 * 60 * 60 * 24))
+    }
+
     const createSlotForUserDate = async (targetUserId: string, dateStr: string, participants: string[] = [targetUserId]) => {
-      const validationError = await validateSlot(dateStr, slots)
+      // Пересчитываем endDate под каждую целевую дату, чтобы слоты, переходящие через полночь,
+      // сдвигались на следующий день именно относительно текущей даты цикла.
+      const adjustedSlots: TimeSlot[] = slots.map((s) => {
+        const crossesWithoutEndDate = !s.endDate && parseTime(s.end) <= parseTime(s.start)
+        const baseDiffDays = s.endDate ? daysBetween(date, s.endDate) : (crossesWithoutEndDate ? 1 : 0)
+
+        if (baseDiffDays > 0) {
+          const end = new Date(dateStr)
+          end.setDate(end.getDate() + baseDiffDays)
+          return { ...s, endDate: formatDate(end, 'yyyy-MM-dd') }
+        }
+
+        // Если у слота задан endDate, но разница 0, оставляем как есть; если была вручную очищена — убираем поле.
+        return { ...s, ...(s.endDate ? { endDate: s.endDate } : {}) }
+      })
+
+      const validationError = await validateSlot(dateStr, adjustedSlots)
       if (validationError) {
         throw new Error(`[${getMemberName(targetUserId)} • ${formatDate(new Date(dateStr), 'dd.MM.yyyy')}] ${validationError}`)
       }
@@ -462,7 +486,7 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
       const slotData: Omit<WorkSlot, 'id'> = {
         userId: targetUserId,
         date: dateStr,
-        slots,
+        slots: adjustedSlots,
         ...(comment && { comment }),
         participants,
       }

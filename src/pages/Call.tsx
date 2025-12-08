@@ -23,6 +23,22 @@ import {
   Coins,
   Target,
   AlertTriangle,
+  Hash,
+  Globe2,
+  FileCode,
+  MapPin,
+  ShieldAlert,
+  Activity,
+  TrendingUp,
+  Octagon,
+  Wand2,
+  Clock3,
+  Link2,
+  Network,
+  CalendarClock,
+  Percent,
+  Building2,
+  ScrollText,
 } from 'lucide-react'
 import { useScrollLock } from '@/hooks/useScrollLock'
 
@@ -299,83 +315,180 @@ export const CallPage = () => {
     </div>
   )
 
-  const renderFieldsGrid = (call: Call) => {
+  const riskLabels: Record<CallRiskLevel, string> = {
+    low: 'Низкий',
+    medium: 'Средний',
+    high: 'Высокий',
+    ultra: 'Ультра',
+  }
+
+  const horizonLabels: Record<string, string> = {
+    flip: 'Flip',
+    short: 'Короткий',
+    medium: 'Средний',
+    long: 'Длинный',
+  }
+
+  const termLabels: Record<string, string> = {
+    flexible: 'Гибкий',
+    '30d': '30 дней',
+    '90d': '90 дней',
+    fixed: 'Фикс.',
+  }
+
+  const actionLabels: Record<string, string> = {
+    enter: 'Вход',
+    exit: 'Выход',
+    rebalance: 'Ребаланс',
+  }
+
+  const positionLabels: Record<'yes' | 'no', string> = {
+    yes: 'YES',
+    no: 'NO',
+  }
+
+  const shortenValue = (value?: string, max = 28) => {
+    if (!value) return ''
+    if (value.length <= max) return value
+    const head = value.slice(0, Math.floor(max / 2))
+    const tail = value.slice(-6)
+    return `${head}...${tail}`
+  }
+
+  const formatPercent = (value?: string) => {
+    if (!value) return ''
+    return value.includes('%') ? value : `${value}%`
+  }
+
+  const formatDeadlineLabel = (deadline?: string) => {
+    if (!deadline) return ''
+    const parsed = new Date(deadline)
+    if (Number.isNaN(parsed.getTime())) return deadline
+
+    const now = new Date()
+    const diffMs = parsed.getTime() - now.getTime()
+    const base = parsed.toLocaleString('ru-RU', {
+      day: '2-digit',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit',
+    })
+
+    if (diffMs <= 0) return `${base} (истек)`
+
+    const totalMinutes = Math.max(0, Math.floor(diffMs / (1000 * 60)))
+    const days = Math.floor(totalMinutes / (60 * 24))
+    const hours = Math.floor((totalMinutes % (60 * 24)) / 60)
+    const minutes = totalMinutes % 60
+    const parts = [
+      days > 0 ? `${days}д` : null,
+      hours > 0 ? `${hours}ч` : null,
+      minutes > 0 ? `${minutes}м` : null,
+    ].filter(Boolean).slice(0, 2).join(' ')
+
+    return `${base} (через ${parts || 'минуты'})`
+  }
+
+  type MetricLine = { label: string; value?: string; icon: JSX.Element; copyValue?: string }
+
+  const renderCategoryMetrics = (call: Call) => {
     const d = getDetails(call)
-    const blocks: { label: string; value?: string; icon?: JSX.Element }[] = []
+    const risk = getRiskLevel(call)
+    const tone = categoryTone[call.category]
+    const metrics: MetricLine[] = []
 
     switch (call.category) {
       case 'memecoins':
-        blocks.push(
-          { label: 'Тип', value: d.signalType?.toUpperCase() },
-          { label: 'Сеть', value: d.network ? String(d.network).toUpperCase() : '' },
-          { label: 'Вход (кап.)', value: d.entryCap },
-          { label: 'Цели', value: d.targets },
-          { label: 'SL', value: d.stopLoss },
-          { label: 'План', value: d.holdPlan },
-          { label: 'Ликвидность', value: d.liquidityLocked ? 'Залочена' : '—' },
+        metrics.push(
+          { label: 'Тикер', value: d.ticker, copyValue: d.ticker, icon: <Hash className="w-4 h-4" /> },
+          { label: 'Сеть', value: d.network ? String(d.network).toUpperCase() : '', icon: <Globe2 className="w-4 h-4" /> },
+          { label: 'Контракт', value: shortenValue(d.contract), copyValue: d.contract, icon: <FileCode className="w-4 h-4" /> },
+          { label: 'Зона входа', value: d.entryCap, icon: <MapPin className="w-4 h-4" /> },
+          { label: 'Уровень риска', value: riskLabels[risk] || risk, icon: <ShieldAlert className="w-4 h-4" /> },
         )
         break
       case 'futures':
-        blocks.push(
-          { label: 'Направление', value: d.direction ? d.direction.toUpperCase() : '' },
-          { label: 'Плечо', value: d.leverage },
-          { label: 'Вход', value: d.entryZone || d.entryPrice },
-          { label: 'Цели', value: d.targets },
-          { label: 'SL', value: d.stopLoss },
-          { label: 'Стиль', value: d.signalStyle },
-          { label: 'Размер позиции', value: d.positionSize },
+        metrics.push(
+          { label: 'Пара', value: d.pair, copyValue: d.pair, icon: <Activity className="w-4 h-4" /> },
+          { label: 'Направление', value: d.direction ? d.direction.toUpperCase() : '', icon: <TrendingUp className="w-4 h-4" /> },
+          { label: 'Цели', value: d.targets, icon: <Target className="w-4 h-4" /> },
+          { label: 'Зона входа', value: d.entryZone || d.entryPrice, icon: <MapPin className="w-4 h-4" /> },
+          { label: 'SL', value: d.stopLoss, icon: <Octagon className="w-4 h-4" /> },
+          { label: 'Уровень риска', value: riskLabels[risk] || risk, icon: <ShieldAlert className="w-4 h-4" /> },
         )
         break
       case 'nft':
-        blocks.push(
-          { label: 'Маркетплейс', value: d.marketplace },
-          { label: 'Сеть', value: d.network ? String(d.network).toUpperCase() : '' },
-          { label: 'Вход', value: d.entryPrice },
-          { label: 'Рарность', value: d.rarity },
-          { label: 'Ликвидность', value: d.minLiquidity },
-          { label: 'Target', value: d.targetPrice },
-          { label: 'Тип', value: d.signalType },
+        metrics.push(
+          { label: 'NFT', value: shortenValue(d.nftLink), copyValue: d.nftLink, icon: <Link2 className="w-4 h-4" /> },
+          { label: 'Сеть', value: d.network ? String(d.network).toUpperCase() : '', icon: <Network className="w-4 h-4" /> },
+          { label: 'Редкость', value: d.rarity, icon: <Sparkles className="w-4 h-4" /> },
+          { label: 'Тип сигнала', value: d.signalType ? d.signalType.toUpperCase() : '', icon: <Wand2 className="w-4 h-4" /> },
+          { label: 'Срок удержания', value: horizonLabels[d.holdingHorizon] || d.holdingHorizon, icon: <Clock3 className="w-4 h-4" /> },
         )
         break
       case 'spot':
-        blocks.push(
-          { label: 'Вход (кап.)', value: d.entryCap },
-          { label: 'Цели', value: d.targets },
-          { label: 'SL', value: d.stopLoss },
-          { label: 'Горизонт', value: d.holdingHorizon },
-          { label: 'Размер', value: d.positionSize },
+        metrics.push(
+          { label: 'Монета', value: d.coin, icon: <Coins className="w-4 h-4" /> },
+          { label: 'Зона входа', value: d.entryCap, icon: <MapPin className="w-4 h-4" /> },
+          { label: 'Цели', value: d.targets, icon: <Target className="w-4 h-4" /> },
+          { label: 'Горизонт удержания', value: horizonLabels[d.holdingHorizon] || d.holdingHorizon, icon: <Clock3 className="w-4 h-4" /> },
         )
         break
       case 'polymarket':
-        blocks.push(
-          { label: 'Позиция', value: d.positionType === 'yes' ? 'YES' : 'NO' },
-          { label: 'Вход %', value: d.entryPrice },
-          { label: 'Ожидание %', value: d.expectedProbability },
-          { label: 'Срок', value: d.eventDeadline },
-          { label: 'Макс ставка', value: d.maxStake },
-          { label: 'Цель', value: d.targetPlan },
+        metrics.push(
+          { label: 'Событие', value: d.event, icon: <ScrollText className="w-4 h-4" /> },
+          { label: 'Тип', value: d.positionType ? positionLabels[d.positionType] : '', icon: <Shield className="w-4 h-4" /> },
+          { label: 'Срок исхода', value: formatDeadlineLabel(d.eventDeadline), icon: <CalendarClock className="w-4 h-4" /> },
+          { label: 'Риск', value: riskLabels[risk] || risk, icon: <ShieldAlert className="w-4 h-4" /> },
         )
         break
       case 'staking':
-        blocks.push(
-          { label: 'Платформа', value: d.platform },
-          { label: 'Срок', value: d.term },
-          { label: 'APY', value: d.apy },
-          { label: 'Мин. депозит', value: d.minDeposit },
-          { label: 'Тип', value: d.action },
-          { label: 'Риск протокола', value: d.protocolRisk },
+        metrics.push(
+          { label: 'Монета', value: d.coin, icon: <Coins className="w-4 h-4" /> },
+          { label: 'Платформа', value: d.platform, icon: <Building2 className="w-4 h-4" /> },
+          { label: 'Срок', value: termLabels[d.term] || d.term, icon: <CalendarClock className="w-4 h-4" /> },
+          { label: 'APY', value: formatPercent(d.apy), icon: <Percent className="w-4 h-4" /> },
+          { label: 'Тип сигнала', value: actionLabels[d.action] || d.action, icon: <Shield className="w-4 h-4" /> },
         )
         break
     }
 
+    const visibleMetrics = metrics.filter((m) => m.value)
+    if (!visibleMetrics.length) return null
+
     return (
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-        {blocks.filter(b => b.value).map((block) => (
-          <div key={block.label} className={`p-3 rounded-xl border ${borderColor} ${theme === 'dark' ? 'bg-gray-800/60' : 'bg-gray-50'}`}>
-            <p className={`text-[11px] uppercase tracking-wider ${subtleColor}`}>{block.label}</p>
-            <p className={`${textColor} font-semibold truncate`}>{block.value}</p>
-          </div>
-        ))}
+      <div className={`rounded-2xl border ${borderColor} ${theme === 'dark' ? 'bg-gray-900/60' : 'bg-white'}`}>
+        <div className={`flex items-center gap-2 px-4 py-3 border-b ${borderColor} ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'}`}>
+          <Sparkles className="w-4 h-4 text-amber-500" />
+          <p className={`text-sm font-semibold ${textColor}`}>Ключевые метрики</p>
+          <span className={`ml-auto text-[11px] font-semibold px-3 py-1 rounded-full ${riskBadges[risk]}`}>
+            Риск: {riskLabels[risk] || risk}
+          </span>
+        </div>
+        <div className="divide-y divide-gray-200/70 dark:divide-white/10">
+          {visibleMetrics.map((metric) => (
+            <div key={metric.label} className="flex items-center justify-between gap-3 px-4 py-3">
+              <div className="flex items-start gap-3">
+                <div className={`p-2 rounded-xl border ${tone.border} ${tone.bg} ${tone.text}`}>
+                  {metric.icon}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className={`text-xs uppercase tracking-wide ${subtleColor}`}>{metric.label}</p>
+                  <p className={`${textColor} font-semibold whitespace-pre-wrap break-words`}>{metric.value}</p>
+                </div>
+              </div>
+              {metric.copyValue && (
+                <button
+                  onClick={() => copyValue(metric.copyValue!)}
+                  className={`px-3 py-2 rounded-lg border ${borderColor} ${theme === 'dark' ? 'hover:bg-gray-800 bg-white/5' : 'hover:bg-gray-100 bg-white'} text-xs font-semibold flex items-center gap-2 shrink-0`}
+                >
+                  {copiedValue === metric.copyValue ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
+                  {copiedValue === metric.copyValue ? 'Скопировано' : 'Копировать'}
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
       </div>
     )
   }
@@ -663,14 +776,6 @@ export const CallPage = () => {
                   const createdDate = new Date(call.createdAt).toLocaleDateString('ru-RU', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
                   const tone = categoryTone[call.category]
 
-                  const metrics = [
-                    { label: 'Статус', value: statusMeta.label },
-                    { label: 'Риск', value: riskLevel },
-                    { label: 'Дата', value: createdDate },
-                    { label: 'Трейдер', value: trader?.name || '—' },
-                    { label: 'Категория', value: meta.label },
-                  ]
-
                   return (
                     <div
                       key={call.id}
@@ -743,25 +848,7 @@ export const CallPage = () => {
                           </div>
                         </div>
 
-                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-                          {metrics.map((m) => (
-                            <div
-                              key={m.label}
-                              className={`p-3 rounded-2xl border ${borderColor} ${theme === 'dark' ? 'bg-white/5' : 'bg-white/90'} shadow-sm`}
-                            >
-                              <p className="text-[11px] uppercase tracking-wide text-gray-500 dark:text-gray-400">{m.label}</p>
-                              <p className={`text-sm font-semibold ${textColor}`}>{m.value}</p>
-                            </div>
-                          ))}
-                        </div>
-
-                        <div className="space-y-3">
-                          <div className="flex items-center justify-between gap-2">
-                            <p className={`text-sm font-semibold ${textColor}`}>Параметры сигнала</p>
-                            <span className={`text-xs ${subtleColor}`}>Актуальные поля по категории</span>
-                          </div>
-                          {renderFieldsGrid(call)}
-                        </div>
+                        {renderCategoryMetrics(call)}
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                           {renderNarrative('Причина входа', details.reason)}
