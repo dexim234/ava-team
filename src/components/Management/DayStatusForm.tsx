@@ -331,6 +331,25 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
     vacation: 'bg-orange-500',
   }
 
+  const gradientByType = {
+    dayoff: 'from-amber-400/15 via-yellow-300/10 to-transparent',
+    sick: 'from-purple-500/20 via-indigo-500/10 to-transparent',
+    vacation: 'from-orange-400/20 via-amber-500/10 to-transparent',
+  }
+
+  const steps = [
+    { label: 'Участники', detail: selectedNames || 'Не выбрано', done: selectedUserIds.length > 0 || !!status, anchor: '#members' },
+    { label: 'Даты', detail: previewDates.slice(0, 2).join(' · '), done: previewDates.length > 0, anchor: '#dates' },
+    { label: 'Комментарий', detail: comment ? 'Заполнен' : 'Необязателен', done: !!comment, anchor: '#notes' },
+  ]
+  const progress = Math.round((steps.filter((s) => s.done).length / steps.length) * 100)
+
+  const dateModeOptions = [
+    { value: 'single', label: 'Один день', hint: 'Быстрая отметка', icon: '•' },
+    { value: 'range', label: type === 'dayoff' ? 'Диапазон (каждый день)' : 'Диапазон дат', hint: 'Поток дней', icon: '⎯⎯' },
+    { value: 'multiple', label: 'Конкретные даты', hint: 'Точечный выбор', icon: '◎' },
+  ]
+
   const nounByType: Record<DayStatusFormProps['type'], string> = {
     dayoff: 'выходной',
     sick: 'больничный',
@@ -349,152 +368,250 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
   const selectedNames = selectedUserIds.map((id) => getMemberName(id)).join(', ')
 
   return (
-    <div className="fixed inset-0 bg-slate-950/75 backdrop-blur-xl flex items-start sm:items-center justify-center z-[70] p-4 sm:p-6 touch-manipulation overflow-y-auto overscroll-contain modal-scroll">
-      <div className={`w-full max-w-4xl rounded-3xl shadow-[0_24px_80px_rgba(0,0,0,0.45)] border ${theme === 'dark' ? 'bg-gradient-to-br from-[#0c1320] via-[#0b1220] to-[#08111b] border-white/10' : 'bg-gradient-to-br from-white via-slate-50 to-white border-slate-200'} max-h-[85dvh] sm:max-h-[calc(100dvh-96px)] overflow-y-auto`}>
-        <div className="p-4 sm:p-6 lg:p-7 flex flex-col h-full min-h-0 overflow-y-auto modal-scroll">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="space-y-1">
-              <div className="flex items-center gap-2 text-xs font-semibold text-[#4E6E49] tracking-tight">
-                <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-[#4E6E49]/10 text-[#4E6E49] border border-[#4E6E49]/30">
+    <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-xl flex items-start sm:items-center justify-center z-[70] p-4 sm:p-6 touch-manipulation overflow-y-auto overscroll-contain modal-scroll">
+      <div className={`w-full max-w-4xl rounded-3xl shadow-[0_28px_80px_rgba(0,0,0,0.55)] border ${theme === 'dark' ? 'bg-gradient-to-br from-[#0a1020] via-[#0b1222] to-[#060c16] border-white/10' : 'bg-gradient-to-br from-white via-slate-50 to-white border-slate-200'} max-h-[85dvh] sm:max-h-[calc(100dvh-96px)] overflow-y-auto relative`}>
+        <div className={`absolute inset-0 pointer-events-none bg-gradient-to-br ${gradientByType[type]} opacity-90`} />
+        <div className="relative p-4 sm:p-6 lg:p-7 flex flex-col h-full min-h-0 overflow-y-auto modal-scroll">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 text-[11px] font-semibold tracking-wide">
+                <span className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-black/10 backdrop-blur text-[#4E6E49] border border-[#4E6E49]/30 uppercase">
                   {badgeLabel}
                 </span>
+                <span className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>расписание команды</span>
               </div>
-              <h3 className={`text-2xl sm:text-3xl font-bold ${headingColor}`}>
-                {headingTitle}
-              </h3>
+              <div className="flex items-center gap-3 flex-wrap">
+                <h3 className={`text-2xl sm:text-3xl font-bold ${headingColor}`}>
+                  {headingTitle}
+                </h3>
+                <span className="text-xs px-3 py-1 rounded-full bg-white/20 dark:bg-white/10 border border-white/20 text-gray-800 dark:text-gray-100">
+                  Быстрые шаги и визуальный контроль
+                </span>
+              </div>
+              <p className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} text-sm leading-relaxed max-w-2xl`}>
+                Управляй расписанием команды через компактные шаги, визуальные подсказки и мгновенный превью выбранных дат. Всё адаптируется под экран и режим.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {steps.map((step, idx) => (
+                  <a
+                    key={step.label}
+                    href={step.anchor}
+                    className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs transition ${
+                      step.done
+                        ? 'bg-[#4E6E49] border-[#4E6E49] text-white shadow-sm'
+                        : theme === 'dark'
+                        ? 'border-white/15 bg-white/5 text-gray-200 hover:border-white/30'
+                        : 'border-slate-200 bg-white text-gray-700 hover:border-slate-300'
+                    }`}
+                  >
+                    <span className="font-semibold">{idx + 1}</span>
+                    <span className="whitespace-nowrap">{step.label}</span>
+                  </a>
+                ))}
+              </div>
               {type === 'dayoff' && (
-                <ul className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} text-xs sm:text-sm leading-relaxed list-disc list-inside space-y-1`}>
-                  <li>Отметь один выходной</li>
-                  <li>Сделай конкретный день в месяце выходным</li>
-                  <li>Отметь несколько выходных на неделе</li>
-                  <li>Выбери несколько выходных дней на месяц</li>
-                </ul>
+                <div className="flex flex-wrap gap-2 text-xs sm:text-sm">
+                  {['Один выходной', 'Диапазон дней', 'Несколько дат'].map((tip) => (
+                    <span
+                      key={tip}
+                      className={`px-3 py-1.5 rounded-full border ${
+                        theme === 'dark' ? 'border-white/10 text-gray-200 bg-white/5' : 'border-slate-200 text-gray-700 bg-slate-50'
+                      }`}
+                    >
+                      {tip}
+                    </span>
+                  ))}
+                </div>
               )}
             </div>
             <button
               onClick={onClose}
-              className={`p-2.5 rounded-full border ${theme === 'dark' ? 'border-white/10 text-gray-200 hover:bg-white/5' : 'border-slate-200 text-slate-600 hover:bg-slate-100'}`}
+              className={`p-2.5 rounded-full border shadow-sm transition hover:-translate-y-0.5 active:translate-y-0 ${
+                theme === 'dark'
+                  ? 'border-white/10 text-gray-200 hover:bg-white/5'
+                  : 'border-slate-200 text-slate-600 hover:bg-slate-100'
+              }`}
             >
               <X className="w-5 h-5" />
             </button>
           </div>
 
+          <div className={`mt-5 rounded-2xl border ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-slate-200 bg-white'} p-4 sm:p-5 shadow-inner`}>
+            <div className="grid md:grid-cols-3 gap-3 md:gap-4">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-emerald-400/10 flex items-center justify-center text-emerald-600 dark:text-emerald-300 text-lg font-semibold border border-emerald-500/30">
+                  👥
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Участники</p>
+                  <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 line-clamp-2">{selectedNames || 'Не выбрано'}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-blue-500/20 to-indigo-500/10 flex items-center justify-center text-blue-600 dark:text-blue-300 text-lg font-semibold border border-blue-500/30">
+                  📅
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Даты</p>
+                  <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 line-clamp-2">
+                    {previewDates.length > 0 ? previewDates.join(' · ') : 'Не выбрано'}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-amber-500/20 to-orange-500/10 flex items-center justify-center text-amber-600 dark:text-amber-300 text-lg font-semibold border border-amber-500/30">
+                  ✏️
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Комментарий</p>
+                  <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 line-clamp-2">{comment || 'Необязателен'}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div className="mt-5 grid lg:grid-cols-[0.9fr_1.4fr] gap-4 lg:gap-6 flex-1 overflow-hidden">
             {/* Navigation / summary */}
-            <aside className={`rounded-2xl border ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-slate-200 bg-white'} p-4 sm:p-5 space-y-4 sticky top-0 self-start max-h-full overflow-y-auto`}>
+            <aside className={`rounded-2xl border ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-slate-200 bg-white'} p-4 sm:p-5 space-y-4 sticky top-2 self-start max-h-full overflow-y-auto`}>
               <div className="flex items-center justify-between">
                 <p className="text-sm font-semibold">Навигация</p>
-                <span className="text-[11px] uppercase tracking-wide text-[#4E6E49] font-semibold">3 шага</span>
+                <span className="text-[11px] uppercase tracking-wide text-[#4E6E49] font-semibold">{steps.length} шага</span>
+              </div>
+              <div className="h-1.5 rounded-full bg-slate-200 dark:bg-white/10 overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-[#4E6E49] via-emerald-500 to-lime-400 transition-all"
+                  style={{ width: `${progress}%` }}
+                />
               </div>
               <div className="space-y-2">
-                {[
-                  { label: 'Участники', detail: selectedNames || 'Не выбрано', done: selectedUserIds.length > 0 || !!status },
-                  { label: 'Даты', detail: previewDates.slice(0, 2).join(' · '), done: previewDates.length > 0 },
-                  { label: 'Комментарий', detail: comment ? 'Заполнен' : 'Необязателен', done: !!comment },
-                ].map((step, index) => (
-                  <div
+                {steps.map((step, index) => (
+                  <a
                     key={step.label}
-                    className={`flex items-start gap-3 rounded-xl border px-3 py-3 ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-slate-200 bg-slate-50'}`}
+                    href={step.anchor}
+                    className={`flex items-start gap-3 rounded-xl border px-3 py-3 transition ${
+                      theme === 'dark' ? 'border-white/10 bg-white/5 hover:border-white/30' : 'border-slate-200 bg-slate-50 hover:border-slate-300'
+                    }`}
                   >
-                    <span className={`mt-0.5 inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${step.done ? 'bg-[#4E6E49] text-white' : (theme === 'dark' ? 'bg-slate-800 text-gray-300' : 'bg-slate-200 text-slate-700')}`}>
+                    <span className={`mt-0.5 inline-flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold ${
+                      step.done ? 'bg-[#4E6E49] text-white shadow-sm' : theme === 'dark' ? 'bg-slate-800 text-gray-300' : 'bg-slate-200 text-slate-700'
+                    }`}>
                       {index + 1}
                     </span>
-                    <div className="flex-1">
+                    <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold">{step.label}</p>
                       <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{step.detail || '—'}</p>
                     </div>
-                  </div>
+                    <span className="text-[11px] text-gray-400">{step.done ? '✓' : ''}</span>
+                  </a>
                 ))}
               </div>
             </aside>
 
-            <div className="space-y-4 overflow-y-auto overscroll-contain pr-1 pb-6 flex-1 min-h-0">
+            <div className="space-y-5 overflow-y-auto overscroll-contain pr-1 pb-6 flex-1 min-h-0">
               {/* User selection for admin when adding new status */}
             {adminBulkMode && (
-              <div>
+              <div id="members" className="scroll-mt-20">
                 <label className={`block text-xs sm:text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
                   Участники
                 </label>
-                <div className="space-y-3">
+                <div className="space-y-3 rounded-2xl border border-dashed border-[#4E6E49]/30 p-3 sm:p-4 bg-[#4E6E49]/5 dark:bg-[#4E6E49]/10">
                   <div className="flex flex-wrap gap-2">
-                    {TEAM_MEMBERS.map((member) => (
-                      <label
-                        key={member.id}
-                        className={`px-3 py-1.5 rounded-full border cursor-pointer text-sm flex items-center gap-2 ${
-                          selectedUserIds.includes(member.id)
-                            ? 'bg-[#4E6E49] border-[#4E6E49] text-white'
-                            : theme === 'dark'
-                            ? 'bg-gray-700 border-gray-800 text-gray-200'
-                            : 'bg-gray-100 border-gray-300 text-gray-700'
-                        }`}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={selectedUserIds.includes(member.id)}
-                          onChange={() => toggleUserSelection(member.id)}
-                          className="hidden"
-                        />
-                        {member.name}
-                      </label>
-                    ))}
+                    {TEAM_MEMBERS.map((member) => {
+                      const active = selectedUserIds.includes(member.id)
+                      return (
+                        <label
+                          key={member.id}
+                          className={`px-3 py-1.5 rounded-full border cursor-pointer text-sm flex items-center gap-2 transition ${
+                            active
+                              ? 'bg-[#4E6E49] border-[#4E6E49] text-white shadow-sm'
+                              : theme === 'dark'
+                              ? 'bg-gray-800/60 border-gray-800 text-gray-200 hover:border-gray-600'
+                              : 'bg-gray-100 border-gray-300 text-gray-700 hover:border-gray-400'
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={active}
+                            onChange={() => toggleUserSelection(member.id)}
+                            className="hidden"
+                          />
+                          {member.name}
+                        </label>
+                      )
+                    })}
                   </div>
-                  <button
-                    type="button"
-                    onClick={handleSelectAllUsers}
-                    className="text-sm text-[#4E6E49] hover:text-[#4E6E49]"
-                  >
-                    {selectedUserIds.length === TEAM_MEMBERS.length ? 'Снять выделение' : 'Выбрать всех'}
-                  </button>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Быстрый выбор</span>
+                    <button
+                      type="button"
+                      onClick={handleSelectAllUsers}
+                      className="text-sm text-[#4E6E49] hover:text-[#4E6E49] font-semibold"
+                    >
+                      {selectedUserIds.length === TEAM_MEMBERS.length ? 'Снять выделение' : 'Выбрать всех'}
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
 
             {adminBulkMode && (
-              <div>
+              <div id="dates" className="scroll-mt-20">
                 <p className={`text-xs sm:text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
                   Формат выбора дат
                 </p>
-                <div className="flex flex-wrap gap-4">
-                  {[
-                    { value: 'single', label: 'Один день' },
-                    { value: 'range', label: type === 'dayoff' ? 'Диапазон (каждый день)' : 'Диапазон дат' },
-                    { value: 'multiple', label: 'Конкретные даты' },
-                  ].map((option) => (
-                    <label key={option.value} className="flex items-center gap-2 text-sm cursor-pointer">
-                      <input
-                        type="radio"
-                        value={option.value}
-                        checked={dateMode === option.value}
-                        onChange={(e) => setDateMode(e.target.value as typeof dateMode)}
-                      />
-                      <span className={theme === 'dark' ? 'text-gray-200' : 'text-gray-700'}>{option.label}</span>
-                    </label>
-                  ))}
+                <div className="grid sm:grid-cols-3 gap-2">
+                  {dateModeOptions.map((option) => {
+                    const active = dateMode === option.value
+                    return (
+                      <button
+                        key={option.value}
+                        type="button"
+                        onClick={() => setDateMode(option.value as typeof dateMode)}
+                        className={`w-full text-left px-3 py-3 rounded-xl border transition flex flex-col gap-1 ${
+                          active
+                            ? 'border-[#4E6E49] bg-[#4E6E49]/10 text-[#4E6E49] shadow-sm'
+                            : theme === 'dark'
+                            ? 'border-white/10 bg-white/5 text-gray-200 hover:border-white/30'
+                            : 'border-slate-200 bg-white text-gray-800 hover:border-slate-300'
+                        }`}
+                      >
+                        <span className="text-lg leading-none">{option.icon}</span>
+                        <span className="text-sm font-semibold">{option.label}</span>
+                        <span className="text-[11px] text-gray-500 dark:text-gray-400">{option.hint}</span>
+                      </button>
+                    )
+                  })}
                 </div>
               </div>
             )}
 
             {!adminBulkMode && type === 'dayoff' && (
-              <div>
+              <div id="dates" className="scroll-mt-20">
                 <p className={`text-xs sm:text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
                   Формат выбора дат
                 </p>
-                <div className="flex flex-wrap gap-4">
-                  {[
-                    { value: 'single', label: 'Один день' },
-                    { value: 'range', label: 'Диапазон (каждый день)' },
-                    { value: 'multiple', label: 'Конкретные даты' },
-                  ].map((option) => (
-                    <label key={option.value} className="flex items-center gap-2 text-sm cursor-pointer">
-                      <input
-                        type="radio"
-                        value={option.value}
-                        checked={dateMode === option.value}
-                        onChange={(e) => setDateMode(e.target.value as typeof dateMode)}
-                      />
-                      <span className={theme === 'dark' ? 'text-gray-200' : 'text-gray-700'}>{option.label}</span>
-                    </label>
-                  ))}
+                <div className="grid sm:grid-cols-3 gap-2">
+                  {dateModeOptions.map((option) => {
+                    const active = dateMode === option.value
+                    return (
+                      <button
+                        key={option.value}
+                        type="button"
+                        onClick={() => setDateMode(option.value as typeof dateMode)}
+                        className={`w-full text-left px-3 py-3 rounded-xl border transition flex flex-col gap-1 ${
+                          active
+                            ? 'border-[#4E6E49] bg-[#4E6E49]/10 text-[#4E6E49] shadow-sm'
+                            : theme === 'dark'
+                            ? 'border-white/10 bg-white/5 text-gray-200 hover:border-white/30'
+                            : 'border-slate-200 bg-white text-gray-800 hover:border-slate-300'
+                        }`}
+                      >
+                        <span className="text-lg leading-none">{option.icon}</span>
+                        <span className="text-sm font-semibold">{option.label}</span>
+                        <span className="text-[11px] text-gray-500 dark:text-gray-400">{option.hint}</span>
+                      </button>
+                    )
+                  })}
                 </div>
               </div>
             )}
