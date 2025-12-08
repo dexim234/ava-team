@@ -337,6 +337,14 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
     vacation: 'from-orange-400/20 via-amber-500/10 to-transparent',
   }
 
+  const previewDates =
+    adminBulkMode && dateMode === 'range'
+      ? [`${formatDate(rangeStart, 'dd.MM')}–${formatDate(rangeEnd, 'dd.MM')}`]
+      : adminBulkMode && dateMode === 'multiple'
+      ? multipleDates.map((d) => formatDate(d, 'dd.MM'))
+      : [formatDate(date, 'dd.MM')]
+  const selectedNames = selectedUserIds.map((id) => getMemberName(id)).join(', ')
+
   const steps = [
     { label: 'Участники', detail: selectedNames || 'Не выбрано', done: selectedUserIds.length > 0 || !!status, anchor: '#members' },
     { label: 'Даты', detail: previewDates.slice(0, 2).join(' · '), done: previewDates.length > 0, anchor: '#dates' },
@@ -358,14 +366,6 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
 
   const headingTitle = `${status ? 'Редактировать' : 'Добавить'} ${nounByType[type]}`
   const badgeLabel = typeLabels[type]
-
-  const previewDates =
-    adminBulkMode && dateMode === 'range'
-      ? [`${formatDate(rangeStart, 'dd.MM')}–${formatDate(rangeEnd, 'dd.MM')}`]
-      : adminBulkMode && dateMode === 'multiple'
-      ? multipleDates.map((d) => formatDate(d, 'dd.MM'))
-      : [formatDate(date, 'dd.MM')]
-  const selectedNames = selectedUserIds.map((id) => getMemberName(id)).join(', ')
 
   return (
     <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-xl flex items-start sm:items-center justify-center z-[70] p-4 sm:p-6 touch-manipulation overflow-y-auto overscroll-contain modal-scroll">
