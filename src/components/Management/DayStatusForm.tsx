@@ -95,7 +95,7 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
     return user?.id ? [user.id] : []
   }
 
-  const getMemberName = (userId: string) => TEAM_MEMBERS.find((member) => member.id === userId)?.name || userId
+  const getMemberName = (userId: string) => nicknameMap[userId] || TEAM_MEMBERS.find((member) => member.id === userId)?.name || userId
 
   const getDatePayloads = (): { date: string; endDate?: string }[] => {
     if (adminBulkMode) {
@@ -331,6 +331,14 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
     vacation: 'bg-orange-500',
   }
 
+  const nicknameMap: Record<string, string> = {
+    '1': 'Dex',
+    '2': 'Merc',
+    '3': 'Xenia',
+    '4': 'Olenka',
+    '5': 'Sydney',
+  }
+
   const gradientByType = {
     dayoff: 'from-amber-400/15 via-yellow-300/10 to-transparent',
     sick: 'from-purple-500/20 via-indigo-500/10 to-transparent',
@@ -346,7 +354,7 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
   const selectedNames = selectedUserIds.map((id) => getMemberName(id)).join(', ')
 
   const steps = [
-    { label: 'Участники', detail: selectedNames || 'Не выбрано', done: selectedUserIds.length > 0 || !!status, anchor: '#members' },
+    { label: 'Члены', detail: selectedNames || 'Не выбрано', done: selectedUserIds.length > 0 || !!status, anchor: '#members' },
     { label: 'Даты', detail: previewDates.slice(0, 2).join(' · '), done: previewDates.length > 0, anchor: '#dates' },
     { label: 'Комментарий', detail: comment ? 'Заполнен' : 'Необязателен', done: !!comment, anchor: '#notes' },
   ]
@@ -369,7 +377,7 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
 
   return (
     <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-xl flex items-start sm:items-center justify-center z-[70] p-4 sm:p-6 touch-manipulation overflow-y-auto overscroll-contain modal-scroll">
-      <div className={`w-full max-w-4xl rounded-3xl shadow-[0_28px_80px_rgba(0,0,0,0.55)] border ${theme === 'dark' ? 'bg-gradient-to-br from-[#0a1020] via-[#0b1222] to-[#060c16] border-white/10' : 'bg-gradient-to-br from-white via-slate-50 to-white border-slate-200'} max-h-[85dvh] sm:max-h-[calc(100dvh-96px)] overflow-y-auto relative`}>
+      <div className={`w-full max-w-[52rem] rounded-3xl shadow-[0_28px_80px_rgba(0,0,0,0.55)] border ${theme === 'dark' ? 'bg-gradient-to-br from-[#0a1020] via-[#0b1222] to-[#060c16] border-white/10' : 'bg-gradient-to-br from-white via-slate-50 to-white border-slate-200'} max-h-[85dvh] sm:max-h-[calc(100dvh-96px)] overflow-y-auto relative`}>
         <div className={`absolute inset-0 pointer-events-none bg-gradient-to-br ${gradientByType[type]} opacity-90`} />
         <div className="relative p-4 sm:p-6 lg:p-7 flex flex-col h-full min-h-0 overflow-y-auto modal-scroll">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -378,7 +386,7 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
                 <span className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-black/10 backdrop-blur text-[#4E6E49] border border-[#4E6E49]/30 uppercase">
                   {badgeLabel}
                 </span>
-                <span className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>расписание команды</span>
+                <span className={`${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>расписание команды</span>
               </div>
               <div className="flex items-center gap-3 flex-wrap">
                 <h3 className={`text-2xl sm:text-3xl font-bold ${headingColor}`}>
@@ -443,7 +451,7 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
                   👥
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">Участники</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Члены</p>
                   <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 line-clamp-2">{selectedNames || 'Не выбрано'}</p>
                 </div>
               </div>
@@ -512,7 +520,7 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
             {adminBulkMode && (
               <div id="members" className="scroll-mt-20">
                 <label className={`block text-xs sm:text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                  Участники
+                  Члены
                 </label>
                 <div className="space-y-3 rounded-2xl border border-dashed border-[#4E6E49]/30 p-3 sm:p-4 bg-[#4E6E49]/5 dark:bg-[#4E6E49]/10">
                   <div className="flex flex-wrap gap-2">
@@ -535,7 +543,7 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
                             onChange={() => toggleUserSelection(member.id)}
                             className="hidden"
                           />
-                          {member.name}
+                          {nicknameMap[member.id] || member.name}
                         </label>
                       )
                     })}
