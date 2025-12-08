@@ -3,7 +3,7 @@ import { useState, useEffect, useMemo, type JSX } from 'react'
 import { useThemeStore } from '@/store/themeStore'
 import { Layout } from '@/components/Layout'
 import { CallForm } from '@/components/Call/CallForm'
-import { getCalls, deleteCall } from '@/services/firestoreService'
+import { getCalls, deleteCall, updateCall } from '@/services/firestoreService'
 import type { Call, CallCategory, CallRiskLevel } from '@/types'
 import { TEAM_MEMBERS } from '@/types'
 import {
@@ -60,6 +60,7 @@ export const CallPage = () => {
   const [showForm, setShowForm] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [deleteCallId, setDeleteCallId] = useState<string | null>(null)
+  const [cancelCallId, setCancelCallId] = useState<string | null>(null)
   const [editingCall, setEditingCall] = useState<Call | null>(null)
   const [formCategory, setFormCategory] = useState<CallCategory>('memecoins')
   const [copiedValue, setCopiedValue] = useState<string | null>(null)
@@ -69,7 +70,7 @@ export const CallPage = () => {
   const [riskFilter, setRiskFilter] = useState<RiskFilter>('all')
   const [traderFilter, setTraderFilter] = useState<'all' | string>('all')
 
-  useScrollLock(showForm || showDeleteModal)
+  useScrollLock(showForm || showDeleteModal || !!cancelCallId)
 
   useEffect(() => {
     loadCalls()
@@ -163,6 +164,18 @@ export const CallPage = () => {
     } catch (error) {
       console.error('Error deleting call:', error)
       alert('Ошибка при удалении сигнала')
+    }
+  }
+
+  const handleCancelConfirm = async () => {
+    if (!cancelCallId) return
+    try {
+      await updateCall(cancelCallId, { status: 'cancelled' })
+      setCancelCallId(null)
+      loadCalls()
+    } catch (error) {
+      console.error('Error cancelling call:', error)
+      alert('Ошибка при отмене сигнала')
     }
   }
 
@@ -587,6 +600,37 @@ export const CallPage = () => {
           </div>
         )}
 
+        {/* Cancel Confirmation Modal */}
+        {cancelCallId && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[70] flex items-start sm:items-center justify-center p-4 overflow-y-auto overscroll-contain">
+            <div className={`${bgColor} rounded-2xl shadow-2xl border ${borderColor} max-w-md w-full`}>
+              <div className="p-6 space-y-4">
+                <div className="flex items-center gap-3">
+                  <AlertTriangle className="w-6 h-6 text-amber-500" />
+                  <div>
+                    <h3 className={`text-xl font-bold ${textColor}`}>Отменить сигнал?</h3>
+                    <p className={subtleColor}>Статус станет «Отменен», запись останется в списке.</p>
+                  </div>
+                </div>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setCancelCallId(null)}
+                    className={`flex-1 px-4 py-3 rounded-xl border ${borderColor} ${theme === 'dark' ? 'text-white' : 'text-gray-800'}`}
+                  >
+                    Отмена
+                  </button>
+                  <button
+                    onClick={handleCancelConfirm}
+                    className="flex-1 px-4 py-3 rounded-xl bg-amber-500 text-white font-semibold hover:bg-amber-600"
+                  >
+                    Отменить
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Calls List */}
         {!showForm && (
           <>
@@ -630,51 +674,68 @@ export const CallPage = () => {
                   return (
                     <div
                       key={call.id}
-                      className={`rounded-2xl border shadow-lg overflow-hidden transition-all hover:-translate-y-0.5 ${tone.border} ${tone.bg}`}
+                      className={`rounded-3xl border-2 shadow-xl overflow-hidden transition-all hover:-translate-y-1 ${tone.border} ${tone.bg}`}
                     >
-                      <div className="border-b border-white/10 dark:border-gray-800/60 flex items-center justify-between px-4 py-3 bg-black/5 dark:bg-white/5">
+                      <div className={`px-5 py-4 flex flex-wrap items-center justify-between gap-3 border-b ${
+                        theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-white/70 bg-white/70'
+                      }`}>
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm font-semibold ${tone.chipBg || ''} ${tone.text}`}>
+                          <span className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-semibold border ${tone.border} ${tone.chipBg || ''} ${tone.text}`}>
                             {meta.icon}
                             {meta.label}
                           </span>
-                          <span className={`px-3 py-1 rounded-full text-xs font-semibold ${statusMeta.className}`}>{statusMeta.label}</span>
-                          <span className={`px-3 py-1 rounded-full text-xs font-semibold ${riskBadges[riskLevel]}`}>Риск: {riskLevel}</span>
+                          <span className={`px-3 py-1.5 rounded-full text-xs font-semibold ${statusMeta.className}`}>{statusMeta.label}</span>
+                          <span className={`px-3 py-1.5 rounded-full text-xs font-semibold ${riskBadges[riskLevel]}`}>Риск: {riskLevel}</span>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <div className={`px-3 py-1.5 rounded-xl text-xs font-semibold border ${
+                            theme === 'dark' ? 'bg-gray-800/70 text-gray-200 border-white/10' : 'bg-white text-gray-700 border-gray-200'
+                          }`}>
+                            <span className="opacity-70">Создано </span>{createdDate}
+                          </div>
                           {trader && (
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-white/10 bg-black/5 dark:bg-white/5">
                               <div className="w-8 h-8 rounded-full bg-gradient-to-r from-[#4E6E49] to-emerald-600 text-white flex items-center justify-center text-sm font-bold">
                                 {trader.name[0]}
                               </div>
                               <span className={`text-xs ${subtleColor}`}>{trader.name}</span>
                             </div>
                           )}
-                          <button
-                            onClick={() => handleEdit(call)}
-                            className={`p-2 rounded-lg ${theme === 'dark' ? 'hover:bg-gray-800' : 'hover:bg-gray-100'}`}
-                          >
-                            <Edit className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteClick(call.id)}
-                            className={`p-2 rounded-lg ${theme === 'dark' ? 'hover:bg-gray-800' : 'hover:bg-gray-100'}`}
-                          >
-                            <Trash2 className="w-4 h-4 text-red-500" />
-                          </button>
+                          <div className="flex items-center gap-1">
+                            <button
+                              onClick={() => handleEdit(call)}
+                              className={`p-2 rounded-lg ${theme === 'dark' ? 'hover:bg-gray-800' : 'hover:bg-gray-100'}`}
+                            >
+                              <Edit className="w-4 h-4" />
+                            </button>
+                            {call.status !== 'cancelled' && (
+                              <button
+                                onClick={() => setCancelCallId(call.id)}
+                                className={`p-2 rounded-lg ${theme === 'dark' ? 'hover:bg-gray-800' : 'hover:bg-gray-100'}`}
+                              >
+                                <X className="w-4 h-4 text-amber-500" />
+                              </button>
+                            )}
+                            <button
+                              onClick={() => handleDeleteClick(call.id)}
+                              className={`p-2 rounded-lg ${theme === 'dark' ? 'hover:bg-gray-800' : 'hover:bg-gray-100'}`}
+                            >
+                              <Trash2 className="w-4 h-4 text-red-500" />
+                            </button>
+                          </div>
                         </div>
                       </div>
 
-                      <div className="p-5 space-y-4">
-                        <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                      <div className="p-5 space-y-5">
+                        <div className="grid md:grid-cols-[1.15fr_auto] gap-4 items-start">
                           <div className="space-y-1">
                             <p className={`text-2xl font-bold ${textColor}`}>{getPrimaryTitle(call)}</p>
                             <p className={`text-sm ${subtleColor}`}>{getSecondary(call)}</p>
                           </div>
-                          <div className="flex flex-wrap gap-2">
+                          <div className="flex flex-wrap gap-2 justify-end">
                             <button
                               onClick={() => copyValue(keyCopyValue)}
-                              className={`px-3 py-2 rounded-xl border ${borderColor} ${theme === 'dark' ? 'hover:bg-gray-800' : 'hover:bg-gray-100'} text-sm font-semibold flex items-center gap-2`}
+                              className={`px-3 py-2 rounded-xl border ${borderColor} ${theme === 'dark' ? 'hover:bg-gray-800 bg-white/5' : 'hover:bg-gray-100 bg-white'} text-sm font-semibold flex items-center gap-2`}
                             >
                               {copiedValue === keyCopyValue ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
                               {copiedValue === keyCopyValue ? 'Скопировано' : 'Скопировать'}
@@ -682,16 +743,25 @@ export const CallPage = () => {
                           </div>
                         </div>
 
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
                           {metrics.map((m) => (
-                            <div key={m.label} className="p-2.5 rounded-xl bg-white/60 dark:bg-black/20 border border-white/60 dark:border-white/10">
+                            <div
+                              key={m.label}
+                              className={`p-3 rounded-2xl border ${borderColor} ${theme === 'dark' ? 'bg-white/5' : 'bg-white/90'} shadow-sm`}
+                            >
                               <p className="text-[11px] uppercase tracking-wide text-gray-500 dark:text-gray-400">{m.label}</p>
                               <p className={`text-sm font-semibold ${textColor}`}>{m.value}</p>
                             </div>
                           ))}
                         </div>
 
-                        {renderFieldsGrid(call)}
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between gap-2">
+                            <p className={`text-sm font-semibold ${textColor}`}>Параметры сигнала</p>
+                            <span className={`text-xs ${subtleColor}`}>Актуальные поля по категории</span>
+                          </div>
+                          {renderFieldsGrid(call)}
+                        </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                           {renderNarrative('Причина входа', details.reason)}
