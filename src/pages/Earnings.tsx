@@ -183,14 +183,13 @@ export const Earnings = () => {
                   </div>
                   <div className="flex-1 min-w-0">
                     <h1
-                      className={`text-2xl sm:text-3xl md:text-4xl font-extrabold ${headingColor} flex items-center gap-2 sm:gap-3`}
+                      className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-white flex items-center gap-2 sm:gap-3 drop-shadow-lg"
                     >
-                      <span className="bg-gradient-to-r from-[#4E6E49] via-emerald-700 to-yellow-600 text-transparent bg-clip-text">
-                        Заработок команды
-                      </span>
+                      <span className="sm:hidden">Заработок</span>
+                      <span className="hidden sm:inline">Заработок команды</span>
                       <Sparkles
                         className={`w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0 ${
-                          theme === 'dark' ? 'text-yellow-400' : 'text-yellow-500'
+                          theme === 'dark' ? 'text-yellow-300' : 'text-yellow-500'
                         } animate-pulse`}
                       />
                     </h1>

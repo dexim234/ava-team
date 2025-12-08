@@ -460,46 +460,6 @@ export const CallForm = ({ onSuccess, onCancel, callToEdit, initialCategory }: C
         </div>
       )}
 
-      {/* Category selector */}
-      <div className="space-y-3">
-        <div className="flex items-center gap-2">
-          <Sparkles className="w-4 h-4 text-[#4E6E49]" />
-          <p className={`text-sm font-semibold ${textColor}`}>Выберите сферу сигнала</p>
-          <span className={`text-xs ${subtle}`}>каждая сфера имеет свой набор полей</span>
-        </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-          {(Object.keys(CATEGORY_META) as CallCategory[]).map((key) => {
-            const meta = CATEGORY_META[key]
-            const active = category === key
-            return (
-              <button
-                key={key}
-                type="button"
-                onClick={() => setCategory(key)}
-                className={`relative overflow-hidden rounded-xl px-3 py-2.5 border text-left transition-all ${
-                  active
-                    ? 'border-transparent shadow-lg shadow-emerald-500/30 scale-[1.01]'
-                    : theme === 'dark'
-                    ? 'border-gray-700 bg-gray-800/70'
-                    : `${meta.pastelBorder} ${meta.pastelBg}`
-                }`}
-              >
-                <div className={`absolute inset-0 opacity-90 ${active ? `bg-gradient-to-r ${meta.gradient}` : 'bg-gray-900/5 dark:bg-white/5'}`} />
-                <div className="relative flex items-center gap-3">
-                  <span className={`p-2 rounded-lg ${active ? 'bg-white/20 text-white' : 'bg-white/80 dark:bg-gray-700 text-gray-700 dark:text-gray-200'}`}>
-                    {meta.icon}
-                  </span>
-                  <div>
-                    <p className={`font-semibold text-sm ${active ? 'text-white' : meta.pastelText}`}>{meta.label}</p>
-                  </div>
-                  {active && <Wand2 className="w-4 h-4 text-white ml-auto" />}
-                </div>
-              </button>
-            )
-          })}
-        </div>
-      </div>
-
       {/* Fields */}
       <div className={`rounded-2xl border ${borderColor} ${theme === 'dark' ? 'bg-gray-800/60' : 'bg-white'} p-4 sm:p-6 space-y-4`}>
         <div className="flex items-center gap-2">

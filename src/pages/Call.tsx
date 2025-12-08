@@ -398,9 +398,8 @@ export const CallPage = () => {
                   <Zap className="w-6 h-6" />
                 </div>
                 <div className="flex flex-col justify-center">
-                  <p className="text-[11px] uppercase tracking-[0.2em] text-[#4E6E49]">Signals Hub</p>
-                  <h1 className="text-2xl sm:text-3xl font-extrabold bg-gradient-to-r from-[#4E6E49] via-emerald-500 to-sky-500 bg-clip-text text-transparent leading-tight">
-                    Signals HUB
+                  <h1 className="text-2xl sm:text-3xl font-extrabold text-white drop-shadow-lg leading-tight">
+                    HUB
                   </h1>
                 </div>
               </div>
