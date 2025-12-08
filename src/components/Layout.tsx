@@ -12,12 +12,12 @@ import {
   DollarSign,
   CheckSquare,
   TrendingUp,
-  HelpCircle,
   User,
   ChevronDown,
   Info,
   ArrowUpRight,
 } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 import logo from '@/assets/logo.png'
 import { useState, useEffect } from 'react'
 
@@ -28,15 +28,15 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
   const [showFunctionalityMenu, setShowFunctionalityMenu] = useState(false)
   const [showAboutMenu, setShowAboutMenu] = useState(false)
 
-  const functionalitySubItems = [
+  const functionalitySubItems: { path: string; label: string; icon: LucideIcon }[] = [
     { path: '/management', label: 'Расписание', icon: Calendar },
     { path: '/earnings', label: 'Заработок', icon: DollarSign },
     { path: '/tasks', label: 'Задачи', icon: CheckSquare },
     { path: '/rating', label: 'Рейтинг', icon: TrendingUp },
   ]
 
-  const aboutSubItems = [
-    { path: '/faq', label: 'FAQ', icon: HelpCircle },
+  const aboutSubItems: { path: string; label: string; icon?: LucideIcon }[] = [
+    { path: '/faq', label: 'FAQ' },
     { path: '/about', label: 'О сообществе', icon: Info },
   ]
 
@@ -162,7 +162,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                                 : 'hover:bg-gray-50 text-gray-800'
                             }`}
                           >
-                            <item.icon className="w-4 h-4 flex-shrink-0" />
+                            {item.icon && <item.icon className="w-4 h-4 flex-shrink-0" />}
                             <span className="font-semibold flex-1">{item.label}</span>
                             <ArrowUpRight className="w-4 h-4 opacity-70" />
                           </Link>
@@ -325,7 +325,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                       : 'hover:bg-gray-50 text-gray-800'
                   }`}
                 >
-                  <item.icon className="w-4 h-4 flex-shrink-0" />
+                  {item.icon && <item.icon className="w-4 h-4 flex-shrink-0" />}
                   <span className="font-semibold flex-1">{item.label}</span>
                   <ArrowUpRight className="w-4 h-4 opacity-70" />
                 </Link>

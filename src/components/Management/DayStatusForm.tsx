@@ -324,6 +324,15 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
     vacation: 'bg-orange-500',
   }
 
+  const nounByType: Record<DayStatusFormProps['type'], string> = {
+    dayoff: 'выходной',
+    sick: 'больничный',
+    vacation: 'отпуск',
+  }
+
+  const headingTitle = `${status ? 'Редактировать' : 'Добавить'} ${nounByType[type]}`
+  const badgeLabel = typeLabels[type]
+
   const previewDates =
     adminBulkMode && dateMode === 'range'
       ? [`${formatDate(rangeStart, 'dd.MM')}–${formatDate(rangeEnd, 'dd.MM')}`]
@@ -333,37 +342,39 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
   const selectedNames = selectedUserIds.map((id) => getMemberName(id)).join(', ')
 
   return (
-    <div className="fixed inset-0 bg-slate-950/75 backdrop-blur-xl flex items-start sm:items-center justify-center z-[70] p-4 sm:p-6 touch-manipulation overflow-y-auto overflow-x-hidden overscroll-contain modal-scroll">
-      <div className={`w-full max-w-4xl rounded-3xl shadow-[0_24px_80px_rgba(0,0,0,0.45)] border ${theme === 'dark' ? 'bg-gradient-to-br from-[#0c1320] via-[#0b1220] to-[#08111b] border-white/10' : 'bg-gradient-to-br from-white via-slate-50 to-white border-slate-200'} max-h-[85dvh] sm:max-h-[calc(100dvh-96px)] flex flex-col overflow-hidden`}>
-        <div className="flex-shrink-0 p-4 sm:p-6 lg:p-7">
+    <div className="fixed inset-0 bg-slate-950/75 backdrop-blur-xl flex items-start sm:items-center justify-center z-[70] p-4 sm:p-6 touch-manipulation overflow-y-auto overscroll-contain modal-scroll">
+      <div className={`w-full max-w-4xl rounded-3xl shadow-[0_24px_80px_rgba(0,0,0,0.45)] border ${theme === 'dark' ? 'bg-gradient-to-br from-[#0c1320] via-[#0b1220] to-[#08111b] border-white/10' : 'bg-gradient-to-br from-white via-slate-50 to-white border-slate-200'} max-h-[85dvh] sm:max-h-[calc(100dvh-96px)] overflow-hidden`}>
+        <div className="p-4 sm:p-6 lg:p-7 flex flex-col h-full min-h-0 overflow-y-auto modal-scroll">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="space-y-1">
-              <div className="flex items-center gap-2 text-xs uppercase tracking-[0.18em] text-[#4E6E49] font-semibold">
+              <div className="flex items-center gap-2 text-xs font-semibold text-[#4E6E49] tracking-tight">
                 <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-[#4E6E49]/10 text-[#4E6E49] border border-[#4E6E49]/30">
-                  {typeLabels[type]}
+                  {badgeLabel}
                 </span>
-                <span className={`${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>расписание</span>
               </div>
               <h3 className={`text-2xl sm:text-3xl font-bold ${headingColor}`}>
-                {status ? 'Редактировать' : 'Добавить'} {typeLabels[type]}
+                {headingTitle}
               </h3>
-              <p className={`${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} text-sm`}>
-                Обновленная модалка: быстрый обзор выбранных людей, дат и комментария.
-              </p>
+              {type === 'dayoff' && (
+                <ul className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} text-xs sm:text-sm leading-relaxed list-disc list-inside space-y-1`}>
+                  <li>Отметь один выходной</li>
+                  <li>Сделай конкретный день в месяце выходным</li>
+                  <li>Отметь несколько выходных на неделе</li>
+                  <li>Выбери несколько выходных дней на месяц</li>
+                </ul>
+              )}
             </div>
             <button
               onClick={onClose}
-              className={`p-2.5 rounded-full border flex-shrink-0 ${theme === 'dark' ? 'border-white/10 text-gray-200 hover:bg-white/5' : 'border-slate-200 text-slate-600 hover:bg-slate-100'}`}
-              aria-label="Закрыть"
+              className={`p-2.5 rounded-full border ${theme === 'dark' ? 'border-white/10 text-gray-200 hover:bg-white/5' : 'border-slate-200 text-slate-600 hover:bg-slate-100'}`}
             >
               <X className="w-5 h-5" />
             </button>
           </div>
-        </div>
-        <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain modal-scroll px-4 sm:px-6 lg:px-7">
-          <div className="mt-5 grid lg:grid-cols-[0.9fr_1.4fr] gap-4 lg:gap-6 min-w-0">
+
+          <div className="mt-5 grid lg:grid-cols-[0.9fr_1.4fr] gap-4 lg:gap-6 flex-1 overflow-hidden">
             {/* Navigation / summary */}
-            <aside className={`rounded-2xl border ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-slate-200 bg-white'} p-4 sm:p-5 space-y-4 self-start`}>
+            <aside className={`rounded-2xl border ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-slate-200 bg-white'} p-4 sm:p-5 space-y-4 sticky top-0 self-start max-h-full overflow-y-auto`}>
               <div className="flex items-center justify-between">
                 <p className="text-sm font-semibold">Навигация</p>
                 <span className="text-[11px] uppercase tracking-wide text-[#4E6E49] font-semibold">3 шага</span>
@@ -387,12 +398,6 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
                     </div>
                   </div>
                 ))}
-              </div>
-              <div className={`rounded-xl border px-3 py-3 space-y-2 ${theme === 'dark' ? 'border-emerald-900/50 bg-emerald-900/20' : 'border-emerald-100 bg-emerald-50'}`}>
-                <p className="text-xs uppercase tracking-wide text-emerald-600 font-semibold">Подсказка</p>
-                <p className="text-sm text-emerald-700 dark:text-emerald-200">
-                  Визуальные блоки помогают не потеряться между диапазоном дат и выбором команды.
-                </p>
               </div>
             </aside>
 
@@ -644,10 +649,10 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
               </button>
             </div>
           </div>
-          </div>
         </div>
       </div>
     </div>
+  </div>
   )
 }
 

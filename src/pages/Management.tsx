@@ -6,7 +6,23 @@ import { ManagementTable } from '@/components/Management/ManagementTable'
 import { ManagementWeekView } from '@/components/Management/ManagementWeekView'
 import { SlotForm } from '@/components/Management/SlotForm'
 import { DayStatusForm } from '@/components/Management/DayStatusForm'
-import { Calendar, Table2, Clock, CalendarCheck, PlusCircle, Trash2, Moon, HeartPulse, Plane } from 'lucide-react'
+import {
+  Calendar,
+  Table2,
+  Clock,
+  CalendarCheck,
+  PlusCircle,
+  Trash2,
+  Moon,
+  HeartPulse,
+  Plane,
+  Users,
+  Timer,
+  Hourglass,
+  Activity,
+  ArrowUpRight,
+  ArrowDownRight,
+} from 'lucide-react'
 import { TEAM_MEMBERS } from '@/types'
 import { DeleteSlotsForm } from '@/components/Management/DeleteSlotsForm'
 import { getWorkSlots, getDayStatuses } from '@/services/firestoreService'
@@ -28,16 +44,28 @@ export const Management = () => {
   const [editingSlot, setEditingSlot] = useState<any>(null)
   const [editingStatus, setEditingStatus] = useState<any>(null)
   const [actionType, setActionType] = useState<ActionType>('add-slot')
-  const [stats, setStats] = useState({ 
-    slotsThisWeek: 0, 
+  const [stats, setStats] = useState({
+    slotsThisWeek: 0,
     activeMembers: 0,
     upcomingSlots: 0,
     completedSlots: 0,
-    recommendedToAdd: 0,
-    topMembers: [] as string[],
+    recommendedWeek: 0,
+    recommendedDay: 0,
+    mostActive: '',
+    leastActive: [] as string[],
+    remainingSlots: 0,
+    todaySlots: 0,
   })
 
   const [isMobile, setIsMobile] = useState(false)
+  const [timeAnchors, setTimeAnchors] = useState<{ nextStart: Date | null; activeEnd: Date | null }>({
+    nextStart: null,
+    activeEnd: null,
+  })
+  const [timerLabels, setTimerLabels] = useState<{ nextStart: string; activeRemaining: string }>({
+    nextStart: '—',
+    activeRemaining: '—',
+  })
 
   useEffect(() => {
     loadStats()
@@ -59,10 +87,32 @@ export const Management = () => {
   }, [])
 
   useEffect(() => {
-    if (isMobile && viewMode === 'table') {
-      setViewMode('week')
+    const buildLabel = (target: Date | null, isCountdownToEnd: boolean) => {
+      if (!target) return '—'
+      const diffMs = target.getTime() - Date.now()
+      if (diffMs <= 0) return isCountdownToEnd ? 'Слот завершён' : 'Уже начался'
+
+      const totalMinutes = Math.floor(diffMs / 60000)
+      const days = Math.floor(totalMinutes / (60 * 24))
+      const hours = Math.floor((totalMinutes % (60 * 24)) / 60)
+      const minutes = totalMinutes % 60
+
+      if (days > 0) return `${days}д ${hours}ч`
+      if (hours > 0) return `${hours}ч ${minutes}м`
+      return `${Math.max(minutes, 1)}м`
     }
-  }, [isMobile, viewMode])
+
+    const updateTimers = () => {
+      setTimerLabels({
+        nextStart: buildLabel(timeAnchors.nextStart, false),
+        activeRemaining: buildLabel(timeAnchors.activeEnd, true),
+      })
+    }
+
+    updateTimers()
+    const intervalId = setInterval(updateTimers, 60_000)
+    return () => clearInterval(intervalId)
+  }, [timeAnchors])
 
   const isSlotUpcoming = (slot: any): boolean => {
     const today = new Date()
@@ -123,40 +173,87 @@ export const Management = () => {
 
   const loadStats = async () => {
     try {
-      const weekDays = getWeekDays(new Date())
+      const now = new Date()
+      const weekDays = getWeekDays(now)
       const weekStart = formatDate(weekDays[0], 'yyyy-MM-dd')
       const weekEnd = formatDate(weekDays[6], 'yyyy-MM-dd')
-      
-      const [allSlots, allStatuses] = await Promise.all([
-        getWorkSlots(),
-        getDayStatuses()
-      ])
+      const todayStr = formatDate(now, 'yyyy-MM-dd')
+
+      const [allSlots, allStatuses] = await Promise.all([getWorkSlots(), getDayStatuses()])
 
       const weekSlots = allSlots.filter((s) => s.date >= weekStart && s.date <= weekEnd)
-      const uniqueMembers = new Set([...weekSlots.map(s => s.userId), ...allStatuses.map(s => s.userId)])
+      const todaySlots = allSlots.filter((s) => s.date === todayStr)
+      const uniqueMembers = new Set([
+        ...weekSlots.flatMap((s) => [s.userId, ...(s.participants || [])]),
+        ...allStatuses.map((s) => s.userId),
+      ])
 
-      // Calculate upcoming and completed slots
       const upcomingSlots = weekSlots.filter(isSlotUpcoming).length
       const completedSlots = weekSlots.length - upcomingSlots
 
-      const recommendedToAdd = Math.max(0, 10 - weekSlots.length)
+      const recommendedWeek = Math.max(0, 15 - weekSlots.length)
+      const recommendedDay = Math.max(0, 3 - todaySlots.length)
+
       const memberCounts: Record<string, number> = {}
-      weekSlots.forEach((s) => {
-        memberCounts[s.userId] = (memberCounts[s.userId] || 0) + 1
+      TEAM_MEMBERS.forEach((m) => {
+        memberCounts[m.id] = 0
       })
-      const topMembers = Object.entries(memberCounts)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 3)
+      weekSlots.forEach((s) => {
+        const involved = new Set([s.userId, ...(s.participants || [])])
+        involved.forEach((id) => {
+          if (memberCounts[id] !== undefined) {
+            memberCounts[id] = (memberCounts[id] || 0) + 1
+          }
+        })
+      })
+
+      const sortedMembers = Object.entries(memberCounts).sort((a, b) => b[1] - a[1])
+      const mostActive = sortedMembers[0]?.[1] ? getMemberName(sortedMembers[0][0]) : 'Нет данных'
+      const minCount = Math.min(...Object.values(memberCounts))
+      const leastActive = Object.entries(memberCounts)
+        .filter(([, count]) => count === minCount)
         .map(([id]) => getMemberName(id))
+        .slice(0, 3)
+
+      const intervals = allSlots.flatMap((slot) => {
+        const slotDate = slot.date
+        return (slot.slots || []).map((s: any) => {
+          const start = new Date(`${slotDate}T${s.start}`)
+          let end = s.endDate ? new Date(`${s.endDate}T${s.end}`) : new Date(`${slotDate}T${s.end}`)
+
+          if (!s.endDate && end.getTime() <= start.getTime()) {
+            const nextDay = new Date(slotDate)
+            nextDay.setDate(nextDay.getDate() + 1)
+            end = new Date(`${formatDate(nextDay, 'yyyy-MM-dd')}T${s.end}`)
+          }
+
+          return { start, end }
+        })
+      })
+
+      const activeIntervals = intervals.filter((i) => now >= i.start && now <= i.end)
+      const activeEnd = activeIntervals.length
+        ? new Date(Math.min(...activeIntervals.map((i) => i.end.getTime())))
+        : null
+
+      const upcomingIntervals = intervals
+        .filter((i) => i.start > now)
+        .sort((a, b) => a.start.getTime() - b.start.getTime())
+      const nextStart = upcomingIntervals[0]?.start || null
 
       setStats({
         slotsThisWeek: weekSlots.length,
         activeMembers: uniqueMembers.size,
         upcomingSlots,
         completedSlots,
-        recommendedToAdd,
-        topMembers,
+        recommendedWeek,
+        recommendedDay,
+        mostActive,
+        leastActive,
+        remainingSlots: upcomingSlots,
+        todaySlots: todaySlots.length,
       })
+      setTimeAnchors({ nextStart, activeEnd })
     } catch (error) {
       console.error('Error loading stats:', error)
     }
@@ -210,10 +307,6 @@ export const Management = () => {
   }`
 
   const handleViewModeChange = (mode: ViewMode) => {
-    if (mode === 'table' && isMobile) {
-      alert('Этот вид недоступен на мобильных устройствах. Пожалуйста, воспользуйтесь ПК.')
-      return
-    }
     setViewMode(mode)
   }
 
@@ -239,7 +332,7 @@ export const Management = () => {
                   <CalendarCheck className="w-7 h-7 text-[#4E6E49]" />
                 </div>
                 <div className="space-y-2">
-                  <h1 className={`text-3xl sm:text-4xl font-extrabold ${headingColor}`}>
+                  <h1 className="text-2xl sm:text-3xl font-extrabold bg-gradient-to-r from-[#4E6E49] via-emerald-500 to-blue-500 bg-clip-text text-transparent">
                     Расписание команды
                   </h1>
                   <p className={`${labelColor} text-sm sm:text-base leading-snug max-w-2xl`}>
@@ -248,33 +341,79 @@ export const Management = () => {
                 </div>
               </div>
               <div className={`rounded-2xl border p-4 sm:p-5 backdrop-blur ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-green-100 bg-white/80'}`}>
-                <div className="grid sm:grid-cols-3 gap-4">
-                  <div className="space-y-2">
-                    <p className="text-xs uppercase tracking-wide text-[#4E6E49] font-semibold">Рекомендуется добавить</p>
-                    <div className="flex items-center gap-3">
-                      <span className="p-2 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-200 border border-emerald-500/30">
-                        +{stats.recommendedToAdd}
-                      </span>
-                      <p className={`text-sm ${labelColor}`}>минимум 10 слотов в неделю</p>
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <p className="text-xs uppercase tracking-wide text-sky-500 font-semibold">Завершено слотов</p>
-                    <p className="text-3xl font-black text-slate-900 dark:text-white">{stats.completedSlots}</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">на этой неделе</p>
-                  </div>
-                  <div className="space-y-2">
-                    <p className="text-xs uppercase tracking-wide text-purple-500 font-semibold">Активные участники</p>
-                    <div className="flex flex-wrap gap-2">
-                      {stats.topMembers.length > 0 ? stats.topMembers.map((name) => (
-                        <span key={name} className="px-3 py-1 rounded-full text-xs font-semibold border border-purple-200 dark:border-purple-800 bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-200">
-                          {name}
+                <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                  {[
+                    {
+                      label: 'Рекомендуется добавить',
+                      value: `${Math.max(stats.recommendedDay, 0)} сл. в день`,
+                      note: `Неделя: ${Math.max(stats.recommendedWeek, 0)} слотов`,
+                      icon: <ArrowUpRight className="w-4 h-4" />,
+                      tone: 'from-emerald-500 to-blue-500',
+                    },
+                    {
+                      label: 'Активные участники',
+                      value: stats.activeMembers,
+                      note: 'за неделю',
+                      icon: <Users className="w-4 h-4" />,
+                      tone: 'from-purple-500 to-pink-500',
+                    },
+                    {
+                      label: 'Самый активный',
+                      value: stats.mostActive || 'Нет данных',
+                      note: 'неделя',
+                      icon: <Activity className="w-4 h-4" />,
+                      tone: 'from-amber-500 to-orange-500',
+                    },
+                    {
+                      label: 'Самые неактивные',
+                      value: stats.leastActive.length ? stats.leastActive.join(', ') : 'Нет данных',
+                      note: 'неделя',
+                      icon: <ArrowDownRight className="w-4 h-4" />,
+                      tone: 'from-slate-500 to-gray-700',
+                    },
+                    {
+                      label: 'Осталось слотов',
+                      value: stats.remainingSlots,
+                      note: 'на неделе',
+                      icon: <Hourglass className="w-4 h-4" />,
+                      tone: 'from-sky-500 to-blue-600',
+                    },
+                    {
+                      label: 'Завершено слотов',
+                      value: stats.completedSlots,
+                      note: 'на неделе',
+                      icon: <CalendarCheck className="w-4 h-4" />,
+                      tone: 'from-emerald-600 to-teal-500',
+                    },
+                    {
+                      label: 'Ближайший слот',
+                      value: timerLabels.nextStart,
+                      note: 'таймер',
+                      icon: <Timer className="w-4 h-4" />,
+                      tone: 'from-indigo-500 to-blue-500',
+                    },
+                    {
+                      label: 'До конца активного',
+                      value: timerLabels.activeRemaining,
+                      note: 'если есть',
+                      icon: <Clock className="w-4 h-4" />,
+                      tone: 'from-rose-500 to-red-500',
+                    },
+                  ].map((item) => (
+                    <div
+                      key={item.label}
+                      className={`rounded-xl border ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-white/70 bg-white'} p-3 flex flex-col gap-1 shadow-sm`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs font-semibold text-[#4E6E49]">{item.label}</p>
+                        <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-semibold text-white bg-gradient-to-r ${item.tone}`}>
+                          {item.icon}
                         </span>
-                      )) : (
-                        <span className="text-sm text-gray-500 dark:text-gray-400">Нет данных</span>
-                      )}
+                      </div>
+                      <p className={`text-lg sm:text-xl font-bold ${headingColor}`}>{item.value}</p>
+                      <p className={`text-xs ${labelColor}`}>{item.note}</p>
                     </div>
-                  </div>
+                  ))}
                 </div>
               </div>
             </div>
@@ -288,13 +427,10 @@ export const Management = () => {
               <div className={`flex items-center gap-2 rounded-xl border ${theme === 'dark' ? 'border-gray-800 bg-gray-900/70' : 'border-gray-200 bg-gray-50'} px-1.5 py-1 shrink-0`}>
                 <button
                   onClick={() => handleViewModeChange('table')}
-                  aria-disabled={isMobile}
                   className={`px-3 sm:px-4 py-2 text-sm font-semibold flex items-center gap-2 transition-all rounded-lg ${
-                    viewMode === 'table' && !isMobile
+                    viewMode === 'table'
                       ? 'bg-[#4E6E49] text-white shadow-lg'
-                      : isMobile
-                        ? 'text-gray-400 cursor-not-allowed'
-                        : theme === 'dark' ? 'text-gray-300 hover:bg-gray-800' : 'text-gray-700 hover:bg-white'
+                      : theme === 'dark' ? 'text-gray-300 hover:bg-gray-800' : 'text-gray-700 hover:bg-white'
                   }`}
                 >
                   <Table2 className="w-4 h-4" />
@@ -430,28 +566,14 @@ export const Management = () => {
           </div>
 
           {viewMode === 'table' ? (
-            isMobile ? (
-              <div
-                className={`rounded-lg border-2 border-dashed p-4 text-center ${theme === 'dark' ? 'bg-[#1a1a1a]/60 border-gray-800 text-gray-300' : 'bg-gray-50 border-gray-200 text-gray-600'}`}
-              >
-                <div className="flex flex-col items-center gap-2">
-                  <Table2 className={`w-8 h-8 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} />
-                  <p className="text-sm font-semibold">Табличный вид недоступен на мобильных устройствах</p>
-                  <p className="text-xs">
-                    Откройте ApeVault Panel на ПК, чтобы использовать таблицу.
-                  </p>
-                </div>
-              </div>
-            ) : (
-              <ManagementTable
-                selectedUserId={selectedUserId}
-                slotFilter={slotFilter}
-                onEditSlot={handleEditSlot}
-                onEditStatus={handleEditStatus}
-              />
-            )
-          ) : (
             <ManagementWeekView
+              selectedUserId={selectedUserId}
+              slotFilter={slotFilter}
+              onEditSlot={handleEditSlot}
+              onEditStatus={handleEditStatus}
+            />
+          ) : (
+            <ManagementTable
               selectedUserId={selectedUserId}
               slotFilter={slotFilter}
               onEditSlot={handleEditSlot}

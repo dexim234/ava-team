@@ -48,8 +48,6 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
   const [comment, setComment] = useState(slot?.comment || '')
   const [repeatMonth, setRepeatMonth] = useState(false)
   const [repeatDays, setRepeatDays] = useState<number[]>([])
-  const [repeatAllDays, setRepeatAllDays] = useState(false)
-  const [selectedDays, setSelectedDays] = useState<number[]>([])
   const [dateMode, setDateMode] = useState<'single' | 'range' | 'multiple'>('single')
   const [rangeStart, setRangeStart] = useState(initialDate)
   const [rangeEnd, setRangeEnd] = useState(initialDate)
@@ -77,9 +75,7 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
   useEffect(() => {
     if (dateMode !== 'single') {
       setRepeatMonth(false)
-      setRepeatAllDays(false)
       setRepeatDays([])
-      setSelectedDays([])
     }
   }, [dateMode])
 
@@ -341,14 +337,6 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
     }
   }
 
-  const handleSelectedDaysToggle = (dayIndex: number) => {
-    if (selectedDays.includes(dayIndex)) {
-      setSelectedDays(selectedDays.filter((d) => d !== dayIndex))
-    } else {
-      setSelectedDays([...selectedDays, dayIndex])
-    }
-  }
-
   const toggleUserSelection = (userId: string) => {
     setSelectedUserIds((prev) => {
       if (prev.includes(userId)) {
@@ -514,23 +502,6 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
             }
           }
         }
-      } else if (repeatAllDays && selectedDays.length > 0) {
-        const dateObj = new Date(date)
-        const month = dateObj.getMonth()
-        const year = dateObj.getFullYear()
-        const daysInMonth = new Date(year, month + 1, 0).getDate()
-
-        for (let day = 1; day <= daysInMonth; day++) {
-          const checkDate = new Date(year, month, day)
-          const dayOfWeek = checkDate.getDay() === 0 ? 6 : checkDate.getDay() - 1
-          if (selectedDays.includes(dayOfWeek)) {
-            const dateStr = formatDate(checkDate, 'yyyy-MM-dd')
-            if (isPastDate(dateStr)) continue
-            for (const targetUserId of targetUsers) {
-              await createSlotForUserDate(targetUserId, dateStr)
-            }
-          }
-        }
       } else if (adminBulkMode && dateMode !== 'single') {
         for (const dateStr of targetDates) {
           for (const targetUserId of targetUsers) {
@@ -569,20 +540,14 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
         <div className="p-4 sm:p-6 lg:p-7 flex flex-col h-full min-h-0 overflow-y-auto">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="space-y-1">
-              <div className="flex items-center gap-2 text-xs uppercase tracking-[0.18em] text-[#4E6E49] font-semibold">
+              <div className="flex items-center gap-2 text-xs font-semibold text-[#4E6E49] tracking-tight">
                 <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-[#4E6E49]/10 text-[#4E6E49] border border-[#4E6E49]/30">
-                  {slot ? 'Редактирование' : 'Создание'} слота
-                </span>
-                <span className={`${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                  расписание
+                  {slot ? 'Редактирование слота' : 'Создание слота'}
                 </span>
               </div>
               <h3 className={`text-2xl sm:text-3xl font-bold ${headingColor}`}>
                 {slot ? 'Редактировать слот' : 'Добавить слот'}
               </h3>
-              <p className={`${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} text-sm`}>
-                Новая оболочка с акцентом на шаги: участники → даты → время → заметки.
-              </p>
             </div>
             <div className="flex items-center gap-2">
               <div className={`px-3 py-2 rounded-xl border text-xs sm:text-sm ${theme === 'dark' ? 'border-white/10 bg-white/5 text-gray-200' : 'border-slate-200 bg-slate-50 text-slate-700'}`}>
@@ -625,12 +590,6 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
                     </div>
                   </div>
                 ))}
-              </div>
-              <div className={`rounded-xl border px-3 py-3 space-y-2 ${theme === 'dark' ? 'border-emerald-900/50 bg-emerald-900/20' : 'border-emerald-100 bg-emerald-50'}`}>
-                <p className="text-xs uppercase tracking-wide text-emerald-600 font-semibold">Подсказка</p>
-                <p className="text-sm text-emerald-700 dark:text-emerald-200">
-                  Формы теперь разбиты на блоки: вы свободно переключаетесь между шагами, не теряя данных.
-                </p>
               </div>
             </aside>
 
@@ -1077,17 +1036,13 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
                   type="checkbox"
                   checked={repeatMonth}
                   onChange={(e) => {
-                    if (e.target.checked && repeatAllDays) {
-                      setError('Снимите галочку с другой функции')
-                      return
-                    }
                     setRepeatMonth(e.target.checked)
                     setError('')
                   }}
                   className="w-4 h-4"
                 />
                 <span className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                  Добавить аналогичные слоты на месяц вперед
+                  Добавить слоты на месяц вперед по дням
                 </span>
               </label>
 
@@ -1103,50 +1058,6 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
                         onClick={() => handleDayToggle(index)}
                         className={`px-3 py-1 rounded-lg transition-colors ${
                           repeatDays.includes(index)
-                            ? 'bg-[#4E6E49] text-white'
-                            : theme === 'dark'
-                            ? 'bg-gray-700 text-gray-300'
-                            : 'bg-gray-200 text-gray-700'
-                        }`}
-                      >
-                        {day}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              <label className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={repeatAllDays}
-                  onChange={(e) => {
-                    if (e.target.checked && repeatMonth) {
-                      setError('Снимите галочку с другой функции')
-                      return
-                    }
-                    setRepeatAllDays(e.target.checked)
-                    setError('')
-                  }}
-                  className="w-4 h-4"
-                />
-                <span className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                  Установить время работы на все выбранные дни
-                </span>
-              </label>
-
-              {repeatAllDays && (
-                <div className="ml-6">
-                  <p className={`text-sm mb-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                    Выберите дни недели:
-                  </p>
-                  <div className="flex gap-2 flex-wrap">
-                    {weekDays.map((day, index) => (
-                      <button
-                        key={index}
-                        onClick={() => handleSelectedDaysToggle(index)}
-                        className={`px-3 py-1 rounded-lg transition-colors ${
-                          selectedDays.includes(index)
                             ? 'bg-[#4E6E49] text-white'
                             : theme === 'dark'
                             ? 'bg-gray-700 text-gray-300'
