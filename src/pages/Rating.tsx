@@ -140,9 +140,9 @@ export const Rating = () => {
   }
 
   const teamKPD = ratings.reduce((sum, r) => sum + r.rating, 0) / (ratings.length || 1)
-  const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
   const subTextColor = theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-  const cardBg = theme === 'dark' ? 'bg-[#111]' : 'bg-white'
+  const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
+  const cardBg = theme === 'dark' ? 'bg-[#151c2a]' : 'bg-white'
   const calmBorder = theme === 'dark' ? 'border-white/10' : 'border-gray-200'
 
   const sectionLinks = [
@@ -190,25 +190,22 @@ export const Rating = () => {
         <div
           className={`rounded-2xl p-6 sm:p-8 ${cardBg} shadow-xl border ${calmBorder} relative overflow-hidden`}
         >
-          <div className="absolute inset-0 opacity-60 pointer-events-none">
-            <div className="absolute -right-24 -top-24 h-72 w-72 bg-gradient-to-br from-emerald-400/10 via-blue-300/10 to-purple-300/10 blur-3xl" />
-            <div className="absolute -left-24 -bottom-24 h-64 w-64 bg-gradient-to-tr from-emerald-500/10 to-yellow-300/10 blur-3xl" />
+          <div className="absolute inset-0 pointer-events-none opacity-70">
+            <div className="absolute -top-24 -left-20 w-72 h-72 bg-gradient-to-br from-[#4E6E49]/18 via-sky-400/12 to-transparent blur-3xl" />
+            <div className="absolute bottom-[-140px] right-10 w-72 h-72 bg-gradient-to-tr from-amber-300/14 via-emerald-400/12 to-transparent blur-3xl" />
           </div>
 
           <div className="relative z-10 space-y-6">
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-              <div className="space-y-3 max-w-3xl">
-                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.15em] text-emerald-600 dark:text-emerald-300">
-                  <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                  Рейтинг команды
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-3 rounded-2xl bg-gradient-to-br from-[#4E6E49] via-emerald-500 to-sky-500 text-white shadow-lg shadow-emerald-500/30">
+                  <span className="text-xl">⭐</span>
                 </div>
-                <h1 className="text-2xl sm:text-3xl font-extrabold bg-gradient-to-r from-[#4E6E49] via-emerald-500 to-blue-500 bg-clip-text text-transparent">
-                  Обзор эффективности команды ApeVault Black OPS
-                </h1>
-                <p className={`text-sm sm:text-base leading-relaxed ${subTextColor}`}>
-                  7 ключевых метрик отражают вовлеченность, стабильность и вклад каждого. 
-                  Все показатели обновляются автоматически, кроме добавления и удаления рефералов.
-                </p>
+                <div className="flex flex-col justify-center">
+                  <h1 className={`text-2xl sm:text-3xl font-extrabold ${headingColor} drop-shadow-lg leading-tight`}>
+                    Рейтинг команды
+                  </h1>
+                </div>
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 w-full lg:w-auto">
@@ -222,7 +219,7 @@ export const Rating = () => {
                     className={`rounded-xl border ${calmBorder} ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'} p-3 flex flex-col gap-1`}
                   >
                     <span className={`text-[11px] uppercase tracking-wide ${subTextColor}`}>{item.label}</span>
-                    <span className={`text-2xl font-extrabold ${headingColor}`}>{item.value}</span>
+                    <span className="text-2xl font-extrabold text-white">{item.value}</span>
                     <span className={`text-xs ${subTextColor}`}>{item.note}</span>
                   </div>
                 ))}

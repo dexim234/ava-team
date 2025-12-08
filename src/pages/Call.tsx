@@ -617,17 +617,29 @@ export const CallPage = () => {
                   const trader = TEAM_MEMBERS.find(t => t.id === call.userId)
                   const keyCopyValue = details.ticker || details.pair || details.coin || getPrimaryTitle(call)
                   const createdDate = new Date(call.createdAt).toLocaleDateString('ru-RU', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+                  const tone = categoryTone[call.category]
+
+                  const metrics = [
+                    { label: 'Статус', value: statusMeta.label },
+                    { label: 'Риск', value: riskLevel },
+                    { label: 'Дата', value: createdDate },
+                    { label: 'Трейдер', value: trader?.name || '—' },
+                    { label: 'Категория', value: meta.label },
+                  ]
 
                   return (
-                    <div key={call.id} className={`${bgColor} rounded-2xl border ${borderColor} shadow-lg overflow-hidden`}>
-                      <div className="border-b border-gray-800/30 flex items-center justify-between px-4 py-3">
-                        <div className="flex items-center gap-2">
-                          <span className={`flex items-center gap-2 px-3 py-1 rounded-lg text-sm font-semibold ${meta.chip}`}>
+                    <div
+                      key={call.id}
+                      className={`rounded-2xl border shadow-lg overflow-hidden transition-all hover:-translate-y-0.5 ${tone.border} ${tone.bg}`}
+                    >
+                      <div className="border-b border-white/10 dark:border-gray-800/60 flex items-center justify-between px-4 py-3 bg-black/5 dark:bg-white/5">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm font-semibold ${tone.chipBg || ''} ${tone.text}`}>
                             {meta.icon}
                             {meta.label}
                           </span>
-                          <span className={`px-3 py-1 rounded-lg text-xs font-semibold ${statusMeta.className}`}>{statusMeta.label}</span>
-                          <span className={`px-3 py-1 rounded-lg text-xs font-semibold ${riskBadges[riskLevel]}`}>Риск: {riskLevel}</span>
+                          <span className={`px-3 py-1 rounded-full text-xs font-semibold ${statusMeta.className}`}>{statusMeta.label}</span>
+                          <span className={`px-3 py-1 rounded-full text-xs font-semibold ${riskBadges[riskLevel]}`}>Риск: {riskLevel}</span>
                         </div>
                         <div className="flex items-center gap-2">
                           {trader && (
@@ -638,7 +650,6 @@ export const CallPage = () => {
                               <span className={`text-xs ${subtleColor}`}>{trader.name}</span>
                             </div>
                           )}
-                          <span className={`text-xs ${subtleColor}`}>{createdDate}</span>
                           <button
                             onClick={() => handleEdit(call)}
                             className={`p-2 rounded-lg ${theme === 'dark' ? 'hover:bg-gray-800' : 'hover:bg-gray-100'}`}
@@ -655,12 +666,12 @@ export const CallPage = () => {
                       </div>
 
                       <div className="p-5 space-y-4">
-                        <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-                          <div>
+                        <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                          <div className="space-y-1">
                             <p className={`text-2xl font-bold ${textColor}`}>{getPrimaryTitle(call)}</p>
                             <p className={`text-sm ${subtleColor}`}>{getSecondary(call)}</p>
                           </div>
-                          <div className="flex items-center gap-2">
+                          <div className="flex flex-wrap gap-2">
                             <button
                               onClick={() => copyValue(keyCopyValue)}
                               className={`px-3 py-2 rounded-xl border ${borderColor} ${theme === 'dark' ? 'hover:bg-gray-800' : 'hover:bg-gray-100'} text-sm font-semibold flex items-center gap-2`}
@@ -669,6 +680,15 @@ export const CallPage = () => {
                               {copiedValue === keyCopyValue ? 'Скопировано' : 'Скопировать'}
                             </button>
                           </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
+                          {metrics.map((m) => (
+                            <div key={m.label} className="p-2.5 rounded-xl bg-white/60 dark:bg-black/20 border border-white/60 dark:border-white/10">
+                              <p className="text-[11px] uppercase tracking-wide text-gray-500 dark:text-gray-400">{m.label}</p>
+                              <p className={`text-sm font-semibold ${textColor}`}>{m.value}</p>
+                            </div>
+                          ))}
                         </div>
 
                         {renderFieldsGrid(call)}

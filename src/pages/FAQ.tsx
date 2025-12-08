@@ -426,13 +426,9 @@ export const FAQ = () => {
                       >
                         {String(index + 1).padStart(2, '0')}
                       </span>
-                      <div
-                        className={`flex items-center gap-2 text-xs sm:text-sm font-semibold ${
-                          theme === 'dark' ? stage.darkAccent : stage.lightAccent
-                        } uppercase tracking-[0.08em]`}
-                      >
+                      <div className="flex items-center gap-2 text-xs sm:text-sm font-semibold">
                         {stage.icon}
-                        <span>{stage.title}</span>
+                        <span className={headingColor}>{stage.title}</span>
                       </div>
                     </div>
                   </div>
