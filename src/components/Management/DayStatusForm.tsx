@@ -319,12 +319,6 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
     }
   }
 
-  const typeLabels = {
-    dayoff: 'Выходной',
-    sick: 'Больничный',
-    vacation: 'Отпуск',
-  }
-
   const typeColors = {
     dayoff: 'bg-yellow-500',
     sick: 'bg-purple-500',
