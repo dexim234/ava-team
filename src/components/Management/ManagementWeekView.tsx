@@ -1,5 +1,6 @@
 // Week view for management
 import { useState, useEffect, useMemo } from 'react'
+import { parseISO } from 'date-fns'
 import { useThemeStore } from '@/store/themeStore'
 import { useAuthStore } from '@/store/authStore'
 import { useAdminStore } from '@/store/adminStore'
@@ -21,10 +22,11 @@ type StatusRange = {
   primary: DayStatus
 }
 
-const addDays = (dateStr: string, days: number) => {
-  const d = new Date(dateStr)
-  d.setDate(d.getDate() + days)
-  return formatDate(d, 'yyyy-MM-dd')
+const isAdjacentOrOverlap = (prevEnd: string, nextStart: string) => {
+  const prevEndDate = parseISO(prevEnd)
+  const nextStartDate = parseISO(nextStart)
+  const diffDays = Math.round((nextStartDate.getTime() - prevEndDate.getTime()) / (1000 * 60 * 60 * 24))
+  return diffDays <= 1
 }
 
 interface ManagementWeekViewProps {
@@ -63,7 +65,7 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
         last.userId === s.userId &&
         last.type === s.type &&
         commentsEqual &&
-        addDays(last.end, 1) >= start // соседние или пересекающиеся даты
+        isAdjacentOrOverlap(last.end, start) // соседние или пересекающиеся даты
       ) {
         if (end > last.end) {
           last.end = end
@@ -349,7 +351,7 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
                           statusTone[range.type]
                         }`}
                       >
-                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 justify-center sm:justify-start w-full">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 justify-center text-center w-full">
                           <span className="font-semibold text-base sm:text-lg">{displayName}</span>
                           <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/70 dark:bg-white/10 text-xs sm:text-sm font-semibold">
                             {range.type === 'dayoff' ? 'Выходной' : range.type === 'sick' ? 'Больничный' : 'Отпуск'}
