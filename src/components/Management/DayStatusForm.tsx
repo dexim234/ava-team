@@ -339,12 +339,6 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
     '5': 'Sydney',
   }
 
-  const gradientByType = {
-    dayoff: 'from-amber-400/15 via-yellow-300/10 to-transparent',
-    sick: 'from-purple-500/20 via-indigo-500/10 to-transparent',
-    vacation: 'from-orange-400/20 via-amber-500/10 to-transparent',
-  }
-
   const previewDates =
     adminBulkMode && dateMode === 'range'
       ? [`${formatDate(rangeStart, 'dd.MM')}–${formatDate(rangeEnd, 'dd.MM')}`]
@@ -377,8 +371,7 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
 
   return (
     <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-xl flex items-start sm:items-center justify-center z-[70] p-4 sm:p-6 touch-manipulation overflow-y-auto overscroll-contain modal-scroll">
-      <div className={`w-full max-w-[52rem] rounded-3xl shadow-[0_28px_80px_rgba(0,0,0,0.55)] border ${theme === 'dark' ? 'bg-gradient-to-br from-[#0a1020] via-[#0b1222] to-[#060c16] border-white/10' : 'bg-gradient-to-br from-white via-slate-50 to-white border-slate-200'} max-h-[85dvh] sm:max-h-[calc(100dvh-96px)] overflow-y-auto relative`}>
-        <div className={`absolute inset-0 pointer-events-none bg-gradient-to-br ${gradientByType[type]} opacity-90`} />
+      <div className={`w-full max-w-[52rem] rounded-3xl shadow-[0_28px_80px_rgba(0,0,0,0.55)] border ${theme === 'dark' ? 'bg-[#0b1222] border-white/10' : 'bg-white border-slate-200'} max-h-[85dvh] sm:max-h-[calc(100dvh-96px)] overflow-y-auto relative`}>
         <div className="relative p-4 sm:p-6 lg:p-7 flex flex-col h-full min-h-0 overflow-y-auto modal-scroll">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div className="space-y-3">
@@ -386,7 +379,8 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
                 <span className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-black/10 backdrop-blur text-[#4E6E49] border border-[#4E6E49]/30 uppercase">
                   {badgeLabel}
                 </span>
-                <span className={`${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>расписание команды</span>
+                <span className={`${theme === 'dark' ? 'text-white' : 'text-gray-900'} sm:inline hidden`}>расписание команды</span>
+                <span className={`${theme === 'dark' ? 'text-white' : 'text-gray-900'} sm:hidden inline`}>Расписание</span>
               </div>
               <div className="flex items-center gap-3 flex-wrap">
                 <h3 className={`text-2xl sm:text-3xl font-bold ${headingColor}`}>

@@ -28,6 +28,30 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
   const [selectedWeek, setSelectedWeek] = useState(new Date())
   const [loading, setLoading] = useState(true)
 
+  const nicknameMap: Record<string, string> = {
+    '1': 'Dex',
+    '2': 'Merc',
+    '3': 'Xenia',
+    '4': 'Olenka',
+    '5': 'Sydney',
+  }
+
+  const legacyIdMap: Record<string, string> = {
+    artyom: '1',
+    adel: '2',
+    kseniya: '3',
+    olga: '4',
+    anastasia: '5',
+  }
+
+  const resolveUser = (userId: string) => {
+    const member = TEAM_MEMBERS.find((u) => u.id === userId) || TEAM_MEMBERS.find((u) => legacyIdMap[userId] === u.id)
+    return {
+      member,
+      displayName: nicknameMap[member?.id || userId] || member?.name || userId,
+    }
+  }
+
   const weekDays = getWeekDays(selectedWeek)
 
   useEffect(() => {
@@ -342,19 +366,7 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
               <div className="space-y-3 sm:space-y-4">
                 {/* Statuses */}
                 {dayStatuses.map((status) => {
-                  const statusUser = TEAM_MEMBERS.find((u) => u.id === status.userId)
-                  // Fallback: try to find by old ID format if not found
-                  const statusUserFallback = statusUser || TEAM_MEMBERS.find((u) => {
-                    const oldIdMap: Record<string, string> = {
-                      'artyom': '1',
-                      'adel': '2',
-                      'kseniya': '3',
-                      'olga': '4',
-                      'anastasia': '5'
-                    }
-                    return oldIdMap[status.userId] === u.id
-                  })
-                  const displayName = statusUserFallback?.name || status.userId
+                  const { member: statusUser, displayName } = resolveUser(status.userId)
                   return (
                     <div
                       key={status.id}
@@ -417,19 +429,7 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
 
                 {/* Slots */}
                 {daySlots.map((slot) => {
-                  const slotUser = TEAM_MEMBERS.find((u) => u.id === slot.userId)
-                  // Fallback: try to find by old ID format if not found
-                  const slotUserFallback = slotUser || TEAM_MEMBERS.find((u) => {
-                    const oldIdMap: Record<string, string> = {
-                      'artyom': '1',
-                      'adel': '2',
-                      'kseniya': '3',
-                      'olga': '4',
-                      'anastasia': '5'
-                    }
-                    return oldIdMap[slot.userId] === u.id
-                  })
-                  const displayName = slotUserFallback?.name || slot.userId
+                  const { member: slotUser, displayName } = resolveUser(slot.userId)
                   const isUpcoming = isSlotUpcoming(slot)
                   const slotBg = isUpcoming 
                     ? 'bg-gradient-to-r from-emerald-500 to-teal-600 border-emerald-300/40' 
@@ -448,9 +448,9 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
                       <div className="flex items-center justify-between border-b border-white/20 pb-2 sm:pb-3">
                         <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
                           <div className="relative flex-shrink-0 group/avatar">
-                            {slotUserFallback?.avatar ? (
+                            {slotUser?.avatar ? (
                               <img 
-                                src={slotUserFallback.avatar} 
+                                src={slotUser.avatar} 
                                 alt={displayName}
                                 className={`w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 lg:w-11 lg:h-11 rounded-full object-cover border-2 shadow-xl transition-all duration-300 group-hover/avatar:scale-110 group-hover/avatar:shadow-2xl ${
                                   isUpcoming 
@@ -470,7 +470,7 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
                                 isUpcoming 
                                   ? 'bg-white/25 backdrop-blur-md border-2 border-white/40 ring-2 ring-white/30 group-hover/avatar:ring-4 group-hover/avatar:ring-white/60' 
                                   : 'bg-white/15 backdrop-blur-md border-2 border-white/30 ring-2 ring-white/20 group-hover/avatar:ring-4 group-hover/avatar:ring-white/50'
-                              } ${slotUserFallback?.avatar ? 'absolute inset-0 hidden' : ''}`}
+                              } ${slotUser?.avatar ? 'absolute inset-0 hidden' : ''}`}
                             >
                               {displayName.charAt(0).toUpperCase()}
                             </div>

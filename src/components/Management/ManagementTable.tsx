@@ -27,6 +27,27 @@ export const ManagementTable = ({ selectedUserId, slotFilter, onEditSlot, onEdit
   const [selectedWeek, setSelectedWeek] = useState(new Date())
   const [loading, setLoading] = useState(true)
 
+  const nicknameMap: Record<string, string> = {
+    '1': 'Dex',
+    '2': 'Merc',
+    '3': 'Xenia',
+    '4': 'Olenka',
+    '5': 'Sydney',
+  }
+
+  const legacyIdMap: Record<string, string> = {
+    artyom: '1',
+    adel: '2',
+    kseniya: '3',
+    olga: '4',
+    anastasia: '5',
+  }
+
+  const getDisplayName = (userId: string) => {
+    const member = TEAM_MEMBERS.find((u) => u.id === userId) || TEAM_MEMBERS.find((u) => legacyIdMap[userId] === u.id)
+    return nicknameMap[member?.id || userId] || member?.name || userId
+  }
+
   const weekDays = getWeekDays(selectedWeek)
   const displayUsers = selectedUserId ? TEAM_MEMBERS.filter((u) => u.id === selectedUserId) : TEAM_MEMBERS
 
@@ -271,7 +292,7 @@ export const ManagementTable = ({ selectedUserId, slotFilter, onEditSlot, onEdit
               <tr className={`${theme === 'dark' ? 'bg-[#0f172a]' : 'bg-gray-50'} shadow-sm`}>
                 <th className={`px-2 sm:px-3 md:px-4 py-3 text-left text-xs sm:text-sm font-semibold ${headingColor} sticky left-0 z-30 ${
                   theme === 'dark' ? 'bg-[#0f172a]' : 'bg-gray-50'
-                }`}>Участник</th>
+                }`}>Член</th>
                 {weekDays.map((day) => (
                   <th key={day.toISOString()} className="px-1.5 sm:px-2 md:px-3 lg:px-4 py-3">
                     <div className={`mx-auto w-full max-w-[110px] rounded-xl border ${theme === 'dark' ? 'border-white/10 bg-white/5 text-white' : 'border-gray-200 bg-white text-gray-900'} shadow-sm text-center`}>
@@ -304,7 +325,7 @@ export const ManagementTable = ({ selectedUserId, slotFilter, onEditSlot, onEdit
                     hover:scale-[1.01] hover:-translate-y-0.5
                   `}
                 >
-                  <td className={`px-2 sm:px-3 md:px-4 py-2 sm:py-3 md:py-4 font-semibold text-xs sm:text-sm ${headingColor} sticky left-0 z-10 transition-all duration-300 backdrop-blur-sm min-w-[140px] sm:min-w-[160px] ${
+                  <td className={`px-2 sm:px-3 md:px-4 py-2 sm:py-3 md:py-4 font-semibold text-xs sm:text-sm ${headingColor} sticky left-0 z-10 transition-all duration-300 backdrop-blur-sm min-w-[120px] sm:min-w-[140px] ${
                     isEven 
                       ? theme === 'dark' 
                         ? 'bg-gradient-to-r from-[#1a1a1a]/40 via-[#1a1a1a]/20 to-transparent group-hover:from-[#1a1a1a]/70 group-hover:via-[#1a1a1a]/50' 
@@ -315,10 +336,10 @@ export const ManagementTable = ({ selectedUserId, slotFilter, onEditSlot, onEdit
                   }`}>
                       <div className="flex items-center gap-2 sm:gap-3">
                       <div className="relative flex-shrink-0 group/avatar">
-                        {user.avatar ? (
+                            {user.avatar ? (
                           <img 
                             src={user.avatar} 
-                            alt={user.name}
+                                alt={getDisplayName(user.id)}
                             className="w-8 h-8 sm:w-10 sm:h-10 md:w-11 md:h-11 rounded-full object-cover border-2 shadow-lg transition-all duration-300 group-hover:scale-110 group-hover:shadow-xl group-hover:shadow-#4E6E49/30 ring-2 ring-transparent group-hover:ring-#4E6E49/50"
                             style={{
                               borderColor: theme === 'dark' ? 'rgba(34, 197, 94, 0.6)' : 'rgba(34, 197, 94, 0.4)',
@@ -339,12 +360,12 @@ export const ManagementTable = ({ selectedUserId, slotFilter, onEditSlot, onEdit
                               : 'bg-gradient-to-br from-[#4E6E49] via-[#4E6E49] to-blue-400 text-white group-hover/avatar:shadow-#4E6E49/40'
                           } ${user.avatar ? 'absolute inset-0 hidden' : ''}`}
                         >
-                          {user.name.charAt(0).toUpperCase()}
+                          {getDisplayName(user.id).charAt(0).toUpperCase()}
                         </div>
                         <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 sm:w-3 sm:h-3 md:w-3.5 md:h-3.5 bg-[#4E6E49] rounded-full border border-white sm:border-2 shadow-lg animate-pulse opacity-0 group-hover/avatar:opacity-100 transition-opacity duration-300"></div>
                       </div>
-                      <span className="font-semibold group-hover:text-[#4E6E49] transition-colors duration-300 truncate hidden sm:inline">{user.name}</span>
-                      <span className="font-semibold group-hover:text-[#4E6E49] transition-colors duration-300 sm:hidden">{(user.name.split(' ')[0] || user.name).substring(0, 8)}</span>
+                      <span className="font-semibold group-hover:text-[#4E6E49] transition-colors duration-300 truncate hidden sm:inline">{getDisplayName(user.id)}</span>
+                      <span className="font-semibold group-hover:text-[#4E6E49] transition-colors duration-300 sm:hidden">{(getDisplayName(user.id).split(' ')[0] || getDisplayName(user.id)).substring(0, 8)}</span>
                     </div>
                   </td>
                   {weekDays.map((day) => {

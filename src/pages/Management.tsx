@@ -152,8 +152,26 @@ export const Management = () => {
     return hasFutureEndDate
   }
 
-  const getMemberName = (userId: string) =>
-    TEAM_MEMBERS.find((member) => member.id === userId)?.name || userId
+  const nicknameMap: Record<string, string> = {
+    '1': 'Dex',
+    '2': 'Merc',
+    '3': 'Xenia',
+    '4': 'Olenka',
+    '5': 'Sydney',
+  }
+
+  const legacyIdMap: Record<string, string> = {
+    artyom: '1',
+    adel: '2',
+    kseniya: '3',
+    olga: '4',
+    anastasia: '5',
+  }
+
+  const getMemberName = (userId: string) => {
+    const member = TEAM_MEMBERS.find((m) => m.id === userId) || TEAM_MEMBERS.find((m) => legacyIdMap[userId] === m.id)
+    return nicknameMap[member?.id || userId] || member?.name || userId
+  }
 
   const loadStats = async () => {
     try {
@@ -347,21 +365,21 @@ export const Management = () => {
       tone: 'emerald',
     },
     {
-      label: 'Активные участники',
+      label: 'Активные члены',
       value: stats.activeMembers,
       note: 'за неделю',
       icon: <Users className="w-4 h-4" />,
       tone: 'purple',
     },
     {
-      label: 'Самый активный участник недели',
+      label: 'Самый активный член недели',
       value: stats.mostActive || 'Нет данных',
       note: 'по слотам',
       icon: <Activity className="w-4 h-4" />,
       tone: 'amber',
     },
     {
-      label: 'Самые неактивные участники недели',
+      label: 'Самые неактивные члены недели',
       value: stats.leastActive.length ? stats.leastActive.join(', ') : 'Нет данных',
       note: 'минимум слотов',
       icon: <ArrowDownRight className="w-4 h-4" />,
@@ -423,10 +441,9 @@ export const Management = () => {
                     <CalendarCheck className="w-6 h-6 text-[#4E6E49]" />
                   </div>
                   <div className="flex items-center">
-                    <h1 className="text-xl sm:text-3xl font-extrabold leading-tight">
-                      <span className="bg-gradient-to-r from-[#4E6E49] via-emerald-600 to-sky-500 text-transparent bg-clip-text">
-                        Расписание команды
-                      </span>
+                    <h1 className={`text-xl sm:text-3xl font-extrabold leading-tight ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                      <span className="sm:inline hidden">Расписание команды</span>
+                      <span className="sm:hidden inline">Расписание</span>
                     </h1>
                   </div>
                 </div>
@@ -562,7 +579,7 @@ export const Management = () => {
           </div>
 
           <div className={`${surfaceCardClass} p-3 sm:p-4 space-y-2`}>
-            <p className={`text-sm font-semibold ${headingColor}`}>Участники</p>
+            <p className={`text-sm font-semibold ${headingColor}`}>Члены</p>
             <div className="flex gap-2 overflow-x-auto pb-1">
               <button
                 onClick={() => setSelectedUserId(null)}
@@ -574,7 +591,7 @@ export const Management = () => {
                     : 'bg-gray-50 border-gray-200 text-gray-700 hover:border-[#4E6E49]/40'
                 }`}
               >
-                Все участники
+                Все члены
               </button>
               {TEAM_MEMBERS.map((member) => (
                 <button
@@ -589,9 +606,9 @@ export const Management = () => {
                   }`}
                 >
                   <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-gradient-to-br from-[#4E6E49]/30 to-blue-500/30 text-xs font-bold">
-                    {member.name.charAt(0)}
+                    {(nicknameMap[member.id] || member.name).charAt(0)}
                   </span>
-                  {member.name}
+                  {nicknameMap[member.id] || member.name}
                 </button>
               ))}
             </div>
