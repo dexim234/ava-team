@@ -224,7 +224,15 @@ export interface Call {
 
 // Task types
 export type TaskCategory = 'trading' | 'learning' | 'technical' | 'stream' | 'research' | 'organization'
-export type TaskStatus = 'pending' | 'in_progress' | 'completed' | 'closed' | 'rejected'
+export type TaskStatus = 'pending' | 'in_progress' | 'approval' | 'completed' | 'closed' | 'rejected'
+export type TaskPriority = 'low' | 'medium' | 'high' | 'urgent'
+
+export interface StageAssignee {
+  userId: string
+  priority: TaskPriority
+  comment?: string
+  instruction?: string
+}
 export interface TaskApproval {
   userId: string
   status: 'approved' | 'rejected' | 'pending'
@@ -235,7 +243,7 @@ export interface TaskApproval {
 
 export interface TaskAssignee {
   userId: string
-  priority: 'low' | 'medium' | 'high'
+  priority: TaskPriority
   comment?: string
 }
 
@@ -254,19 +262,24 @@ export interface Task {
   completedAt?: string
   closedAt?: string
   completedBy?: string // user ID
-  priority?: 'low' | 'medium' | 'high'
+  priority?: TaskPriority
   dueDate: string // YYYY-MM-DD format (обязательно)
   dueTime: string // HH:mm format (обязательно)
   startTime?: string // HH:mm format (необязательно)
+  expectedResult?: string
+  requiresApproval?: boolean
   // Роли
   mainExecutor?: string // главный исполнитель
+  leadExecutor?: string // ведущий исполнитель
   deputies?: { userId: string; responsibility?: string }[]
-  executors?: string[]
+  coExecutors?: string[] // соисполнители
+  executors?: string[] // legacy
   curators?: string[]
   leads?: string[]
   // Этапы и комментарии
   stages?: TaskStage[]
   currentStageId?: string
+  awaitingStageId?: string // этап, ожидающий подтверждение автора/ГИ
   comments?: TaskComment[]
 }
 
@@ -275,6 +288,9 @@ export interface TaskStage {
   name: string
   description?: string
   responsible: 'all' | string[] // 'all' = все исполнители/роли
+  assignees?: StageAssignee[] // расширенные данные об ответственных
+  stagePriority?: TaskPriority
+  requiresApproval?: boolean
   approvals: TaskApproval[]
   comments?: TaskComment[]
   status: 'pending' | 'approved' | 'rejected'
@@ -319,8 +335,9 @@ export const TASK_CATEGORIES: Record<TaskCategory, { label: string; icon: string
 export const TASK_STATUSES: Record<TaskStatus, { label: string; color: string }> = {
   pending: { label: 'Проверка', color: 'yellow' },
   in_progress: { label: 'В работе', color: 'blue' },
-  completed: { label: 'Выполнена', color: 'green' },
-  closed: { label: 'Закрыта', color: 'gray' },
+  approval: { label: 'Согласование', color: 'purple' },
+  completed: { label: 'Выполнено', color: 'green' },
+  closed: { label: 'Закрыто', color: 'gray' },
   rejected: { label: 'Отклонена', color: 'red' },
 }
 

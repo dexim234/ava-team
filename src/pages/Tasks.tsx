@@ -8,9 +8,9 @@ import { TaskCard } from '@/components/Tasks/TaskCard'
 import { TaskFilters } from '@/components/Tasks/TaskFilters'
 import { TaskKanban } from '@/components/Tasks/TaskKanban'
 import { getTasks, deleteTask } from '@/services/firestoreService'
-import { Task, TaskCategory, TaskStatus } from '@/types'
-import { BarChart3, CheckSquare, LayoutGrid, List, PieChart, Plus, Sparkles } from 'lucide-react'
-import { Link as RouterLink } from 'react-router-dom'
+import { Task, TaskCategory, TaskStatus, TEAM_MEMBERS } from '@/types'
+import { CheckSquare, LayoutGrid, List, Plus, Sparkles } from 'lucide-react'
+import { formatDate } from '@/utils/dateUtils'
 
 export const Tasks = () => {
   const { theme } = useThemeStore()
@@ -102,15 +102,74 @@ export const Tasks = () => {
   const stats = {
     pending: tasks.filter(t => t.status === 'pending').length,
     inProgress: tasks.filter(t => t.status === 'in_progress').length,
+    onApproval: tasks.filter(t => t.status === 'approval').length,
     completed: tasks.filter(t => t.status === 'completed').length,
     closed: tasks.filter(t => t.status === 'closed').length,
   }
 
-  const myTasksCount = user ? tasks.filter(t => t.assignedTo?.includes(user.id)).length : 0
+  const now = new Date()
+  const todayStr = formatDate(now, 'yyyy-MM-dd')
+  const weekAgo = new Date(now)
+  weekAgo.setDate(now.getDate() - 7)
+  const monthAgo = new Date(now)
+  monthAgo.setDate(now.getDate() - 30)
+
+  const tasksThisWeek = tasks.filter((t) => new Date(t.createdAt) >= weekAgo).length
+  const tasksThisMonth = tasks.filter((t) => new Date(t.createdAt) >= monthAgo).length
+  const tasksDoneToday = tasks.filter((t) => t.completedAt && t.completedAt.startsWith(todayStr)).length
+
+  const myRoleTasks = user
+    ? tasks.filter(
+        (t) =>
+          t.mainExecutor === user.id ||
+          t.leadExecutor === user.id ||
+          (t.assignedTo || []).includes(user.id) ||
+          (t.coExecutors || []).includes(user.id)
+      )
+    : []
+
+  const myTasksCount = myRoleTasks.length
   const totalTasks = tasks.length
-  const completionRate = totalTasks ? Math.round(((stats.completed + stats.closed) / totalTasks) * 100) : 0
   const workRate = totalTasks ? Math.round((stats.inProgress / totalTasks) * 100) : 0
-  const pendingRate = totalTasks ? Math.round((stats.pending / totalTasks) * 100) : 0
+
+  const topExecutorId = (() => {
+    const counter: Record<string, number> = {}
+    tasks.forEach((task) => {
+      const ids = [
+        task.mainExecutor,
+        task.leadExecutor,
+        ...(task.assignedTo || []),
+        ...(task.coExecutors || []),
+      ].filter(Boolean) as string[]
+      ids.forEach((id) => {
+        counter[id] = (counter[id] || 0) + 1
+      })
+    })
+    const sorted = Object.entries(counter).sort((a, b) => b[1] - a[1])
+    return sorted[0]?.[0] || ''
+  })()
+  const topExecutorName = topExecutorId ? TEAM_MEMBERS.find((m) => m.id === topExecutorId)?.name || topExecutorId : '—'
+
+  const upcomingTask = tasks
+    .filter((t) => t.status !== 'completed' && t.status !== 'closed')
+    .sort((a, b) => new Date(`${a.dueDate}T${a.dueTime}`).getTime() - new Date(`${b.dueDate}T${b.dueTime}`).getTime())[0]
+
+  const statCards = [
+    { label: 'Всего задач на неделе', value: tasksThisWeek, sub: 'последние 7 дней', tone: 'sky' },
+    { label: 'Всего задач на месяце', value: tasksThisMonth, sub: 'последние 30 дней', tone: 'emerald' },
+    { label: 'Задач на проверке', value: stats.pending + stats.onApproval, sub: `${stats.pending} на старте · ${stats.onApproval} на согласовании`, tone: 'amber' },
+    { label: 'Задач в работе', value: stats.inProgress, sub: `${workRate}% от всех`, tone: 'blue' },
+    { label: 'Самый активный исполнитель', value: topExecutorName, sub: 'по числу назначений', tone: 'purple' },
+    { label: 'Закрыто задач', value: stats.completed + stats.closed, sub: 'выполнено и закрыто', tone: 'slate' },
+    { label: 'Ближайший дедлайн', value: upcomingTask ? upcomingTask.title : 'Нет активных', sub: upcomingTask ? `${formatDate(new Date(upcomingTask.dueDate), 'dd.MM.yyyy')} · ${upcomingTask.dueTime}` : 'Свободное окно', tone: 'pink' },
+    { label: 'Сделано задач за сегодня', value: tasksDoneToday, sub: todayStr, tone: 'green' },
+  ]
+
+  const navItems = [
+    { href: '#tasks-board', label: 'Все задачи' },
+    { href: '#my-tasks', label: 'Мои задачи', action: () => user && setSelectedUsers([user.id]) },
+    { href: '#tasks-stats', label: 'Статистика' },
+  ]
 
   return (
     <Layout>
@@ -131,7 +190,7 @@ export const Tasks = () => {
                 <div className="flex items-center gap-2 sm:gap-3 mb-2">
                   <CheckSquare className={`w-6 h-6 sm:w-8 sm:h-8 ${theme === 'dark' ? 'text-[#4E6E49]' : 'text-[#4E6E49]'}`} />
                   <h1 className={`text-2xl sm:text-3xl md:text-4xl font-extrabold ${headingColor} flex items-center gap-2`}>
-                    Задачи
+                    Task Team
                     <Sparkles className={`w-5 h-5 sm:w-6 sm:h-6 ${theme === 'dark' ? 'text-yellow-400' : 'text-yellow-600'}`} />
                   </h1>
                 </div>
@@ -140,14 +199,11 @@ export const Tasks = () => {
                 </p>
 
                 <div className="flex flex-wrap gap-2 mt-2">
-                  {[
-                    { href: '#tasks-stats', label: 'Обзор' },
-                    { href: '#tasks-board', label: 'Доска' },
-                    { href: '#tasks-filters', label: 'Фильтры' },
-                  ].map((item) => (
+                  {navItems.map((item) => (
                     <a
                       key={item.href}
                       href={item.href}
+                      onClick={() => item.action?.()}
                       className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition ${
                         theme === 'dark'
                           ? 'border-white/10 bg-white/5 text-white hover:border-[#4E6E49]/50'
@@ -162,85 +218,81 @@ export const Tasks = () => {
             </div>
 
             {/* Stats */}
-            <div id="tasks-stats" className="grid grid-cols-1 lg:grid-cols-[1.6fr_1fr] gap-4 sm:gap-5">
-              {/* Progress board */}
-              <div className={`rounded-xl border-2 p-4 sm:p-5 ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-green-100 bg-white/80'} backdrop-blur`}>
-                <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <p className={`text-xs uppercase tracking-wide font-semibold ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Состояние пайплайна</p>
-                    <p className={`text-2xl sm:text-3xl font-extrabold ${headingColor}`}>{completionRate}% завершено</p>
+            <div id="tasks-stats" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+              {statCards.map((card) => {
+                const toneMap: Record<string, { bg: string; text: string; border: string }> = {
+                  emerald: { bg: theme === 'dark' ? 'bg-emerald-500/10' : 'bg-emerald-50', text: theme === 'dark' ? 'text-emerald-100' : 'text-emerald-800', border: theme === 'dark' ? 'border-emerald-500/30' : 'border-emerald-200' },
+                  sky: { bg: theme === 'dark' ? 'bg-sky-500/10' : 'bg-sky-50', text: theme === 'dark' ? 'text-sky-100' : 'text-sky-800', border: theme === 'dark' ? 'border-sky-500/30' : 'border-sky-200' },
+                  amber: { bg: theme === 'dark' ? 'bg-amber-500/10' : 'bg-amber-50', text: theme === 'dark' ? 'text-amber-100' : 'text-amber-800', border: theme === 'dark' ? 'border-amber-500/30' : 'border-amber-200' },
+                  blue: { bg: theme === 'dark' ? 'bg-blue-500/10' : 'bg-blue-50', text: theme === 'dark' ? 'text-blue-100' : 'text-blue-800', border: theme === 'dark' ? 'border-blue-500/30' : 'border-blue-200' },
+                  purple: { bg: theme === 'dark' ? 'bg-purple-500/10' : 'bg-purple-50', text: theme === 'dark' ? 'text-purple-100' : 'text-purple-800', border: theme === 'dark' ? 'border-purple-500/30' : 'border-purple-200' },
+                  slate: { bg: theme === 'dark' ? 'bg-gray-500/10' : 'bg-gray-50', text: theme === 'dark' ? 'text-gray-100' : 'text-gray-800', border: theme === 'dark' ? 'border-gray-500/30' : 'border-gray-200' },
+                  pink: { bg: theme === 'dark' ? 'bg-pink-500/10' : 'bg-pink-50', text: theme === 'dark' ? 'text-pink-100' : 'text-pink-800', border: theme === 'dark' ? 'border-pink-500/30' : 'border-pink-200' },
+                  green: { bg: theme === 'dark' ? 'bg-green-500/10' : 'bg-green-50', text: theme === 'dark' ? 'text-green-100' : 'text-green-800', border: theme === 'dark' ? 'border-green-500/30' : 'border-green-200' },
+                }
+                const tone = toneMap[card.tone]
+                return (
+                  <div key={card.label} className={`p-4 rounded-xl border ${tone.border} ${tone.bg} shadow-sm space-y-1`}>
+                    <p className={`text-xs font-semibold uppercase ${tone.text}`}>{card.label}</p>
+                    <p className={`text-2xl font-extrabold ${headingColor} truncate`}>{card.value}</p>
+                    <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>{card.sub}</p>
                   </div>
-                  <div className={`p-3 rounded-lg ${theme === 'dark' ? 'bg-emerald-500/10 border border-emerald-500/40' : 'bg-emerald-50 border border-emerald-200'}`}>
-                    <PieChart className={`w-6 h-6 ${theme === 'dark' ? 'text-emerald-200' : 'text-emerald-700'}`} />
-                  </div>
-                </div>
-                <div className="space-y-3">
-                  {[
-                    { label: 'Проверка', value: stats.pending, rate: pendingRate, color: 'bg-amber-500', tint: 'bg-amber-500/15' },
-                    { label: 'В работе', value: stats.inProgress, rate: workRate, color: 'bg-sky-500', tint: 'bg-sky-500/15' },
-                    { label: 'Выполнена', value: stats.completed, rate: completionRate, color: 'bg-emerald-500', tint: 'bg-emerald-500/15' },
-                  ].map((row) => (
-                    <div key={row.label} className="space-y-1">
-                      <div className="flex items-center justify-between text-sm font-semibold">
-                        <span className={headingColor}>{row.label}</span>
-                        <span className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>
-                          {row.value} · {row.rate}%
-                        </span>
-                      </div>
-                      <div className={`h-2 rounded-full ${row.tint}`}>
-                        <div
-                          className={`h-full rounded-full ${row.color}`}
-                          style={{ width: `${Math.min(row.rate, 100)}%` }}
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Compact stats */}
-              <div className="grid grid-cols-2 gap-3 sm:gap-4">
-                {[
-                  { label: 'Всего задач', value: totalTasks, icon: <BarChart3 className="w-5 h-5" />, tone: 'emerald' },
-                  { label: 'В работе', value: stats.inProgress, icon: <List className="w-5 h-5" />, tone: 'sky' },
-                  { label: 'Проверка', value: stats.pending, icon: <Sparkles className="w-5 h-5" />, tone: 'amber' },
-                  { label: 'Закрыта', value: stats.closed, icon: <CheckSquare className="w-5 h-5" />, tone: 'slate' },
-                ].map((card) => {
-                  const toneMap: Record<string, { bg: string; text: string; border: string }> = {
-                    emerald: { bg: theme === 'dark' ? 'bg-emerald-500/10' : 'bg-emerald-50', text: theme === 'dark' ? 'text-emerald-200' : 'text-emerald-700', border: theme === 'dark' ? 'border-emerald-500/30' : 'border-emerald-200' },
-                    sky: { bg: theme === 'dark' ? 'bg-sky-500/10' : 'bg-sky-50', text: theme === 'dark' ? 'text-sky-200' : 'text-sky-700', border: theme === 'dark' ? 'border-sky-500/30' : 'border-sky-200' },
-                    amber: { bg: theme === 'dark' ? 'bg-amber-500/10' : 'bg-amber-50', text: theme === 'dark' ? 'text-amber-200' : 'text-amber-700', border: theme === 'dark' ? 'border-amber-500/30' : 'border-amber-200' },
-                    slate: { bg: theme === 'dark' ? 'bg-gray-500/10' : 'bg-gray-50', text: theme === 'dark' ? 'text-gray-200' : 'text-gray-700', border: theme === 'dark' ? 'border-gray-500/30' : 'border-gray-200' },
-                  }
-                  const tone = toneMap[card.tone]
-                  return (
-                    <div key={card.label} className={`p-3 sm:p-4 rounded-xl border ${tone.border} ${tone.bg} space-y-2`}>
-                      <div className="flex items-center justify-between">
-                        <span className={`text-xs font-semibold uppercase ${tone.text}`}>{card.label}</span>
-                        <span className={tone.text}>{card.icon}</span>
-                      </div>
-                      <p className={`text-2xl font-extrabold ${headingColor}`}>{card.value}</p>
-                    </div>
-                  )
-                })}
-              </div>
+                )
+              })}
             </div>
+          </div>
+        </div>
 
-            {user && (
-              <div className="mt-4 flex flex-wrap gap-2">
-                <div className={`px-3 py-2 rounded-lg text-xs font-semibold border ${theme === 'dark' ? 'border-white/10 text-white bg-white/5' : 'border-gray-200 text-gray-800 bg-white'}`}>
-                  Мои задачи: {myTasksCount}
-                </div>
-                <RouterLink
-                  to="/profile"
-                  className={`px-3 py-2 rounded-lg text-xs font-semibold border ${theme === 'dark' ? 'border-white/10 text-white bg-white/5 hover:border-[#4E6E49]/50' : 'border-gray-200 text-gray-800 bg-white hover:border-[#4E6E49]/50 hover:text-[#4E6E49]'}`}
-                >
-                  Перейти в ЛК
-                </RouterLink>
+        {/* My tasks quick view */}
+        {user && (
+          <div
+            id="my-tasks"
+            className={`rounded-xl sm:rounded-2xl p-4 sm:p-6 ${cardBg} border-2 ${
+              theme === 'dark' ? 'border-white/10' : 'border-gray-200'
+            }`}
+          >
+            <div className="flex items-center justify-between gap-3 mb-3">
+              <div>
+                <p className={`text-xs uppercase font-semibold ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                  Мои задачи
+                </p>
+                <p className={`text-xl font-bold ${headingColor}`}>{myTasksCount}</p>
+              </div>
+              <a
+                href="#tasks-board"
+                className={`px-3 py-2 rounded-lg text-xs font-semibold border ${
+                  theme === 'dark'
+                    ? 'border-white/10 bg-white/5 text-white hover:border-[#4E6E49]/50'
+                    : 'border-gray-200 bg-white text-gray-800 hover:border-[#4E6E49]/50 hover:text-[#4E6E49]'
+                }`}
+              >
+                Перейти на доску
+              </a>
+            </div>
+            {myRoleTasks.length === 0 ? (
+              <p className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>Нет назначенных задач</p>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {myRoleTasks.slice(0, 4).map((task) => (
+                  <div
+                    key={task.id}
+                    className={`p-3 rounded-lg border ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-white'}`}
+                  >
+                    <p className={`text-sm font-semibold ${headingColor} truncate`}>{task.title}</p>
+                    <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                      {formatDate(new Date(task.dueDate), 'dd.MM.yyyy')} · {task.dueTime}
+                    </p>
+                    <p className="text-xs mt-1">
+                      <span className={`px-2 py-0.5 rounded-full ${theme === 'dark' ? 'bg-gray-800 text-gray-200' : 'bg-gray-100 text-gray-700'}`}>
+                        {TASK_STATUSES[task.status].label}
+                      </span>
+                    </p>
+                  </div>
+                ))}
               </div>
             )}
           </div>
-        </div>
+        )}
 
         {/* Filters and Add Button */}
         <div className="flex flex-col lg:flex-row gap-4 sm:gap-6" id="tasks-board">

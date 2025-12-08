@@ -4,7 +4,7 @@ import { useThemeStore } from '@/store/themeStore'
 import { useAuthStore } from '@/store/authStore'
 import { useAdminStore } from '@/store/adminStore'
 import { updateTask } from '@/services/firestoreService'
-import { Task, TaskStatus, TASK_STATUSES, TEAM_MEMBERS } from '@/types'
+import { Task, TaskPriority, TaskStatus, TASK_STATUSES, TEAM_MEMBERS } from '@/types'
 import { AlarmClock, CalendarClock, Check, CheckSquare, Clock3, MoreVertical, RotateCcw, X, AlertCircle } from 'lucide-react'
 import { formatDate } from '@/utils/dateUtils'
 import { TaskDeadlineBadge } from './TaskDeadlineBadge'
@@ -31,13 +31,14 @@ export const TaskKanban = ({ tasks, onUpdate, onEdit, onDelete }: TaskKanbanProp
   const [touchTarget, setTouchTarget] = useState<string | null>(null)
   const [commentDrafts, setCommentDrafts] = useState<Record<string, string>>({})
   const [commentTarget, setCommentTarget] = useState<Record<string, 'stage' | 'task'>>({})
+  const [detailsTask, setDetailsTask] = useState<Task | null>(null)
 
   const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
   const cardBg = theme === 'dark' ? 'bg-[#1a1a1a]' : 'bg-white'
   const borderColor = theme === 'dark' ? 'border-gray-800' : 'border-gray-300'
   const inputBg = theme === 'dark' ? 'bg-gray-800' : 'bg-white'
 
-  const statuses: TaskStatus[] = ['pending', 'in_progress', 'completed', 'closed', 'rejected']
+  const statuses: TaskStatus[] = ['pending', 'in_progress', 'approval', 'completed', 'closed', 'rejected']
 
   const resolveAssignees = (task: Task) =>
     task.assignees && task.assignees.length > 0
@@ -49,7 +50,9 @@ export const TaskKanban = ({ tasks, onUpdate, onEdit, onDelete }: TaskKanbanProp
   const resolveParticipants = (task: Task) => {
     const extra = [
       task.mainExecutor,
+      task.leadExecutor,
       ...(task.deputies?.map((d) => d.userId) || []),
+      ...(task.coExecutors || []),
       ...(task.executors || []),
       ...(task.curators || []),
       ...(task.leads || []),
@@ -59,7 +62,7 @@ export const TaskKanban = ({ tasks, onUpdate, onEdit, onDelete }: TaskKanbanProp
 
   const getCurrentStage = (task: Task) => {
     if (task.stages && task.stages.length > 0) {
-      const targetId = task.currentStageId || task.stages[0].id
+      const targetId = task.awaitingStageId || task.currentStageId || task.stages[0].id
       return task.stages.find((s) => s.id === targetId) || task.stages[0]
     }
     // fallback: single stage from approvals
@@ -73,12 +76,25 @@ export const TaskKanban = ({ tasks, onUpdate, onEdit, onDelete }: TaskKanbanProp
     }
   }
 
+  const isAuthor = (task: Task) => !!user && task.createdBy === user.id
+  const isMainExecutor = (task: Task) => !!user && task.mainExecutor === user.id
+  const isLeadExecutor = (task: Task) =>
+    !!user && (task.leadExecutor === user.id || (task.leads || []).includes(user.id))
+  const canMoveTask = (task: Task) => isAdmin || isAuthor(task) || isMainExecutor(task) || isLeadExecutor(task)
+  const canConfirmStage = (task: Task) => isAdmin || isAuthor(task) || isMainExecutor(task)
+  const roleTag = (task: Task, userId: string) => {
+    if (userId === task.createdBy) return 'A'
+    if (userId === task.mainExecutor) return 'ГИ'
+    if (userId === task.leadExecutor || (task.leads || []).includes(userId)) return 'ВИ'
+    return ''
+  }
+
   const getTasksByStatus = (status: TaskStatus) => {
     return tasks.filter(task => task.status === status)
   }
 
   const handleDragStart = (e: React.DragEvent, task: Task) => {
-    if (loading) {
+    if (loading || !canMoveTask(task)) {
       e.preventDefault()
       return
     }
@@ -98,7 +114,7 @@ export const TaskKanban = ({ tasks, onUpdate, onEdit, onDelete }: TaskKanbanProp
 
   // Touch events for mobile drag & drop
   const handleTouchStart = (e: React.TouchEvent, task: Task) => {
-    if (loading || task.status === 'rejected') return
+    if (loading || task.status === 'rejected' || !canMoveTask(task)) return
     const touch = e.touches[0]
     setTouchStart({ x: touch.clientX, y: touch.clientY, task })
   }
@@ -150,7 +166,7 @@ export const TaskKanban = ({ tasks, onUpdate, onEdit, onDelete }: TaskKanbanProp
     e.preventDefault()
     e.stopPropagation()
     
-    if (!draggedTask || draggedTask.status === targetStatus || loading) {
+    if (!draggedTask || draggedTask.status === targetStatus || loading || !canMoveTask(draggedTask)) {
       setDraggedTask(null)
       return
     }
@@ -180,12 +196,6 @@ export const TaskKanban = ({ tasks, onUpdate, onEdit, onDelete }: TaskKanbanProp
         updates.completedBy = user?.id || 'admin'
       } else if (targetStatus === 'closed') {
         updates.closedAt = now
-      } else if (targetStatus === 'in_progress') {
-        if (!allStagesApproved(draggedTask)) {
-          setLoading(null)
-          setDraggedTask(null)
-          return
-        }
       } else if (targetStatus === 'pending' && draggedTask.status === 'rejected') {
         // Reset approvals when resubmitting rejected task
         updates.approvals = resolveAssigneeIds(draggedTask).map((userId) => ({
@@ -207,7 +217,7 @@ export const TaskKanban = ({ tasks, onUpdate, onEdit, onDelete }: TaskKanbanProp
   }
 
   const handleStatusChange = async (task: Task, newStatus: TaskStatus) => {
-    if (task.status === newStatus || loading === task.id) {
+    if (task.status === newStatus || loading === task.id || !canMoveTask(task)) {
       setMobileMenuTask(null)
       return
     }
@@ -252,7 +262,7 @@ export const TaskKanban = ({ tasks, onUpdate, onEdit, onDelete }: TaskKanbanProp
 
   const handleApprove = async (task: Task, action: 'approve' | 'reject', approveForAll?: boolean) => {
     if (!user) return
-    
+
     setLoading(task.id)
     try {
       const now = new Date().toISOString()
@@ -350,15 +360,12 @@ export const TaskKanban = ({ tasks, onUpdate, onEdit, onDelete }: TaskKanbanProp
         updatedAt: now,
       }
 
-      // If rejected, change task status
       if (action === 'reject' || stageRejected) {
         updates.status = 'rejected'
-      } else if (action === 'approve') {
-        // Когда все этапы согласованы — можно перевести в работу
-        const allApproved = normalizedStages.length > 0 ? normalizedStages.every((s) => s.status === 'approved') : updatedApprovals.every((a) => a.status === 'approved')
-        if (allApproved && task.status === 'pending') {
-          updates.status = 'in_progress'
-        }
+        updates.awaitingStageId = undefined
+      } else if (stageApproved && !stageRejected) {
+        updates.status = 'approval'
+        updates.awaitingStageId = currentStage.id
       }
 
       await updateTask(task.id, updates)
@@ -409,12 +416,77 @@ export const TaskKanban = ({ tasks, onUpdate, onEdit, onDelete }: TaskKanbanProp
         approvals: resetStages[0]?.approvals || [],
         stages: resetStages,
         currentStageId: resetStages[0]?.id,
+        awaitingStageId: undefined,
         updatedAt: now,
       })
 
       onUpdate()
     } catch (error) {
       console.error('Error resubmitting task:', error)
+    } finally {
+      setLoading(null)
+    }
+  }
+
+  const handleConfirmStage = async (task: Task) => {
+    if (!canConfirmStage(task)) return
+    setLoading(task.id)
+    try {
+      const now = new Date().toISOString()
+      const currentStage = getCurrentStage(task)
+      const stages = task.stages || []
+      let updates: Partial<Task> = { updatedAt: now, awaitingStageId: undefined }
+
+      if (stages.length > 0) {
+        const currentIndex = stages.findIndex((s) => s.id === currentStage.id)
+        const participants = resolveParticipants(task)
+        const normalizedStages = stages.map((stage) =>
+          stage.id === currentStage.id ? { ...stage, status: 'approved' } : stage
+        )
+        const hasNext = currentIndex >= 0 && currentIndex < normalizedStages.length - 1
+
+        if (hasNext) {
+          const nextStage = normalizedStages[currentIndex + 1]
+          const responsibleIds =
+            (nextStage.assignees && nextStage.assignees.length > 0
+              ? nextStage.assignees.map((a) => a.userId)
+              : nextStage.responsible === 'all'
+                ? participants
+                : (nextStage.responsible as string[])) || []
+          normalizedStages[currentIndex + 1] = {
+            ...nextStage,
+            approvals:
+              nextStage.requiresApproval === false
+                ? responsibleIds.map((uid) => ({ userId: uid, status: 'approved' as const, updatedAt: now }))
+                : responsibleIds.map((uid) => ({ userId: uid, status: 'pending' as const, updatedAt: now })),
+            status: nextStage.requiresApproval === false ? 'approved' : 'pending',
+          }
+
+          updates = {
+            ...updates,
+            stages: normalizedStages,
+            currentStageId: nextStage.id,
+            status: 'in_progress',
+          }
+        } else {
+          updates = {
+            ...updates,
+            stages: normalizedStages,
+            status: 'completed',
+            completedAt: now,
+            completedBy: user?.id || 'admin',
+          }
+        }
+      } else {
+        updates.status = 'completed'
+        updates.completedAt = now
+        updates.completedBy = user?.id || 'admin'
+      }
+
+      await updateTask(task.id, updates)
+      onUpdate()
+    } catch (error) {
+      console.error('Error confirming stage:', error)
     } finally {
       setLoading(null)
     }
@@ -459,6 +531,7 @@ export const TaskKanban = ({ tasks, onUpdate, onEdit, onDelete }: TaskKanbanProp
     const colorMap: Record<TaskStatus, string> = {
       pending: theme === 'dark' ? 'bg-yellow-500/20 border-yellow-500/50' : 'bg-yellow-50 border-yellow-200',
       in_progress: theme === 'dark' ? 'bg-blue-500/20 border-blue-500/50' : 'bg-blue-50 border-blue-200',
+      approval: theme === 'dark' ? 'bg-purple-500/20 border-purple-500/50' : 'bg-purple-50 border-purple-200',
       completed: theme === 'dark' ? 'bg-[#4E6E49]/20 border-[#4E6E49]/50' : 'bg-green-50 border-green-200',
       closed: theme === 'dark' ? 'bg-gray-500/20 border-gray-500/50' : 'bg-gray-50 border-gray-200',
       rejected: theme === 'dark' ? 'bg-red-500/20 border-red-500/50' : 'bg-red-50 border-red-200',
@@ -470,6 +543,7 @@ export const TaskKanban = ({ tasks, onUpdate, onEdit, onDelete }: TaskKanbanProp
     const colorMap: Record<TaskStatus, string> = {
       pending: theme === 'dark' ? 'text-yellow-400' : 'text-yellow-700',
       in_progress: theme === 'dark' ? 'text-blue-400' : 'text-blue-700',
+      approval: theme === 'dark' ? 'text-purple-300' : 'text-purple-700',
       completed: theme === 'dark' ? 'text-[#4E6E49]' : 'text-[#4E6E49]',
       closed: theme === 'dark' ? 'text-gray-400' : 'text-gray-700',
       rejected: theme === 'dark' ? 'text-red-400' : 'text-red-700',
@@ -535,7 +609,7 @@ export const TaskKanban = ({ tasks, onUpdate, onEdit, onDelete }: TaskKanbanProp
                 <div className="space-y-2 sm:space-y-3 max-h-[calc(100vh-280px)] sm:max-h-[calc(100vh-300px)] overflow-y-auto">
                   {statusTasks.map((task) => {
                     const overdue = isOverdue(task)
-                    const canEdit = isAdmin || user?.id === task.createdBy
+                    const canEdit = isAdmin || user?.id === task.createdBy || task.mainExecutor === user?.id
                     const canApproveTask = canApprove(task)
                     const canResubmitTask = canResubmit(task)
                     const currentStage = getCurrentStage(task)
@@ -543,7 +617,7 @@ export const TaskKanban = ({ tasks, onUpdate, onEdit, onDelete }: TaskKanbanProp
                     const approvalsApproved = stageApprovals.filter((a) => a.status === 'approved').length
                     const approvalsTotal = stageApprovals.length
                     const canApproveForAll =
-                      !!user && (user.id === task.mainExecutor || user.id === task.createdBy || isAdmin)
+                      !!user && (user.id === task.mainExecutor || user.id === task.createdBy || task.leadExecutor === user.id || isAdmin)
                     const taskAssignees = resolveAssignees(task)
                     const assigneeDetails = taskAssignees
                       .map((assignee) => {
@@ -551,12 +625,16 @@ export const TaskKanban = ({ tasks, onUpdate, onEdit, onDelete }: TaskKanbanProp
                         if (!member) return null
                         return { ...assignee, member }
                       })
-                      .filter(Boolean) as { member: (typeof TEAM_MEMBERS)[number]; priority: 'low' | 'medium' | 'high'; comment?: string }[]
+                      .filter(Boolean) as { member: (typeof TEAM_MEMBERS)[number]; priority: TaskPriority; comment?: string }[]
+                    const hasNextStage =
+                      task.stages && task.stages.length > 0
+                        ? task.stages.findIndex((s) => s.id === currentStage.id) < (task.stages?.length || 1) - 1
+                        : false
                     
                     return (
                       <div
                         key={task.id}
-                        draggable={!loading && task.status !== 'rejected'}
+                        draggable={!loading && task.status !== 'rejected' && canMoveTask(task)}
                         onDragStart={(e) => handleDragStart(e, task)}
                         onDragEnd={handleDragEnd}
                         onTouchStart={(e) => handleTouchStart(e, task)}
@@ -596,7 +674,7 @@ export const TaskKanban = ({ tasks, onUpdate, onEdit, onDelete }: TaskKanbanProp
                                         <button
                                           key={s}
                                           onClick={() => handleStatusChange(task, s)}
-                                          disabled={task.status === s || loading === task.id}
+                                          disabled={task.status === s || loading === task.id || !canMoveTask(task)}
                                           className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors mb-1 ${
                                             task.status === s
                                               ? getStatusColor(s)
@@ -621,6 +699,17 @@ export const TaskKanban = ({ tasks, onUpdate, onEdit, onDelete }: TaskKanbanProp
                                             } ${headingColor}`}
                                           >
                                             Редактировать
+                                          </button>
+                                          <button
+                                            onClick={() => {
+                                              setMobileMenuTask(null)
+                                              setDetailsTask(task)
+                                            }}
+                                            className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors mb-1 ${
+                                              theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100'
+                                            } ${headingColor}`}
+                                          >
+                                            Всё о задаче
                                           </button>
                                           <button
                                             onClick={() => {
@@ -653,6 +742,18 @@ export const TaskKanban = ({ tasks, onUpdate, onEdit, onDelete }: TaskKanbanProp
                                 {TEAM_MEMBERS.find(m => m.id === task.createdBy)?.name || 'Неизвестно'}
                               </span>
                             </div>
+                          <div className="flex items-center gap-1">
+                            <span className={`font-medium ${theme === 'dark' ? 'text-[#4E6E49]' : 'text-[#4E6E49]'}`}>ГИ:</span>
+                            <span className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>
+                              {task.mainExecutor ? TEAM_MEMBERS.find(m => m.id === task.mainExecutor)?.name || task.mainExecutor : '—'}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <span className={`font-medium ${theme === 'dark' ? 'text-[#4E6E49]' : 'text-[#4E6E49]'}`}>ВИ:</span>
+                            <span className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>
+                              {task.leadExecutor ? TEAM_MEMBERS.find(m => m.id === task.leadExecutor)?.name || task.leadExecutor : '—'}
+                            </span>
+                          </div>
                           <div className="flex flex-col gap-1">
                             <div className={`flex items-center gap-1 ${theme === 'dark' ? 'text-[#4E6E49]' : 'text-[#4E6E49]'}`}>
                               <span className="font-medium">Исполнители:</span>
@@ -718,7 +819,14 @@ export const TaskKanban = ({ tasks, onUpdate, onEdit, onDelete }: TaskKanbanProp
                                 return (
                                   <div key={a.userId} className="flex items-center justify-between text-[11px]">
                                     <span className="flex items-center gap-1">
-                                      <span className="font-medium">{member?.name || a.userId}</span>
+                                      <span className="font-medium">
+                                        {member?.name || a.userId}
+                                        {roleTag(task, a.userId) && (
+                                          <span className="ml-1 text-[10px] px-1 rounded bg-gray-200 dark:bg-gray-800">
+                                            {roleTag(task, a.userId)}
+                                          </span>
+                                        )}
+                                      </span>
                                       <span className="text-gray-500">({a.status === 'approved' ? 'ok' : a.status === 'rejected' ? 'отклонено' : 'ожидание'})</span>
                                     </span>
                                     {a.comment && <span className="truncate max-w-[140px] text-gray-500">{a.comment}</span>}
@@ -792,6 +900,29 @@ export const TaskKanban = ({ tasks, onUpdate, onEdit, onDelete }: TaskKanbanProp
                             </span>
                           </div>
                         </div>
+
+                        <div className="flex justify-end mt-1">
+                          <button
+                            onClick={() => setDetailsTask(task)}
+                            className={`text-[11px] underline ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'} hover:text-[#4E6E49]`}
+                          >
+                            Всё о задаче
+                          </button>
+                        </div>
+
+                        {/* Confirm stage gate */}
+                        {task.status === 'approval' && canConfirmStage(task) && (
+                          <div className={`mt-2 pt-2 border-t ${borderColor}`}>
+                            <button
+                              onClick={() => handleConfirmStage(task)}
+                              disabled={loading === task.id}
+                              className="w-full px-2 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-medium transition-colors flex items-center justify-center gap-1 disabled:opacity-50"
+                            >
+                              <Check className="w-3 h-3" />
+                              {hasNextStage ? 'Подтвердить этап и продолжить' : 'Подтвердить и завершить'}
+                            </button>
+                          </div>
+                        )}
 
                         {/* Approval/Reject Buttons */}
                         {(canApproveTask || canApproveForAll) && (
@@ -891,6 +1022,90 @@ export const TaskKanban = ({ tasks, onUpdate, onEdit, onDelete }: TaskKanbanProp
               >
                 Отмена
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Details modal */}
+      {detailsTask && (
+        <div className="fixed inset-0 bg-black/50 flex items-start sm:items-center justify-center z-[70] p-4 overflow-y-auto overscroll-contain modal-scroll">
+          <div className={`${cardBg} rounded-xl p-6 max-w-2xl w-full border-2 ${borderColor}`}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className={`text-lg font-bold ${headingColor}`}>Всё о задаче</h3>
+              <button
+                onClick={() => setDetailsTask(null)}
+                className={`p-2 rounded-lg ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="space-y-3 text-sm">
+              <div>
+                <p className="text-xs text-gray-500">Название</p>
+                <p className={`font-semibold ${headingColor}`}>{detailsTask.title}</p>
+              </div>
+              {detailsTask.description && (
+                <div>
+                  <p className="text-xs text-gray-500">Описание</p>
+                  <p className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>{detailsTask.description}</p>
+                </div>
+              )}
+              {detailsTask.expectedResult && (
+                <div>
+                  <p className="text-xs text-gray-500">Ожидаемый результат</p>
+                  <p className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>{detailsTask.expectedResult}</p>
+                </div>
+              )}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <p className="text-xs text-gray-500">Автор</p>
+                  <p className={headingColor}>{TEAM_MEMBERS.find((m) => m.id === detailsTask.createdBy)?.name || detailsTask.createdBy}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500">Главный исполнитель</p>
+                  <p className={headingColor}>{TEAM_MEMBERS.find((m) => m.id === detailsTask.mainExecutor)?.name || '—'}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500">Ведущий исполнитель</p>
+                  <p className={headingColor}>{TEAM_MEMBERS.find((m) => m.id === detailsTask.leadExecutor)?.name || '—'}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500">Соисполнители</p>
+                  <p className={headingColor}>
+                    {(detailsTask.coExecutors || []).map((id) => TEAM_MEMBERS.find((m) => m.id === id)?.name || id).join(', ') || '—'}
+                  </p>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <p className="text-xs text-gray-500">Дедлайн</p>
+                  <p className={headingColor}>
+                    {formatDate(new Date(detailsTask.dueDate), 'dd.MM.yyyy')} · {detailsTask.dueTime}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500">Старт</p>
+                  <p className={headingColor}>{detailsTask.startTime || '—'}</p>
+                </div>
+              </div>
+              <div>
+                <p className="text-xs text-gray-500">Статус</p>
+                <p className={`${headingColor} font-semibold`}>{TASK_STATUSES[detailsTask.status].label}</p>
+              </div>
+              {detailsTask.stages && detailsTask.stages.length > 0 && (
+                <div className="space-y-1">
+                  <p className="text-xs text-gray-500">Этапы</p>
+                  {detailsTask.stages.map((stage) => (
+                    <div key={stage.id} className={`p-2 rounded border ${borderColor}`}>
+                      <p className={`font-semibold ${headingColor}`}>{stage.name}</p>
+                      <p className="text-xs text-gray-500">
+                        {stage.approvals?.filter((a) => a.status === 'approved').length || 0}/{stage.approvals?.length || 0} согласовано
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>

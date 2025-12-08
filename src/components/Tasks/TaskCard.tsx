@@ -4,7 +4,7 @@ import { useAuthStore } from '@/store/authStore'
 import { useAdminStore } from '@/store/adminStore'
 import { useThemeStore } from '@/store/themeStore'
 import { updateTask } from '@/services/firestoreService'
-import { Task, TaskStatus, TEAM_MEMBERS, TASK_CATEGORIES, TASK_STATUSES } from '@/types'
+import { Task, TaskPriority, TaskStatus, TEAM_MEMBERS, TASK_CATEGORIES, TASK_STATUSES } from '@/types'
 import {
   AlertCircle,
   AlarmClock,
@@ -63,9 +63,10 @@ export const TaskCard = ({ task, onEdit, onDelete, onUpdate }: TaskCardProps) =>
       if (!member) return null
       return { ...assignee, member }
     })
-    .filter(Boolean) as { member: (typeof TEAM_MEMBERS)[number]; priority: 'low' | 'medium' | 'high'; comment?: string }[]
+    .filter(Boolean) as { member: (typeof TEAM_MEMBERS)[number]; priority: TaskPriority; comment?: string }[]
   
-  const canEdit = isAdmin || user?.id === task.createdBy
+  const canEdit = isAdmin || user?.id === task.createdBy || task.mainExecutor === user?.id
+  const canMoveTask = isAdmin || user?.id === task.createdBy || task.mainExecutor === user?.id || task.leadExecutor === user?.id
   const resolveParticipants = () => {
     const extra = [
       task.mainExecutor,
@@ -101,7 +102,7 @@ export const TaskCard = ({ task, onEdit, onDelete, onUpdate }: TaskCardProps) =>
       (currentStage.responsible === 'all' ? resolveParticipants() : (currentStage.responsible as string[])).includes(user.id)
     )
   const userApproval = stageApprovals.find((a) => a.userId === user?.id)
-  const canApproveForAll = !!user && (user.id === task.mainExecutor || user.id === task.createdBy || isAdmin)
+  const canApproveForAll = !!user && (user.id === task.mainExecutor || user.id === task.createdBy || task.leadExecutor === user.id || isAdmin)
   const allStagesApproved = () => {
     if (!task.stages || task.stages.length === 0) {
       return stageApprovals.every((a) => a.status === 'approved')
@@ -111,7 +112,7 @@ export const TaskCard = ({ task, onEdit, onDelete, onUpdate }: TaskCardProps) =>
   const stagesFullyApproved = allStagesApproved()
 
   const handleStatusChange = async (newStatus: TaskStatus) => {
-    if (!user && !isAdmin) return
+    if (!canMoveTask) return
     
     setLoading(true)
     try {
@@ -239,8 +240,10 @@ export const TaskCard = ({ task, onEdit, onDelete, onUpdate }: TaskCardProps) =>
 
       if (action === 'reject' || stageRejected) {
         updates.status = 'rejected'
-      } else if (action === 'approve' && allStagesApproved()) {
-        updates.status = 'in_progress'
+        updates.awaitingStageId = undefined
+      } else if (stageApproved && !stageRejected) {
+        updates.status = 'approval'
+        updates.awaitingStageId = currentStage.id
       }
 
       await updateTask(task.id, updates)
@@ -293,17 +296,23 @@ export const TaskCard = ({ task, onEdit, onDelete, onUpdate }: TaskCardProps) =>
 
   const getPriorityColor = () => {
     switch (task.priority) {
+      case 'urgent':
+        return theme === 'dark' ? 'text-rose-300' : 'text-rose-600'
       case 'high':
         return theme === 'dark' ? 'text-red-400' : 'text-red-600'
       case 'medium':
         return theme === 'dark' ? 'text-yellow-400' : 'text-yellow-600'
-      case 'low':
+      default:
         return theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
     }
   }
 
-  const getAssigneePriorityStyles = (priority: 'low' | 'medium' | 'high') => {
+  const getAssigneePriorityStyles = (priority: TaskPriority) => {
     const map = {
+      urgent: {
+        label: 'Экстренный',
+        classes: theme === 'dark' ? 'bg-rose-600/20 text-rose-100 border-rose-500/50' : 'bg-rose-50 text-rose-700 border-rose-200',
+      },
       high: {
         label: 'Высокий',
         classes: theme === 'dark' ? 'bg-red-500/20 text-red-300 border-red-500/40' : 'bg-red-50 text-red-600 border-red-200',
@@ -324,6 +333,7 @@ export const TaskCard = ({ task, onEdit, onDelete, onUpdate }: TaskCardProps) =>
     const colorMap: Record<TaskStatus, string> = {
       pending: theme === 'dark' ? 'bg-yellow-500/20 border-yellow-500/50 text-yellow-400' : 'bg-yellow-50 border-yellow-200 text-yellow-700',
       in_progress: theme === 'dark' ? 'bg-blue-500/20 border-blue-500/50 text-blue-400' : 'bg-blue-50 border-blue-200 text-blue-700',
+      approval: theme === 'dark' ? 'bg-purple-500/20 border-purple-500/50 text-purple-300' : 'bg-purple-50 border-purple-200 text-purple-700',
       completed: theme === 'dark' ? 'bg-[#4E6E49]/20 border-[#4E6E49]/50 text-[#4E6E49]' : 'bg-green-50 border-green-200 text-[#4E6E49]',
       closed: theme === 'dark' ? 'bg-gray-500/20 border-gray-500/50 text-gray-400' : 'bg-gray-50 border-gray-200 text-gray-700',
       rejected: theme === 'dark' ? 'bg-red-500/20 border-red-500/50 text-red-400' : 'bg-red-50 border-red-200 text-red-700',
@@ -388,8 +398,14 @@ export const TaskCard = ({ task, onEdit, onDelete, onUpdate }: TaskCardProps) =>
               </span>
               {/* Priority */}
               <span className={`text-xs sm:text-sm font-medium inline-flex items-center gap-1.5 ${getPriorityColor()}`}>
-                {task.priority === 'high' ? <Flame className="w-4 h-4" /> : task.priority === 'medium' ? <Radio className="w-4 h-4" /> : <Feather className="w-4 h-4" />}
-                {task.priority === 'high' ? 'Высокий' : task.priority === 'medium' ? 'Средний' : 'Низкий'}
+                {task.priority === 'urgent' || task.priority === 'high' ? <Flame className="w-4 h-4" /> : task.priority === 'medium' ? <Radio className="w-4 h-4" /> : <Feather className="w-4 h-4" />}
+                {task.priority === 'urgent'
+                  ? 'Экстренный'
+                  : task.priority === 'high'
+                    ? 'Высокий'
+                    : task.priority === 'medium'
+                      ? 'Средний'
+                      : 'Низкий'}
               </span>
             </div>
           </div>
@@ -438,6 +454,18 @@ export const TaskCard = ({ task, onEdit, onDelete, onUpdate }: TaskCardProps) =>
               </span>
               <span className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>
                 {createdByUser?.name || 'Неизвестно'}
+              </span>
+            </div>
+            <div className="flex items-center gap-2 text-xs sm:text-sm">
+              <span className={`font-medium ${theme === 'dark' ? 'text-[#4E6E49]' : 'text-[#4E6E49]'}`}>ГИ:</span>
+              <span className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>
+                {task.mainExecutor ? TEAM_MEMBERS.find((m) => m.id === task.mainExecutor)?.name || task.mainExecutor : '—'}
+              </span>
+            </div>
+            <div className="flex items-center gap-2 text-xs sm:text-sm">
+              <span className={`font-medium ${theme === 'dark' ? 'text-[#4E6E49]' : 'text-[#4E6E49]'}`}>ВИ:</span>
+              <span className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>
+                {task.leadExecutor ? TEAM_MEMBERS.find((m) => m.id === task.leadExecutor)?.name || task.leadExecutor : '—'}
               </span>
             </div>
 

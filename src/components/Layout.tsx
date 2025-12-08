@@ -36,7 +36,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
   ]
 
   const aboutSubItems: { path: string; label: string; icon?: LucideIcon }[] = [
-    { path: '/faq', label: 'FAQ' },
+    { path: '/faq', label: 'FAQ', icon: Info },
     { path: '/about', label: 'О сообществе', icon: Info },
   ]
 

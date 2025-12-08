@@ -163,6 +163,7 @@ export const TaskFilters = ({
               const colorStyles: Record<string, string> = {
                 yellow: theme === 'dark' ? 'bg-yellow-500/10 border-yellow-500/50 text-yellow-300' : 'bg-yellow-50 border-yellow-500/40 text-yellow-700',
                 blue: theme === 'dark' ? 'bg-blue-500/10 border-blue-500/50 text-blue-300' : 'bg-blue-50 border-blue-500/40 text-blue-700',
+                purple: theme === 'dark' ? 'bg-purple-500/10 border-purple-500/50 text-purple-200' : 'bg-purple-50 border-purple-500/40 text-purple-700',
                 green: theme === 'dark' ? 'bg-emerald-500/10 border-emerald-500/50 text-emerald-200' : 'bg-emerald-50 border-emerald-500/40 text-emerald-700',
                 gray: theme === 'dark' ? 'bg-gray-500/10 border-gray-500/50 text-gray-300' : 'bg-gray-50 border-gray-400/60 text-gray-700',
                 red: theme === 'dark' ? 'bg-red-500/10 border-red-500/50 text-red-300' : 'bg-red-50 border-red-500/40 text-red-700',
@@ -201,7 +202,7 @@ export const TaskFilters = ({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <button
               onClick={() => onCategoryChange('all')}
-              className={`px-3 py-3 rounded-lg text-sm font-semibold transition-all border-2 flex items-center gap-2 justify-center text-center ${
+              className={`px-3 py-3 rounded-lg text-sm font-semibold transition-all border-2 flex items-center gap-2 justify-start text-left w-full ${
                 selectedCategory === 'all'
                   ? theme === 'dark'
                     ? 'bg-[#4E6E49]/20 border-[#4E6E49] text-[#4E6E49]'
@@ -220,7 +221,7 @@ export const TaskFilters = ({
                 <button
                   key={key}
                   onClick={() => onCategoryChange(key as TaskCategory)}
-                  className={`px-3 py-3 rounded-lg text-sm font-semibold transition-all border-2 flex flex-col items-center gap-2 text-center leading-tight whitespace-normal ${
+                  className={`px-3 py-3 rounded-lg text-sm font-semibold transition-all border-2 flex flex-col items-start gap-2 text-left leading-tight whitespace-normal ${
                     isActive
                       ? theme === 'dark'
                         ? 'bg-[#4E6E49]/20 border-[#4E6E49] text-[#4E6E49]'
@@ -228,7 +229,7 @@ export const TaskFilters = ({
                       : `${theme === 'dark' ? 'bg-gray-900 border-gray-800 text-gray-200 hover:border-[#4E6E49]/40' : 'bg-white border-gray-200 text-gray-700 hover:border-[#4E6E49]/40'}`
                   }`}
                 >
-                  <span className="flex items-center gap-2 justify-center">
+                  <span className="flex items-center gap-2 justify-start">
                     <Icon className="w-4 h-4" />
                     <span className="break-words">{label}</span>
                   </span>

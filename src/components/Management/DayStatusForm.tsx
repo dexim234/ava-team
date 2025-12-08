@@ -114,6 +114,13 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
         }
         return multipleDates.map((d) => ({ date: d, endDate: d }))
       }
+    } else if (type === 'dayoff') {
+      if (dateMode === 'range') {
+        return getDatesInRange(rangeStart, rangeEnd).map((d) => ({ date: d }))
+      }
+      if (dateMode === 'multiple') {
+        return multipleDates.map((d) => ({ date: d }))
+      }
     }
 
     const payload: { date: string; endDate?: string } = { date }
@@ -343,7 +350,7 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
 
   return (
     <div className="fixed inset-0 bg-slate-950/75 backdrop-blur-xl flex items-start sm:items-center justify-center z-[70] p-4 sm:p-6 touch-manipulation overflow-y-auto overscroll-contain modal-scroll">
-      <div className={`w-full max-w-4xl rounded-3xl shadow-[0_24px_80px_rgba(0,0,0,0.45)] border ${theme === 'dark' ? 'bg-gradient-to-br from-[#0c1320] via-[#0b1220] to-[#08111b] border-white/10' : 'bg-gradient-to-br from-white via-slate-50 to-white border-slate-200'} max-h-[85dvh] sm:max-h-[calc(100dvh-96px)] overflow-hidden`}>
+      <div className={`w-full max-w-4xl rounded-3xl shadow-[0_24px_80px_rgba(0,0,0,0.45)] border ${theme === 'dark' ? 'bg-gradient-to-br from-[#0c1320] via-[#0b1220] to-[#08111b] border-white/10' : 'bg-gradient-to-br from-white via-slate-50 to-white border-slate-200'} max-h-[85dvh] sm:max-h-[calc(100dvh-96px)] overflow-y-auto`}>
         <div className="p-4 sm:p-6 lg:p-7 flex flex-col h-full min-h-0 overflow-y-auto modal-scroll">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="space-y-1">
@@ -467,6 +474,31 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
               </div>
             )}
 
+            {!adminBulkMode && type === 'dayoff' && (
+              <div>
+                <p className={`text-xs sm:text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                  Формат выбора дат
+                </p>
+                <div className="flex flex-wrap gap-4">
+                  {[
+                    { value: 'single', label: 'Один день' },
+                    { value: 'range', label: 'Диапазон (каждый день)' },
+                    { value: 'multiple', label: 'Конкретные даты' },
+                  ].map((option) => (
+                    <label key={option.value} className="flex items-center gap-2 text-sm cursor-pointer">
+                      <input
+                        type="radio"
+                        value={option.value}
+                        checked={dateMode === option.value}
+                        onChange={(e) => setDateMode(e.target.value as typeof dateMode)}
+                      />
+                      <span className={theme === 'dark' ? 'text-gray-200' : 'text-gray-700'}>{option.label}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Date */}
             {(!adminBulkMode || dateMode === 'single') && (
               <div>
@@ -522,7 +554,93 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
               </div>
             )}
 
+            {!adminBulkMode && type === 'dayoff' && dateMode === 'range' && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className={`block text-xs sm:text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Начало
+                  </label>
+                  <input
+                    type="date"
+                    value={rangeStart}
+                    onChange={(e) => setRangeStart(e.target.value)}
+                    className={`w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base rounded-lg border touch-manipulation ${
+                      theme === 'dark'
+                        ? 'bg-gray-700 border-gray-800 text-white'
+                        : 'bg-white border-gray-300 text-gray-900'
+                    } focus:outline-none focus:ring-2 focus:ring-[#4E6E49]`}
+                  />
+                </div>
+                <div>
+                  <label className={`block text-xs sm:text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Конец
+                  </label>
+                  <input
+                    type="date"
+                    value={rangeEnd}
+                    min={rangeStart}
+                    onChange={(e) => setRangeEnd(e.target.value)}
+                    className={`w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base rounded-lg border touch-manipulation ${
+                      theme === 'dark'
+                        ? 'bg-gray-700 border-gray-800 text-white'
+                        : 'bg-white border-gray-300 text-gray-900'
+                    } focus:outline-none focus:ring-2 focus:ring-[#4E6E49]`}
+                  />
+                </div>
+              </div>
+            )}
+
             {adminBulkMode && dateMode === 'multiple' && (
+              <div>
+                <label className={`block text-xs sm:text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                  Выбранные даты
+                </label>
+                <div className="flex flex-col gap-3">
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <input
+                      type="date"
+                      value={multiDateInput}
+                      onChange={(e) => setMultiDateInput(e.target.value)}
+                      className={`flex-1 px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base rounded-lg border touch-manipulation ${
+                        theme === 'dark'
+                          ? 'bg-gray-700 border-gray-800 text-white'
+                          : 'bg-white border-gray-300 text-gray-900'
+                      } focus:outline-none focus:ring-2 focus:ring-[#4E6E49]`}
+                    />
+                    <button
+                      type="button"
+                      onClick={handleAddMultiDate}
+                      className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors"
+                    >
+                      Добавить
+                    </button>
+                  </div>
+                  {multipleDates.length > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                      {multipleDates.map((d) => (
+                        <span
+                          key={d}
+                          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-100 text-gray-800 text-sm"
+                        >
+                          {formatDate(d, 'dd.MM.yyyy')}
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveMultiDate(d)}
+                            className="text-red-500 hover:text-red-600"
+                          >
+                            x
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-500">Пока не выбрано ни одной даты</p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {!adminBulkMode && type === 'dayoff' && dateMode === 'multiple' && (
               <div>
                 <label className={`block text-xs sm:text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
                   Выбранные даты

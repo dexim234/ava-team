@@ -2,12 +2,16 @@
 import { Layout } from '@/components/Layout'
 import { useThemeStore } from '@/store/themeStore'
 import {
+  HelpCircle,
   LogIn,
   Calendar,
   FileText,
   TrendingUp,
+  DollarSign,
   Shield,
   MessageSquare,
+  Users,
+  Edit,
   Sparkles,
   Zap,
   Eye,
@@ -35,24 +39,25 @@ interface StageCard {
 type FAQCategory = {
   id: string
   name: string
+  icon: React.ReactNode
   color: string
   darkColor: string
 }
 
 const categories: FAQCategory[] = [
-  { id: 'all', name: 'Все вопросы', color: 'text-blue-600', darkColor: 'text-blue-400' },
-  { id: 'auth', name: 'Авторизация', color: 'text-purple-600', darkColor: 'text-purple-400' },
-  { id: 'slots', name: 'Рабочие слоты', color: 'text-[#4E6E49]', darkColor: 'text-[#4E6E49]' },
-  { id: 'status', name: 'Статусы', color: 'text-orange-600', darkColor: 'text-orange-400' },
-  { id: 'rating', name: 'Рейтинг', color: 'text-red-600', darkColor: 'text-red-400' },
-  { id: 'earnings', name: 'Заработок', color: 'text-yellow-600', darkColor: 'text-yellow-400' },
-  { id: 'calls', name: 'Торговые сигналы', color: 'text-emerald-700', darkColor: 'text-emerald-500' },
-  { id: 'tasks', name: 'Задачи', color: 'text-lime-600', darkColor: 'text-lime-400' },
-  { id: 'admin', name: 'Администратор', color: 'text-indigo-600', darkColor: 'text-indigo-400' },
-  { id: 'messages', name: 'Сообщения', color: 'text-cyan-600', darkColor: 'text-cyan-400' },
-  { id: 'referrals', name: 'Рефералы', color: 'text-pink-600', darkColor: 'text-pink-400' },
-  { id: 'edit', name: 'Редактирование', color: 'text-teal-600', darkColor: 'text-teal-400' },
-  { id: 'interface', name: 'Интерфейс сайта', color: 'text-violet-600', darkColor: 'text-violet-400' },
+  { id: 'all', name: 'Все вопросы', icon: <HelpCircle className="w-5 h-5" />, color: 'text-blue-600', darkColor: 'text-blue-400' },
+  { id: 'auth', name: 'Авторизация', icon: <LogIn className="w-5 h-5" />, color: 'text-purple-600', darkColor: 'text-purple-400' },
+  { id: 'slots', name: 'Рабочие слоты', icon: <Calendar className="w-5 h-5" />, color: 'text-[#4E6E49]', darkColor: 'text-[#4E6E49]' },
+  { id: 'status', name: 'Статусы', icon: <FileText className="w-5 h-5" />, color: 'text-orange-600', darkColor: 'text-orange-400' },
+  { id: 'rating', name: 'Рейтинг', icon: <TrendingUp className="w-5 h-5" />, color: 'text-red-600', darkColor: 'text-red-400' },
+  { id: 'earnings', name: 'Заработок', icon: <DollarSign className="w-5 h-5" />, color: 'text-yellow-600', darkColor: 'text-yellow-400' },
+  { id: 'calls', name: 'Торговые сигналы', icon: <Zap className="w-5 h-5" />, color: 'text-emerald-700', darkColor: 'text-emerald-500' },
+  { id: 'tasks', name: 'Задачи', icon: <CheckSquare className="w-5 h-5" />, color: 'text-lime-600', darkColor: 'text-lime-400' },
+  { id: 'admin', name: 'Администратор', icon: <Shield className="w-5 h-5" />, color: 'text-indigo-600', darkColor: 'text-indigo-400' },
+  { id: 'messages', name: 'Сообщения', icon: <MessageSquare className="w-5 h-5" />, color: 'text-cyan-600', darkColor: 'text-cyan-400' },
+  { id: 'referrals', name: 'Рефералы', icon: <Users className="w-5 h-5" />, color: 'text-pink-600', darkColor: 'text-pink-400' },
+  { id: 'edit', name: 'Редактирование', icon: <Edit className="w-5 h-5" />, color: 'text-teal-600', darkColor: 'text-teal-400' },
+  { id: 'interface', name: 'Интерфейс сайта', icon: <Eye className="w-5 h-5" />, color: 'text-violet-600', darkColor: 'text-violet-400' },
 ]
 
 const stageCards: StageCard[] = [
@@ -320,125 +325,17 @@ export const FAQ = () => {
 
   const selectedCategoryInfo = categories.find(c => c.id === selectedCategory)
 
-  const sanitizeText = (text: string) =>
-    text.replace(/[📅🏥🏖️⏰💰📊📖✅❌🌙☀️📈📚⚙️📺🔬📋🎯🟢🟡🟣🟠🟤🔔🧲]/g, '').trim()
-
   const formatAnswer = (answer: string) => {
-    const lines = answer.split('\n')
-    const numbered = lines
-      .map((line, idx) => ({ line, idx, trimmed: line.trim() }))
-      .filter((item) => item.trimmed.match(/^\d+\.\s+/))
-
-    const palettes = [
-      { light: 'from-sky-50 via-white to-indigo-50', dark: 'from-white/10 via-white/0 to-sky-400/14', accentLight: 'text-sky-700', accentDark: 'text-sky-200' },
-      { light: 'from-rose-50 via-white to-pink-50', dark: 'from-white/10 via-white/0 to-rose-400/14', accentLight: 'text-rose-700', accentDark: 'text-rose-200' },
-      { light: 'from-emerald-50 via-white to-green-50', dark: 'from-white/10 via-white/0 to-emerald-400/14', accentLight: 'text-emerald-700', accentDark: 'text-emerald-200' },
-      { light: 'from-amber-50 via-white to-orange-50', dark: 'from-white/10 via-white/0 to-amber-400/14', accentLight: 'text-amber-700', accentDark: 'text-amber-200' },
-      { light: 'from-violet-50 via-white to-fuchsia-50', dark: 'from-white/10 via-white/0 to-violet-400/14', accentLight: 'text-violet-700', accentDark: 'text-violet-200' },
-    ]
-
-    const stepIcons = [Sparkles, CheckSquare, Calendar, FileText, TrendingUp, MessageSquare, Shield, Eye, Zap]
-
-    const renderSteps = (steps: { title: string; description: string }[]) => (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-        {steps.map((step, stepIndex) => {
-          const palette = palettes[stepIndex % palettes.length]
-          const Icon = stepIcons[stepIndex % stepIcons.length]
-
-          return (
-            <div
-              key={`${step.title}-${stepIndex}`}
-              className={`relative overflow-hidden rounded-2xl border ${
-                theme === 'dark'
-                  ? 'bg-[#0f1115] border-white/10 shadow-[0_12px_32px_-18px_rgba(0,0,0,0.85)]'
-                  : 'bg-white border-gray-100 shadow-[0_12px_28px_-18px_rgba(15,23,42,0.25)]'
-              }`}
-            >
-              <div
-                className={`absolute inset-0 bg-gradient-to-br ${
-                  theme === 'dark' ? palette.dark : palette.light
-                }`}
-              />
-              <div className="relative z-10 p-4 flex flex-col gap-2">
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-3">
-                    <span
-                      className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold ${
-                        theme === 'dark'
-                          ? 'bg-white/10 text-white border border-white/10'
-                          : 'bg-white text-gray-900 border border-white shadow-sm'
-                      }`}
-                    >
-                      {String(stepIndex + 1).padStart(2, '0')}
-                    </span>
-                    <div
-                      className={`inline-flex items-center gap-2 text-[11px] sm:text-xs font-semibold uppercase tracking-[0.08em] ${
-                        theme === 'dark' ? palette.accentDark : palette.accentLight
-                      }`}
-                    >
-                      <Icon className="w-4 h-4" />
-                      <span>{step.title}</span>
-                    </div>
-                  </div>
-                </div>
-                <p className={`text-sm leading-relaxed ${textColor}`}>
-                  {step.description}
-                </p>
-              </div>
-            </div>
-          )
-        })}
+    const paragraphs = answer.split('\n')
+    return (
+      <div className="space-y-2">
+        {paragraphs.map((line, idx) => (
+          <p key={idx} className={`text-sm leading-relaxed ${textColor}`}>
+            {line.trim() === '' ? '\u00a0' : line}
+          </p>
+        ))}
       </div>
     )
-
-    // 1) Если нашли явные шаги с номерами — строим карточки из них
-    if (numbered.length >= 2) {
-      const steps = numbered.map((item, idx) => {
-        const stepText = sanitizeText(item.trimmed.replace(/^\d+\.\s*/, ''))
-        const [rawTitle, ...rest] = stepText.split(/[:\-—]/)
-        const title = sanitizeText((rawTitle || '').trim()) || `Шаг ${idx + 1}`
-        const description = sanitizeText((rest.join(':').trim() || stepText).trim())
-        return { title, description }
-      })
-
-      return renderSteps(steps)
-    }
-
-    // 2) Фолбэк: любое содержимое превращаем в шаги (параграфы/списки)
-    const segments: string[] = []
-    let buffer: string[] = []
-
-    lines.forEach((line) => {
-      const trimmed = line.trim()
-      if (!trimmed) {
-        if (buffer.length) {
-          segments.push(buffer.join(' '))
-          buffer = []
-        }
-        return
-      }
-      buffer.push(trimmed)
-    })
-    if (buffer.length) {
-      segments.push(buffer.join(' '))
-    }
-
-    const cleanedSegments = segments
-      .map((seg) => seg.replace(/^[-•✅❌]\s*/, '').trim())
-      .filter(Boolean)
-
-    const fallbackSteps = cleanedSegments.length > 0 ? cleanedSegments : [answer.trim()]
-
-    const steps = fallbackSteps.map((text, idx) => {
-      const sanitized = sanitizeText(text)
-      const [rawTitle, ...rest] = sanitized.split(/[:\-—]/)
-      const titleFromText = (rawTitle || '').trim()
-      const title = titleFromText ? titleFromText.slice(0, 60) : `Шаг ${idx + 1}`
-      const description = sanitizeText((rest.join(':').trim() || sanitized).trim())
-      return { title, description }
-    })
-
-    return renderSteps(steps)
   }
 
   return (
@@ -566,6 +463,14 @@ export const FAQ = () => {
                     : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 hover:border-gray-400'
                 }`}
               >
+                <span
+                  className={selectedCategory === category.id
+                    ? 'text-white'
+                    : (theme === 'dark' ? category.darkColor : category.color)
+                  }
+                >
+                  {category.icon}
+                </span>
                 <span>{category.name}</span>
               </button>
             ))}
@@ -579,13 +484,18 @@ export const FAQ = () => {
               ? 'border-blue-500/30 bg-blue-500/5' 
               : 'border-blue-200 bg-blue-50'
           } mb-6`}>
-            <div>
-              <h3 className={`font-bold text-lg ${theme === 'dark' ? selectedCategoryInfo.darkColor : selectedCategoryInfo.color}`}>
-                {selectedCategoryInfo.name}
-              </h3>
-              <p className={`text-sm ${textColor}`}>
-                {filteredFAQs.length} {filteredFAQs.length === 1 ? 'вопрос' : filteredFAQs.length < 5 ? 'вопроса' : 'вопросов'}
-              </p>
+            <div className="flex items-center gap-3">
+              <span className={theme === 'dark' ? selectedCategoryInfo.darkColor : selectedCategoryInfo.color}>
+                {selectedCategoryInfo.icon}
+              </span>
+              <div>
+                <h3 className={`font-bold text-lg ${theme === 'dark' ? selectedCategoryInfo.darkColor : selectedCategoryInfo.color}`}>
+                  {selectedCategoryInfo.name}
+                </h3>
+                <p className={`text-sm ${textColor}`}>
+                  {filteredFAQs.length} {filteredFAQs.length === 1 ? 'вопрос' : filteredFAQs.length < 5 ? 'вопроса' : 'вопросов'}
+                </p>
+              </div>
             </div>
           </div>
         )}
@@ -642,6 +552,7 @@ export const FAQ = () => {
                               theme === 'dark' ? 'bg-[#1a1a1a]/80 border-gray-800' : 'bg-gray-100 border-gray-200'
                             } ${badgeColor}`}
                           >
+                            {categoryInfo?.icon}
                             <span className="uppercase tracking-wide">
                               {categoryInfo ? categoryInfo.name : 'Общее'}
                             </span>

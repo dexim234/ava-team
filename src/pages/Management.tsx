@@ -360,13 +360,13 @@ export const Management = () => {
         {/* Hero */}
         <div className={`relative overflow-hidden rounded-2xl p-5 sm:p-6 md:p-7 border-2 shadow-2xl ${
           theme === 'dark'
-            ? 'bg-gradient-to-br from-[#0b0f17] via-[#0f1b2d] to-[#0b0f17] border-[#4E6E49]/30'
-            : 'bg-gradient-to-br from-white via-green-50/60 to-white border-green-200'
+            ? 'bg-gradient-to-br from-[#1a1f2b] via-[#121a27] to-[#0c131e] border-[#4E6E49]/35'
+            : 'bg-gradient-to-br from-white via-green-50/30 to-white border-green-200'
         }`}>
           <div className="absolute inset-0 pointer-events-none">
-            <div className="absolute -top-32 -left-16 w-80 h-80 bg-gradient-to-br from-[#4E6E49]/24 via-transparent to-transparent blur-3xl" />
-            <div className="absolute top-0 right-0 w-[26rem] h-[26rem] bg-gradient-to-bl from-blue-500/18 via-purple-500/12 to-transparent blur-3xl" />
-            <div className="absolute bottom-[-140px] left-14 w-80 h-80 bg-gradient-to-tr from-amber-300/14 via-[#4E6E49]/12 to-transparent blur-3xl" />
+            <div className="absolute -top-32 -left-16 w-80 h-80 bg-gradient-to-br from-[#4E6E49]/16 via-transparent to-transparent blur-3xl" />
+            <div className="absolute top-0 right-0 w-[26rem] h-[26rem] bg-gradient-to-bl from-blue-400/14 via-purple-400/10 to-transparent blur-3xl" />
+            <div className="absolute bottom-[-140px] left-14 w-80 h-80 bg-gradient-to-tr from-amber-300/10 via-[#4E6E49]/10 to-transparent blur-3xl" />
           </div>
           <div className="relative z-10 grid grid-cols-1 gap-5">
             <div className="flex items-start gap-3">
@@ -388,7 +388,11 @@ export const Management = () => {
                 {statCards.map((item) => (
                   <div
                     key={item.label}
-                    className={`rounded-xl border ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-white/70 bg-white'} p-3 flex flex-col gap-1.5 shadow-sm`}
+                    className={`rounded-xl border p-3 flex flex-col gap-1.5 shadow-sm ${
+                      theme === 'dark'
+                        ? 'border-white/8 bg-[#0d121c]'
+                        : 'border-gray-200 bg-white'
+                    }`}
                   >
                     <div className="flex items-center justify-between gap-2">
                       <p className="text-[11px] sm:text-xs font-semibold text-[#4E6E49] leading-tight">{item.label}</p>
@@ -396,7 +400,7 @@ export const Management = () => {
                         {item.icon}
                       </span>
                     </div>
-                    <p className={`text-lg sm:text-xl font-bold bg-gradient-to-r ${item.tone} bg-clip-text text-transparent`}>
+                    <p className={`text-lg sm:text-xl font-bold ${headingColor}`}>
                       {item.value}
                     </p>
                     <p className={`text-xs ${labelColor}`}>{item.note}</p>

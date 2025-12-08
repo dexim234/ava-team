@@ -12,7 +12,7 @@ import {
   orderBy,
 } from 'firebase/firestore'
 import { db } from '@/firebase/config'
-import { WorkSlot, DayStatus, Earnings, RatingData, Referral, Call, Task, TaskStatus, Note } from '@/types'
+import { WorkSlot, DayStatus, Earnings, RatingData, Referral, Call, Task, TaskStatus, Note, TaskPriority, StageAssignee } from '@/types'
 
 const DATA_RETENTION_DAYS = 30
 
@@ -645,6 +645,21 @@ export const getTasks = async (filters?: {
   }
   
   const snapshot = await getDocs(q)
+  const normalizePriority = (value: any): TaskPriority => {
+    return value === 'high' || value === 'low' || value === 'urgent' ? value : 'medium'
+  }
+
+  const normalizeStageAssignees = (assignees: any[] = []): StageAssignee[] =>
+    assignees
+      .filter((a) => a?.userId)
+      .slice(0, 10)
+      .map((a) => ({
+        userId: a.userId,
+        priority: normalizePriority(a.priority),
+        comment: a.comment,
+        instruction: a.instruction,
+      }))
+
   let tasks = snapshot.docs.map((doc) => {
     const data = doc.data() as any
     const rawAssignees = Array.isArray(data.assignees)
@@ -653,11 +668,28 @@ export const getTasks = async (filters?: {
     const normalizedAssignees = (rawAssignees || [])
       .map((assignee: any) => ({
         userId: assignee.userId || '',
-        priority: assignee.priority === 'high' || assignee.priority === 'low' ? assignee.priority : 'medium',
+        priority: normalizePriority(assignee.priority),
         comment: assignee.comment,
       }))
       .filter((assignee: any) => !!assignee.userId)
     const assignedIds = normalizedAssignees.map((assignee: any) => assignee.userId)
+    const coExecutors: string[] = Array.isArray(data.coExecutors)
+      ? data.coExecutors
+      : Array.isArray(data.executors)
+        ? data.executors
+        : []
+    const normalizedStages = (data.stages || []).map((stage: any) => ({
+      id: stage.id || `stage-${Date.now()}`,
+      name: stage.name || 'Этап',
+      description: stage.description,
+      responsible: stage.responsible === 'all' ? 'all' : Array.isArray(stage.responsible) ? stage.responsible : (stage.assignees || []).map((a: any) => a.userId),
+      assignees: normalizeStageAssignees(stage.assignees),
+      stagePriority: normalizePriority(stage.stagePriority),
+      requiresApproval: stage.requiresApproval ?? true,
+      approvals: stage.approvals || [],
+      comments: stage.comments || [],
+      status: stage.status || 'pending',
+    }))
     return {
       id: doc.id,
       title: data.title || '',
@@ -673,18 +705,23 @@ export const getTasks = async (filters?: {
       completedAt: data.completedAt,
       closedAt: data.closedAt,
       completedBy: data.completedBy,
-      priority: data.priority,
+      priority: normalizePriority(data.priority),
       dueDate: data.dueDate || new Date().toISOString().split('T')[0],
       dueTime: data.dueTime || '12:00',
       startTime: data.startTime,
       mainExecutor: data.mainExecutor,
+      leadExecutor: data.leadExecutor,
       deputies: data.deputies || [],
+      coExecutors,
       executors: data.executors || [],
       curators: data.curators || [],
       leads: data.leads || [],
-      stages: data.stages || [],
+      stages: normalizedStages,
       currentStageId: data.currentStageId,
+      awaitingStageId: data.awaitingStageId,
       comments: data.comments || [],
+      expectedResult: data.expectedResult,
+      requiresApproval: data.requiresApproval ?? true,
     } as Task
   })
 
