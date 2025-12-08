@@ -435,9 +435,10 @@ export const CallPage = () => {
         )
         break
       case 'polymarket':
+        const positionType = d.positionType as 'yes' | 'no' | undefined
         metrics.push(
           { label: 'Событие', value: d.event, icon: <ScrollText className="w-4 h-4" /> },
-          { label: 'Тип', value: d.positionType ? positionLabels[d.positionType] : '', icon: <Shield className="w-4 h-4" /> },
+          { label: 'Тип', value: positionType ? positionLabels[positionType] : '', icon: <Shield className="w-4 h-4" /> },
           { label: 'Срок исхода', value: formatDeadlineLabel(d.eventDeadline), icon: <CalendarClock className="w-4 h-4" /> },
           { label: 'Риск', value: riskLabels[risk] || risk, icon: <ShieldAlert className="w-4 h-4" /> },
         )
