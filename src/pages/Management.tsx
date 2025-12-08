@@ -600,28 +600,30 @@ export const Management = () => {
 
         {/* Content view */}
         <div id="schedule-view" className={contentCardClass}>
-          <div className="flex items-center justify-between flex-wrap gap-2 mb-4 text-left">
-            <div className="text-left">
-              <p className={`text-sm sm:text-base font-semibold ${headingColor}`}>Расписание</p>
-              <p className={`text-xs sm:text-sm ${labelColor}`}>Слоты и статусы за выбранную неделю</p>
+          <div className={`${surfaceCardClass} p-4 sm:p-5 flex flex-col gap-4`}>
+            <div className="flex items-center justify-between flex-wrap gap-2 text-left">
+              <div className="text-left">
+                <p className={`text-sm sm:text-base font-semibold ${headingColor}`}>Расписание</p>
+                <p className={`text-xs sm:text-sm ${labelColor}`}>Слоты и статусы за выбранную неделю</p>
+              </div>
             </div>
-          </div>
 
-          {viewMode === 'table' ? (
-            <ManagementWeekView
-              selectedUserId={selectedUserId}
-              slotFilter={slotFilter}
-              onEditSlot={handleEditSlot}
-              onEditStatus={handleEditStatus}
-            />
-          ) : (
-            <ManagementTable
-              selectedUserId={selectedUserId}
-              slotFilter={slotFilter}
-              onEditSlot={handleEditSlot}
-              onEditStatus={handleEditStatus}
-            />
-          )}
+            {viewMode === 'table' ? (
+              <ManagementWeekView
+                selectedUserId={selectedUserId}
+                slotFilter={slotFilter}
+                onEditSlot={handleEditSlot}
+                onEditStatus={handleEditStatus}
+              />
+            ) : (
+              <ManagementTable
+                selectedUserId={selectedUserId}
+                slotFilter={slotFilter}
+                onEditSlot={handleEditSlot}
+                onEditStatus={handleEditStatus}
+              />
+            )}
+          </div>
         </div>
 
         {/* Forms */}
