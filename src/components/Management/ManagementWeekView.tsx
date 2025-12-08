@@ -284,6 +284,20 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
                     return oldIdMap[status.userId] === u.id
                   })
                   const displayName = statusUserFallback?.name || status.userId
+                  const statusStart = status.date
+                  const statusEnd = status.endDate || status.date
+                  const weekStartStr = formatDate(weekDays[0], 'yyyy-MM-dd')
+                  const firstVisibleDate = statusStart < weekStartStr ? weekStartStr : statusStart
+
+                  // Показываем карточку диапазонного статуса один раз — в первый видимый день диапазона
+                  if (status.endDate && dateStr !== firstVisibleDate) {
+                    return null
+                  }
+
+                  const dateRangeLabel =
+                    status.endDate && statusStart !== statusEnd
+                      ? `${formatDate(new Date(statusStart), 'dd.MM')}–${formatDate(new Date(statusEnd), 'dd.MM')}`
+                      : formatDate(new Date(statusStart), 'dd.MM')
                   return (
                     <div
                       key={status.id}
@@ -293,6 +307,7 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
                     >
                       <div className="flex flex-col sm:flex-row sm:items-center gap-2 justify-center sm:justify-start w-full">
                         <span className="font-semibold text-base sm:text-lg">{displayName}</span>
+                        <span className="text-xs sm:text-sm font-semibold text-current">{dateRangeLabel}</span>
                         <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/70 dark:bg-white/10 text-xs sm:text-sm font-semibold">
                           {status.type === 'dayoff' ? 'Выходной' : status.type === 'sick' ? 'Больничный' : 'Отпуск'}
                         </span>
