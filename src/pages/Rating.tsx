@@ -468,9 +468,10 @@ export const Rating = () => {
                 ))}
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-5">
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
                 {sortedRatings.map((rating, index) => {
-                  const placeBadge =
+                  type PlaceTone = 'emerald' | 'blue' | 'amber' | 'slate'
+                  const place: { text: string; tone: PlaceTone; emoji: string } =
                     index === 0
                       ? { text: '1 место', tone: 'emerald', emoji: '🥇' }
                       : index === 1
@@ -479,30 +480,41 @@ export const Rating = () => {
                       ? { text: '3 место', tone: 'amber', emoji: '🥉' }
                       : { text: `${index + 1} место`, tone: 'slate', emoji: '🎯' }
 
-                  const placeTone =
-                    placeBadge.tone === 'emerald'
-                      ? theme === 'dark'
-                        ? 'bg-emerald-500/20 text-emerald-50 border-emerald-400/40'
-                        : 'bg-emerald-50 text-emerald-900 border-emerald-200'
-                      : placeBadge.tone === 'blue'
-                      ? theme === 'dark'
-                        ? 'bg-blue-500/20 text-blue-50 border-blue-400/40'
-                        : 'bg-blue-50 text-blue-900 border-blue-200'
-                      : placeBadge.tone === 'amber'
-                      ? theme === 'dark'
-                        ? 'bg-amber-500/20 text-amber-50 border-amber-400/40'
-                        : 'bg-amber-50 text-amber-900 border-amber-200'
-                      : theme === 'dark'
-                      ? 'bg-white/5 text-white border-white/10'
-                      : 'bg-gray-50 text-gray-800 border-gray-200'
+                  const tones: Record<PlaceTone, { chip: string; circle: string }> = {
+                    emerald:
+                      theme === 'dark'
+                        ? { chip: 'bg-emerald-500/15 text-emerald-50 border-emerald-400/40', circle: 'bg-emerald-500/25 text-emerald-50 border-emerald-400/40' }
+                        : { chip: 'bg-emerald-50 text-emerald-900 border-emerald-200', circle: 'bg-emerald-100 text-emerald-800 border-emerald-200' },
+                    blue:
+                      theme === 'dark'
+                        ? { chip: 'bg-blue-500/15 text-blue-50 border-blue-400/40', circle: 'bg-blue-500/25 text-blue-50 border-blue-400/40' }
+                        : { chip: 'bg-blue-50 text-blue-900 border-blue-200', circle: 'bg-blue-100 text-blue-800 border-blue-200' },
+                    amber:
+                      theme === 'dark'
+                        ? { chip: 'bg-amber-500/15 text-amber-50 border-amber-400/40', circle: 'bg-amber-500/25 text-amber-50 border-amber-400/40' }
+                        : { chip: 'bg-amber-50 text-amber-900 border-amber-200', circle: 'bg-amber-100 text-amber-800 border-amber-200' },
+                    slate:
+                      theme === 'dark'
+                        ? { chip: 'bg-white/5 text-white border-white/10', circle: 'bg-white/10 text-white border-white/15' }
+                        : { chip: 'bg-gray-50 text-gray-800 border-gray-200', circle: 'bg-gray-100 text-gray-800 border-gray-200' },
+                  }
+
+                  const tone = tones[place.tone]
 
                   return (
-                    <div key={rating.userId} className="relative pt-3">
-                      <div
-                        className={`absolute -top-2 left-2 px-3 py-1 rounded-full text-xs font-semibold border shadow-sm flex items-center gap-1 ${placeTone}`}
-                      >
-                        <span>{placeBadge.emoji}</span>
-                        <span>{placeBadge.text}</span>
+                    <div key={rating.userId} className="relative pt-7">
+                      <div className="absolute -top-3 left-4 flex items-center gap-2">
+                        <div
+                          className={`w-10 h-10 rounded-full border text-sm font-bold grid place-items-center shadow-sm ${tone.circle}`}
+                        >
+                          {index + 1}
+                        </div>
+                        <div
+                          className={`px-3 py-1 rounded-xl text-xs font-semibold border shadow-sm flex items-center gap-1 ${tone.chip}`}
+                        >
+                          <span>{place.emoji}</span>
+                          <span>{place.text}</span>
+                        </div>
                       </div>
                       <RatingCard rating={rating} />
                     </div>
