@@ -4,7 +4,7 @@ import { useAuthStore } from '@/store/authStore'
 import { useAdminStore } from '@/store/adminStore'
 import { useThemeStore } from '@/store/themeStore'
 import { updateTask } from '@/services/firestoreService'
-import { Task, TaskPriority, TaskStatus, TEAM_MEMBERS, TASK_CATEGORIES, TASK_STATUSES } from '@/types'
+import { Task, TaskPriority, TaskStatus, TEAM_MEMBERS, TASK_CATEGORIES, TASK_STATUSES, TaskApproval } from '@/types'
 import {
   AlertCircle,
   AlarmClock,
@@ -78,18 +78,18 @@ export const TaskCard = ({ task, onEdit, onDelete, onUpdate }: TaskCardProps) =>
       status: 'pending' as const,
     }
   }
-  const resolveExecutorApprovals = () => {
+  const resolveExecutorApprovals = (): TaskApproval[] => {
     const now = new Date().toISOString()
     const current = (task.approvals || []).filter((a) => assigneeIds.includes(a.userId))
-    const normalized = current.map((a) => ({
+    const normalized: TaskApproval[] = current.map((a) => ({
       userId: a.userId,
       status: a.status === 'approved' ? 'approved' : 'pending',
       updatedAt: a.updatedAt || now,
       ...(a.comment ? { comment: a.comment } : {}),
     }))
-    const missing = assigneeIds
+    const missing: TaskApproval[] = assigneeIds
       .filter((id) => !normalized.some((a) => a.userId === id))
-      .map((id) => ({ userId: id, status: 'pending' as const, updatedAt: now }))
+      .map((id) => ({ userId: id, status: 'pending', updatedAt: now }))
 
     return [...normalized, ...missing]
   }

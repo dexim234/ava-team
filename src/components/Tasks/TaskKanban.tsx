@@ -4,7 +4,7 @@ import { useThemeStore } from '@/store/themeStore'
 import { useAuthStore } from '@/store/authStore'
 import { useAdminStore } from '@/store/adminStore'
 import { updateTask } from '@/services/firestoreService'
-import { Task, TaskPriority, TaskStatus, TaskStage, TASK_STATUSES, TEAM_MEMBERS } from '@/types'
+import { Task, TaskPriority, TaskStatus, TASK_STATUSES, TEAM_MEMBERS, TaskApproval } from '@/types'
 import { AlarmClock, CalendarClock, Check, CheckSquare, Clock3, MoreVertical, X, AlertCircle } from 'lucide-react'
 import { formatDate } from '@/utils/dateUtils'
 import { TaskDeadlineBadge } from './TaskDeadlineBadge'
@@ -141,19 +141,19 @@ export const TaskKanban = ({ tasks, onUpdate, onEdit, onDelete }: TaskKanbanProp
     setTouchTarget(null)
   }
 
-  const resolveExecutorApprovals = (task: Task) => {
+  const resolveExecutorApprovals = (task: Task): TaskApproval[] => {
     const assigneeIds = resolveAssigneeIds(task)
     const now = new Date().toISOString()
     const current = (task.approvals || []).filter((a) => assigneeIds.includes(a.userId))
-    const normalized = current.map((a) => ({
+    const normalized: TaskApproval[] = current.map((a) => ({
       userId: a.userId,
       status: a.status === 'approved' ? 'approved' : 'pending',
       updatedAt: a.updatedAt || now,
       ...(a.comment ? { comment: a.comment } : {}),
     }))
-    const missing = assigneeIds
+    const missing: TaskApproval[] = assigneeIds
       .filter((id) => !normalized.some((a) => a.userId === id))
-      .map((id) => ({ userId: id, status: 'pending' as const, updatedAt: now }))
+      .map((id) => ({ userId: id, status: 'pending', updatedAt: now }))
 
     return [...normalized, ...missing]
   }
