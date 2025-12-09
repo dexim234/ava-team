@@ -147,19 +147,6 @@ export const Rating = () => {
   const heroLabelColor = theme === 'dark' ? 'text-white/70' : 'text-slate-600'
   const heroValueColor = theme === 'dark' ? 'text-white' : 'text-slate-900'
 
-  const sectionLinks = [
-    { href: '#rating-team', label: 'Команда', icon: '🌿' },
-    { href: '#rating-ref', label: 'Рефералы', icon: '🧲' },
-    { href: '#rating-method', label: 'Карточки', icon: '📇' },
-  ]
-
-  const ratingBands = [
-    { label: '80-100%', title: 'Эталон', desc: 'Стабильный вклад, примеры для команды', tone: 'text-emerald-700 dark:text-emerald-100', bg: 'bg-emerald-50 dark:bg-emerald-900/40 border-emerald-200/60 dark:border-emerald-700/60' },
-    { label: '60-79%', title: 'Уверенно', desc: 'Держат темп, есть потенциал роста', tone: 'text-blue-700 dark:text-blue-100', bg: 'bg-blue-50 dark:bg-blue-900/40 border-blue-200/60 dark:border-blue-700/60' },
-    { label: '40-59%', title: 'В пути', desc: 'Нужна точечная поддержка и фокус', tone: 'text-amber-700 dark:text-amber-100', bg: 'bg-amber-50 dark:bg-amber-900/40 border-amber-200/60 dark:border-amber-700/60' },
-    { label: '0-39%', title: 'Зона роста', desc: 'Запускаем план восстановления', tone: 'text-rose-700 dark:text-rose-100', bg: 'bg-rose-50 dark:bg-rose-900/40 border-rose-200/60 dark:border-rose-700/60' },
-  ]
-
   const sortedRatings = useMemo(() => {
     return [...ratings].sort((a, b) => b.rating - a.rating)
   }, [ratings])
@@ -242,11 +229,10 @@ export const Rating = () => {
     <Layout>
       <div className="space-y-6">
         {/* Header */}
-        <div className="relative overflow-hidden rounded-3xl border border-white/10 shadow-[0_24px_80px_rgba(0,0,0,0.45)] bg-gradient-to-br from-[#0b1428] via-[#0f1d34] to-[#09101f]">
+        <div className="relative overflow-hidden rounded-3xl border border-[#48a35e]/60 shadow-[0_24px_80px_rgba(0,0,0,0.45)] bg-[#10141c]">
           <div className="absolute inset-0 pointer-events-none">
-            <div className="absolute -left-10 top-0 w-72 h-72 bg-emerald-500/20 blur-3xl"></div>
-            <div className="absolute right-0 -bottom-16 w-80 h-80 bg-blue-500/20 blur-3xl"></div>
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.08),transparent_35%)]"></div>
+            <div className="absolute -left-16 -bottom-10 w-80 h-80 bg-emerald-500/18 blur-3xl"></div>
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.08),transparent_45%)]"></div>
           </div>
 
           <div className="relative p-6 sm:p-8 space-y-6">
@@ -281,35 +267,12 @@ export const Rating = () => {
                     </div>
                   </div>
                 </div>
-                <div className="flex flex-wrap gap-2">
-                  {sectionLinks.map((item, idx) => (
-                    <a
-                      key={item.href}
-                      href={item.href}
-                      className={`px-4 py-2 rounded-full text-sm font-semibold border transition flex items-center gap-2 ${
-                        idx === 0
-                          ? 'bg-white text-slate-900 border-white shadow'
-                          : 'bg-white/10 text-white border-white/20 hover:bg-white/15'
-                      }`}
-                    >
-                      <span>{item.icon}</span>
-                      {item.label}
-                    </a>
-                  ))}
-                </div>
               </div>
 
               <div className="flex flex-col items-start lg:items-end gap-2 text-white">
                 <span className="text-xs uppercase tracking-[0.12em] text-white/70">КПД команды (неделя)</span>
                 <div className="text-5xl font-black leading-none drop-shadow-md">{teamKPD.toFixed(1)}%</div>
                 <span className="text-xs text-white/60">Обновлено {todayLabel}</span>
-                <button
-                  onClick={handleAddReferral}
-                  className="mt-2 px-4 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl transition-all duration-200 flex items-center justify-center gap-2 font-semibold shadow-lg w-full lg:w-auto"
-                >
-                  <span className="text-xl">➕</span>
-                  <span>Добавить реферала</span>
-                </button>
               </div>
             </div>
 
@@ -327,21 +290,6 @@ export const Rating = () => {
               ))}
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
-              {ratingBands.map((band) => (
-                <div
-                  key={band.label}
-                  className={`rounded-xl border ${band.bg} p-3 transition`}
-                >
-                  <div className="flex items-center justify-between">
-                    <span className={`text-xs font-semibold ${subTextColor}`}>{band.label}</span>
-                    <span className="text-lg">•</span>
-                  </div>
-                  <p className={`text-base font-semibold ${band.tone}`}>{band.title}</p>
-                  <p className={`text-sm ${subTextColor}`}>{band.desc}</p>
-                </div>
-              ))}
-            </div>
           </div>
         </div>
 
@@ -392,6 +340,13 @@ export const Rating = () => {
               <h3 className={`text-2xl font-bold ${headingColor}`}>Привлеченные участники</h3>
               <p className={`text-sm ${subTextColor}`}>Всего добавлено: <span className="font-semibold">{referrals.length}</span></p>
             </div>
+            <button
+              onClick={handleAddReferral}
+              className="px-4 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl transition-all duration-200 flex items-center justify-center gap-2 font-semibold shadow-md w-full sm:w-auto"
+            >
+              <span className="text-xl">➕</span>
+              <span>Добавить реферала</span>
+            </button>
           </div>
 
           <div className="grid gap-3 md:grid-cols-2">
