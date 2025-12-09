@@ -2,15 +2,19 @@
 import { useState, useEffect, useMemo } from 'react'
 import { Layout } from '@/components/Layout'
 import { useThemeStore } from '@/store/themeStore'
+import { useAuthStore } from '@/store/authStore'
+import { useAdminStore } from '@/store/adminStore'
 import { RatingCard } from '@/components/Rating/RatingCard'
 import { ReferralForm } from '@/components/Rating/ReferralForm'
-import { getRatingData, getEarnings, getDayStatuses, getReferrals, getWorkSlots, getWeeklyMessages } from '@/services/firestoreService'
+import { getRatingData, getEarnings, getDayStatuses, getReferrals, getWorkSlots, getWeeklyMessages, deleteReferral } from '@/services/firestoreService'
 import { getLastNDaysRange, getWeekRange, formatDate, calculateHours, countDaysInPeriod } from '@/utils/dateUtils'
 import { calculateRating, getRatingBreakdown } from '@/utils/ratingUtils'
 import { RatingData, Referral, TEAM_MEMBERS } from '@/types'
 
 export const Rating = () => {
   const { theme } = useThemeStore()
+  const { user } = useAuthStore()
+  const { isAdmin } = useAdminStore()
   type RatingWithBreakdown = RatingData & { breakdown?: ReturnType<typeof getRatingBreakdown> }
   const [ratings, setRatings] = useState<RatingWithBreakdown[]>([])
   const [loading, setLoading] = useState(true)
@@ -245,6 +249,18 @@ export const Rating = () => {
     setShowReferralForm(true)
   }
 
+  const handleEditReferral = (referral: Referral) => {
+    setActiveReferral(referral)
+    setShowReferralForm(true)
+  }
+
+  const handleDeleteReferral = async (referral: Referral) => {
+    const canManage = isAdmin || referral.ownerId === user?.id
+    if (!canManage) return
+    await deleteReferral(referral.id)
+    await loadRatings()
+  }
+
   return (
     <Layout>
       <div className="space-y-6">
@@ -409,18 +425,20 @@ export const Rating = () => {
 
           {referrals.length ? (
             <div className="overflow-auto rounded-xl border border-white/10 bg-white/5">
-              <table className="min-w-[720px] w-full text-sm text-white/90">
+              <table className="min-w-[820px] w-full text-sm text-white/90">
                 <thead className="bg-white/5 text-white/70 text-left">
                   <tr>
                     <th className="py-3 px-4 font-semibold">Кто привел</th>
                     <th className="py-3 px-4 font-semibold">Код</th>
                     <th className="py-3 px-4 font-semibold">Имя</th>
                     <th className="py-3 px-4 font-semibold">Комментарий</th>
+                    <th className="py-3 px-4 font-semibold text-right">Действия</th>
                   </tr>
                 </thead>
                 <tbody>
                   {referrals.map((referral) => {
                     const ownerName = getMemberNameById(referral.ownerId)
+                    const canManage = isAdmin || referral.ownerId === user?.id
                     return (
                       <tr
                         key={referral.id}
@@ -430,6 +448,22 @@ export const Rating = () => {
                         <td className="py-3 px-4 text-white/80 whitespace-nowrap">{referral.referralId}</td>
                         <td className="py-3 px-4 text-white/80">{referral.name}</td>
                         <td className="py-3 px-4 text-white/70">{referral.comment || '—'}</td>
+                        <td className="py-3 px-4 text-right whitespace-nowrap flex items-center justify-end gap-2">
+                          <button
+                            onClick={() => canManage && handleEditReferral(referral)}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-semibold border border-white/20 bg-white/10 text-white transition ${!canManage ? 'opacity-40 cursor-not-allowed' : 'hover:bg-white/20'}`}
+                            disabled={!canManage}
+                          >
+                            Редактировать
+                          </button>
+                          <button
+                            onClick={() => canManage && handleDeleteReferral(referral)}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-semibold border border-rose-300/60 bg-rose-500/20 text-rose-50 transition ${!canManage ? 'opacity-40 cursor-not-allowed' : 'hover:bg-rose-500/30'}`}
+                            disabled={!canManage}
+                          >
+                            Удалить
+                          </button>
+                        </td>
                       </tr>
                     )
                   })}
@@ -484,53 +518,9 @@ export const Rating = () => {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-2 gap-6">
                 {sortedRatings.map((rating, index) => {
-                  type PlaceTone = 'emerald' | 'blue' | 'amber' | 'slate'
-                  const place: { text: string; tone: PlaceTone; emoji: string } =
-                    index === 0
-                      ? { text: '1 место', tone: 'emerald', emoji: '🥇' }
-                      : index === 1
-                      ? { text: '2 место', tone: 'blue', emoji: '🥈' }
-                      : index === 2
-                      ? { text: '3 место', tone: 'amber', emoji: '🥉' }
-                      : { text: `${index + 1} место`, tone: 'slate', emoji: '🎯' }
-
-                  const tones: Record<PlaceTone, { chip: string; circle: string }> = {
-                    emerald:
-                      theme === 'dark'
-                        ? { chip: 'bg-emerald-500/15 text-emerald-50 border-emerald-400/40', circle: 'bg-emerald-500/25 text-emerald-50 border-emerald-400/40' }
-                        : { chip: 'bg-emerald-50 text-emerald-900 border-emerald-200', circle: 'bg-emerald-100 text-emerald-800 border-emerald-200' },
-                    blue:
-                      theme === 'dark'
-                        ? { chip: 'bg-blue-500/15 text-blue-50 border-blue-400/40', circle: 'bg-blue-500/25 text-blue-50 border-blue-400/40' }
-                        : { chip: 'bg-blue-50 text-blue-900 border-blue-200', circle: 'bg-blue-100 text-blue-800 border-blue-200' },
-                    amber:
-                      theme === 'dark'
-                        ? { chip: 'bg-amber-500/15 text-amber-50 border-amber-400/40', circle: 'bg-amber-500/25 text-amber-50 border-amber-400/40' }
-                        : { chip: 'bg-amber-50 text-amber-900 border-amber-200', circle: 'bg-amber-100 text-amber-800 border-amber-200' },
-                    slate:
-                      theme === 'dark'
-                        ? { chip: 'bg-white/5 text-white border-white/10', circle: 'bg-white/10 text-white border-white/15' }
-                        : { chip: 'bg-gray-50 text-gray-800 border-gray-200', circle: 'bg-gray-100 text-gray-800 border-gray-200' },
-                  }
-
-                  const tone = tones[place.tone]
-
                   return (
-                    <div key={rating.userId} className="relative pt-7">
-                      <div className="absolute -top-3 left-4 flex items-center gap-2">
-                        <div
-                          className={`w-10 h-10 rounded-full border text-sm font-bold grid place-items-center shadow-sm ${tone.circle}`}
-                        >
-                          {index + 1}
-                        </div>
-                        <div
-                          className={`px-3 py-1 rounded-xl text-xs font-semibold border shadow-sm flex items-center gap-1 ${tone.chip}`}
-                        >
-                          <span>{place.emoji}</span>
-                          <span>{place.text}</span>
-                        </div>
-                      </div>
-                      <RatingCard rating={rating} place={{ label: place.text, tone: place.tone }} />
+                    <div key={rating.userId}>
+                      <RatingCard rating={rating} place={{ rank: index + 1 }} />
                     </div>
                   )
                 })}

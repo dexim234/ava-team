@@ -8,7 +8,7 @@ import { useState } from 'react'
 
 interface RatingCardProps {
   rating: RatingData & { breakdown?: ReturnType<typeof getRatingBreakdown> }
-  place?: { label: string; tone: 'emerald' | 'blue' | 'amber' | 'slate' }
+  place?: { rank: number }
 }
 
 interface MetricInfo {
@@ -100,15 +100,6 @@ export const RatingCard = ({ rating, place }: RatingCardProps) => {
 
   const accent = accentPalette[member?.id || 'default']
 
-  const getRatingEmoji = (ratingValue: number): string => {
-    if (ratingValue >= 81) return '🏆'
-    if (ratingValue >= 60) return '⭐'
-    if (ratingValue >= 31) return '📊'
-    if (ratingValue >= 11) return '📈'
-    if (ratingValue >= 1) return '⚠️'
-    return '❌'
-  }
-
   const metrics: MetricInfo[] = rating.breakdown ? [
     {
       icon: <Calendar className="w-5 h-5" />,
@@ -184,8 +175,30 @@ export const RatingCard = ({ rating, place }: RatingCardProps) => {
 
   const totalPoints = metrics.reduce((sum, m) => sum + m.points, 0)
 
+  const placeBadge = (() => {
+    if (!place) return null
+    const rank = place.rank
+    const palette =
+      rank === 1
+        ? { bg: 'from-amber-400 to-amber-600', ring: 'ring-amber-300/50', icon: '🥇' }
+        : rank === 2
+          ? { bg: 'from-slate-300 to-slate-500', ring: 'ring-slate-300/50', icon: '🥈' }
+          : rank === 3
+            ? { bg: 'from-amber-200 to-amber-500', ring: 'ring-amber-200/40', icon: '🥉' }
+            : { bg: 'from-gray-200 to-gray-400', ring: 'ring-gray-200/40', icon: rank.toString() }
+
+    return (
+      <div className={`absolute top-3 right-3`}>
+        <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${palette.bg} ring-4 ${palette.ring} shadow-lg grid place-items-center text-lg font-semibold`}>
+          {palette.icon}
+        </div>
+      </div>
+    )
+  })()
+
   return (
-    <div className={`rounded-2xl p-6 ${cardBg} shadow-sm border ${borderColor} transition-colors`}>
+    <div className={`relative rounded-2xl p-6 ${cardBg} shadow-sm border ${borderColor} transition-colors`}>
+      {placeBadge}
       {/* Header with name and rating */}
       <div className="mb-5 flex flex-col gap-3">
         <div className="flex items-start justify-between gap-3">
@@ -206,33 +219,9 @@ export const RatingCard = ({ rating, place }: RatingCardProps) => {
               </span>
               <div className="flex items-center gap-2">
                 <span className={`text-lg font-bold`} style={{ color: ratingTextColor }}>{rating.rating.toFixed(1)}%</span>
-                <span className="text-xl">{getRatingEmoji(rating.rating)}</span>
               </div>
             </div>
           </div>
-          {place && (
-            <div
-              className={`px-3 py-2 rounded-lg text-xs font-semibold border ${
-                place.tone === 'emerald'
-                  ? theme === 'dark'
-                    ? 'bg-emerald-500/15 border-emerald-400/30 text-emerald-50'
-                    : 'bg-emerald-50 border-emerald-200 text-emerald-900'
-                  : place.tone === 'blue'
-                  ? theme === 'dark'
-                    ? 'bg-blue-500/15 border-blue-400/30 text-blue-50'
-                    : 'bg-blue-50 border-blue-200 text-blue-900'
-                  : place.tone === 'amber'
-                  ? theme === 'dark'
-                    ? 'bg-amber-500/15 border-amber-400/30 text-amber-50'
-                    : 'bg-amber-50 border-amber-200 text-amber-900'
-                  : theme === 'dark'
-                  ? 'bg-white/5 border-white/15 text-white'
-                  : 'bg-gray-50 border-gray-200 text-gray-900'
-              }`}
-            >
-              {place.label}
-            </div>
-          )}
         </div>
 
         {/* Main rating progress bar */}

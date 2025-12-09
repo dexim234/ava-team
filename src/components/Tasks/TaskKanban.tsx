@@ -5,7 +5,7 @@ import { useAuthStore } from '@/store/authStore'
 import { useAdminStore } from '@/store/adminStore'
 import { updateTask } from '@/services/firestoreService'
 import { Task, TaskPriority, TaskStatus, TaskStage, TASK_STATUSES, TEAM_MEMBERS } from '@/types'
-import { AlarmClock, CalendarClock, Check, CheckSquare, Clock3, MoreVertical, RotateCcw, X, AlertCircle } from 'lucide-react'
+import { AlarmClock, CalendarClock, Check, CheckSquare, Clock3, MoreVertical, X, AlertCircle } from 'lucide-react'
 import { formatDate } from '@/utils/dateUtils'
 import { TaskDeadlineBadge } from './TaskDeadlineBadge'
 import { CATEGORY_ICONS } from './categoryIcons'
@@ -24,8 +24,8 @@ export const TaskKanban = ({ tasks, onUpdate, onEdit, onDelete }: TaskKanbanProp
   
   const [draggedTask, setDraggedTask] = useState<Task | null>(null)
   const [mobileMenuTask, setMobileMenuTask] = useState<Task | null>(null)
-  const [rejectDialog, setRejectDialog] = useState<{ task: Task } | null>(null)
-  const [rejectionComment, setRejectionComment] = useState('')
+  const [returnDialog, setReturnDialog] = useState<{ task: Task } | null>(null)
+  const [returnComment, setReturnComment] = useState('')
   const [loading, setLoading] = useState<string | null>(null)
   const [touchStart, setTouchStart] = useState<{ x: number; y: number; task: Task } | null>(null)
   const [touchTarget, setTouchTarget] = useState<string | null>(null)
@@ -38,7 +38,7 @@ export const TaskKanban = ({ tasks, onUpdate, onEdit, onDelete }: TaskKanbanProp
   const borderColor = theme === 'dark' ? 'border-gray-800' : 'border-gray-300'
   const inputBg = theme === 'dark' ? 'bg-gray-800' : 'bg-white'
 
-  const statuses: TaskStatus[] = ['pending', 'in_progress', 'approval', 'completed', 'closed', 'rejected']
+  const statuses: TaskStatus[] = ['in_progress', 'completed', 'closed']
 
   const resolveAssignees = (task: Task) =>
     task.assignees && task.assignees.length > 0
@@ -46,19 +46,6 @@ export const TaskKanban = ({ tasks, onUpdate, onEdit, onDelete }: TaskKanbanProp
       : task.assignedTo.map((userId) => ({ userId, priority: 'medium' as const }))
 
   const resolveAssigneeIds = (task: Task) => resolveAssignees(task).map((assignee) => assignee.userId)
-
-  const resolveParticipants = (task: Task) => {
-    const extra = [
-      task.mainExecutor,
-      task.leadExecutor,
-      ...(task.deputies?.map((d) => d.userId) || []),
-      ...(task.coExecutors || []),
-      ...(task.executors || []),
-      ...(task.curators || []),
-      ...(task.leads || []),
-    ].filter(Boolean) as string[]
-    return Array.from(new Set([...(task.assignedTo || []), ...extra]))
-  }
 
   const getCurrentStage = (task: Task) => {
     if (task.stages && task.stages.length > 0) {
@@ -71,7 +58,7 @@ export const TaskKanban = ({ tasks, onUpdate, onEdit, onDelete }: TaskKanbanProp
       name: 'Этап',
       responsible: 'all',
       approvals: task.approvals || [],
-      status: task.status === 'rejected' ? 'rejected' : 'pending',
+      status: 'pending',
       comments: [],
     }
   }
@@ -81,7 +68,6 @@ export const TaskKanban = ({ tasks, onUpdate, onEdit, onDelete }: TaskKanbanProp
   const isLeadExecutor = (task: Task) =>
     !!user && (task.leadExecutor === user.id || (task.leads || []).includes(user.id))
   const canMoveTask = (task: Task) => isAdmin || isAuthor(task) || isMainExecutor(task) || isLeadExecutor(task)
-  const canConfirmStage = (task: Task) => isAdmin || isAuthor(task) || isMainExecutor(task)
   const roleTag = (task: Task, userId: string) => {
     if (userId === task.createdBy) return 'A'
     if (userId === task.mainExecutor) return 'ГИ'
@@ -114,7 +100,7 @@ export const TaskKanban = ({ tasks, onUpdate, onEdit, onDelete }: TaskKanbanProp
 
   // Touch events for mobile drag & drop
   const handleTouchStart = (e: React.TouchEvent, task: Task) => {
-    if (loading || task.status === 'rejected' || !canMoveTask(task)) return
+    if (loading || !canMoveTask(task)) return
     const touch = e.touches[0]
     setTouchStart({ x: touch.clientX, y: touch.clientY, task })
   }
@@ -145,7 +131,7 @@ export const TaskKanban = ({ tasks, onUpdate, onEdit, onDelete }: TaskKanbanProp
       const column = element.closest('[data-status]')
       if (column) {
         const targetStatus = column.getAttribute('data-status') as TaskStatus
-        if (targetStatus && targetStatus !== currentStatus && touchStart.task.status !== 'rejected') {
+        if (targetStatus && targetStatus !== currentStatus) {
           await handleStatusChange(touchStart.task, targetStatus)
         }
       }
@@ -155,12 +141,32 @@ export const TaskKanban = ({ tasks, onUpdate, onEdit, onDelete }: TaskKanbanProp
     setTouchTarget(null)
   }
 
-  const allStagesApproved = (task: Task) => {
-    if (!task.stages || task.stages.length === 0) {
-      return task.approvals.every((a) => a.status === 'approved')
-    }
-    return task.stages.every((s) => s.status === 'approved')
+  const resolveExecutorApprovals = (task: Task) => {
+    const assigneeIds = resolveAssigneeIds(task)
+    const now = new Date().toISOString()
+    const current = (task.approvals || []).filter((a) => assigneeIds.includes(a.userId))
+    const normalized = current.map((a) => ({
+      userId: a.userId,
+      status: a.status === 'approved' ? 'approved' : 'pending',
+      updatedAt: a.updatedAt || now,
+      ...(a.comment ? { comment: a.comment } : {}),
+    }))
+    const missing = assigneeIds
+      .filter((id) => !normalized.some((a) => a.userId === id))
+      .map((id) => ({ userId: id, status: 'pending' as const, updatedAt: now }))
+
+    return [...normalized, ...missing]
   }
+
+  const getApprovalStats = (task: Task) => {
+    const approvals = resolveExecutorApprovals(task)
+    const total = resolveAssigneeIds(task).length
+    const approved = approvals.filter((a) => a.status === 'approved').length
+    return { approvals, approved, total }
+  }
+
+  const isExecutor = (task: Task) => !!user && resolveAssigneeIds(task).includes(user.id)
+  const canCloseTask = (task: Task) => isAdmin || isAuthor(task)
 
   const handleDrop = async (e: React.DragEvent, targetStatus: TaskStatus) => {
     e.preventDefault()
@@ -171,42 +177,44 @@ export const TaskKanban = ({ tasks, onUpdate, onEdit, onDelete }: TaskKanbanProp
       return
     }
 
-    // Don't allow dropping rejected tasks directly
-    if (draggedTask.status === 'rejected' && targetStatus !== 'pending') {
+    const { approvals, approved, total } = getApprovalStats(draggedTask)
+    const now = new Date().toISOString()
+
+    if (targetStatus === 'completed' && (total === 0 || approved < total)) {
       setDraggedTask(null)
       return
     }
 
-    // Don't allow moving to rejected via drag & drop
-    if (targetStatus === 'rejected') {
+    if (targetStatus === 'closed' && (!canCloseTask(draggedTask) || draggedTask.status !== 'completed')) {
       setDraggedTask(null)
       return
+    }
+
+    const updates: Partial<Task> = {
+      status: targetStatus,
+      updatedAt: now,
+    }
+
+    if (targetStatus === 'completed') {
+      updates.completedAt = now
+      updates.completedBy = user?.id || 'system'
+      updates.approvals = approvals
+    } else if (targetStatus === 'closed') {
+      updates.closedAt = now
+    } else if (targetStatus === 'in_progress') {
+      updates.approvals = resolveAssigneeIds(draggedTask).map((id) => ({
+        userId: id,
+        status: 'pending' as const,
+        updatedAt: now,
+      }))
+      updates.completedAt = undefined
+      updates.completedBy = undefined
+      updates.closedAt = undefined
     }
 
     setLoading(draggedTask.id)
     try {
-      const now = new Date().toISOString()
-      const updates: Partial<Task> = {
-        status: targetStatus,
-        updatedAt: now,
-      }
-
-      if (targetStatus === 'completed') {
-        updates.completedAt = now
-        updates.completedBy = user?.id || 'admin'
-      } else if (targetStatus === 'closed') {
-        updates.closedAt = now
-      } else if (targetStatus === 'pending' && draggedTask.status === 'rejected') {
-        // Reset approvals when resubmitting rejected task
-        updates.approvals = resolveAssigneeIds(draggedTask).map((userId) => ({
-          userId,
-          status: 'pending' as const,
-          updatedAt: now,
-        }))
-      }
-
       await updateTask(draggedTask.id, updates)
-
       onUpdate()
     } catch (error) {
       console.error('Error updating task status:', error)
@@ -222,35 +230,43 @@ export const TaskKanban = ({ tasks, onUpdate, onEdit, onDelete }: TaskKanbanProp
       return
     }
 
+    const { approvals, approved, total } = getApprovalStats(task)
+    const now = new Date().toISOString()
+
+    if (newStatus === 'completed' && (total === 0 || approved < total)) {
+      setMobileMenuTask(null)
+      return
+    }
+    if (newStatus === 'closed' && (!canCloseTask(task) || task.status !== 'completed')) {
+      setMobileMenuTask(null)
+      return
+    }
+
+    const updates: Partial<Task> = {
+      status: newStatus,
+      updatedAt: now,
+    }
+
+    if (newStatus === 'completed') {
+      updates.completedAt = now
+      updates.completedBy = user?.id || 'system'
+      updates.approvals = approvals
+    } else if (newStatus === 'closed') {
+      updates.closedAt = now
+    } else if (newStatus === 'in_progress') {
+      updates.approvals = resolveAssigneeIds(task).map((id) => ({
+        userId: id,
+        status: 'pending' as const,
+        updatedAt: now,
+      }))
+      updates.completedAt = undefined
+      updates.completedBy = undefined
+      updates.closedAt = undefined
+    }
+
     setLoading(task.id)
     try {
-      const now = new Date().toISOString()
-      const updates: Partial<Task> = {
-        status: newStatus,
-        updatedAt: now,
-      }
-
-      if (newStatus === 'completed') {
-        updates.completedAt = now
-        updates.completedBy = user?.id || 'admin'
-      } else if (newStatus === 'closed') {
-        updates.closedAt = now
-      } else if (newStatus === 'in_progress') {
-        if (!allStagesApproved(task)) {
-          setLoading(null)
-          setMobileMenuTask(null)
-          return
-        }
-      } else if (newStatus === 'pending' && task.status === 'rejected') {
-        updates.approvals = resolveAssigneeIds(task).map((userId) => ({
-          userId,
-          status: 'pending' as const,
-          updatedAt: now,
-        }))
-      }
-
       await updateTask(task.id, updates)
-
       onUpdate()
       setMobileMenuTask(null)
     } catch (error) {
@@ -260,239 +276,90 @@ export const TaskKanban = ({ tasks, onUpdate, onEdit, onDelete }: TaskKanbanProp
     }
   }
 
-  const handleApprove = async (task: Task, action: 'approve' | 'reject', approveForAll?: boolean) => {
-    if (!user) return
-
+  const handleExecutorConfirm = async (task: Task) => {
+    if (!user || task.status !== 'in_progress' || !isExecutor(task)) return
     setLoading(task.id)
     try {
       const now = new Date().toISOString()
-      const newStatus: 'approved' | 'rejected' = action === 'approve' ? 'approved' : 'rejected'
-      const commentValue = action === 'reject' ? (rejectionComment || '').trim() : ''
-      const currentStage = getCurrentStage(task)
-      const stageResponsible =
-        currentStage.responsible === 'all' ? resolveParticipants(task) : (currentStage.responsible as string[])
-      const targetApprovals = currentStage.approvals || []
-
-      const buildApproval = (approval: Task['approvals'][number]) => {
-        const base = {
-          ...approval,
-          status: newStatus,
-          updatedAt: now,
-          forAll: approveForAll ? true : undefined,
-        }
-        if (commentValue) {
-          return { ...base, comment: commentValue }
-        }
-        const { comment, ...rest } = base
-        return rest
-      }
-      
-      const updatedApprovals: Task['approvals'] =
-        approveForAll
-          ? stageResponsible.map((uid) => {
-              const existing = targetApprovals.find((a) => a.userId === uid)
-              const base = existing || { userId: uid, status: 'pending' as const, updatedAt: now }
-              return {
-                ...base,
-                status: newStatus,
-                updatedAt: now,
-                forAll: true,
-                ...(commentValue ? { comment: commentValue } : {}),
-              }
-            })
-          : targetApprovals.map((a) =>
-              a.userId === user.id ? buildApproval(a) : a
-            )
-
-      if (!approveForAll && !targetApprovals.find(a => a.userId === user.id)) {
-        const baseApproval = {
-          userId: user.id,
-          status: newStatus,
-          updatedAt: now,
-        }
-        updatedApprovals.push(
-          commentValue ? { ...baseApproval, comment: commentValue } : baseApproval
-        )
-      }
-
-      const updatedStages = (task.stages || []).map((stage) =>
-        stage.id === currentStage.id ? { ...stage, approvals: updatedApprovals } : stage
+      const approvals = resolveExecutorApprovals(task).map((a) =>
+        a.userId === user.id
+          ? { ...a, status: 'approved' as const, updatedAt: now }
+          : a
       )
-
-      const stageApproved = updatedApprovals.length > 0 && updatedApprovals.every((a) => a.status === 'approved')
-      const stageRejected = updatedApprovals.some((a) => a.status === 'rejected')
-
-      let nextStageId = task.currentStageId
-      let normalizedStages = updatedStages
-
-      if (task.stages && task.stages.length > 0) {
-        normalizedStages = updatedStages.map((stage) => {
-          if (stage.id !== currentStage.id) return stage
-          return {
-            ...stage,
-            status: stageRejected ? 'rejected' : stageApproved ? 'approved' : 'pending',
-          }
-        })
-        if (stageApproved && !stageRejected) {
-          const currentIndex = normalizedStages.findIndex((s) => s.id === currentStage.id)
-          const hasNext = currentIndex >= 0 && currentIndex < normalizedStages.length - 1
-          if (hasNext) {
-            nextStageId = normalizedStages[currentIndex + 1].id
-            // ensure next stage approvals pending
-            const nextStage = normalizedStages[currentIndex + 1]
-            const responsibleIds = nextStage.responsible === 'all' ? resolveParticipants(task) : nextStage.responsible
-            normalizedStages[currentIndex + 1] = {
-              ...nextStage,
-              approvals: responsibleIds.map((uid) => ({
-                userId: uid,
-                status: 'pending',
-                updatedAt: now,
-              })),
-            }
-          }
-        }
-      }
+      const assigneeIds = resolveAssigneeIds(task)
+      const allApproved = assigneeIds.length > 0 && assigneeIds.every((id) => approvals.find((a) => a.userId === id && a.status === 'approved'))
 
       const updates: Partial<Task> = {
-        approvals: updatedApprovals,
-        stages: normalizedStages,
-        currentStageId: nextStageId,
+        approvals,
         updatedAt: now,
       }
 
-      if (action === 'reject' || stageRejected) {
-        updates.status = 'rejected'
-        updates.awaitingStageId = undefined
-      } else if (stageApproved && !stageRejected) {
-        updates.status = 'approval'
-        updates.awaitingStageId = currentStage.id
-      }
-
-      await updateTask(task.id, updates)
-
-      onUpdate()
-      if (action === 'reject') {
-        setRejectDialog(null)
-        setRejectionComment('')
-      }
-    } catch (error) {
-      console.error('Error approving task:', error)
-    } finally {
-      setLoading(null)
-    }
-  }
-
-  const handleResubmit = async (task: Task) => {
-    if (!user || task.createdBy !== user.id) return
-    
-    setLoading(task.id)
-    try {
-      const now = new Date().toISOString()
-      const participants = resolveParticipants(task)
-      let staged = task.stages || []
-      if (staged.length === 0) {
-        staged = [{
-          id: 'stage-1',
-          name: 'Этап',
-          responsible: 'all' as const,
-          approvals: [],
-          status: 'pending',
-        }]
-      }
-      const resetStages = staged.map((stage) => {
-        const responsibleIds = stage.responsible === 'all' ? participants : stage.responsible
-        return {
-          ...stage,
-          approvals: responsibleIds.map((uid) => ({
-            userId: uid,
-            status: 'pending' as const,
-            updatedAt: now,
-          })),
-          status: 'pending' as const,
-        }
-      })
-      await updateTask(task.id, {
-        status: 'pending',
-        approvals: resetStages[0]?.approvals || [],
-        stages: resetStages,
-        currentStageId: resetStages[0]?.id,
-        awaitingStageId: undefined,
-        updatedAt: now,
-      })
-
-      onUpdate()
-    } catch (error) {
-      console.error('Error resubmitting task:', error)
-    } finally {
-      setLoading(null)
-    }
-  }
-
-  const handleConfirmStage = async (task: Task) => {
-    if (!canConfirmStage(task)) return
-    setLoading(task.id)
-    try {
-      const now = new Date().toISOString()
-      const currentStage = getCurrentStage(task)
-      const stages = task.stages || []
-      let updates: Partial<Task> = { updatedAt: now, awaitingStageId: undefined }
-
-      if (stages.length > 0) {
-        const currentIndex = stages.findIndex((s) => s.id === currentStage.id)
-        const participants = resolveParticipants(task)
-        const normalizedStages: TaskStage[] = stages.map((stage) => {
-          const status: TaskStage['status'] =
-            stage.id === currentStage.id
-              ? 'approved'
-              : stage.status === 'approved' || stage.status === 'rejected'
-                ? stage.status
-                : 'pending'
-          return { ...stage, status }
-        })
-        const hasNext = currentIndex >= 0 && currentIndex < normalizedStages.length - 1
-
-        if (hasNext) {
-          const nextStage = normalizedStages[currentIndex + 1]
-          const responsibleIds =
-            (nextStage.assignees && nextStage.assignees.length > 0
-              ? nextStage.assignees.map((a) => a.userId)
-              : nextStage.responsible === 'all'
-                ? participants
-                : (nextStage.responsible as string[])) || []
-          normalizedStages[currentIndex + 1] = {
-            ...nextStage,
-            approvals:
-              nextStage.requiresApproval === false
-                ? responsibleIds.map((uid) => ({ userId: uid, status: 'approved' as const, updatedAt: now }))
-                : responsibleIds.map((uid) => ({ userId: uid, status: 'pending' as const, updatedAt: now })),
-            status: (nextStage.requiresApproval === false ? 'approved' : 'pending') as TaskStage['status'],
-          }
-
-          updates = {
-            ...updates,
-            stages: normalizedStages,
-            currentStageId: nextStage.id,
-            status: 'in_progress',
-          }
-        } else {
-          updates = {
-            ...updates,
-            stages: normalizedStages,
-            status: 'completed',
-            completedAt: now,
-            completedBy: user?.id || 'admin',
-          }
-        }
-      } else {
+      if (allApproved) {
         updates.status = 'completed'
         updates.completedAt = now
-        updates.completedBy = user?.id || 'admin'
+        updates.completedBy = user.id
       }
 
       await updateTask(task.id, updates)
       onUpdate()
     } catch (error) {
-      console.error('Error confirming stage:', error)
+      console.error('Error confirming task:', error)
+    } finally {
+      setLoading(null)
+    }
+  }
+
+  const handleMarkClosed = async (task: Task) => {
+    if (!canCloseTask(task) || task.status !== 'completed') return
+    setLoading(task.id)
+    try {
+      const now = new Date().toISOString()
+      await updateTask(task.id, {
+        status: 'closed',
+        closedAt: now,
+        updatedAt: now,
+      })
+      onUpdate()
+    } catch (error) {
+      console.error('Error closing task:', error)
+    } finally {
+      setLoading(null)
+    }
+  }
+
+  const handleReturnToWork = async (task: Task, commentText: string) => {
+    if (!canCloseTask(task)) return
+    const comment = (commentText || '').trim()
+    if (!comment) return
+
+    setLoading(task.id)
+    try {
+      const now = new Date().toISOString()
+      const resetApprovals = resolveAssigneeIds(task).map((id) => ({
+        userId: id,
+        status: 'pending' as const,
+        updatedAt: now,
+      }))
+      const newComment = {
+        id: `c-${Date.now()}`,
+        userId: user?.id || 'system',
+        text: comment,
+        createdAt: now,
+      }
+      await updateTask(task.id, {
+        status: 'in_progress',
+        approvals: resetApprovals,
+        completedAt: undefined,
+        completedBy: undefined,
+        closedAt: undefined,
+        comments: [...(task.comments || []), newComment],
+        updatedAt: now,
+      })
+      onUpdate()
+      setReturnDialog(null)
+      setReturnComment('')
+    } catch (error) {
+      console.error('Error returning task to work:', error)
     } finally {
       setLoading(null)
     }
@@ -535,24 +402,18 @@ export const TaskKanban = ({ tasks, onUpdate, onEdit, onDelete }: TaskKanbanProp
 
   const getStatusColor = (status: TaskStatus) => {
     const colorMap: Record<TaskStatus, string> = {
-      pending: theme === 'dark' ? 'bg-yellow-500/20 border-yellow-500/50' : 'bg-yellow-50 border-yellow-200',
       in_progress: theme === 'dark' ? 'bg-blue-500/20 border-blue-500/50' : 'bg-blue-50 border-blue-200',
-      approval: theme === 'dark' ? 'bg-purple-500/20 border-purple-500/50' : 'bg-purple-50 border-purple-200',
       completed: theme === 'dark' ? 'bg-[#4E6E49]/20 border-[#4E6E49]/50' : 'bg-green-50 border-green-200',
       closed: theme === 'dark' ? 'bg-gray-500/20 border-gray-500/50' : 'bg-gray-50 border-gray-200',
-      rejected: theme === 'dark' ? 'bg-red-500/20 border-red-500/50' : 'bg-red-50 border-red-200',
     }
     return colorMap[status]
   }
 
   const getStatusTextColor = (status: TaskStatus) => {
     const colorMap: Record<TaskStatus, string> = {
-      pending: theme === 'dark' ? 'text-yellow-400' : 'text-yellow-700',
       in_progress: theme === 'dark' ? 'text-blue-400' : 'text-blue-700',
-      approval: theme === 'dark' ? 'text-purple-300' : 'text-purple-700',
       completed: theme === 'dark' ? 'text-[#4E6E49]' : 'text-[#4E6E49]',
       closed: theme === 'dark' ? 'text-gray-400' : 'text-gray-700',
-      rejected: theme === 'dark' ? 'text-red-400' : 'text-red-700',
     }
     return colorMap[status]
   }
@@ -560,24 +421,7 @@ export const TaskKanban = ({ tasks, onUpdate, onEdit, onDelete }: TaskKanbanProp
   const isOverdue = (task: Task) => {
     const now = new Date()
     const dueDateTime = new Date(`${task.dueDate}T${task.dueTime}`)
-    return dueDateTime < now && task.status !== 'completed' && task.status !== 'closed' && task.status !== 'rejected'
-  }
-
-  const canApprove = (task: Task) => {
-    if (task.status === 'closed' || task.status === 'completed') return false
-    if (!user) return false
-    const currentStage = getCurrentStage(task)
-    const responsibleIds =
-      currentStage.responsible === 'all' ? resolveParticipants(task) : (currentStage.responsible as string[])
-    if (!responsibleIds.includes(user.id)) return false
-    const userApproval = (currentStage.approvals || []).find((a) => a.userId === user.id)
-    return !userApproval || userApproval.status === 'pending'
-  }
-
-  const canResubmit = (task: Task) => {
-    if (task.status !== 'rejected') return false
-    if (!user) return false
-    return task.createdBy === user.id || isAdmin
+    return dueDateTime < now && task.status !== 'completed' && task.status !== 'closed'
   }
 
   return (
@@ -616,14 +460,7 @@ export const TaskKanban = ({ tasks, onUpdate, onEdit, onDelete }: TaskKanbanProp
                   {statusTasks.map((task) => {
                     const overdue = isOverdue(task)
                     const canEdit = isAdmin || user?.id === task.createdBy || task.mainExecutor === user?.id
-                    const canApproveTask = canApprove(task)
-                    const canResubmitTask = canResubmit(task)
                     const currentStage = getCurrentStage(task)
-                    const stageApprovals = currentStage.approvals || []
-                    const approvalsApproved = stageApprovals.filter((a) => a.status === 'approved').length
-                    const approvalsTotal = stageApprovals.length
-                    const canApproveForAll =
-                      !!user && (user.id === task.mainExecutor || user.id === task.createdBy || task.leadExecutor === user.id || isAdmin)
                     const taskAssignees = resolveAssignees(task)
                     const assigneeDetails = taskAssignees
                       .map((assignee) => {
@@ -632,24 +469,23 @@ export const TaskKanban = ({ tasks, onUpdate, onEdit, onDelete }: TaskKanbanProp
                         return { ...assignee, member }
                       })
                       .filter(Boolean) as { member: (typeof TEAM_MEMBERS)[number]; priority: TaskPriority; comment?: string }[]
-                    const hasNextStage =
-                      task.stages && task.stages.length > 0
-                        ? task.stages.findIndex((s) => s.id === currentStage.id) < (task.stages?.length || 1) - 1
-                        : false
+                    const { approvals, approved, total } = getApprovalStats(task)
+                    const userApproval = approvals.find((a) => a.userId === user?.id)
+                    const canExecutorConfirm = isExecutor(task) && task.status === 'in_progress' && (!userApproval || userApproval.status !== 'approved')
+                    const canCloseCard = canCloseTask(task) && task.status === 'completed'
+                    const canSendBack = canCloseCard
                     
                     return (
                       <div
                         key={task.id}
-                        draggable={!loading && task.status !== 'rejected' && canMoveTask(task)}
+                        draggable={!loading && canMoveTask(task)}
                         onDragStart={(e) => handleDragStart(e, task)}
                         onDragEnd={handleDragEnd}
                         onTouchStart={(e) => handleTouchStart(e, task)}
                         onTouchEnd={(e) => handleTouchEnd(e, status)}
                         className={`${cardBg} rounded-lg border-2 ${borderColor} p-2.5 sm:p-3 cursor-move hover:shadow-lg transition-all ${
                           draggedTask?.id === task.id || touchStart?.task.id === task.id ? 'opacity-50' : ''
-                        } ${overdue ? 'border-red-500' : ''} ${loading === task.id ? 'opacity-50 pointer-events-none' : ''} ${
-                          task.status === 'rejected' ? 'opacity-75' : ''
-                        }`}
+                        } ${overdue ? 'border-red-500' : ''} ${loading === task.id ? 'opacity-50 pointer-events-none' : ''}`}
                       >
                         {/* Task Header */}
                         <div className="flex items-start justify-between gap-2 mb-2">
@@ -676,7 +512,7 @@ export const TaskKanban = ({ tasks, onUpdate, onEdit, onDelete }: TaskKanbanProp
                                       <div className={`text-xs font-medium mb-2 px-2 py-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
                                         Изменить статус:
                                       </div>
-                                      {statuses.filter(s => s !== 'rejected' || task.status === 'rejected').map((s) => (
+                                      {statuses.map((s) => (
                                         <button
                                           key={s}
                                           onClick={() => handleStatusChange(task, s)}
@@ -802,14 +638,14 @@ export const TaskKanban = ({ tasks, onUpdate, onEdit, onDelete }: TaskKanbanProp
                             </span>
                             <TaskDeadlineBadge dueDate={task.dueDate} dueTime={task.dueTime} theme={theme} size="compact" />
                           </div>
-                          {approvalsTotal > 0 && (
+                          {total > 0 && (
                             <div className={`flex items-center justify-between gap-2 ${theme === 'dark' ? 'text-yellow-300' : 'text-yellow-700'}`}>
                               <span className="inline-flex items-center gap-1">
                                 <AlertCircle className="w-3 h-3" />
-                                Этап: {currentStage.name}
+                                Подтверждения исполнителей
                               </span>
                               <span className="text-[11px] font-semibold">
-                                {approvalsApproved}/{approvalsTotal}
+                                {approved}/{total}
                               </span>
                             </div>
                           )}
@@ -818,10 +654,11 @@ export const TaskKanban = ({ tasks, onUpdate, onEdit, onDelete }: TaskKanbanProp
                               {task.description}
                             </p>
                           )}
-                          {stageApprovals.length > 0 && (
+                          {approvals.length > 0 && (
                             <div className={`mt-1 space-y-1 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                              {stageApprovals.map((a) => {
+                              {approvals.map((a) => {
                                 const member = TEAM_MEMBERS.find((m) => m.id === a.userId)
+                                const statusText = a.status === 'approved' ? 'подтвердил' : 'в ожидании'
                                 return (
                                   <div key={a.userId} className="flex items-center justify-between text-[11px]">
                                     <span className="flex items-center gap-1">
@@ -833,7 +670,7 @@ export const TaskKanban = ({ tasks, onUpdate, onEdit, onDelete }: TaskKanbanProp
                                           </span>
                                         )}
                                       </span>
-                                      <span className="text-gray-500">({a.status === 'approved' ? 'ok' : a.status === 'rejected' ? 'отклонено' : 'ожидание'})</span>
+                                      <span className="text-gray-500">({statusText})</span>
                                     </span>
                                     {a.comment && <span className="truncate max-w-[140px] text-gray-500">{a.comment}</span>}
                                   </div>
@@ -916,69 +753,47 @@ export const TaskKanban = ({ tasks, onUpdate, onEdit, onDelete }: TaskKanbanProp
                           </button>
                         </div>
 
-                        {/* Confirm stage gate */}
-                        {task.status === 'approval' && canConfirmStage(task) && (
-                          <div className={`mt-2 pt-2 border-t ${borderColor}`}>
+                        {/* Actions */}
+                        <div className={`flex flex-col gap-2 mt-2 pt-2 border-t ${borderColor}`}>
+                          {canExecutorConfirm && (
                             <button
-                              onClick={() => handleConfirmStage(task)}
+                              onClick={() => handleExecutorConfirm(task)}
                               disabled={loading === task.id}
-                              className="w-full px-2 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-medium transition-colors flex items-center justify-center gap-1 disabled:opacity-50"
+                              className="w-full px-2 py-1.5 bg-[#4E6E49] hover:bg-emerald-700 text-white rounded-lg text-xs font-medium transition-colors flex items-center justify-center gap-1 disabled:opacity-50"
                             >
                               <Check className="w-3 h-3" />
-                              {hasNextStage ? 'Подтвердить этап и продолжить' : 'Подтвердить и завершить'}
+                              Подтвердить
                             </button>
-                          </div>
-                        )}
-
-                        {/* Approval/Reject Buttons */}
-                        {(canApproveTask || canApproveForAll) && (
-                          <div className={`flex flex-col gap-2 mt-2 pt-2 border-t ${borderColor}`}>
+                          )}
+                          {canCloseCard && (
                             <div className="flex gap-2">
-                              {canApproveTask && (
-                                <button
-                                  onClick={() => handleApprove(task, 'approve')}
-                                  className="flex-1 px-2 py-1.5 bg-[#4E6E49] hover:bg-[#4E6E49] text-white rounded-lg text-xs font-medium transition-colors flex items-center justify-center gap-1"
-                                >
-                                  <Check className="w-3 h-3" />
-                                  Согласовать
-                                </button>
-                              )}
                               <button
-                                onClick={() => {
-                                  setRejectDialog({ task })
-                                  setRejectionComment('')
-                                }}
-                                className="flex-1 px-2 py-1.5 bg-red-500 hover:bg-red-600 text-white rounded-lg text-xs font-medium transition-colors flex items-center justify-center gap-1"
-                              >
-                                <X className="w-3 h-3" />
-                                Отклонить
-                              </button>
-                            </div>
-                            {canApproveForAll && (
-                              <button
-                                onClick={() => handleApprove(task, 'approve', true)}
-                                className="px-2 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-medium transition-colors flex items-center justify-center gap-1"
+                                onClick={() => handleMarkClosed(task)}
+                                disabled={loading === task.id}
+                                className="flex-1 px-2 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-medium transition-colors flex items-center justify-center gap-1 disabled:opacity-50"
                               >
                                 <Check className="w-3 h-3" />
-                                Согласовать за всех этап
+                                Закрыто
                               </button>
-                            )}
-                          </div>
-                        )}
-
-                        {/* Resubmit Button */}
-                        {canResubmitTask && (
-                          <div className={`mt-2 pt-2 border-t ${borderColor}`}>
-                            <button
-                              onClick={() => handleResubmit(task)}
-                              disabled={loading === task.id}
-                              className="w-full px-2 py-1.5 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-xs font-medium transition-colors flex items-center justify-center gap-1 disabled:opacity-50"
-                            >
-                              <RotateCcw className="w-3 h-3" />
-                              Отправить на согласование
-                            </button>
-                          </div>
-                        )}
+                              <button
+                                onClick={() => {
+                                  setReturnDialog({ task })
+                                  setReturnComment('')
+                                }}
+                                disabled={loading === task.id}
+                                className="flex-1 px-2 py-1.5 bg-red-500 hover:bg-red-600 text-white rounded-lg text-xs font-medium transition-colors flex items-center justify-center gap-1 disabled:opacity-50"
+                              >
+                                <X className="w-3 h-3" />
+                                Не выполнено
+                              </button>
+                            </div>
+                          )}
+                          {task.status === 'completed' && !canCloseCard && (
+                            <p className={`text-[11px] ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                              Ожидает подтверждения автора
+                            </p>
+                          )}
+                        </div>
                       </div>
                     )
                   })}
@@ -995,15 +810,15 @@ export const TaskKanban = ({ tasks, onUpdate, onEdit, onDelete }: TaskKanbanProp
         </div>
       </div>
 
-      {/* Reject Dialog */}
-      {rejectDialog && (
+      {/* Return to work dialog */}
+      {returnDialog && (
         <div className="fixed inset-0 bg-black/50 flex items-start sm:items-center justify-center z-[70] p-4 overflow-y-auto overscroll-contain modal-scroll">
           <div className={`${cardBg} rounded-xl p-6 max-w-md w-full border-2 ${borderColor}`}>
-            <h3 className={`text-lg font-bold mb-4 ${headingColor}`}>Отклонить задачу</h3>
+            <h3 className={`text-lg font-bold mb-4 ${headingColor}`}>Не выполнено</h3>
             <textarea
-              value={rejectionComment}
-              onChange={(e) => setRejectionComment(e.target.value)}
-              placeholder="Укажите причину отклонения"
+              value={returnComment}
+              onChange={(e) => setReturnComment(e.target.value)}
+              placeholder="Опишите, что нужно доработать"
               rows={3}
               className={`w-full px-4 py-2 rounded-lg border ${borderColor} ${
                 theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'
@@ -1011,16 +826,16 @@ export const TaskKanban = ({ tasks, onUpdate, onEdit, onDelete }: TaskKanbanProp
             />
             <div className="flex gap-3">
               <button
-                onClick={() => rejectDialog.task && handleApprove(rejectDialog.task, 'reject')}
-                disabled={loading === rejectDialog.task.id || !rejectionComment.trim()}
+                onClick={() => returnDialog.task && handleReturnToWork(returnDialog.task, returnComment)}
+                disabled={loading === returnDialog.task.id || !returnComment.trim()}
                 className="flex-1 px-4 py-2 rounded-lg font-medium transition-colors bg-red-500 hover:bg-red-600 text-white disabled:opacity-50"
               >
-                Отклонить
+                Отправить на доработку
               </button>
               <button
                 onClick={() => {
-                  setRejectDialog(null)
-                  setRejectionComment('')
+                  setReturnDialog(null)
+                  setReturnComment('')
                 }}
                 className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                   theme === 'dark' ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-200 hover:bg-gray-300'

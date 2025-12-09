@@ -284,6 +284,12 @@ export const TaskForm = ({ onClose, onSave, editingTask }: TaskFormProps) => {
         ])
       )
 
+      const executorApprovals = Array.from(new Set(assignees.map((assignee) => assignee.userId))).map((userId) => ({
+        userId,
+        status: 'pending' as const,
+        updatedAt: now,
+      }))
+
       const buildStageApprovals = (stage: TaskStage): TaskStage => {
         const shouldRequireApproval = stage.requiresApproval ?? requiresApproval
         const explicitAssignees = (stage.assignees || []).slice(0, 10)
@@ -337,7 +343,7 @@ export const TaskForm = ({ onClose, onSave, editingTask }: TaskFormProps) => {
           priority,
           assignedTo: participantIds,
           assignees,
-          approvals: firstStage ? firstStage.approvals : [],
+          approvals: executorApprovals,
           stages: normalizedStages,
           currentStageId: derivedCurrentStageId,
           mainExecutor: mainExecutor || undefined,
@@ -354,9 +360,6 @@ export const TaskForm = ({ onClose, onSave, editingTask }: TaskFormProps) => {
           requiresApproval,
           updatedAt: now,
         }
-        if (!requiresApproval && editingTask.status === 'pending') {
-          updates.status = 'in_progress'
-        }
 
         await updateTask(editingTask.id, updates)
 
@@ -367,11 +370,11 @@ export const TaskForm = ({ onClose, onSave, editingTask }: TaskFormProps) => {
           title: title.trim(),
           description: description.trim() || undefined,
           category,
-          status: requiresApproval ? 'pending' : 'in_progress',
+          status: 'in_progress',
           createdBy: currentUserId,
           assignedTo: participantIds,
           assignees,
-          approvals: firstStage ? firstStage.approvals : [],
+          approvals: executorApprovals,
           stages: normalizedStages,
           currentStageId: derivedCurrentStageId,
           mainExecutor: mainExecutor || undefined,

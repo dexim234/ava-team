@@ -649,6 +649,10 @@ export const getTasks = async (filters?: {
     return value === 'high' || value === 'low' || value === 'urgent' ? value : 'medium'
   }
 
+  const normalizeStatus = (value: any): TaskStatus => {
+    return value === 'completed' || value === 'closed' ? value : 'in_progress'
+  }
+
   const normalizeStageAssignees = (assignees: any[] = []): StageAssignee[] =>
     assignees
       .filter((a) => a?.userId)
@@ -695,7 +699,7 @@ export const getTasks = async (filters?: {
       title: data.title || '',
       description: data.description,
       category: data.category || 'trading',
-      status: data.status || 'pending',
+      status: normalizeStatus(data.status),
       createdBy: data.createdBy || '',
       assignedTo: assignedIds,
       assignees: normalizedAssignees,

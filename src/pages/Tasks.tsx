@@ -100,9 +100,7 @@ export const Tasks = () => {
   })
 
   const stats = {
-    pending: tasks.filter(t => t.status === 'pending').length,
     inProgress: tasks.filter(t => t.status === 'in_progress').length,
-    onApproval: tasks.filter(t => t.status === 'approval').length,
     completed: tasks.filter(t => t.status === 'completed').length,
     closed: tasks.filter(t => t.status === 'closed').length,
   }
@@ -157,10 +155,10 @@ export const Tasks = () => {
   const statCards = [
     { label: 'Всего задач на неделе', value: tasksThisWeek, sub: 'последние 7 дней', tone: 'sky' },
     { label: 'Всего задач на месяце', value: tasksThisMonth, sub: 'последние 30 дней', tone: 'emerald' },
-    { label: 'Задач на проверке', value: stats.pending + stats.onApproval, sub: `${stats.pending} на старте · ${stats.onApproval} на согласовании`, tone: 'amber' },
     { label: 'Задач в работе', value: stats.inProgress, sub: `${workRate}% от всех`, tone: 'blue' },
+    { label: 'Отмечено исполнителями', value: stats.completed, sub: 'ожидают проверки автора', tone: 'amber' },
     { label: 'Самый активный исполнитель', value: topExecutorName, sub: 'по числу назначений', tone: 'purple' },
-    { label: 'Закрыто задач', value: stats.completed + stats.closed, sub: 'выполнено и закрыто', tone: 'slate' },
+    { label: 'Закрыто автором', value: stats.closed, sub: 'финально подтверждено', tone: 'slate' },
     { label: 'Ближайший дедлайн', value: upcomingTask ? upcomingTask.title : 'Нет активных', sub: upcomingTask ? `${formatDate(new Date(upcomingTask.dueDate), 'dd.MM.yyyy')} · ${upcomingTask.dueTime}` : 'Свободное окно', tone: 'pink' },
     { label: 'Сделано задач за сегодня', value: tasksDoneToday, sub: todayStr, tone: 'green' },
   ]

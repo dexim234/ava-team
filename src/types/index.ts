@@ -224,7 +224,7 @@ export interface Call {
 
 // Task types
 export type TaskCategory = 'trading' | 'learning' | 'technical' | 'stream' | 'research' | 'organization'
-export type TaskStatus = 'pending' | 'in_progress' | 'approval' | 'completed' | 'closed' | 'rejected'
+export type TaskStatus = 'in_progress' | 'completed' | 'closed'
 export type TaskPriority = 'low' | 'medium' | 'high' | 'urgent'
 
 export interface StageAssignee {
@@ -333,12 +333,9 @@ export const TASK_CATEGORIES: Record<TaskCategory, { label: string; icon: string
 }
 
 export const TASK_STATUSES: Record<TaskStatus, { label: string; color: string }> = {
-  pending: { label: 'Проверка', color: 'yellow' },
   in_progress: { label: 'В работе', color: 'blue' },
-  approval: { label: 'Апрув', color: 'purple' },
   completed: { label: 'Выполнено', color: 'green' },
   closed: { label: 'Закрыто', color: 'gray' },
-  rejected: { label: 'Отклонена', color: 'red' },
 }
 
 

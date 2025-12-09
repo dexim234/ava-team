@@ -368,21 +368,13 @@ export const Profile = () => {
     }
   }
 
-  const pendingTasks = tasks.filter(t => t.status === 'pending').length
   const inProgressTasks = tasks.filter(t => t.status === 'in_progress').length
   const completedTasks = tasks.filter(t => t.status === 'completed').length
+  const closedTasks = tasks.filter(t => t.status === 'closed').length
   const taskStatusMeta: Record<Task['status'], { label: string; classes: string }> = {
-    pending: {
-      label: 'Проверка',
-      classes: theme === 'dark' ? 'bg-amber-500/15 text-amber-100 border-amber-500/30' : 'bg-amber-50 text-amber-900 border-amber-200',
-    },
     in_progress: {
       label: 'В работе',
       classes: theme === 'dark' ? 'bg-blue-500/15 text-blue-100 border-blue-500/30' : 'bg-blue-50 text-blue-900 border-blue-200',
-    },
-    approval: {
-      label: 'Согласование',
-      classes: theme === 'dark' ? 'bg-purple-500/15 text-purple-100 border-purple-500/30' : 'bg-purple-50 text-purple-900 border-purple-200',
     },
     completed: {
       label: 'Выполнена',
@@ -391,10 +383,6 @@ export const Profile = () => {
     closed: {
       label: 'Закрыта',
       classes: theme === 'dark' ? 'bg-gray-600/20 text-gray-100 border-gray-500/40' : 'bg-gray-50 text-gray-800 border-gray-200',
-    },
-    rejected: {
-      label: 'Отклонена',
-      classes: theme === 'dark' ? 'bg-red-500/20 text-red-100 border-red-500/40' : 'bg-red-50 text-red-800 border-red-200',
     },
   }
 
@@ -549,9 +537,9 @@ export const Profile = () => {
                     </div>
                   </div>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
-                    {[{label:'Проверка',value:pendingTasks,classes:theme==='dark'?'bg-amber-500/15 border-amber-500/30 text-amber-100':'bg-amber-50 border-amber-200 text-amber-900'},
-                      {label:'В работе',value:inProgressTasks,classes:theme==='dark'?'bg-blue-500/15 border-blue-500/30 text-blue-100':'bg-blue-50 border-blue-200 text-blue-900'},
-                      {label:'Выполнена',value:completedTasks,classes:theme==='dark'?'bg-emerald-500/15 border-emerald-500/30 text-emerald-50':'bg-emerald-50 border-emerald-200 text-emerald-900'},
+                    {[{label:'В работе',value:inProgressTasks,classes:theme==='dark'?'bg-blue-500/15 border-blue-500/30 text-blue-100':'bg-blue-50 border-blue-200 text-blue-900'},
+                      {label:'Выполнено',value:completedTasks,classes:theme==='dark'?'bg-emerald-500/15 border-emerald-500/30 text-emerald-50':'bg-emerald-50 border-emerald-200 text-emerald-900'},
+                      {label:'Закрыто',value:closedTasks,classes:theme==='dark'?'bg-gray-600/20 border-gray-500/40 text-gray-100':'bg-gray-50 border-gray-200 text-gray-800'},
                       {label:'Всего',value:tasks.length,classes:theme==='dark'?'bg-gray-600/20 border-gray-500/40 text-gray-100':'bg-gray-50 border-gray-200 text-gray-800'}].map(({label,value,classes})=>(
                       <div key={label} className={`p-4 rounded-xl border shadow-sm transition-all hover:translate-y-[-2px] ${classes}`}>
                         <div className="text-xs font-semibold mb-2 opacity-80">{label}</div>
