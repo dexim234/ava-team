@@ -145,6 +145,8 @@ export const Rating = () => {
   const cardBg = theme === 'dark' ? 'bg-[#151c2a]' : 'bg-white'
   const calmBorder = theme === 'dark' ? 'border-white/10' : 'border-gray-200'
   const softSurface = theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'
+  const heroLabelColor = theme === 'dark' ? 'text-white/70' : 'text-slate-600'
+  const heroValueColor = theme === 'dark' ? 'text-white' : 'text-slate-900'
 
   const sectionLinks = [
     { href: '#rating-team', label: 'Команда', icon: '🌿' },
@@ -174,12 +176,58 @@ export const Rating = () => {
     return { top, median, count: sorted.length, high }
   }, [ratings])
 
-  const highlightStats = [
-    { label: 'Топ-1', value: `${ratingOverview.top.toFixed(1)}%`, note: 'лидер недели', tone: 'emerald' },
-    { label: 'Медиана', value: `${ratingOverview.median.toFixed(1)}%`, note: 'ровный темп', tone: 'sky' },
-    { label: '80%+', value: ratingOverview.high, note: 'устойчивые лидеры', tone: 'amber' },
-    { label: 'Участников', value: ratings.length, note: 'в рейтинге', tone: 'slate' },
+  const topMember = sortedRatings[0]
+  const topMemberName = topMember ? TEAM_MEMBERS.find((m) => m.id === topMember.userId)?.name || '—' : '—'
+  const todayLabel = new Date().toLocaleDateString('ru-RU')
+
+  type HeroTone = 'emerald' | 'amber' | 'blue' | 'slate' | 'purple' | 'pink' | 'indigo'
+
+  const heroCards: { label: string; value: string; meta: string; tone: HeroTone }[] = [
+    { label: 'Средний рейтинг', value: `${teamKPD.toFixed(1)}%`, meta: 'по команде за неделю', tone: 'emerald' },
+    { label: 'Лидер недели', value: topMemberName, meta: topMember ? `${topMember.rating.toFixed(1)}%` : '—', tone: 'amber' },
+    { label: '80%+ участников', value: `${ratingOverview.high}`, meta: 'стабильно высоко', tone: 'blue' },
+    { label: 'Всего участников', value: `${ratings.length}`, meta: 'в рейтинге', tone: 'slate' },
+    { label: 'Медиана', value: `${ratingOverview.median.toFixed(1)}%`, meta: 'ровный темп', tone: 'purple' },
+    { label: 'Рефералы 30д', value: `${referrals.length}`, meta: 'активность команды', tone: 'pink' },
+    { label: 'Обновление', value: todayLabel, meta: 'автообновление данных', tone: 'indigo' },
+    { label: 'КПД недели', value: `${teamKPD.toFixed(1)}%`, meta: 'ключевой ориентир', tone: 'emerald' },
   ]
+
+  const heroToneClass = (tone: HeroTone) => {
+    if (tone === 'emerald') {
+      return theme === 'dark'
+        ? 'bg-emerald-500/15 border-emerald-400/30 text-emerald-50'
+        : 'bg-emerald-50 border-emerald-200 text-emerald-900'
+    }
+    if (tone === 'amber') {
+      return theme === 'dark'
+        ? 'bg-amber-500/15 border-amber-400/30 text-amber-50'
+        : 'bg-amber-50 border-amber-200 text-amber-900'
+    }
+    if (tone === 'blue') {
+      return theme === 'dark'
+        ? 'bg-sky-500/15 border-sky-400/30 text-sky-50'
+        : 'bg-sky-50 border-sky-200 text-sky-900'
+    }
+    if (tone === 'purple') {
+      return theme === 'dark'
+        ? 'bg-indigo-500/15 border-indigo-400/30 text-indigo-50'
+        : 'bg-indigo-50 border-indigo-200 text-indigo-900'
+    }
+    if (tone === 'pink') {
+      return theme === 'dark'
+        ? 'bg-rose-500/15 border-rose-400/30 text-rose-50'
+        : 'bg-rose-50 border-rose-200 text-rose-900'
+    }
+    if (tone === 'indigo') {
+      return theme === 'dark'
+        ? 'bg-indigo-500/15 border-indigo-400/30 text-indigo-50'
+        : 'bg-indigo-50 border-indigo-200 text-indigo-900'
+    }
+    return theme === 'dark'
+      ? 'bg-white/5 border-white/15 text-white'
+      : 'bg-gray-50 border-gray-200 text-gray-900'
+  }
 
   const handleAddReferral = () => {
     setActiveReferral(null)
@@ -195,113 +243,106 @@ export const Rating = () => {
     <Layout>
       <div className="space-y-6">
         {/* Header */}
-        <div className={`rounded-2xl p-6 sm:p-7 ${cardBg} shadow-lg border ${calmBorder} space-y-5`}>
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <div className="flex items-start gap-3">
-              <div className="p-3 rounded-2xl bg-emerald-100 text-emerald-900 dark:bg-emerald-500/15 dark:text-emerald-50 border border-emerald-200 dark:border-emerald-400/40">
-                <span className="text-xl">📊</span>
-              </div>
-              <div className="space-y-2">
-                <div>
-                  <p className={`text-xs uppercase tracking-[0.12em] ${subTextColor}`}>Рейтинг</p>
-                  <h1 className={`text-2xl sm:text-3xl font-extrabold ${headingColor} leading-tight`}>Командный лидерборд</h1>
+        <div className="relative overflow-hidden rounded-3xl border border-white/10 shadow-[0_24px_80px_rgba(0,0,0,0.45)] bg-gradient-to-br from-[#0b1428] via-[#0f1d34] to-[#09101f]">
+          <div className="absolute inset-0 pointer-events-none">
+            <div className="absolute -left-10 top-0 w-72 h-72 bg-emerald-500/20 blur-3xl"></div>
+            <div className="absolute right-0 -bottom-16 w-80 h-80 bg-blue-500/20 blur-3xl"></div>
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.08),transparent_35%)]"></div>
+          </div>
+
+          <div className="relative p-6 sm:p-8 space-y-6">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+              <div className="space-y-3 max-w-3xl">
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 border border-white/15 text-white text-xs font-semibold uppercase tracking-[0.14em]">
+                  <span className="text-lg">✔️</span>
+                  <span>Рейтинг</span>
                 </div>
-                <p className={`text-sm ${subTextColor}`}>Данные за неделю + последние 30 дней, аккуратно по ключевым метрикам.</p>
+                <div className="flex items-start gap-3">
+                  <div className="p-3 rounded-2xl bg-white/10 border border-white/20 text-white shadow-inner">
+                    <span className="text-2xl">📊</span>
+                  </div>
+                  <div className="space-y-2">
+                    <h1 className="text-3xl sm:text-4xl font-black text-white leading-tight">Командный рейтинг и эффективность</h1>
+                    <p className="text-sm text-white/70">
+                      Данные за текущую неделю + последние 30 дней. В фокусе KPI команды, динамика и реферальная активность — как на дашборде задач.
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {['КПД недели','Рейтинг 30д','Рефералы','Сообщения'].map((chip, idx) => (
+                        <span
+                          key={chip}
+                          className={`px-4 py-1.5 rounded-full text-xs font-semibold border ${
+                            idx === 0
+                              ? 'bg-emerald-500 text-white border-emerald-300/60 shadow-md'
+                              : 'bg-white/10 text-white border-white/20'
+                          }`}
+                        >
+                          {chip}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
                 <div className="flex flex-wrap gap-2">
-                  {['КПД недели','Доход + пул','Рефералы','Сообщения'].map((chip) => (
-                    <span
-                      key={chip}
-                      className={`px-3 py-1 rounded-full text-xs font-semibold border ${calmBorder} ${softSurface}`}
+                  {sectionLinks.map((item, idx) => (
+                    <a
+                      key={item.href}
+                      href={item.href}
+                      className={`px-4 py-2 rounded-full text-sm font-semibold border transition flex items-center gap-2 ${
+                        idx === 0
+                          ? 'bg-white text-slate-900 border-white shadow'
+                          : 'bg-white/10 text-white border-white/20 hover:bg-white/15'
+                      }`}
                     >
-                      {chip}
-                    </span>
+                      <span>{item.icon}</span>
+                      {item.label}
+                    </a>
                   ))}
                 </div>
               </div>
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 w-full lg:w-auto">
-              {highlightStats.map((item) => {
-                const tone =
-                  item.tone === 'emerald'
-                    ? theme === 'dark'
-                      ? 'bg-emerald-500/10 border-emerald-400/30 text-emerald-100'
-                      : 'bg-emerald-50 border-emerald-200 text-emerald-900'
-                    : item.tone === 'sky'
-                    ? theme === 'dark'
-                      ? 'bg-sky-500/10 border-sky-400/30 text-sky-100'
-                      : 'bg-sky-50 border-sky-200 text-sky-900'
-                    : item.tone === 'amber'
-                    ? theme === 'dark'
-                      ? 'bg-amber-500/10 border-amber-400/30 text-amber-100'
-                      : 'bg-amber-50 border-amber-200 text-amber-900'
-                    : theme === 'dark'
-                    ? 'bg-white/5 border-white/10 text-white'
-                    : 'bg-gray-50 border-gray-200 text-gray-900'
 
-                return (
-                  <div
-                    key={item.label}
-                    className={`rounded-xl border p-4 flex flex-col gap-1 shadow-sm ${tone}`}
-                  >
-                    <span className={`text-[11px] uppercase tracking-wide ${subTextColor}`}>{item.label}</span>
-                    <span className={`text-2xl font-extrabold ${headingColor}`}>{item.value}</span>
-                    <span className={`text-xs ${subTextColor}`}>{item.note}</span>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
-            {ratingBands.map((band) => (
-              <div
-                key={band.label}
-                className={`rounded-xl border ${band.bg} p-3 transition`}
-              >
-                <div className="flex items-center justify-between">
-                  <span className={`text-xs font-semibold ${subTextColor}`}>{band.label}</span>
-                  <span className="text-lg">•</span>
-                </div>
-                <p className={`text-base font-semibold ${band.tone}`}>{band.title}</p>
-                <p className={`text-sm ${subTextColor}`}>{band.desc}</p>
+              <div className="flex flex-col items-start lg:items-end gap-2 text-white">
+                <span className="text-xs uppercase tracking-[0.12em] text-white/70">КПД команды (неделя)</span>
+                <div className="text-5xl font-black leading-none drop-shadow-md">{teamKPD.toFixed(1)}%</div>
+                <span className="text-xs text-white/60">Обновлено {todayLabel}</span>
+                <button
+                  onClick={handleAddReferral}
+                  className="mt-2 px-4 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl transition-all duration-200 flex items-center justify-center gap-2 font-semibold shadow-lg w-full lg:w-auto"
+                >
+                  <span className="text-xl">➕</span>
+                  <span>Добавить реферала</span>
+                </button>
               </div>
-            ))}
-          </div>
+            </div>
 
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-            <div className="flex flex-wrap gap-2">
-              {sectionLinks.map((item) => (
-                <a
-                  key={item.href}
-                  href={item.href}
-                  className={`px-3 py-2 rounded-full text-sm font-semibold border ${calmBorder} transition flex items-center gap-2 ${
-                    theme === 'dark'
-                      ? 'bg-white/5 hover:bg-white/10 text-white'
-                      : 'bg-white hover:bg-gray-50 text-gray-800'
-                  }`}
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
+              {heroCards.map((card) => (
+                <div
+                  key={card.label}
+                  className={`relative overflow-hidden rounded-2xl border ${heroToneClass(card.tone)} p-4 backdrop-blur-sm`}
                 >
-                  <span>{item.icon}</span>
-                  {item.label}
-                </a>
+                  <div className="absolute right-3 top-3 text-xl opacity-20">•</div>
+                  <div className={`text-xs uppercase tracking-[0.1em] font-semibold ${heroLabelColor}`}>{card.label}</div>
+                  <div className={`mt-2 text-2xl font-bold ${heroValueColor}`}>{card.value}</div>
+                  <div className={`text-sm ${heroLabelColor}`}>{card.meta}</div>
+                </div>
               ))}
             </div>
-            <div className="flex flex-wrap gap-2 text-xs">
-              {['Выходные','Больничные','Отпуск','Часы','Заработок','Рефералы','Сообщения'].map((item) => (
-                <span
-                  key={item}
-                  className={`px-3 py-1 rounded-full border ${calmBorder} ${softSurface}`}
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
+              {ratingBands.map((band) => (
+                <div
+                  key={band.label}
+                  className={`rounded-xl border ${band.bg} p-3 transition`}
                 >
-                  {item}
-                </span>
+                  <div className="flex items-center justify-between">
+                    <span className={`text-xs font-semibold ${subTextColor}`}>{band.label}</span>
+                    <span className="text-lg">•</span>
+                  </div>
+                  <p className={`text-base font-semibold ${band.tone}`}>{band.title}</p>
+                  <p className={`text-sm ${subTextColor}`}>{band.desc}</p>
+                </div>
               ))}
             </div>
-            <button
-              onClick={handleAddReferral}
-              className="px-4 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl transition-all duration-200 flex items-center justify-center gap-2 font-semibold shadow-md w-full lg:w-auto"
-            >
-              <span className="text-xl">➕</span>
-              <span>Добавить реферала</span>
-            </button>
           </div>
         </div>
 
