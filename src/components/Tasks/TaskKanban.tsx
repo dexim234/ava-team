@@ -473,7 +473,6 @@ export const TaskKanban = ({ tasks, onUpdate, onEdit, onDelete }: TaskKanbanProp
                     const userApproval = approvals.find((a) => a.userId === user?.id)
                     const canExecutorConfirm = isExecutor(task) && task.status === 'in_progress' && (!userApproval || userApproval.status !== 'approved')
                     const canCloseCard = canCloseTask(task) && task.status === 'completed'
-                    const canSendBack = canCloseCard
                     
                     return (
                       <div

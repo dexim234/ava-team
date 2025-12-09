@@ -94,6 +94,9 @@ export const TaskCard = ({ task, onEdit, onDelete, onUpdate }: TaskCardProps) =>
     return [...normalized, ...missing]
   }
 
+  const isExecutor = () => !!user && assigneeIds.includes(user.id)
+  const canCloseTaskCard = () => isAdmin || user?.id === task.createdBy
+
   const getApprovalStats = () => {
     const approvals = resolveExecutorApprovals()
     const approved = approvals.filter((a) => a.status === 'approved').length
@@ -105,9 +108,6 @@ export const TaskCard = ({ task, onEdit, onDelete, onUpdate }: TaskCardProps) =>
   const userApproval = approvals.find((a) => a.userId === user?.id)
   const canExecutorConfirm = isExecutor() && task.status === 'in_progress' && (!userApproval || userApproval.status !== 'approved')
   const canClose = canCloseTaskCard() && task.status === 'completed'
-
-  const isExecutor = () => !!user && assigneeIds.includes(user.id)
-  const canCloseTaskCard = () => isAdmin || user?.id === task.createdBy
 
   const handleExecutorConfirm = async () => {
     if (!user || task.status !== 'in_progress' || !isExecutor()) return
