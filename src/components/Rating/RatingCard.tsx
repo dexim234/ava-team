@@ -26,7 +26,6 @@ export const RatingCard = ({ rating, place }: RatingCardProps) => {
   const { theme } = useThemeStore()
   const [expandedMetric, setExpandedMetric] = useState<number | null>(null)
   const member = TEAM_MEMBERS.find((m) => m.id === rating.userId)
-  const color = getRatingColor(rating.rating)
   const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
   const mutedColor = theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
   const cardBg = theme === 'dark' ? 'bg-[#0f0f0f]' : 'bg-white'
@@ -42,6 +41,14 @@ export const RatingCard = ({ rating, place }: RatingCardProps) => {
       : rating.rating >= 40
       ? 'bg-amber-500'
       : 'bg-rose-500'
+  const ratingTextColor =
+    rating.rating >= 80
+      ? '#10b981'
+      : rating.rating >= 60
+      ? '#3b82f6'
+      : rating.rating >= 40
+      ? '#f59e0b'
+      : '#f43f5e'
 
   const accentPalette: Record<
     string,
@@ -198,7 +205,7 @@ export const RatingCard = ({ rating, place }: RatingCardProps) => {
                 <span>Ник</span>
               </span>
               <div className="flex items-center gap-2">
-                <span className={`text-lg font-bold`} style={{ color }}>{rating.rating.toFixed(1)}%</span>
+                <span className={`text-lg font-bold`} style={{ color: ratingTextColor }}>{rating.rating.toFixed(1)}%</span>
                 <span className="text-xl">{getRatingEmoji(rating.rating)}</span>
               </div>
             </div>
