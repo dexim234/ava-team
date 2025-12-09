@@ -83,7 +83,6 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                 <button
                   onClick={() => {
                     setShowFunctionalityMenu(!showFunctionalityMenu)
-                    setShowAboutMenu(false)
                   }}
                   data-active={isFunctionalityActive}
                   className="nav-chip"

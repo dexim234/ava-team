@@ -11,7 +11,8 @@ import { RatingData, Referral, TEAM_MEMBERS } from '@/types'
 
 export const Rating = () => {
   const { theme } = useThemeStore()
-  const [ratings, setRatings] = useState<RatingData[]>([])
+  type RatingWithBreakdown = RatingData & { breakdown?: ReturnType<typeof getRatingBreakdown> }
+  const [ratings, setRatings] = useState<RatingWithBreakdown[]>([])
   const [loading, setLoading] = useState(true)
   const [referrals, setReferrals] = useState<Referral[]>([])
   const [showReferralForm, setShowReferralForm] = useState(false)
@@ -168,7 +169,7 @@ export const Rating = () => {
     return tips.length ? tips : ['Отлично! Держи текущий темп.']
   }
 
-  const sortedRatings = useMemo(() => {
+  const sortedRatings = useMemo<RatingWithBreakdown[]>(() => {
     return [...ratings].sort((a, b) => b.rating - a.rating)
   }, [ratings])
 
