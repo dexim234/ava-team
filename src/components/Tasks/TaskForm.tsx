@@ -11,7 +11,7 @@ import {
   TEAM_MEMBERS,
   TASK_CATEGORIES,
 } from '@/types'
-import { X, FileText, Tag, Sparkles, Target, Calendar, Clock, Users, Plus, Trash, Flag, MessageCircle } from 'lucide-react'
+import { X, FileText, Tag, Sparkles, Target, Calendar, Clock, Users, Plus, Trash, MessageCircle } from 'lucide-react'
 import { CATEGORY_ICONS } from './categoryIcons'
 import { formatDate } from '@/utils/dateUtils'
 import { useScrollLock } from '@/hooks/useScrollLock'
