@@ -420,6 +420,7 @@ export const CallPage = () => {
         addMetric('Риск', riskLabels[risk] || risk, <ShieldAlert className="w-4 h-4" />)
         addMetric('Риски', d.risks, <AlertTriangle className="w-4 h-4" />)
         addMetric('Комментарий', d.traderComment, <MessageSquare className="w-4 h-4" />)
+        addMetric('Причина входа', d.reason, <ScrollText className="w-4 h-4" />)
         break
       case 'futures':
         addMetric('Пара', d.pair, <Activity className="w-4 h-4" />, d.pair)
@@ -433,6 +434,7 @@ export const CallPage = () => {
         addMetric('Таймфрейм', d.timeframe, <Timer className="w-4 h-4" />)
         addMetric('Риск', riskLabels[risk] || risk, <ShieldAlert className="w-4 h-4" />)
         addMetric('Риски', d.risks, <AlertTriangle className="w-4 h-4" />)
+        addMetric('Причина входа', d.reason, <ScrollText className="w-4 h-4" />)
         break
       case 'nft':
         addMetric('Коллекция', shortenValue((d as any).collectionLink), <Link2 className="w-4 h-4" />, (d as any).collectionLink)
@@ -447,6 +449,7 @@ export const CallPage = () => {
         addMetric('Target', d.targetPrice, <Target className="w-4 h-4" />)
         addMetric('Риски', d.risks, <AlertTriangle className="w-4 h-4" />)
         addMetric('Комментарий', d.traderComment, <MessageSquare className="w-4 h-4" />)
+        addMetric('Причина входа', d.reason, <ScrollText className="w-4 h-4" />)
         break
       case 'spot':
         addMetric('Монета', d.coin, <Coins className="w-4 h-4" />)
@@ -458,6 +461,7 @@ export const CallPage = () => {
         addMetric('Риск', d.riskLevel ? riskLabels[d.riskLevel as CallRiskLevel] : undefined, <ShieldAlert className="w-4 h-4" />)
         addMetric('Риски', d.risks, <AlertTriangle className="w-4 h-4" />)
         addMetric('Комментарий', d.traderComment, <MessageSquare className="w-4 h-4" />)
+        addMetric('Причина входа', d.reason, <ScrollText className="w-4 h-4" />)
         break
       case 'polymarket':
         const positionType = d.positionType as 'yes' | 'no' | undefined
@@ -470,6 +474,8 @@ export const CallPage = () => {
         addMetric('Срок исхода', formatDeadlineLabel(d.eventDeadline), <CalendarClock className="w-4 h-4" />)
         addMetric('Риск', riskLabels[risk] || risk, <ShieldAlert className="w-4 h-4" />)
         addMetric('Риски', d.risks, <AlertTriangle className="w-4 h-4" />)
+        addMetric('Комментарий', d.traderComment, <MessageSquare className="w-4 h-4" />)
+        addMetric('Причина входа', d.reason, <ScrollText className="w-4 h-4" />)
         break
       case 'staking':
         addMetric('Монета', d.coin, <Coins className="w-4 h-4" />)
@@ -481,6 +487,7 @@ export const CallPage = () => {
         addMetric('Риск протокола', d.protocolRisk ? riskLabels[d.protocolRisk as CallRiskLevel] : undefined, <ShieldAlert className="w-4 h-4" />)
         addMetric('Риски', d.risks, <AlertTriangle className="w-4 h-4" />)
         addMetric('Комментарий', d.traderComment, <MessageSquare className="w-4 h-4" />)
+        addMetric('Причина входа', d.reason, <ScrollText className="w-4 h-4" />)
         break
     }
 
@@ -524,26 +531,6 @@ export const CallPage = () => {
     )
   }
 
-  const renderNarrative = (title: string, value?: string) => {
-    if (!value) return null
-    return (
-      <div className={`p-4 rounded-xl border ${borderColor} ${theme === 'dark' ? 'bg-gray-800/60' : 'bg-gray-50'} flex flex-col gap-2`}>
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <p className={`text-xs uppercase tracking-wider ${subtleColor} mb-1`}>{title}</p>
-            <p className={`${textColor} leading-relaxed text-sm whitespace-pre-line`}>{value}</p>
-          </div>
-          <button
-            onClick={() => copyValue(value)}
-            className={`px-3 py-2 rounded-lg border ${borderColor} ${theme === 'dark' ? 'hover:bg-gray-800 bg-white/5' : 'hover:bg-gray-100 bg-white'} text-xs font-semibold flex items-center gap-2 shrink-0`}
-          >
-            {copiedValue === value ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
-            {copiedValue === value ? 'Скопировано' : 'Копировать'}
-          </button>
-        </div>
-      </div>
-    )
-  }
 
   return (
     <Layout>
@@ -892,23 +879,6 @@ export const CallPage = () => {
 
                         {renderCategoryMetrics(call)}
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                          {renderNarrative('Причина входа', details.reason)}
-                          {renderNarrative('Комментарий трейдера', details.traderComment || call.comment)}
-                          {renderNarrative('Риски', details.risks)}
-                          {call.currentPnL !== undefined && (
-                            <div className={`p-4 rounded-xl border ${borderColor} ${theme === 'dark' ? 'bg-gray-800/60' : 'bg-gray-50'}`}>
-                              <p className={`text-xs uppercase tracking-wider ${subtleColor} mb-1`}>Текущий PNL</p>
-                              <p className={`text-xl font-bold ${call.currentPnL >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>{call.currentPnL >= 0 ? '+' : ''}{call.currentPnL.toFixed(2)}%</p>
-                            </div>
-                          )}
-                          {call.maxProfit !== undefined && (
-                            <div className={`p-4 rounded-xl border ${borderColor} ${theme === 'dark' ? 'bg-gray-800/60' : 'bg-gray-50'}`}>
-                              <p className={`text-xs uppercase tracking-wider ${subtleColor} mb-1`}>MAX прибыль</p>
-                              <p className="text-xl font-bold text-emerald-500">+{call.maxProfit.toFixed(2)}%</p>
-                            </div>
-                          )}
-                        </div>
                       </div>
                     </div>
                   )
