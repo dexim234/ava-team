@@ -142,8 +142,9 @@ export const Rating = () => {
   const teamKPD = ratings.reduce((sum, r) => sum + r.rating, 0) / (ratings.length || 1)
   const subTextColor = theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
   const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
-  const cardBg = theme === 'dark' ? 'bg-[#151c2a]' : 'bg-white'
-  const calmBorder = theme === 'dark' ? 'border-white/10' : 'border-gray-200'
+  const cardBg = 'bg-[#10141c]'
+  const calmBorder = 'border-[#48a35e]/60'
+  const cardShadow = 'shadow-[0_24px_80px_rgba(0,0,0,0.45)]'
   const heroLabelColor = theme === 'dark' ? 'text-white/70' : 'text-slate-600'
   const heroValueColor = theme === 'dark' ? 'text-white' : 'text-slate-900'
 
@@ -222,13 +223,11 @@ export const Rating = () => {
       : 'bg-gray-50 border-gray-200 text-gray-900'
   }
 
+  const getMemberNameById = (id: string) =>
+    TEAM_MEMBERS.find((m) => m.id === id)?.name || '—'
+
   const handleAddReferral = () => {
     setActiveReferral(null)
-    setShowReferralForm(true)
-  }
-
-  const handleEditReferral = (referral: Referral) => {
-    setActiveReferral(referral)
     setShowReferralForm(true)
   }
 
@@ -301,7 +300,7 @@ export const Rating = () => {
         </div>
 
         {/* Как строим эффективность */}
-        <div className={`rounded-2xl p-6 sm:p-7 ${cardBg} shadow-lg border ${calmBorder}`}>
+        <div className={`rounded-2xl p-6 sm:p-7 ${cardBg} ${cardShadow} border ${calmBorder}`}>
           <div className="flex flex-col gap-2 mb-4">
             <p className={`text-xs uppercase tracking-[0.12em] ${subTextColor}`}>Методика</p>
             <h3 className={`text-2xl font-bold ${headingColor}`}>Как мы строим эффективность команды?</h3>
@@ -327,7 +326,7 @@ export const Rating = () => {
         {/* Referral stats */}
         <div
           id="rating-ref"
-          className={`rounded-2xl p-6 sm:p-7 ${cardBg} shadow-lg border ${calmBorder}`}
+          className={`rounded-2xl p-6 sm:p-7 ${cardBg} ${cardShadow} border ${calmBorder}`}
         >
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
             <div className="space-y-1">
@@ -344,76 +343,49 @@ export const Rating = () => {
             </button>
           </div>
 
-          <div className="grid gap-3 md:grid-cols-2">
-            {TEAM_MEMBERS.map((member) => {
-              const memberRefs = referrals.filter((referral) => referral.ownerId === member.id)
-              return (
-                <div
-                  key={member.id}
-                  className={`p-4 rounded-xl border ${calmBorder} ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'}`}
-                >
-                  <div className="flex items-center justify-between mb-3">
-                    <span className={`${headingColor} font-semibold`}>{member.name}</span>
-                    <span
-                      className={`px-3 py-1 rounded-full text-sm font-bold ${
-                        memberRefs.length > 0
-                          ? theme === 'dark' ? 'bg-emerald-600/70 text-white' : 'bg-emerald-100 text-emerald-800'
-                          : theme === 'dark' ? 'bg-white/5 text-gray-400' : 'bg-gray-100 text-gray-600'
-                      }`}
-                    >
-                      {memberRefs.length} {memberRefs.length === 1 ? 'реферал' : memberRefs.length < 5 ? 'реферала' : 'рефералов'}
-                    </span>
-                  </div>
-                  {memberRefs.length > 0 && (
-                    <div className="space-y-2">
-                      {memberRefs.map((referral) => (
-                        <div
-                          key={referral.id}
-                          className={`rounded-lg border ${calmBorder} ${theme === 'dark' ? 'bg-[#0f0f0f]' : 'bg-white'} p-3 flex flex-col gap-2 transition-all hover:shadow-sm`}
-                        >
-                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                            <div className="flex-1 min-w-0">
-                              <p className={`text-sm font-semibold ${headingColor} truncate`}>{referral.name}</p>
-                              <div className="flex flex-wrap gap-2 text-xs">
-                                <span className={`px-2 py-1 rounded ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-100'} ${subTextColor}`}>
-                                  ID: {referral.referralId}
-                                </span>
-                                {referral.age && (
-                                  <span className={`px-2 py-1 rounded ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-100'} ${subTextColor}`}>
-                                    {referral.age} лет
-                                  </span>
-                                )}
-                                <span className={`px-2 py-1 rounded ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-100'} ${subTextColor}`}>
-                                  {new Date(referral.createdAt).toLocaleDateString('ru-RU')}
-                                </span>
-                              </div>
-                            </div>
-                            <button
-                              onClick={() => handleEditReferral(referral)}
-                              className="self-start sm:self-auto px-3 py-1.5 text-sm bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors font-semibold"
-                            >
-                              Редактировать
-                            </button>
-                          </div>
-                          {referral.comment && (
-                            <div className={`mt-1 pt-2 border-t ${calmBorder}`}>
-                              <p className={`text-xs ${subTextColor} italic`}>💬 {referral.comment}</p>
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )
-            })}
-          </div>
+          {referrals.length ? (
+            <div className="overflow-auto rounded-xl border border-white/10 bg-white/5">
+              <table className="min-w-[720px] w-full text-sm text-white/90">
+                <thead className="bg-white/5 text-white/70 text-left">
+                  <tr>
+                    <th className="py-3 px-4 font-semibold">Кто привел</th>
+                    <th className="py-3 px-4 font-semibold">Код</th>
+                    <th className="py-3 px-4 font-semibold">Имя</th>
+                    <th className="py-3 px-4 font-semibold">Откуда</th>
+                    <th className="py-3 px-4 font-semibold">Комментарий</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {referrals.map((referral) => {
+                    const ownerName = getMemberNameById(referral.ownerId)
+                    const source = '—'
+                    return (
+                      <tr
+                        key={referral.id}
+                        className="border-t border-white/10 hover:bg-white/5 transition-colors"
+                      >
+                        <td className="py-3 px-4 font-semibold text-white whitespace-nowrap">{ownerName}</td>
+                        <td className="py-3 px-4 text-white/80 whitespace-nowrap">{referral.referralId}</td>
+                        <td className="py-3 px-4 text-white/80">{referral.name}</td>
+                        <td className="py-3 px-4 text-white/80">{source}</td>
+                        <td className="py-3 px-4 text-white/70">{referral.comment || '—'}</td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="rounded-xl border border-white/10 bg-white/5 p-4 text-white/70">
+              Пока нет рефералов.
+            </div>
+          )}
         </div>
 
         {/* Rating cards section */}
         <div
           id="rating-method"
-          className={`rounded-2xl p-6 sm:p-7 ${cardBg} shadow-lg border ${calmBorder}`}
+          className={`rounded-2xl p-6 sm:p-7 ${cardBg} ${cardShadow} border ${calmBorder}`}
         >
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
             <div className="space-y-1">
