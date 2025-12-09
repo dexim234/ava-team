@@ -39,9 +39,6 @@ import {
   Percent,
   Building2,
   ScrollText,
-  Gauge,
-  Timer,
-  MessageSquare,
 } from 'lucide-react'
 import { useScrollLock } from '@/hooks/useScrollLock'
 
