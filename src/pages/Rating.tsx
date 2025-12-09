@@ -155,6 +155,19 @@ export const Rating = () => {
     { label: '0-39%', title: 'Зона роста', desc: 'Запускаем план восстановления', tone: 'text-rose-700 dark:text-rose-100', bg: 'bg-rose-50 dark:bg-rose-900/40 border-rose-200/60 dark:border-rose-700/60' },
   ]
 
+  const getRecommendations = (r: typeof sortedRatings[number]) => {
+    if (!r.breakdown) return ['Недостаточно данных — обновите статистику.']
+    const tips: string[] = []
+    if (r.breakdown.weeklyHoursPoints < 25) tips.push('Дотяни рабочие часы до 20+ в неделю (25%).')
+    if (r.breakdown.weeklyEarningsPoints < 30) tips.push('Увеличь недельный доход до 6000+ ₽ (30%).')
+    if (r.breakdown.referralsPoints < 30) tips.push('Добавь рефералов: до +30% (6 человек).')
+    if (r.breakdown.weeklyMessagesPoints < 15) tips.push('Сообщения: >50 в неделю для +15%.')
+    if (r.breakdown.daysOffPoints < 10) tips.push('Сократи выходные до 0–2 за неделю.')
+    if (r.breakdown.sickDaysPoints < 10) tips.push('Больничные держи ≤7 дней в месяц.')
+    if (r.breakdown.vacationDaysPoints < 10) tips.push('Отпуск ≤7 дней в месяц.')
+    return tips.length ? tips : ['Отлично! Держи текущий темп.']
+  }
+
   const sortedRatings = useMemo(() => {
     return [...ratings].sort((a, b) => b.rating - a.rating)
   }, [ratings])
@@ -276,10 +289,7 @@ export const Rating = () => {
                 </div>
               </div>
 
-              <div className="flex flex-col items-start lg:items-end gap-2 text-white">
-                <span className="text-xs uppercase tracking-[0.12em] text-white/70">Обновлено</span>
-                <div className="text-xl font-semibold text-white/90">{todayLabel}</div>
-              </div>
+              <div className="flex flex-col items-start lg:items-end gap-2 text-white"></div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
@@ -320,6 +330,59 @@ export const Rating = () => {
                 <p className={`text-sm ${subTextColor}`}>{band.desc}</p>
               </div>
             ))}
+          </div>
+        </div>
+
+        {/* Рекомендации по участникам */}
+        <div className={`rounded-2xl p-6 sm:p-7 ${cardBg} ${cardShadow} border ${calmBorder}`}>
+          <div className="flex flex-col gap-2 mb-4">
+            <p className={`text-xs uppercase tracking-[0.12em] ${subTextColor}`}>Рекомендации</p>
+            <h3 className={`text-2xl font-bold ${headingColor}`}>Что улучшить каждому</h3>
+            <p className={`text-sm ${subTextColor}`}>Динамические подсказки на основе текущих метрик рейтинга.</p>
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-3">
+            {sortedRatings.map((r) => {
+              const recs = getRecommendations(r)
+              const userName = getMemberNameById(r.userId)
+              const bandClass =
+                r.rating >= 80
+                  ? 'bg-emerald-500'
+                  : r.rating >= 60
+                  ? 'bg-blue-500'
+                  : r.rating >= 40
+                  ? 'bg-amber-500'
+                  : 'bg-rose-500'
+              const bandText =
+                r.rating >= 80 ? 'Эталон' : r.rating >= 60 ? 'Уверенно' : r.rating >= 40 ? 'В пути' : 'Зона роста'
+
+              return (
+                <div key={r.userId} className="rounded-xl border border-white/10 bg-white/5 p-4 space-y-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className={`text-xs uppercase tracking-[0.12em] ${subTextColor}`}>{bandText}</p>
+                      <h4 className={`text-lg font-bold ${headingColor} truncate`}>{userName}</h4>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-2xl font-bold text-white">{r.rating.toFixed(1)}%</div>
+                    </div>
+                  </div>
+                  <div className="w-full bg-white/5 rounded-full h-3 overflow-hidden border border-white/10">
+                    <div
+                      className={`h-full ${bandClass}`}
+                      style={{ width: `${Math.min(r.rating, 100)}%` }}
+                    />
+                  </div>
+                  <ul className="space-y-1 text-sm text-white/80">
+                    {recs.map((tip, idx) => (
+                      <li key={idx} className="flex items-start gap-2">
+                        <span className="text-xs mt-0.5">•</span>
+                        <span>{tip}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )
+            })}
           </div>
         </div>
 

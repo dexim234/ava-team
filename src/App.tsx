@@ -10,7 +10,6 @@ import { Management } from './pages/Management'
 import { Earnings } from './pages/Earnings'
 import { Rating } from './pages/Rating'
 import { Tasks } from './pages/Tasks'
-import { FAQ } from './pages/FAQ'
 import { Admin } from './pages/Admin'
 import { Profile } from './pages/Profile'
 import { About } from './pages/About'
@@ -91,10 +90,6 @@ function App() {
               <About />
             </ProtectedRoute>
           }
-        />
-        <Route
-          path="/faq"
-          element={<FAQ />}
         />
         <Route
           path="/admin"
