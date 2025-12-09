@@ -1,6 +1,6 @@
 // Rating card component
 import { useThemeStore } from '@/store/themeStore'
-import { getRatingColor, getRatingBreakdown } from '@/utils/ratingUtils'
+import { getRatingBreakdown } from '@/utils/ratingUtils'
 import { RatingData, TEAM_MEMBERS } from '@/types'
 import { formatHours } from '@/utils/dateUtils'
 import { Calendar, Heart, Plane, Clock, DollarSign, Users, MessageSquare, TrendingUp, Info } from 'lucide-react'
@@ -8,6 +8,7 @@ import { useState } from 'react'
 
 interface RatingCardProps {
   rating: RatingData & { breakdown?: ReturnType<typeof getRatingBreakdown> }
+  place?: { label: string; tone: 'emerald' | 'blue' | 'amber' | 'slate' }
 }
 
 interface MetricInfo {
@@ -21,7 +22,7 @@ interface MetricInfo {
   color: string
 }
 
-export const RatingCard = ({ rating }: RatingCardProps) => {
+export const RatingCard = ({ rating, place }: RatingCardProps) => {
   const { theme } = useThemeStore()
   const [expandedMetric, setExpandedMetric] = useState<number | null>(null)
   const member = TEAM_MEMBERS.find((m) => m.id === rating.userId)
@@ -33,7 +34,14 @@ export const RatingCard = ({ rating }: RatingCardProps) => {
   const hoverBg = theme === 'dark' ? 'hover:bg-white/5' : 'hover:bg-gray-50'
   const softSurface = theme === 'dark' ? 'bg-white/5' : 'bg-gray-50/80'
   const barWidth = rating.rating <= 0 ? '4%' : `${Math.min(rating.rating, 100)}%`
-  const lastUpdatedDate = rating.lastUpdated ? new Date(rating.lastUpdated) : null
+  const bandColor =
+    rating.rating >= 80
+      ? 'bg-emerald-500'
+      : rating.rating >= 60
+      ? 'bg-blue-500'
+      : rating.rating >= 40
+      ? 'bg-amber-500'
+      : 'bg-rose-500'
 
   const accentPalette: Record<
     string,
@@ -195,22 +203,38 @@ export const RatingCard = ({ rating }: RatingCardProps) => {
               </div>
             </div>
           </div>
-          <div className={`px-3 py-2 rounded-lg text-xs font-semibold ${softSurface} border ${borderColor}`}>
-            Последнее обновление<br />
-            <span className={`${mutedColor}`}>
-              {lastUpdatedDate ? lastUpdatedDate.toLocaleDateString('ru-RU') : '—'}
-            </span>
-          </div>
+          {place && (
+            <div
+              className={`px-3 py-2 rounded-lg text-xs font-semibold border ${
+                place.tone === 'emerald'
+                  ? theme === 'dark'
+                    ? 'bg-emerald-500/15 border-emerald-400/30 text-emerald-50'
+                    : 'bg-emerald-50 border-emerald-200 text-emerald-900'
+                  : place.tone === 'blue'
+                  ? theme === 'dark'
+                    ? 'bg-blue-500/15 border-blue-400/30 text-blue-50'
+                    : 'bg-blue-50 border-blue-200 text-blue-900'
+                  : place.tone === 'amber'
+                  ? theme === 'dark'
+                    ? 'bg-amber-500/15 border-amber-400/30 text-amber-50'
+                    : 'bg-amber-50 border-amber-200 text-amber-900'
+                  : theme === 'dark'
+                  ? 'bg-white/5 border-white/15 text-white'
+                  : 'bg-gray-50 border-gray-200 text-gray-900'
+              }`}
+            >
+              {place.label}
+            </div>
+          )}
         </div>
 
         {/* Main rating progress bar */}
         <div>
           <div className="w-full bg-gray-200/70 dark:bg-gray-800 rounded-full h-6 overflow-hidden shadow-inner">
             <div
-              className="h-full transition-all duration-500 flex items-center justify-center text-sm font-semibold text-white"
+              className={`h-full transition-all duration-500 flex items-center justify-center text-sm font-semibold text-white ${bandColor}`}
               style={{
                 width: barWidth,
-                backgroundColor: color,
                 minWidth: rating.rating <= 0 ? '40px' : undefined,
               }}
             >

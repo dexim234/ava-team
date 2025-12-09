@@ -351,14 +351,12 @@ export const Rating = () => {
                     <th className="py-3 px-4 font-semibold">Кто привел</th>
                     <th className="py-3 px-4 font-semibold">Код</th>
                     <th className="py-3 px-4 font-semibold">Имя</th>
-                    <th className="py-3 px-4 font-semibold">Откуда</th>
                     <th className="py-3 px-4 font-semibold">Комментарий</th>
                   </tr>
                 </thead>
                 <tbody>
                   {referrals.map((referral) => {
                     const ownerName = getMemberNameById(referral.ownerId)
-                    const source = '—'
                     return (
                       <tr
                         key={referral.id}
@@ -367,7 +365,6 @@ export const Rating = () => {
                         <td className="py-3 px-4 font-semibold text-white whitespace-nowrap">{ownerName}</td>
                         <td className="py-3 px-4 text-white/80 whitespace-nowrap">{referral.referralId}</td>
                         <td className="py-3 px-4 text-white/80">{referral.name}</td>
-                        <td className="py-3 px-4 text-white/80">{source}</td>
                         <td className="py-3 px-4 text-white/70">{referral.comment || '—'}</td>
                       </tr>
                     )
@@ -469,7 +466,7 @@ export const Rating = () => {
                           <span>{place.text}</span>
                         </div>
                       </div>
-                      <RatingCard rating={rating} />
+                      <RatingCard rating={rating} place={{ label: place.text, tone: place.tone }} />
                     </div>
                   )
                 })}

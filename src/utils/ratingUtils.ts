@@ -126,12 +126,10 @@ export const getRatingBreakdown = (
 }
 
 export const getRatingColor = (rating: number): string => {
-  if (rating >= 1 && rating <= 10) return '#ef4444' // red
-  if (rating >= 11 && rating <= 30) return '#f97316' // orange
-  if (rating >= 31 && rating <= 59) return '#eab308' // yellow
-  if (rating >= 60 && rating <= 80) return '#3b82f6' // blue
-  if (rating >= 81 && rating <= 100) return '#10b981' // green
-  return '#6b7280' // gray
+  if (rating >= 80) return '#10b981' // Эталон (зелёный)
+  if (rating >= 60) return '#3b82f6' // Уверенно (синий)
+  if (rating >= 40) return '#f59e0b' // В пути (янтарный)
+  return '#f43f5e' // Зона роста (розовый)
 }
 
 
