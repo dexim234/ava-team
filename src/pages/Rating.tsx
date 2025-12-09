@@ -149,19 +149,11 @@ export const Rating = () => {
       ? 'bg-gradient-to-br from-[#0c1424] via-[#0e1a2f] to-[#0a1220]'
       : 'bg-gradient-to-br from-white via-emerald-50/60 to-white'
   const softSurface = theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'
-  const pillSurface = theme === 'dark' ? 'bg-white/10 text-white' : 'bg-gray-100 text-gray-800'
 
   const sectionLinks = [
     { href: '#rating-team', label: 'Команда', icon: '🌿' },
     { href: '#rating-ref', label: 'Рефералы', icon: '🧲' },
     { href: '#rating-method', label: 'Карточки', icon: '📇' },
-  ]
-
-  const highlightStats = [
-    { label: 'Топ-1', value: `${ratingOverview.top.toFixed(1)}%`, note: 'лидер недели', tone: 'emerald' },
-    { label: 'Медиана', value: `${ratingOverview.median.toFixed(1)}%`, note: 'ровный темп', tone: 'sky' },
-    { label: '80%+', value: ratingOverview.high, note: 'устойчивые лидеры', tone: 'amber' },
-    { label: 'Участников', value: ratings.length, note: 'в рейтинге', tone: 'slate' },
   ]
 
   const ratingBands = [
@@ -185,6 +177,13 @@ export const Rating = () => {
     const high = sorted.filter((r) => r.rating >= 80).length
     return { top, median, count: sorted.length, high }
   }, [ratings])
+
+  const highlightStats = [
+    { label: 'Топ-1', value: `${ratingOverview.top.toFixed(1)}%`, note: 'лидер недели', tone: 'emerald' },
+    { label: 'Медиана', value: `${ratingOverview.median.toFixed(1)}%`, note: 'ровный темп', tone: 'sky' },
+    { label: '80%+', value: ratingOverview.high, note: 'устойчивые лидеры', tone: 'amber' },
+    { label: 'Участников', value: ratings.length, note: 'в рейтинге', tone: 'slate' },
+  ]
 
   const handleAddReferral = () => {
     setActiveReferral(null)
