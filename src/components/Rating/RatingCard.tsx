@@ -31,7 +31,7 @@ export const RatingCard = ({ rating }: RatingCardProps) => {
   const cardBg = theme === 'dark' ? 'bg-[#0f0f0f]' : 'bg-white'
   const borderColor = theme === 'dark' ? 'border-white/10' : 'border-gray-200'
   const hoverBg = theme === 'dark' ? 'hover:bg-white/5' : 'hover:bg-gray-50'
-  const softSurface = theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'
+  const softSurface = theme === 'dark' ? 'bg-white/5' : 'bg-gray-50/80'
   const barWidth = rating.rating <= 0 ? '4%' : `${Math.min(rating.rating, 100)}%`
   const lastUpdatedDate = rating.lastUpdated ? new Date(rating.lastUpdated) : null
 
@@ -170,7 +170,7 @@ export const RatingCard = ({ rating }: RatingCardProps) => {
   const totalPoints = metrics.reduce((sum, m) => sum + m.points, 0)
 
   return (
-    <div className={`rounded-2xl p-6 ${cardBg} shadow-md border ${borderColor} transition-colors`}>
+    <div className={`rounded-2xl p-6 ${cardBg} shadow-sm border ${borderColor} transition-colors`}>
       {/* Header with name and rating */}
       <div className="mb-5 flex flex-col gap-3">
         <div className="flex items-start justify-between gap-3">
@@ -205,7 +205,7 @@ export const RatingCard = ({ rating }: RatingCardProps) => {
 
         {/* Main rating progress bar */}
         <div>
-          <div className="w-full bg-gray-200 dark:bg-gray-800 rounded-full h-6 overflow-hidden shadow-inner">
+          <div className="w-full bg-gray-200/70 dark:bg-gray-800 rounded-full h-6 overflow-hidden shadow-inner">
             <div
               className="h-full transition-all duration-500 flex items-center justify-center text-sm font-semibold text-white"
               style={{

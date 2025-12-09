@@ -195,122 +195,113 @@ export const Rating = () => {
     <Layout>
       <div className="space-y-6">
         {/* Header */}
-        <div
-          className={`rounded-2xl p-6 sm:p-7 ${cardBg} shadow-lg border ${calmBorder} relative overflow-hidden`}
-        >
-          <div className="relative z-10 space-y-6">
-            <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
-              <div className="flex items-start gap-4">
-                <div className="p-3 rounded-2xl bg-gradient-to-br from-[#4E6E49] via-emerald-500 to-sky-500 text-white shadow-lg shadow-emerald-500/30">
-                  <span className="text-xl">📈</span>
-                </div>
-                <div className="flex flex-col justify-center">
-                  <h1 className={`text-2xl sm:text-3xl font-extrabold ${headingColor} drop-shadow-lg leading-tight`}>
-                    Рейтинг команды
-                  </h1>
-                  <p className={`mt-1 text-sm ${subTextColor}`}>
-                    Еженедельный срез эффективности + данные за 30 дней
-                  </p>
-                  <div className="flex flex-wrap gap-2 mt-3">
-                    {['Недельный КПД', 'Доход + пул', 'Рефералы', 'Сообщения'].map((chip) => (
-                      <span
-                        key={chip}
-                        className={`px-3 py-1 rounded-full text-xs font-semibold border ${calmBorder} ${softSurface}`}
-                      >
-                        {chip}
-                      </span>
-                    ))}
-                  </div>
-                </div>
+        <div className={`rounded-2xl p-6 sm:p-7 ${cardBg} shadow-lg border ${calmBorder} space-y-5`}>
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex items-start gap-3">
+              <div className="p-3 rounded-2xl bg-emerald-100 text-emerald-900 dark:bg-emerald-500/15 dark:text-emerald-50 border border-emerald-200 dark:border-emerald-400/40">
+                <span className="text-xl">📊</span>
               </div>
-
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 w-full xl:w-auto">
-                {highlightStats.map((item) => {
-                  const tone =
-                    item.tone === 'emerald'
-                      ? theme === 'dark'
-                        ? 'bg-emerald-500/10 border-emerald-400/30 text-emerald-100'
-                        : 'bg-emerald-50 border-emerald-200 text-emerald-900'
-                      : item.tone === 'sky'
-                      ? theme === 'dark'
-                        ? 'bg-sky-500/10 border-sky-400/30 text-sky-100'
-                        : 'bg-sky-50 border-sky-200 text-sky-900'
-                      : item.tone === 'amber'
-                      ? theme === 'dark'
-                        ? 'bg-amber-500/10 border-amber-400/30 text-amber-100'
-                        : 'bg-amber-50 border-amber-200 text-amber-900'
-                      : theme === 'dark'
-                      ? 'bg-white/5 border-white/10 text-white'
-                      : 'bg-gray-50 border-gray-200 text-gray-900'
-
-                  return (
-                  <div
-                      key={item.label}
-                      className={`rounded-2xl border p-4 flex flex-col gap-1 shadow-sm ${tone}`}
-                    >
-                      <span className={`text-[11px] uppercase tracking-wide ${subTextColor}`}>{item.label}</span>
-                      <span className={`text-2xl font-extrabold ${headingColor}`}>{item.value}</span>
-                      <span className={`text-xs ${subTextColor}`}>{item.note}</span>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
-              {ratingBands.map((band) => (
-                <div
-                  key={band.label}
-                  className={`rounded-xl border ${band.bg} p-3 transition`}
-                >
-                  <div className="flex items-center justify-between">
-                    <span className={`text-xs font-semibold ${subTextColor}`}>{band.label}</span>
-                    <span className="text-lg">•</span>
-                  </div>
-                  <p className={`text-base font-semibold ${band.tone}`}>{band.title}</p>
-                  <p className={`text-sm ${subTextColor}`}>{band.desc}</p>
+              <div className="space-y-2">
+                <div>
+                  <p className={`text-xs uppercase tracking-[0.12em] ${subTextColor}`}>Рейтинг</p>
+                  <h1 className={`text-2xl sm:text-3xl font-extrabold ${headingColor} leading-tight`}>Командный лидерборд</h1>
                 </div>
-              ))}
-            </div>
-
-            <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
-              <div className="flex flex-wrap gap-2">
-                {sectionLinks.map((item) => (
-                  <a
-                    key={item.href}
-                    href={item.href}
-                    className={`px-3 py-2 rounded-full text-sm font-semibold border ${calmBorder} transition flex items-center gap-2 ${
-                      theme === 'dark'
-                        ? 'bg-white/5 hover:bg-white/10 text-white'
-                        : 'bg-white hover:bg-gray-50 text-gray-800'
-                    }`}
-                  >
-                    <span>{item.icon}</span>
-                    {item.label}
-                  </a>
-                ))}
-              </div>
-
-              <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-3">
-                <div className={`flex flex-wrap gap-2 text-xs ${subTextColor}`}>
-                  {['Выходные','Больничные','Отпуск','Часы','Заработок','Рефералы','Сообщения'].map((item) => (
+                <p className={`text-sm ${subTextColor}`}>Данные за неделю + последние 30 дней, аккуратно по ключевым метрикам.</p>
+                <div className="flex flex-wrap gap-2">
+                  {['КПД недели','Доход + пул','Рефералы','Сообщения'].map((chip) => (
                     <span
-                      key={item}
-                      className={`px-3 py-1 rounded-full border ${calmBorder} ${softSurface}`}
+                      key={chip}
+                      className={`px-3 py-1 rounded-full text-xs font-semibold border ${calmBorder} ${softSurface}`}
                     >
-                      {item}
+                      {chip}
                     </span>
                   ))}
                 </div>
-                <button
-                  onClick={handleAddReferral}
-                  className="px-4 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl transition-all duration-200 flex items-center justify-center gap-2 font-semibold shadow-md w-full md:w-auto"
-                >
-                  <span className="text-xl">➕</span>
-                  <span>Добавить реферала</span>
-                </button>
               </div>
             </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 w-full lg:w-auto">
+              {highlightStats.map((item) => {
+                const tone =
+                  item.tone === 'emerald'
+                    ? theme === 'dark'
+                      ? 'bg-emerald-500/10 border-emerald-400/30 text-emerald-100'
+                      : 'bg-emerald-50 border-emerald-200 text-emerald-900'
+                    : item.tone === 'sky'
+                    ? theme === 'dark'
+                      ? 'bg-sky-500/10 border-sky-400/30 text-sky-100'
+                      : 'bg-sky-50 border-sky-200 text-sky-900'
+                    : item.tone === 'amber'
+                    ? theme === 'dark'
+                      ? 'bg-amber-500/10 border-amber-400/30 text-amber-100'
+                      : 'bg-amber-50 border-amber-200 text-amber-900'
+                    : theme === 'dark'
+                    ? 'bg-white/5 border-white/10 text-white'
+                    : 'bg-gray-50 border-gray-200 text-gray-900'
+
+                return (
+                  <div
+                    key={item.label}
+                    className={`rounded-xl border p-4 flex flex-col gap-1 shadow-sm ${tone}`}
+                  >
+                    <span className={`text-[11px] uppercase tracking-wide ${subTextColor}`}>{item.label}</span>
+                    <span className={`text-2xl font-extrabold ${headingColor}`}>{item.value}</span>
+                    <span className={`text-xs ${subTextColor}`}>{item.note}</span>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
+            {ratingBands.map((band) => (
+              <div
+                key={band.label}
+                className={`rounded-xl border ${band.bg} p-3 transition`}
+              >
+                <div className="flex items-center justify-between">
+                  <span className={`text-xs font-semibold ${subTextColor}`}>{band.label}</span>
+                  <span className="text-lg">•</span>
+                </div>
+                <p className={`text-base font-semibold ${band.tone}`}>{band.title}</p>
+                <p className={`text-sm ${subTextColor}`}>{band.desc}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex flex-wrap gap-2">
+              {sectionLinks.map((item) => (
+                <a
+                  key={item.href}
+                  href={item.href}
+                  className={`px-3 py-2 rounded-full text-sm font-semibold border ${calmBorder} transition flex items-center gap-2 ${
+                    theme === 'dark'
+                      ? 'bg-white/5 hover:bg-white/10 text-white'
+                      : 'bg-white hover:bg-gray-50 text-gray-800'
+                  }`}
+                >
+                  <span>{item.icon}</span>
+                  {item.label}
+                </a>
+              ))}
+            </div>
+            <div className="flex flex-wrap gap-2 text-xs">
+              {['Выходные','Больничные','Отпуск','Часы','Заработок','Рефералы','Сообщения'].map((item) => (
+                <span
+                  key={item}
+                  className={`px-3 py-1 rounded-full border ${calmBorder} ${softSurface}`}
+                >
+                  {item}
+                </span>
+              ))}
+            </div>
+            <button
+              onClick={handleAddReferral}
+              className="px-4 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl transition-all duration-200 flex items-center justify-center gap-2 font-semibold shadow-md w-full lg:w-auto"
+            >
+              <span className="text-xl">➕</span>
+              <span>Добавить реферала</span>
+            </button>
           </div>
         </div>
 
@@ -468,7 +459,7 @@ export const Rating = () => {
                 ))}
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-2 gap-6">
                 {sortedRatings.map((rating, index) => {
                   type PlaceTone = 'emerald' | 'blue' | 'amber' | 'slate'
                   const place: { text: string; tone: PlaceTone; emoji: string } =
