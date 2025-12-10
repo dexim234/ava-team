@@ -45,18 +45,29 @@ const statusBadgeMap: Record<ApprovalRequest['status'], JSX.Element> = {
 const getMemberName = (userId: string) =>
   TEAM_MEMBERS.find((m) => m.id === userId)?.name || userId
 
+const safeFormatDate = (value?: string | Date) => {
+  if (!value) return '—'
+  try {
+    return formatDate(value, 'dd.MM.yyyy')
+  } catch {
+    return '—'
+  }
+}
+
 const formatSlotPreview = (slot?: WorkSlot | null) => {
   if (!slot) return '—'
-  const times = slot.slots?.map((s) => `${s.start}-${s.end}${s.endDate ? ` (до ${formatDate(new Date(s.endDate), 'dd.MM')})` : ''}`)?.join(', ')
-  return `${formatDate(slot.date, 'dd.MM.yyyy')}${times ? ` · ${times}` : ''}`
+  const times = slot.slots
+    ?.map((s) => `${s.start}-${s.end}${s.endDate ? ` (до ${safeFormatDate(s.endDate)})` : ''}`)
+    ?.join(', ')
+  return `${safeFormatDate(slot.date)}${times ? ` · ${times}` : ''}`
 }
 
 const formatStatusPreview = (status?: DayStatus | null) => {
   if (!status) return '—'
   const label =
     status.type === 'dayoff' ? 'Выходной' : status.type === 'sick' ? 'Больничный' : 'Отпуск'
-  const range = status.endDate ? ` (${formatDate(status.endDate, 'dd.MM.yyyy')})` : ''
-  return `${formatDate(status.date, 'dd.MM.yyyy')} · ${label}${range}`
+  const range = status.endDate ? ` (${safeFormatDate(status.endDate)})` : ''
+  return `${safeFormatDate(status.date)} · ${label}${range}`
 }
 
 export const ApprovalsTable = () => {
@@ -179,7 +190,7 @@ export const ApprovalsTable = () => {
                     <span className="font-semibold">{getMemberName(approval.targetUserId)}</span>
                     <span className="text-xs text-gray-500 dark:text-gray-400">Автор: {getMemberName(approval.authorId)}</span>
                     <span className="text-xs text-gray-500 dark:text-gray-400">
-                      Создано: {formatDate(approval.createdAt, 'dd.MM.yyyy')} {/* format handles string */}
+                      Создано: {safeFormatDate(approval.createdAt)} {/* safe on missing */}
                     </span>
                   </div>
                 </td>

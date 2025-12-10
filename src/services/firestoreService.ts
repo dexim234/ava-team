@@ -228,6 +228,7 @@ const APPROVAL_COLLECTION = 'approvalRequests'
 
 const mapApprovalSnapshot = (docSnap: any): ApprovalRequest => {
   const data = docSnap.data() as any
+  const nowIso = new Date().toISOString()
   return {
     id: docSnap.id,
     entity: data?.entity || 'slot',
@@ -240,8 +241,8 @@ const mapApprovalSnapshot = (docSnap: any): ApprovalRequest => {
     comment: data?.comment,
     adminComment: data?.adminComment,
     reviewedBy: data?.reviewedBy,
-    createdAt: data?.createdAt || '',
-    updatedAt: data?.updatedAt || '',
+    createdAt: data?.createdAt || nowIso,
+    updatedAt: data?.updatedAt || data?.createdAt || nowIso,
   }
 }
 
