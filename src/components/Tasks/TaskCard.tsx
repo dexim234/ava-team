@@ -12,9 +12,6 @@ import {
   Check,
   CheckCircle2,
   Edit,
-  Feather,
-  Flame,
-  Radio,
   Trash2,
   User,
   Users,
@@ -311,30 +308,12 @@ export const TaskCard = ({ task, onEdit, onDelete, onUpdate }: TaskCardProps) =>
                 </span>
               </div>
               {assignedUsers.length > 0 ? (
-                <div className="mt-2 space-y-2">
-                  {assignedUsers.map((assignee) => {
-                    const priorityStyles = getAssigneePriorityStyles(assignee.priority)
-                    return (
-                      <div
-                        key={assignee.member.id}
-                        className={`p-3 rounded-lg border ${borderColor} ${theme === 'dark' ? 'bg-[#1a1a1a]/70' : 'bg-gray-50'}`}
-                      >
-                        <div className="flex items-center justify-between gap-2">
-                          <span className={`text-sm font-medium ${theme === 'dark' ? 'text-gray-100' : 'text-gray-800'}`}>
-                            {assignee.member.name}
-                          </span>
-                          <span className={`text-[11px] px-2 py-0.5 rounded-full border ${priorityStyles.classes}`}>
-                            {priorityStyles.label}
-                          </span>
-                        </div>
-                        {assignee.comment && (
-                          <p className={`text-xs mt-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                            {assignee.comment}
-                          </p>
-                        )}
-                      </div>
-                    )
-                  })}
+                <div className="mt-2 space-y-1">
+                  {assignedUsers.map((assignee) => (
+                    <div key={assignee.member.id} className={`text-sm ${theme === 'dark' ? 'text-gray-100' : 'text-gray-800'}`}>
+                      {assignee.member.name}
+                    </div>
+                  ))}
                 </div>
               ) : (
                 <span className={theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}>Не назначены</span>
