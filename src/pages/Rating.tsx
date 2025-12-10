@@ -6,7 +6,7 @@ import { useAuthStore } from '@/store/authStore'
 import { useAdminStore } from '@/store/adminStore'
 import { RatingCard } from '@/components/Rating/RatingCard'
 import { ReferralForm } from '@/components/Rating/ReferralForm'
-import { getRatingData, getEarnings, getDayStatuses, getReferrals, getWorkSlots, getWeeklyMessages, deleteReferral } from '@/services/firestoreService'
+import { getRatingData, getEarnings, getDayStatuses, getReferrals, getWorkSlots, getWeeklyMessages, deleteReferral, addApprovalRequest } from '@/services/firestoreService'
 import { getLastNDaysRange, getWeekRange, formatDate, calculateHours, countDaysInPeriod } from '@/utils/dateUtils'
 import { calculateRating, getRatingBreakdown } from '@/utils/ratingUtils'
 import { RatingData, Referral, TEAM_MEMBERS } from '@/types'
@@ -257,7 +257,18 @@ export const Rating = () => {
   const handleDeleteReferral = async (referral: Referral) => {
     const canManage = isAdmin || referral.ownerId === user?.id
     if (!canManage) return
-    await deleteReferral(referral.id)
+    if (isAdmin) {
+      await deleteReferral(referral.id)
+    } else {
+      await addApprovalRequest({
+        entity: 'referral',
+        action: 'delete',
+        authorId: user?.id || referral.ownerId,
+        targetUserId: referral.ownerId,
+        before: referral,
+        after: null,
+      })
+    }
     await loadRatings()
   }
 

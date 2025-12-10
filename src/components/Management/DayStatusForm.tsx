@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import { useAuthStore } from '@/store/authStore'
 import { useThemeStore } from '@/store/themeStore'
 import { useAdminStore } from '@/store/adminStore'
-import { addApprovalRequest, getDayStatuses } from '@/services/firestoreService'
+import { addApprovalRequest, getDayStatuses, addDayStatus, updateDayStatus } from '@/services/firestoreService'
 import { formatDate, isSameDate, getDatesInRange, normalizeDatesList } from '@/utils/dateUtils'
 import { X } from 'lucide-react'
 import { DayStatus, TEAM_MEMBERS } from '@/types'
@@ -282,15 +282,24 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
         ...(comment && { comment }),
       }
 
-      await addApprovalRequest({
-        entity: 'status',
-        action: status ? 'update' : 'create',
-        authorId: user?.id || targetUserId,
-        targetUserId,
-        before: status ? status : null,
-        after: statusData,
-        comment: comment || undefined,
-      })
+      if (isAdmin) {
+        const { id: _id, ...payload } = statusData
+        if (status) {
+          await updateDayStatus(status.id, payload)
+        } else {
+          await addDayStatus(payload)
+        }
+      } else {
+        await addApprovalRequest({
+          entity: 'status',
+          action: status ? 'update' : 'create',
+          authorId: user?.id || targetUserId,
+          targetUserId,
+          before: status ? status : null,
+          after: statusData,
+          comment: comment || undefined,
+        })
+      }
     }
 
     console.log('Starting save process...')

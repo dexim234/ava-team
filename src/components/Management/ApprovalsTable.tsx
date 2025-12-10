@@ -89,9 +89,10 @@ export const ApprovalsTable = () => {
     try {
       await approveApprovalRequest(approvalId, user?.id || 'admin')
       await loadApprovals()
-    } catch (e) {
+    } catch (e: any) {
       console.error('Ошибка при подтверждении', e)
-      setError('Не удалось подтвердить заявку')
+      setError(`Не удалось подтвердить заявку: ${e?.message || e}`)
+      await loadApprovals()
     } finally {
       setSubmittingId(null)
     }

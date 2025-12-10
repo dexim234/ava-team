@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import { useAuthStore } from '@/store/authStore'
 import { useThemeStore } from '@/store/themeStore'
 import { useAdminStore } from '@/store/adminStore'
-import { addApprovalRequest, getWorkSlots } from '@/services/firestoreService'
+import { addApprovalRequest, getWorkSlots, addWorkSlot, updateWorkSlot } from '@/services/firestoreService'
 import { calculateHours, timeOverlaps, formatDate, getDatesInRange, normalizeDatesList, parseTime } from '@/utils/dateUtils'
 import { X, Plus, Trash2, Edit } from 'lucide-react'
 import { WorkSlot, TimeSlot, TEAM_MEMBERS } from '@/types'
@@ -466,15 +466,25 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
         participants,
       }
 
-      await addApprovalRequest({
-        entity: 'slot',
-        action: slot ? 'update' : 'create',
-        authorId: user?.id || targetUserId,
-        targetUserId,
-        before: slot ? slot : null,
-        after: slotData,
-        comment: comment || undefined,
-      })
+      if (isAdmin) {
+        if (slot) {
+          const { id: _id, ...payload } = slotData
+          await updateWorkSlot(slot.id, payload)
+        } else {
+          const { id: _id, ...payload } = slotData
+          await addWorkSlot(payload)
+        }
+      } else {
+        await addApprovalRequest({
+          entity: 'slot',
+          action: slot ? 'update' : 'create',
+          authorId: user?.id || targetUserId,
+          targetUserId,
+          before: slot ? slot : null,
+          after: slotData,
+          comment: comment || undefined,
+        })
+      }
     }
 
     console.log('Starting save process...')

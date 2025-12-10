@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { useThemeStore } from '@/store/themeStore'
 import { useAuthStore } from '@/store/authStore'
 import { useAdminStore } from '@/store/adminStore'
-import { deleteEarnings } from '@/services/firestoreService'
+import { deleteEarnings, addApprovalRequest } from '@/services/firestoreService'
 import { Earnings, EARNINGS_CATEGORY_META, EarningsCategory, TEAM_MEMBERS } from '@/types'
 import { formatDate } from '@/utils/dateUtils'
 import { Edit2, Trash2, Rocket, LineChart, Image, Coins, BarChart3, ShieldCheck, Sparkles, Wallet2 } from 'lucide-react'
@@ -40,14 +40,25 @@ export const EarningsList = ({ earnings, onEdit, onDelete }: EarningsListProps) 
     }
   }
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (earning: Earnings) => {
     if (!confirm('Вы уверены, что хотите удалить эту запись о заработке?')) {
       return
     }
 
-    setDeletingId(id)
+    setDeletingId(earning.id)
     try {
-      await deleteEarnings(id)
+      if (isAdmin) {
+        await deleteEarnings(earning.id)
+      } else {
+        await addApprovalRequest({
+          entity: 'earning',
+          action: 'delete',
+          authorId: user?.id || earning.userId,
+          targetUserId: earning.userId,
+          before: earning,
+          after: null,
+        })
+      }
       onDelete()
     } catch (error) {
       console.error('Error deleting earnings:', error)
@@ -196,7 +207,7 @@ export const EarningsList = ({ earnings, onEdit, onDelete }: EarningsListProps) 
                             <Edit2 className="w-4 h-4" />
                           </button>
                           <button
-                            onClick={() => handleDelete(earning.id)}
+                            onClick={() => handleDelete(earning)}
                             disabled={deletingId === earning.id}
                             className={`p-2 rounded-lg transition-colors ${
                               theme === 'dark'

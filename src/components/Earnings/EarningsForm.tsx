@@ -250,22 +250,64 @@ export const EarningsForm = ({ onClose, onSave, editingEarning }: EarningsFormPr
         }
       }
 
+      const buildPayload = (entry: {
+        userId: string
+        amount: number
+        poolAmount: number
+        category: EarningsCategory
+        participants: string[]
+        extraWalletsAmount: number
+        extraWalletsCount: number
+      }): Omit<Earnings, 'id'> => ({
+        userId: entry.userId,
+        date,
+        amount: entry.amount,
+        poolAmount: entry.poolAmount,
+        slotId: selectedSlotId,
+        category: entry.category,
+        participants: entry.participants,
+        extraWalletsAmount: entry.extraWalletsAmount,
+        extraWalletsCount: entry.extraWalletsCount,
+      })
+
+      const submit = async (payload: Omit<Earnings, 'id'>, action: 'create' | 'update', before?: Earnings | null) => {
+        if (isAdmin) {
+          if (action === 'update' && editingEarning) {
+            await updateEarnings(editingEarning.id, payload)
+          } else {
+            await addEarnings(payload)
+          }
+        } else {
+          await addApprovalRequest({
+            entity: 'earning',
+            action,
+            authorId: user?.id || payload.userId,
+            targetUserId: payload.userId,
+            before: before || null,
+            after: { id: editingEarning?.id || '', ...payload },
+          })
+        }
+      }
+
       if (isEditing && editingEarning) {
         const draft = buildDraftFromInputs()
         if (!draft) {
           setLoading(false)
           return
         }
-        await updateEarnings(editingEarning.id, {
-          date,
-          amount: draft.amount,
-          poolAmount: parseFloat((draft.amount * POOL_RATE).toFixed(2)),
-          slotId: selectedSlotId,
-          category: draft.category,
-          participants: draft.participants,
-          extraWalletsAmount: draft.extraWalletsAmount,
-          extraWalletsCount: draft.extraWalletsCount,
-        })
+        await submit(
+          buildPayload({
+            userId: editingEarning.userId,
+            amount: draft.amount,
+            poolAmount: parseFloat((draft.amount * POOL_RATE).toFixed(2)),
+            category: draft.category,
+            participants: draft.participants,
+            extraWalletsAmount: draft.extraWalletsAmount,
+            extraWalletsCount: draft.extraWalletsCount,
+          }),
+          'update',
+          editingEarning
+        )
       } else {
         let entriesToSave = draftEntries
         if (entriesToSave.length === 0) {
@@ -278,17 +320,18 @@ export const EarningsForm = ({ onClose, onSave, editingEarning }: EarningsFormPr
         }
 
         for (const entry of entriesToSave) {
-          await addEarnings({
-            userId: entry.participants[0],
-            date,
-            amount: entry.amount,
-            poolAmount: parseFloat((entry.amount * POOL_RATE).toFixed(2)),
-            slotId: selectedSlotId,
-            category: entry.category,
-            participants: entry.participants,
-            extraWalletsAmount: entry.extraWalletsAmount,
-            extraWalletsCount: entry.extraWalletsCount,
-          })
+          await submit(
+            buildPayload({
+              userId: entry.participants[0],
+              amount: entry.amount,
+              poolAmount: parseFloat((entry.amount * POOL_RATE).toFixed(2)),
+              category: entry.category,
+              participants: entry.participants,
+              extraWalletsAmount: entry.extraWalletsAmount,
+              extraWalletsCount: entry.extraWalletsCount,
+            }),
+            'create'
+          )
         }
       }
 

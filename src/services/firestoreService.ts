@@ -313,6 +313,62 @@ const applyStatusChange = async (request: ApprovalRequest) => {
   }
 }
 
+const applyEarningChange = async (request: ApprovalRequest) => {
+  const beforeE = request.before as Earnings | null | undefined
+  const afterE = request.after as Earnings | null | undefined
+
+  switch (request.action) {
+    case 'create': {
+      if (!afterE) throw new Error('No earning payload for creation')
+      const { id: _id, ...payload } = afterE
+      await addEarnings(payload)
+      return
+    }
+    case 'update': {
+      const targetId = afterE?.id || beforeE?.id
+      if (!targetId || !afterE) throw new Error('No earning payload for update')
+      const { id: _id, ...payload } = afterE
+      await updateEarnings(targetId, payload)
+      return
+    }
+    case 'delete': {
+      if (!beforeE?.id) throw new Error('No earning id for delete')
+      await deleteEarnings(beforeE.id)
+      return
+    }
+    default:
+      return
+  }
+}
+
+const applyReferralChange = async (request: ApprovalRequest) => {
+  const beforeR = request.before as Referral | null | undefined
+  const afterR = request.after as Referral | null | undefined
+
+  switch (request.action) {
+    case 'create': {
+      if (!afterR) throw new Error('No referral payload for creation')
+      const { id: _id, ...payload } = afterR
+      await addReferral(payload)
+      return
+    }
+    case 'update': {
+      const targetId = afterR?.id || beforeR?.id
+      if (!targetId || !afterR) throw new Error('No referral payload for update')
+      const { id: _id, ...payload } = afterR
+      await updateReferral(targetId, payload)
+      return
+    }
+    case 'delete': {
+      if (!beforeR?.id) throw new Error('No referral id for delete')
+      await deleteReferral(beforeR.id)
+      return
+    }
+    default:
+      return
+  }
+}
+
 export const addApprovalRequest = async (
   request: Omit<ApprovalRequest, 'id' | 'status' | 'createdAt' | 'updatedAt' | 'reviewedBy'>
 ) => {
@@ -390,16 +446,24 @@ export const approveApprovalRequest = async (id: string, adminId: string, adminC
 
   if (request.entity === 'slot') {
     await applySlotChange(request)
-  } else {
+  } else if (request.entity === 'status') {
     await applyStatusChange(request)
+  } else if (request.entity === 'earning') {
+    await applyEarningChange(request)
+  } else if (request.entity === 'referral') {
+    await applyReferralChange(request)
   }
 
-  await updateDoc(ref, {
+  const approvePayload: Record<string, any> = {
     status: 'approved',
-    adminComment: adminComment ?? request.adminComment,
     reviewedBy: adminId,
     updatedAt: new Date().toISOString(),
-  })
+  }
+  const finalComment = adminComment ?? request.adminComment
+  if (finalComment !== undefined) {
+    approvePayload.adminComment = finalComment
+  }
+  await updateDoc(ref, approvePayload)
 }
 
 export const rejectApprovalRequest = async (id: string, adminId: string, adminComment: string) => {

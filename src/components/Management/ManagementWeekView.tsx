@@ -151,6 +151,14 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
       return
     }
 
+    if (isAdmin) {
+      if (confirm('Удалить слот?')) {
+        await deleteWorkSlot(slot.id)
+        loadData()
+      }
+      return
+    }
+
     if (confirm('Отправить на согласование удаление слота?')) {
       await addApprovalRequest({
         entity: 'slot',
@@ -178,23 +186,27 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
       
       // Если удаляется первый день диапазона, обновляем дату начала
       if (dateStr === statusStart) {
-          if (confirm('Отправить на согласование удаление первого дня диапазона?')) {
+          if (isAdmin ? confirm('Удалить первый день диапазона?') : confirm('Отправить на согласование удаление первого дня диапазона?')) {
           const newStart = new Date(parseISO(statusStart))
           newStart.setDate(newStart.getDate() + 1)
           const newStartStr = formatDate(newStart, 'yyyy-MM-dd')
           
-            await addApprovalRequest({
-              entity: 'status',
-              action: 'update',
-              authorId: user?.id || status.userId,
-              targetUserId: status.userId,
-              before: status,
-              after: {
-                ...status,
-                date: newStartStr
-              },
-              comment: status.comment,
-          })
+            if (isAdmin) {
+              await updateDayStatus(status.id, { ...status, date: newStartStr })
+            } else {
+              await addApprovalRequest({
+                entity: 'status',
+                action: 'update',
+                authorId: user?.id || status.userId,
+                targetUserId: status.userId,
+                before: status,
+                after: {
+                  ...status,
+                  date: newStartStr
+                },
+                comment: status.comment,
+              })
+            }
           loadData()
         }
         return
@@ -202,23 +214,27 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
       
       // Если удаляется последний день диапазона, обновляем дату окончания
       if (dateStr === statusEnd) {
-          if (confirm('Отправить на согласование удаление последнего дня диапазона?')) {
+          if (isAdmin ? confirm('Удалить последний день диапазона?') : confirm('Отправить на согласование удаление последнего дня диапазона?')) {
           const newEnd = new Date(parseISO(statusEnd))
           newEnd.setDate(newEnd.getDate() - 1)
           const newEndStr = formatDate(newEnd, 'yyyy-MM-dd')
           
-            await addApprovalRequest({
-              entity: 'status',
-              action: 'update',
-              authorId: user?.id || status.userId,
-              targetUserId: status.userId,
-              before: status,
-              after: {
-                ...status,
-                endDate: newEndStr
-              },
-              comment: status.comment,
-          })
+            if (isAdmin) {
+              await updateDayStatus(status.id, { ...status, endDate: newEndStr })
+            } else {
+              await addApprovalRequest({
+                entity: 'status',
+                action: 'update',
+                authorId: user?.id || status.userId,
+                targetUserId: status.userId,
+                before: status,
+                after: {
+                  ...status,
+                  endDate: newEndStr
+                },
+                comment: status.comment,
+              })
+            }
           loadData()
         }
         return
@@ -226,46 +242,60 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
       
       // Если удаляется день из середины диапазона, разбиваем на два статуса
       if (dateStr > statusStart && dateStr < statusEnd) {
-          if (confirm('Отправить на согласование удаление этого дня? Диапазон будет разбит на две части.')) {
+          if (isAdmin ? confirm('Удалить этот день? Диапазон будет разбит на две части.') : confirm('Отправить на согласование удаление этого дня? Диапазон будет разбит на две части.')) {
           // Создаем первый статус (до удаляемого дня)
             const firstEnd = new Date(parseISO(dateStr))
           firstEnd.setDate(firstEnd.getDate() - 1)
           const firstEndStr = formatDate(firstEnd, 'yyyy-MM-dd')
           
-            await addApprovalRequest({
-              entity: 'status',
-              action: 'update',
-              authorId: user?.id || status.userId,
-              targetUserId: status.userId,
-              before: status,
-              after: {
-                ...status,
-                endDate: firstEndStr
-              },
-              comment: status.comment,
-          })
-          
-          // Создаем второй статус (после удаляемого дня)
-            const secondStart = new Date(parseISO(dateStr))
-          secondStart.setDate(secondStart.getDate() + 1)
-          const secondStartStr = formatDate(secondStart, 'yyyy-MM-dd')
-          
-            await addApprovalRequest({
-              entity: 'status',
-              action: 'create',
-              authorId: user?.id || status.userId,
-              targetUserId: status.userId,
-              before: null,
-              after: {
-                id: '',
+            if (isAdmin) {
+              await updateDayStatus(status.id, { ...status, endDate: firstEndStr })
+              const secondStart = new Date(parseISO(dateStr))
+              secondStart.setDate(secondStart.getDate() + 1)
+              const secondStartStr = formatDate(secondStart, 'yyyy-MM-dd')
+              await addDayStatus({
                 userId: status.userId,
                 date: secondStartStr,
                 endDate: statusEnd,
                 type: status.type,
                 comment: status.comment
-              },
-              comment: status.comment,
-          })
+              })
+            } else {
+              // Создаем заявки на оба изменения
+              await addApprovalRequest({
+                entity: 'status',
+                action: 'update',
+                authorId: user?.id || status.userId,
+                targetUserId: status.userId,
+                before: status,
+                after: {
+                  ...status,
+                  endDate: firstEndStr
+                },
+                comment: status.comment,
+              })
+              
+              const secondStart = new Date(parseISO(dateStr))
+              secondStart.setDate(secondStart.getDate() + 1)
+              const secondStartStr = formatDate(secondStart, 'yyyy-MM-dd')
+              
+              await addApprovalRequest({
+                entity: 'status',
+                action: 'create',
+                authorId: user?.id || status.userId,
+                targetUserId: status.userId,
+                before: null,
+                after: {
+                  id: '',
+                  userId: status.userId,
+                  date: secondStartStr,
+                  endDate: statusEnd,
+                  type: status.type,
+                  comment: status.comment
+                },
+                comment: status.comment,
+              })
+            }
           
           loadData()
         }
@@ -274,7 +304,12 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
     }
 
     // Если статус без endDate или удаляется весь диапазон, удаляем полностью
-    if (confirm('Отправить на согласование удаление статуса?')) {
+    if (isAdmin) {
+      if (confirm('Удалить статус?')) {
+        await deleteDayStatus(status.id)
+        loadData()
+      }
+    } else if (confirm('Отправить на согласование удаление статуса?')) {
       await addApprovalRequest({
         entity: 'status',
         action: 'delete',

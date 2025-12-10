@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useAuthStore } from '@/store/authStore'
+import { useAdminStore } from '@/store/adminStore'
 import { useThemeStore } from '@/store/themeStore'
-import { addReferral, updateReferral, deleteReferral } from '@/services/firestoreService'
+import { addReferral, updateReferral, deleteReferral, addApprovalRequest } from '@/services/firestoreService'
 import { Referral } from '@/types'
 import { X, RefreshCcw, Trash2 } from 'lucide-react'
 
@@ -15,6 +16,7 @@ const generateReferralId = () => `REF-${Math.random().toString(36).slice(2, 8).t
 
 export const ReferralForm = ({ referral, onClose, onSave }: ReferralFormProps) => {
   const { user } = useAuthStore()
+  const { isAdmin } = useAdminStore()
   const { theme } = useThemeStore()
   const [name, setName] = useState('')
   const [age, setAge] = useState('')
@@ -83,9 +85,31 @@ export const ReferralForm = ({ referral, onClose, onSave }: ReferralFormProps) =
 
     try {
       if (referral) {
-        await updateReferral(referral.id, payload)
+        if (isAdmin) {
+          await updateReferral(referral.id, payload)
+        } else {
+          await addApprovalRequest({
+            entity: 'referral',
+            action: 'update',
+            authorId: user?.id || referral.ownerId,
+            targetUserId: referral.ownerId,
+            before: referral,
+            after: { id: referral.id, ...payload },
+          })
+        }
       } else {
-        await addReferral(payload)
+        if (isAdmin) {
+          await addReferral(payload)
+        } else {
+          await addApprovalRequest({
+            entity: 'referral',
+            action: 'create',
+            authorId: user!.id,
+            targetUserId: user!.id,
+            before: null,
+            after: { id: '', ...payload },
+          })
+        }
       }
       onSave()
     } catch (err: any) {
@@ -103,7 +127,18 @@ export const ReferralForm = ({ referral, onClose, onSave }: ReferralFormProps) =
 
     setDeleteLoading(true)
     try {
-      await deleteReferral(referral.id)
+      if (isAdmin) {
+        await deleteReferral(referral.id)
+      } else {
+        await addApprovalRequest({
+          entity: 'referral',
+          action: 'delete',
+          authorId: user?.id || referral.ownerId,
+          targetUserId: referral.ownerId,
+          before: referral,
+          after: null,
+        })
+      }
       onSave()
     } catch (err: any) {
       console.error('Error deleting referral:', err)
