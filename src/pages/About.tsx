@@ -2,6 +2,7 @@
 import { Layout } from '@/components/Layout'
 import { useThemeStore } from '@/store/themeStore'
 import { Info, ArrowUpRight, BookOpen, Mail, Sparkles } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import valuesIllustration from '../../assets/image-779ddbd9-e512-4bda-8983-af1ab9237b7c.png'
 
 export const About = () => {
@@ -155,14 +156,10 @@ export const About = () => {
                 Принципы, которые держат нас на вершине
               </h2>
               <div className="flex gap-2">
-                <a
-                  href="#rules"
-                  className="pill"
-                  data-active="false"
-                >
-                  Правила
+                <Link to="/rules" className="pill" data-active="false">
+                  Ознакомиться с правилами
                   <ArrowUpRight className="w-4 h-4" />
-                </a>
+                </Link>
                 <a
                   href="#contacts"
                   className="pill"
@@ -251,16 +248,14 @@ export const About = () => {
                   </span>
                 ))}
               </div>
-              <a
-                href="https://telegra.ph/Reglament-provedeniya-torgovyh-sessij-pravila-soobshchestva-ApeVault-dlya-trejderov-i-kollerov-11-20"
-                target="_blank"
-                rel="noopener noreferrer"
+              <Link
+                to="/rules"
                 className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 text-white font-semibold shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all"
               >
                 <BookOpen className="w-5 h-5" />
-                <span>Читать регламент</span>
+                <span>Ознакомиться с правилами</span>
                 <ArrowUpRight className="w-4 h-4" />
-              </a>
+              </Link>
             </div>
             <div
               className={`rounded-2xl border p-4 sm:p-5 shadow-lg ${

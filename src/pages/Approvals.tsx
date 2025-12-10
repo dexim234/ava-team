@@ -26,3 +26,4 @@ export const Approvals = () => {
     </Layout>
   )
 }
+

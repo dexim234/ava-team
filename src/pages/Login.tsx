@@ -1,6 +1,6 @@
 // Login page component
 import { useState, useEffect } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useNavigate, useSearchParams, Link } from 'react-router-dom'
 import { useAuthStore } from '@/store/authStore'
 import { useThemeStore } from '@/store/themeStore'
 import { useAdminStore } from '@/store/adminStore'
@@ -197,8 +197,15 @@ export const Login = () => {
                 <ul className={`text-xs leading-relaxed space-y-1 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
                   <li>• Пользуемся данными из бота: логин + пароль.</li>
                   <li>• Админ пароль: только для доверенных (режим администратора).</li>
-                  <li>• Правила: <a className="text-[#4E6E49] font-semibold" href="https://telegra.ph/Reglament-provedeniya-torgovyh-sessij-pravila-soobshchestva-ApeVault-dlya-trejderov-i-kollerov-11-20" target="_blank" rel="noreferrer">читать</a>.</li>
+                  <li>• Правила: открыты на странице «Правила» на сайте.</li>
                 </ul>
+                <Link
+                  to="/rules"
+                  className="inline-flex items-center justify-center gap-2 px-4 py-2 mt-2 text-xs font-semibold rounded-lg bg-gradient-to-r from-[#4E6E49] to-emerald-600 text-white shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all"
+                >
+                  <Shield className="w-3 h-3" />
+                  Ознакомиться с правилами
+                </Link>
                 <div className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
                   Администратор: <span className="font-semibold">@artyommedoed</span>
                 </div>

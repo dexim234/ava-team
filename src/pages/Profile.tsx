@@ -41,8 +41,9 @@ import {
   StickyNote,
   Edit3,
   Trash2,
+  BookOpen,
 } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { TEAM_MEMBERS, Note } from '@/types'
 
 export const Profile = () => {
@@ -482,6 +483,13 @@ export const Profile = () => {
                   <span>{rating.rating.toFixed(1)}%</span>
                 </div>
               )}
+              <Link
+                to="/rules"
+                className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-gradient-to-r from-[#4E6E49] to-emerald-600 text-white text-sm font-semibold shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all"
+              >
+                <BookOpen className="w-4 h-4" />
+                Ознакомиться с правилами
+              </Link>
             </div>
           </div>
         </div>
