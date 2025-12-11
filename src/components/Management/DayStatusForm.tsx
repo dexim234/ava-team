@@ -10,7 +10,7 @@ import { DayStatus, TEAM_MEMBERS } from '@/types'
 import { useScrollLock } from '@/hooks/useScrollLock'
 
 interface DayStatusFormProps {
-  type: 'dayoff' | 'sick' | 'vacation'
+  type?: 'dayoff' | 'sick' | 'vacation'
   status?: DayStatus | null
   onClose: () => void
   onSave: () => void
@@ -29,6 +29,7 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
   const [endDate, setEndDate] = useState(status?.endDate || initialDate)
   const [isMultiDay, setIsMultiDay] = useState(!!status?.endDate)
   const [comment, setComment] = useState(status?.comment || '')
+  const [selectedType, setSelectedType] = useState<'dayoff' | 'sick' | 'vacation' | null>(type || status?.type || null)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [dateMode, setDateMode] = useState<'single' | 'range' | 'multiple'>('single')
@@ -37,7 +38,14 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
   const [multiDateInput, setMultiDateInput] = useState(initialDate)
   const [multipleDates, setMultipleDates] = useState<string[]>([])
 
+  // Повторы
+  const [repeatWeek, setRepeatWeek] = useState(false)
+  const [weekDaySelection, setWeekDaySelection] = useState<number[]>([])
+  const [repeatMonth, setRepeatMonth] = useState(false)
+  const [repeatDays, setRepeatDays] = useState<number[]>([])
+
   const adminBulkMode = isAdmin && !status
+  const weekDays = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']
 
   useScrollLock()
 
@@ -52,6 +60,27 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
       setIsMultiDay(false)
     }
   }, [adminBulkMode, dateMode])
+
+  useEffect(() => {
+    if (!repeatWeek) setWeekDaySelection([])
+  }, [repeatWeek])
+
+  useEffect(() => {
+    if (repeatMonth && date) {
+      const d = new Date(date)
+      const dow = d.getDay() === 0 ? 6 : d.getDay() - 1
+      setRepeatDays([dow])
+    }
+  }, [repeatMonth, date])
+
+  useEffect(() => {
+    if (dateMode !== 'single') {
+      setRepeatWeek(false)
+      setWeekDaySelection([])
+      setRepeatMonth(false)
+      setRepeatDays([])
+    }
+  }, [dateMode])
 
   const toggleUserSelection = (userId: string) => {
     setSelectedUserIds((prev) => {
@@ -97,12 +126,11 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
 
   const getMemberName = (userId: string) => nicknameMap[userId] || TEAM_MEMBERS.find((member) => member.id === userId)?.name || userId
 
-  const getDatePayloads = (): { date: string; endDate?: string }[] => {
-    // Админ — без ограничений, используем как есть выбранный режим
+  const getDatePayloads = (currentType: 'dayoff' | 'sick' | 'vacation'): { date: string; endDate?: string }[] => {
     if (adminBulkMode) {
       if (dateMode === 'range') {
         if (rangeStart && rangeEnd) {
-          if (type === 'dayoff') {
+          if (currentType === 'dayoff') {
             return getDatesInRange(rangeStart, rangeEnd).map((d) => ({ date: d }))
           }
           return [{ date: rangeStart, endDate: rangeEnd }]
@@ -110,14 +138,44 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
         return []
       }
       if (dateMode === 'multiple') {
-        if (type === 'dayoff') {
+        if (currentType === 'dayoff') {
           return multipleDates.map((d) => ({ date: d }))
         }
         return multipleDates.map((d) => ({ date: d, endDate: d }))
       }
     }
 
-    if (type === 'dayoff') {
+    if (dateMode === 'single') {
+      if (repeatMonth && repeatDays.length > 0) {
+        const dates: string[] = []
+        const startDate = new Date(date)
+        const endDateMonth = new Date(startDate.getFullYear(), startDate.getMonth() + 1, 0)
+        const dowTarget = repeatDays[0]
+        const cur = new Date(startDate)
+        while (cur <= endDateMonth) {
+          const dow = cur.getDay() === 0 ? 6 : cur.getDay() - 1
+          if (dow === dowTarget) dates.push(formatDate(cur, 'yyyy-MM-dd'))
+          cur.setDate(cur.getDate() + 1)
+        }
+        return dates.map((d) => (currentType === 'dayoff' ? { date: d } : { date: d, endDate: d }))
+      }
+
+      if (repeatWeek && weekDaySelection.length > 0) {
+        const dates: string[] = []
+        const startOfWeek = new Date(date)
+        const currentDow = startOfWeek.getDay() === 0 ? 6 : startOfWeek.getDay() - 1
+        startOfWeek.setDate(startOfWeek.getDate() - currentDow)
+        for (let i = 0; i < 7; i++) {
+          const d = new Date(startOfWeek)
+          d.setDate(startOfWeek.getDate() + i)
+          const dow = d.getDay() === 0 ? 6 : d.getDay() - 1
+          if (weekDaySelection.includes(dow)) dates.push(formatDate(d, 'yyyy-MM-dd'))
+        }
+        return dates.map((d) => (currentType === 'dayoff' ? { date: d } : { date: d, endDate: d }))
+      }
+    }
+
+    if (currentType === 'dayoff') {
       if (dateMode === 'range') {
         return getDatesInRange(rangeStart, rangeEnd).map((d) => ({ date: d }))
       }
@@ -126,14 +184,21 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
       }
     }
 
+    if (dateMode === 'range' && rangeStart && rangeEnd) {
+      return [{ date: rangeStart, endDate: rangeEnd }]
+    }
+    if (dateMode === 'multiple') {
+      return multipleDates.map((d) => ({ date: d, endDate: d }))
+    }
+
     const payload: { date: string; endDate?: string } = { date }
-    if (type !== 'dayoff' && (isMultiDay || status?.endDate)) {
+    if (currentType !== 'dayoff' && (isMultiDay || status?.endDate)) {
       payload.endDate = endDate
     }
     return [payload]
   }
 
-  const validateStatus = async (targetUserId: string, startDate: string, endDateValue?: string): Promise<string | null> => {
+  const validateStatus = async (targetUserId: string, startDate: string, endDateValue: string | undefined, currentType: 'dayoff' | 'sick' | 'vacation'): Promise<string | null> => {
     // Админ может ставить любые даты без ограничений
     if (isAdmin) return null
 
@@ -145,14 +210,14 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
     const selectedEndDate = new Date(endDateValue || startDate)
 
     // Check if date is in the past for dayoff
-    if (type === 'dayoff') {
+    if (currentType === 'dayoff') {
       if (isSameDate(selectedDate, today)) {
         return 'Нельзя установить выходной на сегодня. Выберите смену или возьмите больничный.'
       }
     }
 
     // Check sick leave restrictions
-    if (type === 'sick') {
+    if (currentType === 'sick') {
       const todayStart = new Date()
       todayStart.setHours(0, 0, 0, 0)
       const maxDate = new Date(todayStart)
@@ -188,7 +253,7 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
       }
     }
 
-    if (type === 'vacation') {
+    if (currentType === 'vacation') {
       const daysDiff = Math.ceil(
         (selectedEndDate.getTime() - selectedDate.getTime()) / (1000 * 60 * 60 * 24)
       ) + 1
@@ -209,7 +274,7 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
       }
     }
 
-    if (type === 'dayoff') {
+    if (currentType === 'dayoff') {
       const weekStart = new Date(selectedDate)
       weekStart.setDate(weekStart.getDate() - weekStart.getDay() + 1)
       const weekEnd = new Date(weekStart)
@@ -248,10 +313,14 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
 
   const handleSave = async () => {
     console.log('handleSave called (DayStatusForm)')
-    // Allow admin to save statuses even without user
     if (!isAdmin && !user) {
       console.log('No user found')
       setError('Пользователь не найден')
+      return
+    }
+
+    if (!selectedType) {
+      setError('Выберите тип отсутствия')
       return
     }
 
@@ -278,7 +347,7 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
       }
     }
 
-    const datePayloads = getDatePayloads()
+    const datePayloads = getDatePayloads(selectedType)
     if (datePayloads.length === 0) {
       setError('Выберите даты')
       return
@@ -286,7 +355,7 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
 
     const saveStatusFor = async (targetUserId: string, payload: { date: string; endDate?: string }) => {
       if (!isAdmin) {
-        const validationError = await validateStatus(targetUserId, payload.date, payload.endDate)
+        const validationError = await validateStatus(targetUserId, payload.date, payload.endDate, selectedType)
         if (validationError) {
           throw new Error(`[${getMemberName(targetUserId)} • ${formatDate(payload.date, 'dd.MM.yyyy')}] ${validationError}`)
         }
@@ -296,7 +365,7 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
         id: status?.id || '',
         userId: targetUserId,
         date: payload.date,
-        type,
+        type: selectedType,
         ...(payload.endDate && { endDate: payload.endDate }),
         ...(comment && { comment }),
       }
@@ -328,7 +397,7 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
     try {
       if (status) {
         const payload: { date: string; endDate?: string } = { date }
-        if (type !== 'dayoff' && (isMultiDay || status.endDate)) {
+        if (selectedType !== 'dayoff' && (isMultiDay || status.endDate)) {
           payload.endDate = endDate
         }
         await saveStatusFor(status.userId, payload)
@@ -375,6 +444,7 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
   const selectedNames = selectedUserIds.map((id) => getMemberName(id)).join(', ')
 
   const steps = [
+    { label: 'Тип', detail: selectedType ? (selectedType === 'dayoff' ? 'Выходной' : selectedType === 'sick' ? 'Больничный' : 'Отпуск') : 'Не выбран', done: !!selectedType, anchor: '#type' },
     { label: 'Members', detail: selectedNames || 'Не выбрано', done: selectedUserIds.length > 0 || !!status, anchor: '#members' },
     { label: 'Даты', detail: previewDates.slice(0, 2).join(' · '), done: previewDates.length > 0, anchor: '#dates' },
     { label: 'Комментарий', detail: comment ? 'Заполнен' : 'Необязателен', done: !!comment, anchor: '#notes' },
@@ -383,17 +453,17 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
 
   const dateModeOptions = [
     { value: 'single', label: 'Один день', hint: 'Быстрая отметка', icon: '•' },
-    { value: 'range', label: type === 'dayoff' ? 'Диапазон (каждый день)' : 'Диапазон дат', hint: 'Поток дней', icon: '⎯⎯' },
+    { value: 'range', label: selectedType === 'dayoff' ? 'Диапазон (каждый день)' : 'Диапазон дат', hint: 'Поток дней', icon: '⎯⎯' },
     { value: 'multiple', label: 'Конкретные даты', hint: 'Точечный выбор', icon: '◎' },
   ]
 
-  const nounByType: Record<DayStatusFormProps['type'], string> = {
+  const nounByType: Record<'dayoff' | 'sick' | 'vacation', string> = {
     dayoff: 'выходной',
     sick: 'больничный',
     vacation: 'отпуск',
   }
 
-  const headingTitle = `${status ? 'Редактировать' : 'Добавить'} ${nounByType[type]}`
+  const headingTitle = selectedType ? `${status ? 'Редактировать' : 'Добавить'} ${nounByType[selectedType]}` : 'Добавить отсутствие'
 
   return (
     <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-xl flex items-start sm:items-center justify-center z-[70] p-4 sm:p-6 touch-manipulation overflow-y-auto overscroll-contain modal-scroll">
@@ -521,6 +591,38 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
             </aside>
 
             <div className="space-y-5 overflow-y-auto overscroll-contain pr-1 pb-6 flex-1 min-h-0">
+              {/* Type selection */}
+              {!status && !type && (
+                <div id="type" className="scroll-mt-20 space-y-2">
+                  <p className={`text-xs sm:text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Тип отсутствия
+                  </p>
+                  <div className="grid sm:grid-cols-3 gap-2">
+                    {[
+                      { key: 'dayoff', label: 'Выходной', icon: '🌙' },
+                      { key: 'sick', label: 'Больничный', icon: '🏥' },
+                      { key: 'vacation', label: 'Отпуск', icon: '✈️' },
+                    ].map((item) => (
+                      <button
+                        key={item.key}
+                        type="button"
+                        onClick={() => setSelectedType(item.key as typeof selectedType)}
+                        className={`px-4 py-3 rounded-xl border text-sm font-semibold transition ${
+                          selectedType === item.key
+                            ? 'border-[#4E6E49] bg-[#4E6E49]/10 text-[#4E6E49] shadow-sm'
+                            : theme === 'dark'
+                            ? 'border-white/10 bg-white/5 text-gray-200 hover:border-white/30'
+                            : 'border-slate-200 bg-white text-gray-800 hover:border-slate-300'
+                        }`}
+                      >
+                        <span className="text-lg">{item.icon}</span>
+                        <span className="block mt-1">{item.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* User selection for admin when adding new status */}
             {adminBulkMode && (
               <div id="members" className="scroll-mt-20">
@@ -820,8 +922,92 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
               </div>
             )}
 
+            {/* Повторы на неделю и месяц */}
+            {dateMode === 'single' && !adminBulkMode && (
+              <div className="space-y-3">
+                <div className="rounded-xl border border-gray-200 dark:border-gray-800 p-3 sm:p-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className={`text-sm sm:text-base font-semibold ${headingColor}`}>Повтор на неделю</p>
+                      <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Выберите дни текущей недели</p>
+                    </div>
+                    <label className="inline-flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={repeatWeek}
+                        onChange={(e) => setRepeatWeek(e.target.checked)}
+                        className="w-4 h-4"
+                      />
+                      <span className="text-sm">Активировать</span>
+                    </label>
+                  </div>
+                  {repeatWeek && (
+                    <div className="flex flex-wrap gap-2">
+                      {weekDays.map((day, idx) => {
+                        const active = weekDaySelection.includes(idx)
+                        return (
+                          <button
+                            key={day}
+                            type="button"
+                            onClick={() =>
+                              setWeekDaySelection((prev) => (active ? prev.filter((d) => d !== idx) : [...prev, idx]))
+                            }
+                            className={`px-3 py-1 rounded-lg border text-sm ${
+                              active
+                                ? 'border-[#4E6E49] bg-[#4E6E49]/10 text-[#4E6E49]'
+                                : theme === 'dark'
+                                ? 'border-white/10 bg-white/5 text-gray-200'
+                                : 'border-gray-200 bg-white text-gray-800'
+                            }`}
+                          >
+                            {day}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  )}
+                </div>
+
+                <div className="rounded-xl border border-gray-200 dark:border-gray-800 p-3 sm:p-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className={`text-sm sm:text-base font-semibold ${headingColor}`}>Повтор по месяцу</p>
+                      <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>На тот же день недели до конца месяца</p>
+                    </div>
+                    <label className="inline-flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={repeatMonth}
+                        onChange={(e) => setRepeatMonth(e.target.checked)}
+                        className="w-4 h-4"
+                      />
+                      <span className="text-sm">Активировать</span>
+                    </label>
+                  </div>
+                  {repeatMonth && (
+                    <div className="flex flex-wrap gap-2">
+                      {weekDays.map((day, idx) => (
+                        <span
+                          key={day}
+                          className={`px-3 py-1 rounded-lg border text-sm ${
+                            repeatDays.includes(idx)
+                              ? 'border-[#4E6E49] bg-[#4E6E49]/10 text-[#4E6E49]'
+                              : theme === 'dark'
+                              ? 'border-white/10 bg-white/5 text-gray-200'
+                              : 'border-gray-200 bg-white text-gray-800'
+                          }`}
+                        >
+                          {day}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Multi-day toggle */}
-            {(type === 'sick' || type === 'vacation') && (!adminBulkMode || dateMode === 'single') && (
+            {(selectedType === 'sick' || selectedType === 'vacation') && (!adminBulkMode || dateMode === 'single') && (
               <label className="flex items-center gap-2">
                 <input
                   type="checkbox"
@@ -882,10 +1068,10 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
             <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-2">
               <button
                 onClick={handleSave}
-                disabled={loading}
-                className={`flex-1 px-4 py-2.5 sm:py-2 ${typeColors[type]} hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg sm:rounded-xl transition-colors text-sm sm:text-base font-medium touch-manipulation active:scale-95 disabled:active:scale-100`}
+                disabled={loading || !selectedType}
+                className={`flex-1 px-4 py-2.5 sm:py-2 ${selectedType ? typeColors[selectedType] : 'bg-gray-400'} hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg sm:rounded-xl transition-colors text-sm sm:text-base font-medium touch-manipulation active:scale-95 disabled:active:scale-100`}
               >
-                {loading ? 'Отправка...' : 'Отправить на согласование'}
+                {loading ? 'Отправка...' : isAdmin ? 'Сохранить' : 'Отправить на согласование'}
               </button>
               <button
                 onClick={onClose}

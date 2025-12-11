@@ -321,6 +321,14 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
     }
   }
 
+  const handleWeekDayToggle = (dayIndex: number) => {
+    if (weekDaySelection.includes(dayIndex)) {
+      setWeekDaySelection(weekDaySelection.filter((d) => d !== dayIndex))
+    } else {
+      setWeekDaySelection([...weekDaySelection, dayIndex])
+    }
+  }
+
   const toggleUserSelection = (userId: string) => {
     setSelectedUserIds((prev) => {
       if (prev.includes(userId)) {
@@ -553,7 +561,15 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
         return
       }
 
-      if (repeatMonth && repeatDays.length > 0) {
+      if (repeatWeek && weekDaySelection.length > 0) {
+        const dates = getTargetDates()
+        for (const dateStr of dates) {
+          if (isPastDate(dateStr)) continue
+          for (const targetUserId of targetUsers) {
+            await createSlotForUserDate(targetUserId, dateStr)
+          }
+        }
+      } else if (repeatMonth && repeatDays.length > 0) {
         const dateObj = new Date(date)
         const month = dateObj.getMonth()
         const year = dateObj.getFullYear()
@@ -1069,6 +1085,47 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
               <label className="flex items-center gap-2">
                 <input
                   type="checkbox"
+                  checked={repeatWeek}
+                  onChange={(e) => {
+                    setRepeatWeek(e.target.checked)
+                    setError('')
+                  }}
+                  className="w-4 h-4"
+                />
+                <span className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                  Добавить слоты на актуальную неделю по дням
+                </span>
+              </label>
+
+              {repeatWeek && (
+                <div className="ml-6">
+                  <p className={`text-sm mb-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                    Выберите дни недели:
+                  </p>
+                  <div className="flex gap-2 flex-wrap">
+                    {weekDays.map((day, index) => (
+                      <button
+                        key={index}
+                        type="button"
+                        onClick={() => handleWeekDayToggle(index)}
+                        className={`px-3 py-1 rounded-lg transition-colors ${
+                          weekDaySelection.includes(index)
+                            ? 'bg-[#4E6E49] text-white'
+                            : theme === 'dark'
+                            ? 'bg-gray-700 text-gray-300'
+                            : 'bg-gray-200 text-gray-700'
+                        }`}
+                      >
+                        {day}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
                   checked={repeatMonth}
                   onChange={(e) => {
                     setRepeatMonth(e.target.checked)
@@ -1090,6 +1147,7 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
                     {weekDays.map((day, index) => (
                       <button
                         key={index}
+                        type="button"
                         onClick={() => handleDayToggle(index)}
                         className={`px-3 py-1 rounded-lg transition-colors ${
                           repeatDays.includes(index)

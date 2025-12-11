@@ -270,18 +270,11 @@ export const Management = () => {
     setShowSlotForm(true)
   }
 
-  const handleAddStatus = (type: 'dayoff' | 'sick' | 'vacation') => {
-    setStatusType(type)
+  const handleAddAbsence = () => {
+    setStatusType(null)
     setEditingStatus(null)
     setShowStatusForm(true)
-  }
-
-  const handleAddAbsence = () => {
-    const choice = prompt('Тип отсутствия: dayoff (выходной), sick (больничный), vacation (отпуск)', 'dayoff')
-    if (choice === 'dayoff' || choice === 'sick' || choice === 'vacation') {
-      handleAddStatus(choice)
-      setActionType('absence')
-    }
+    setActionType('absence')
   }
 
   const handleEditStatus = (status: any) => {
@@ -664,9 +657,9 @@ export const Management = () => {
           />
         )}
 
-        {showStatusForm && statusType && (
+        {showStatusForm && (
           <DayStatusForm
-            type={statusType}
+            type={statusType || undefined}
             status={editingStatus}
             onClose={handleFormClose}
             onSave={handleFormClose}
