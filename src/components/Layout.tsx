@@ -60,10 +60,18 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
         }
         const approvals = await getApprovalRequests()
         const cutoff = Date.now() - 6 * 60 * 60 * 1000 // 6 hours
+        
+        // Получаем просмотренные уведомления из localStorage
+        const viewedKey = `viewedNotifications_${user?.id || 'admin'}`
+        const viewedIds = JSON.parse(localStorage.getItem(viewedKey) || '[]')
+        
         const filtered = approvals.filter((a) => {
           if (!isAdmin && user && a.authorId !== user.id && a.targetUserId !== user.id) return false
           const ts = Date.parse(a.updatedAt || a.createdAt)
-          return !Number.isNaN(ts) && ts >= cutoff
+          if (Number.isNaN(ts) || ts < cutoff) return false
+          // Исключаем уже просмотренные
+          if (viewedIds.includes(a.id)) return false
+          return true
         })
         setNotifications(
           filtered.map((a) => ({
@@ -82,6 +90,19 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
     const id = setInterval(loadNotifications, 2 * 60 * 1000)
     return () => clearInterval(id)
   }, [user, isAdmin])
+
+  const handleCloseNotifications = () => {
+    // При закрытии сохраняем ID всех текущих уведомлений как просмотренные
+    if (notifications.length > 0) {
+      const viewedKey = `viewedNotifications_${user?.id || 'admin'}`
+      const existing = JSON.parse(localStorage.getItem(viewedKey) || '[]')
+      const newIds = notifications.map(n => n.id)
+      const updated = [...new Set([...existing, ...newIds])]
+      localStorage.setItem(viewedKey, JSON.stringify(updated))
+      setNotifications([])
+    }
+    setShowNotifications(false)
+  }
 
   return (
     <div className="app-shell">
@@ -210,7 +231,13 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
             <div className="flex items-center gap-3 ml-auto relative">
               <div className="relative">
                 <button
-                  onClick={() => setShowNotifications((prev) => !prev)}
+                  onClick={() => {
+                    if (showNotifications) {
+                      handleCloseNotifications()
+                    } else {
+                      setShowNotifications(true)
+                    }
+                  }}
                   className="nav-chip px-3 py-2"
                   data-active={showNotifications}
                   aria-label="Notifications"
@@ -224,7 +251,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                 </button>
                 {showNotifications && (
                   <>
-                    <div className="fixed inset-0 z-40" onClick={() => setShowNotifications(false)} />
+                    <div className="fixed inset-0 z-40" onClick={handleCloseNotifications} />
                     <div className={`absolute right-0 mt-2 w-80 max-w-[88vw] glass-panel rounded-2xl border border-white/60 dark:border-white/10 shadow-2xl z-50 overflow-hidden`}>
                       <div className="p-4 space-y-2 max-h-[360px] overflow-y-auto">
                         {notifications.length === 0 ? (

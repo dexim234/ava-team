@@ -5,7 +5,7 @@ import { useThemeStore } from '@/store/themeStore'
 import { useAdminStore } from '@/store/adminStore'
 import { addApprovalRequest, getWorkSlots, addWorkSlot, updateWorkSlot } from '@/services/firestoreService'
 import { calculateHours, timeOverlaps, formatDate, getDatesInRange, normalizeDatesList, parseTime } from '@/utils/dateUtils'
-import { X, Plus, Trash2, Edit } from 'lucide-react'
+import { X, Plus, Trash2, Edit, CalendarDays, Calendar } from 'lucide-react'
 import { WorkSlot, TimeSlot, TEAM_MEMBERS } from '@/types'
 import { useScrollLock } from '@/hooks/useScrollLock'
 
@@ -1081,88 +1081,99 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
 
             {/* Repeat options */}
             {(!adminBulkMode || dateMode === 'single') && (
-            <div className="space-y-3">
-              <label className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={repeatWeek}
-                  onChange={(e) => {
-                    setRepeatWeek(e.target.checked)
+            <div>
+              <p className={`text-xs sm:text-sm font-medium mb-3 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                Повторы
+              </p>
+              <div className="grid sm:grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setRepeatWeek(!repeatWeek)
                     setError('')
                   }}
-                  className="w-4 h-4"
-                />
-                <span className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                  Добавить слоты на актуальную неделю по дням
-                </span>
-              </label>
-
-              {repeatWeek && (
-                <div className="ml-6">
-                  <p className={`text-sm mb-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                    Выберите дни недели:
-                  </p>
-                  <div className="flex gap-2 flex-wrap">
-                    {weekDays.map((day, index) => (
-                      <button
-                        key={index}
-                        type="button"
-                        onClick={() => handleWeekDayToggle(index)}
-                        className={`px-3 py-1 rounded-lg transition-colors ${
-                          weekDaySelection.includes(index)
-                            ? 'bg-[#4E6E49] text-white'
-                            : theme === 'dark'
-                            ? 'bg-gray-700 text-gray-300'
-                            : 'bg-gray-200 text-gray-700'
-                        }`}
-                      >
-                        {day}
-                      </button>
-                    ))}
+                  className={`text-left rounded-xl border px-4 py-4 transition-all shadow-sm flex items-start gap-3 h-full ${
+                    repeatWeek
+                      ? 'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/30 dark:text-blue-100 dark:border-blue-800 ring-2 ring-blue-500/50 shadow-lg'
+                      : theme === 'dark'
+                      ? 'border-white/10 bg-white/5 text-gray-200 hover:border-white/30'
+                      : 'border-slate-200 bg-white text-gray-800 hover:border-slate-300'
+                  }`}
+                >
+                  <CalendarDays className="w-5 h-5 flex-shrink-0 mt-0.5" />
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-sm">Повтор на неделю</p>
+                    <p className="text-xs mt-1 opacity-80">Актуальная неделя по дням</p>
+                    {repeatWeek && (
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {weekDays.map((day, index) => (
+                          <button
+                            key={index}
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleWeekDayToggle(index)
+                            }}
+                            className={`px-2 py-1 rounded-lg text-xs transition-colors ${
+                              weekDaySelection.includes(index)
+                                ? 'bg-blue-600 text-white'
+                                : theme === 'dark'
+                                ? 'bg-gray-700 text-gray-300'
+                                : 'bg-gray-200 text-gray-700'
+                            }`}
+                          >
+                            {day}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                </div>
-              )}
+                </button>
 
-              <label className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={repeatMonth}
-                  onChange={(e) => {
-                    setRepeatMonth(e.target.checked)
+                <button
+                  type="button"
+                  onClick={() => {
+                    setRepeatMonth(!repeatMonth)
                     setError('')
                   }}
-                  className="w-4 h-4"
-                />
-                <span className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                  Добавить слоты на месяц вперед по дням
-                </span>
-              </label>
-
-              {repeatMonth && (
-                <div className="ml-6">
-                  <p className={`text-sm mb-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                    Выберите день недели:
-                  </p>
-                  <div className="flex gap-2 flex-wrap">
-                    {weekDays.map((day, index) => (
-                      <button
-                        key={index}
-                        type="button"
-                        onClick={() => handleDayToggle(index)}
-                        className={`px-3 py-1 rounded-lg transition-colors ${
-                          repeatDays.includes(index)
-                            ? 'bg-[#4E6E49] text-white'
-                            : theme === 'dark'
-                            ? 'bg-gray-700 text-gray-300'
-                            : 'bg-gray-200 text-gray-700'
-                        }`}
-                      >
-                        {day}
-                      </button>
-                    ))}
+                  className={`text-left rounded-xl border px-4 py-4 transition-all shadow-sm flex items-start gap-3 h-full ${
+                    repeatMonth
+                      ? 'bg-purple-100 text-purple-800 border-purple-200 dark:bg-purple-900/30 dark:text-purple-100 dark:border-purple-800 ring-2 ring-purple-500/50 shadow-lg'
+                      : theme === 'dark'
+                      ? 'border-white/10 bg-white/5 text-gray-200 hover:border-white/30'
+                      : 'border-slate-200 bg-white text-gray-800 hover:border-slate-300'
+                  }`}
+                >
+                  <Calendar className="w-5 h-5 flex-shrink-0 mt-0.5" />
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-sm">Повтор по месяцу</p>
+                    <p className="text-xs mt-1 opacity-80">На месяц вперед по дням</p>
+                    {repeatMonth && (
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {weekDays.map((day, index) => (
+                          <button
+                            key={index}
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleDayToggle(index)
+                            }}
+                            className={`px-2 py-1 rounded-lg text-xs transition-colors ${
+                              repeatDays.includes(index)
+                                ? 'bg-purple-600 text-white'
+                                : theme === 'dark'
+                                ? 'bg-gray-700 text-gray-300'
+                                : 'bg-gray-200 text-gray-700'
+                            }`}
+                          >
+                            {day}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                </div>
-              )}
+                </button>
+              </div>
             </div>
             )}
 

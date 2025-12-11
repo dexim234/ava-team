@@ -145,7 +145,7 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
       }
     }
 
-    if (dateMode === 'single') {
+    if (dateMode === 'single' && currentType === 'dayoff') {
       if (repeatMonth && repeatDays.length > 0) {
         const dates: string[] = []
         const startDate = new Date(date)
@@ -157,7 +157,7 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
           if (dow === dowTarget) dates.push(formatDate(cur, 'yyyy-MM-dd'))
           cur.setDate(cur.getDate() + 1)
         }
-        return dates.map((d) => (currentType === 'dayoff' ? { date: d } : { date: d, endDate: d }))
+        return dates.map((d) => ({ date: d }))
       }
 
       if (repeatWeek && weekDaySelection.length > 0) {
@@ -171,7 +171,7 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
           const dow = d.getDay() === 0 ? 6 : d.getDay() - 1
           if (weekDaySelection.includes(dow)) dates.push(formatDate(d, 'yyyy-MM-dd'))
         }
-        return dates.map((d) => (currentType === 'dayoff' ? { date: d } : { date: d, endDate: d }))
+        return dates.map((d) => ({ date: d }))
       }
     }
 
@@ -922,8 +922,8 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
               </div>
             )}
 
-            {/* Повторы на неделю и месяц */}
-            {dateMode === 'single' && !adminBulkMode && (
+            {/* Повторы на неделю и месяц - только для выходного */}
+            {dateMode === 'single' && !adminBulkMode && selectedType === 'dayoff' && (
               <div className="space-y-3">
                 <div className="rounded-xl border border-gray-200 dark:border-gray-800 p-3 sm:p-4 space-y-3">
                   <div className="flex items-center justify-between">
