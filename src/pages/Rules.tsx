@@ -11,6 +11,7 @@ import {
   Scale,
   ScrollText,
   Info,
+  Download,
 } from 'lucide-react'
 
 const SectionCard = ({
@@ -129,7 +130,7 @@ export const Rules = () => {
                   <p className={`text-base font-semibold ${headingColor}`}>Поддержание порядка и профессионализма команды</p>
                 </div>
               </div>
-              <div className="mt-4 space-y-2">
+              <div className="mt-4 space-y-3">
                 <div className="flex items-center gap-2 text-sm font-semibold text-[#4E6E49]">
                   <ArrowUpRight className="w-4 h-4" />
                   Публичная версия правил доступна на сайте
@@ -137,6 +138,18 @@ export const Rules = () => {
                 <p className={`text-xs ${subTextColor}`}>
                   Используйте кнопку «Правила» в навигации или в профиле, чтобы быстро открыть этот раздел.
                 </p>
+                <a
+                  href="/rules.pdf"
+                  download
+                  className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border transition-all shadow-sm hover:shadow-md hover:-translate-y-0.5 ${
+                    theme === 'dark'
+                      ? 'border-white/20 bg-white/10 text-white hover:bg-white/15'
+                      : 'border-[#4E6E49]/30 bg-[#4E6E49]/10 text-[#4E6E49] hover:bg-[#4E6E49]/15'
+                  }`}
+                >
+                  <Download className="w-4 h-4" />
+                  <span className="text-sm font-semibold">Скачать правила (PDF)</span>
+                </a>
               </div>
             </div>
           </div>

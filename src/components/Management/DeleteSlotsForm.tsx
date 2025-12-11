@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { useAuthStore } from '@/store/authStore'
 import { useThemeStore } from '@/store/themeStore'
 import { useAdminStore } from '@/store/adminStore'
-import { getWorkSlots, deleteWorkSlot, getDayStatuses, deleteDayStatus } from '@/services/firestoreService'
+import { getWorkSlots, deleteWorkSlot, getDayStatuses, deleteDayStatus, addApprovalRequest } from '@/services/firestoreService'
 import { formatDate } from '@/utils/dateUtils'
 import { X, Trash2 } from 'lucide-react'
 import { TEAM_MEMBERS, DayStatus } from '@/types'
@@ -197,10 +197,46 @@ export const DeleteSlotsForm = ({ onClose, onSave }: DeleteSlotsFormProps) => {
         return
       }
 
-      if (deleteType === 'slots') {
-        for (const id of idsToDelete) await deleteWorkSlot(id)
+      if (isAdmin) {
+        // Админ удаляет напрямую
+        if (deleteType === 'slots') {
+          for (const id of idsToDelete) await deleteWorkSlot(id)
+        } else {
+          for (const id of idsToDelete) await deleteDayStatus(id)
+        }
       } else {
-        for (const id of idsToDelete) await deleteDayStatus(id)
+        // Не-админ отправляет запросы на согласование
+        if (deleteType === 'slots') {
+          for (const id of idsToDelete) {
+            const slot = allSlots.find(s => s.id === id)
+            if (slot) {
+              await addApprovalRequest({
+                entity: 'slot',
+                action: 'delete',
+                authorId: user?.id || '',
+                targetUserId: slot.userId,
+                before: slot,
+                after: null,
+                comment: `Удаление слота ${formatDate(slot.date, 'dd.MM.yyyy')}`,
+              })
+            }
+          }
+        } else {
+          for (const id of idsToDelete) {
+            const status = allStatuses.find(s => s.id === id)
+            if (status) {
+              await addApprovalRequest({
+                entity: 'status',
+                action: 'delete',
+                authorId: user?.id || '',
+                targetUserId: status.userId,
+                before: status,
+                after: null,
+                comment: `Удаление ${deleteType === 'dayoff' ? 'выходного' : deleteType === 'sick' ? 'больничного' : 'отпуска'} ${formatDate(status.date, 'dd.MM.yyyy')}`,
+              })
+            }
+          }
+        }
       }
 
       onSave()
@@ -484,7 +520,7 @@ export const DeleteSlotsForm = ({ onClose, onSave }: DeleteSlotsFormProps) => {
                   className="flex-1 px-4 py-2 bg-red-500 hover:bg-red-600 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg transition-colors flex items-center justify-center gap-2"
                 >
                   <Trash2 className="w-4 h-4" />
-                  {loading ? 'Удаление...' : 'Очистить расписание'}
+                  {loading ? (isAdmin ? 'Удаление...' : 'Отправка на согласование...') : (isAdmin ? 'Очистить расписание' : 'Отправить на согласование')}
                 </button>
                 <button
                   onClick={onClose}

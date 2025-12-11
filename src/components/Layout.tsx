@@ -3,12 +3,11 @@ import { Link, useLocation } from 'react-router-dom'
 import { useThemeStore } from '@/store/themeStore'
 import { useAdminStore } from '@/store/adminStore'
 import { useAuthStore } from '@/store/authStore'
-import { getApprovalRequests } from '@/services/firestoreService'
+import { getApprovalRequests, getTasks, getWorkSlots } from '@/services/firestoreService'
 import { formatDate } from '@/utils/dateUtils'
 import {
   Moon,
   Sun,
-  Shield,
   CheckCircle2,
   Zap,
   Settings,
@@ -33,7 +32,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation()
   const [showFunctionalityMenu, setShowFunctionalityMenu] = useState(false)
   const [showNotifications, setShowNotifications] = useState(false)
-  const [notifications, setNotifications] = useState<{ id: string; text: string; time: string; status: string }[]>([])
+  const [notifications, setNotifications] = useState<{ id: string; text: string; time: string; status: string; timestamp?: number }[]>([])
 
   const functionalitySubItems: { path: string; label: string; icon: LucideIcon }[] = [
     { path: '/management', label: 'Расписание', icon: Calendar },
@@ -41,7 +40,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
     { path: '/tasks', label: 'Задачи', icon: CheckSquare },
     { path: '/rating', label: 'Рейтинг', icon: TrendingUp },
     { path: '/call', label: 'HUB', icon: Zap },
-    { path: '/approvals', label: 'Согласования', icon: CheckCircle2 },
+    ...(isAdmin ? [{ path: '/approvals', label: 'Согласования', icon: CheckCircle2 }] : []),
   ]
 
   const isFunctionalityActive = functionalitySubItems.some(item => location.pathname === item.path)
@@ -54,33 +53,169 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     const loadNotifications = async () => {
       try {
-        if (!user && !isAdmin) {
+        // Убираем уведомления для админа
+        if (isAdmin || !user) {
           setNotifications([])
           return
         }
-        const approvals = await getApprovalRequests()
+
+        type NotificationItem = { id: string; text: string; time: string; status: string; timestamp: number }
+        const notificationsList: NotificationItem[] = []
         const cutoff = Date.now() - 6 * 60 * 60 * 1000 // 6 hours
+        const now = Date.now()
+        const oneHourMs = 60 * 60 * 1000
         
         // Получаем просмотренные уведомления из localStorage
-        const viewedKey = `viewedNotifications_${user?.id || 'admin'}`
+        const viewedKey = `viewedNotifications_${user.id}`
         const viewedIds = JSON.parse(localStorage.getItem(viewedKey) || '[]')
         
-        const filtered = approvals.filter((a) => {
-          if (!isAdmin && user && a.authorId !== user.id && a.targetUserId !== user.id) return false
-          const ts = Date.parse(a.updatedAt || a.createdAt)
-          if (Number.isNaN(ts) || ts < cutoff) return false
-          // Исключаем уже просмотренные
-          if (viewedIds.includes(a.id)) return false
-          return true
-        })
-        setNotifications(
-          filtered.map((a) => ({
-            id: a.id,
-            status: a.status,
-            text: `${a.entity === 'slot' ? 'Слот' : 'Статус'} • ${a.status === 'approved' ? 'Подтверждено' : a.status === 'rejected' ? 'Отклонено' : 'На согласовании'}${a.adminComment ? `: ${a.adminComment}` : ''}`,
-            time: formatDate(a.updatedAt || a.createdAt || new Date().toISOString(), 'dd.MM HH:mm'),
-          }))
-        )
+        // 1. Согласования
+        const approvals = await getApprovalRequests()
+        const approvalNotifications = approvals
+          .filter((a) => {
+            if (a.authorId !== user.id && a.targetUserId !== user.id) return false
+            const ts = Date.parse(a.updatedAt || a.createdAt)
+            if (Number.isNaN(ts) || ts < cutoff) return false
+            if (viewedIds.includes(`approval_${a.id}`)) return false
+            return true
+          })
+          .map((a) => {
+            const timestamp = Date.parse(a.updatedAt || a.createdAt || new Date().toISOString())
+            return {
+              id: `approval_${a.id}`,
+              status: a.status,
+              text: `${a.entity === 'slot' ? 'Слот' : 'Статус'} • ${a.status === 'approved' ? 'Подтверждено' : a.status === 'rejected' ? 'Отклонено' : 'На согласовании'}${a.adminComment ? `: ${a.adminComment}` : ''}`,
+              time: formatDate(a.updatedAt || a.createdAt || new Date().toISOString(), 'dd.MM HH:mm'),
+              timestamp: Number.isNaN(timestamp) ? now : timestamp,
+            }
+          })
+        notificationsList.push(...approvalNotifications)
+
+        // 2. Задачи
+        const tasks = await getTasks({ assignedTo: user.id })
+        const taskNotifications = tasks
+          .filter((task) => {
+            // Новые задачи (созданы за последние 6 часов)
+            const createdAt = Date.parse(task.createdAt)
+            const isNew = !Number.isNaN(createdAt) && createdAt >= cutoff && !viewedIds.includes(`task_new_${task.id}`)
+            
+            // Дедлайн за час или прошел
+            if (!task.dueDate || !task.dueTime) return isNew
+            
+            const deadline = new Date(`${task.dueDate}T${task.dueTime}`)
+            const deadlineMs = deadline.getTime()
+            if (Number.isNaN(deadlineMs)) return isNew
+            
+            const diffMs = deadlineMs - now
+            const isDueInHour = diffMs > 0 && diffMs <= oneHourMs && !viewedIds.includes(`task_due_${task.id}`)
+            // Просроченные задачи показываем только если дедлайн прошел не более 6 часов назад
+            const isOverdue = diffMs < 0 && diffMs >= -cutoff && !viewedIds.includes(`task_overdue_${task.id}`)
+            
+            return isNew || isDueInHour || isOverdue
+          })
+          .map((task) => {
+            const createdAt = Date.parse(task.createdAt)
+            const isNew = !Number.isNaN(createdAt) && createdAt >= cutoff && !viewedIds.includes(`task_new_${task.id}`)
+            
+            if (isNew) {
+              const timestamp = Date.parse(task.createdAt)
+              return {
+                id: `task_new_${task.id}`,
+                status: 'new',
+                text: `Новая задача: ${task.title}`,
+                time: formatDate(task.createdAt, 'dd.MM HH:mm'),
+                timestamp: Number.isNaN(timestamp) ? now : timestamp,
+              }
+            }
+            
+            if (!task.dueDate || !task.dueTime) return null
+            
+            const deadline = new Date(`${task.dueDate}T${task.dueTime}`)
+            const deadlineMs = deadline.getTime()
+            if (Number.isNaN(deadlineMs)) return null
+            
+            const diffMs = deadlineMs - now
+            if (diffMs > 0 && diffMs <= oneHourMs && !viewedIds.includes(`task_due_${task.id}`)) {
+              return {
+                id: `task_due_${task.id}`,
+                status: 'due',
+                text: `Дедлайн через час: ${task.title}`,
+                time: formatDate(deadline.toISOString(), 'dd.MM HH:mm'),
+                timestamp: deadlineMs,
+              }
+            }
+            
+            if (diffMs < 0 && diffMs >= -cutoff && !viewedIds.includes(`task_overdue_${task.id}`)) {
+              return {
+                id: `task_overdue_${task.id}`,
+                status: 'overdue',
+                text: `Просрочен дедлайн: ${task.title}`,
+                time: formatDate(deadline.toISOString(), 'dd.MM HH:mm'),
+                timestamp: deadlineMs,
+              }
+            }
+            
+            return null
+          })
+          .filter((n): n is { id: string; text: string; time: string; status: string; timestamp: number } => n !== null)
+        notificationsList.push(...taskNotifications)
+
+        // 3. Завершившиеся слоты
+        const slots = await getWorkSlots(user.id)
+        const slotNotifications = slots
+          .filter((slot) => {
+            if (viewedIds.includes(`slot_ended_${slot.id}`)) return false
+            if (!slot.slots || slot.slots.length === 0) return false
+            
+            const lastSlot = slot.slots[slot.slots.length - 1]
+            if (!lastSlot) return false
+            
+            // Вычисляем время окончания слота
+            let slotEnd: Date
+            if (lastSlot.endDate) {
+              slotEnd = new Date(lastSlot.endDate)
+              const [hours, minutes] = lastSlot.end.split(':').map(Number)
+              slotEnd.setHours(hours, minutes, 0, 0)
+            } else {
+              slotEnd = new Date(slot.date)
+              const [hours, minutes] = lastSlot.end.split(':').map(Number)
+              slotEnd.setHours(hours, minutes, 0, 0)
+            }
+            
+            const slotEndMs = slotEnd.getTime()
+            if (Number.isNaN(slotEndMs)) return false
+            
+            // Слот завершился и это было за последние 6 часов
+            return slotEndMs < now && slotEndMs >= (now - cutoff)
+          })
+          .map((slot) => {
+            const lastSlot = slot.slots[slot.slots.length - 1]
+            let slotEnd: Date
+            if (lastSlot.endDate) {
+              slotEnd = new Date(lastSlot.endDate)
+              const [hours, minutes] = lastSlot.end.split(':').map(Number)
+              slotEnd.setHours(hours, minutes, 0, 0)
+            } else {
+              slotEnd = new Date(slot.date)
+              const [hours, minutes] = lastSlot.end.split(':').map(Number)
+              slotEnd.setHours(hours, minutes, 0, 0)
+            }
+            
+            return {
+              id: `slot_ended_${slot.id}`,
+              status: 'ended',
+              text: `Слот завершился: ${formatDate(slot.date, 'dd.MM.yyyy')}`,
+              time: formatDate(slotEnd.toISOString(), 'dd.MM HH:mm'),
+              timestamp: slotEnd.getTime(),
+            }
+          })
+        notificationsList.push(...slotNotifications)
+
+        // Сортируем по времени (новые сверху)
+        notificationsList.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0))
+
+        // Убираем timestamp перед сохранением
+        setNotifications(notificationsList.map(({ timestamp, ...rest }) => rest))
       } catch (err) {
         console.error('Failed to load notifications', err)
       }
@@ -184,15 +319,17 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                 )}
               </div>
 
-              <Link
-                to="/about"
-                data-active={location.pathname === '/about'}
-                className="nav-chip"
-              >
-                <Info className="w-4 h-4" />
-                <span>О нас</span>
-                <ArrowUpRight className="w-4 h-4 opacity-70" />
-              </Link>
+              {!isAdmin && (
+                <Link
+                  to="/about"
+                  data-active={location.pathname === '/about'}
+                  className="nav-chip"
+                >
+                  <Info className="w-4 h-4" />
+                  <span>О нас</span>
+                  <ArrowUpRight className="w-4 h-4 opacity-70" />
+                </Link>
+              )}
 
               <Link
                 to="/profile"
@@ -203,18 +340,6 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                 <span>ЛК</span>
                 <ArrowUpRight className="w-4 h-4 opacity-70" />
               </Link>
-
-              {isAdmin && (
-                <Link
-                  to="/admin"
-                  data-active={location.pathname === '/admin'}
-                  className="nav-chip"
-                >
-                  <Shield className="w-4 h-4" />
-                  <span>Админ</span>
-                  <ArrowUpRight className="w-4 h-4 opacity-70" />
-                </Link>
-              )}
               {isAdmin && (
                 <Link
                   to="/approvals"
@@ -317,16 +442,18 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                   <ChevronDown className="w-3 h-3 opacity-70" />
                 </div>
               </button>
-              <Link
-                to="/about"
-                className={`flex flex-col items-center justify-center gap-1 py-3 ${location.pathname === '/about' ? 'text-[#4E6E49]' : theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}
-              >
-                <Info className="w-5 h-5" />
-                <div className="flex items-center gap-1">
-                  <span className="text-[11px] font-semibold">О нас</span>
-                  <ArrowUpRight className="w-3 h-3 opacity-70" />
-                </div>
-              </Link>
+              {!isAdmin && (
+                <Link
+                  to="/about"
+                  className={`flex flex-col items-center justify-center gap-1 py-3 ${location.pathname === '/about' ? 'text-[#4E6E49]' : theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}
+                >
+                  <Info className="w-5 h-5" />
+                  <div className="flex items-center gap-1">
+                    <span className="text-[11px] font-semibold">О нас</span>
+                    <ArrowUpRight className="w-3 h-3 opacity-70" />
+                  </div>
+                </Link>
+              )}
               <Link
                 to="/profile"
                 className={`flex flex-col items-center justify-center gap-1 py-3 ${location.pathname === '/profile' ? 'text-[#4E6E49]' : theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}
