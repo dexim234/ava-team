@@ -1,12 +1,12 @@
-// Form for bulk deleting work slots
+// Form for bulk deleting slots and statuses
 import { useState } from 'react'
 import { useAuthStore } from '@/store/authStore'
 import { useThemeStore } from '@/store/themeStore'
 import { useAdminStore } from '@/store/adminStore'
-import { getWorkSlots, deleteWorkSlot } from '@/services/firestoreService'
+import { getWorkSlots, deleteWorkSlot, getDayStatuses, deleteDayStatus } from '@/services/firestoreService'
 import { formatDate } from '@/utils/dateUtils'
 import { X, Trash2 } from 'lucide-react'
-import { TEAM_MEMBERS } from '@/types'
+import { TEAM_MEMBERS, DayStatus } from '@/types'
 import { useScrollLock } from '@/hooks/useScrollLock'
 
 interface DeleteSlotsFormProps {
@@ -19,7 +19,10 @@ export const DeleteSlotsForm = ({ onClose, onSave }: DeleteSlotsFormProps) => {
   const { theme } = useThemeStore()
   const { isAdmin } = useAdminStore()
   const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
-  const [selectedUserIds, setSelectedUserIds] = useState<string[]>(isAdmin ? [] : (user?.id ? [user.id] : []))
+
+  const [selectedUserIds, setSelectedUserIds] = useState<string[]>(isAdmin ? [] : user?.id ? [user.id] : [])
+  const [deleteType, setDeleteType] = useState<'slots' | 'dayoff' | 'sick' | 'vacation'>('slots')
+
   const [deleteByWeekDay, setDeleteByWeekDay] = useState(false)
   const [deleteByDates, setDeleteByDates] = useState(false)
   const [deleteByDateRange, setDeleteByDateRange] = useState(false)
@@ -44,56 +47,17 @@ export const DeleteSlotsForm = ({ onClose, onSave }: DeleteSlotsFormProps) => {
     : 'Выберите режим'
   const selectedNames = selectedUserIds.map((id) => TEAM_MEMBERS.find((m) => m.id === id)?.name || id).join(', ')
 
-  const handleWeekDayToggle = (checked: boolean) => {
-    if (checked) {
-      if (deleteByDates || deleteByDateRange) {
-        setError('Снимите галочку с другой функции, чтобы активировать эту')
-        return
-      }
-      setDeleteByWeekDay(true)
-      setError('')
-    } else {
-      setDeleteByWeekDay(false)
-      setSelectedWeekDays([])
-    }
-  }
-
-  const handleDatesToggle = (checked: boolean) => {
-    if (checked) {
-      if (deleteByWeekDay || deleteByDateRange) {
-        setError('Снимите галочку с другой функции, чтобы активировать эту')
-        return
-      }
-      setDeleteByDates(true)
-      setError('')
-    } else {
-      setDeleteByDates(false)
-      setSelectedDates([])
-      setCurrentDate('')
-    }
-  }
-
-  const handleDateRangeToggle = (checked: boolean) => {
-    if (checked) {
-      if (deleteByWeekDay || deleteByDates) {
-        setError('Снимите галочку с другой функции, чтобы активировать эту')
-        return
-      }
-      setDeleteByDateRange(true)
-      setError('')
-    } else {
-      setDeleteByDateRange(false)
-      setDateRangeStart('')
-      setDateRangeEnd('')
-    }
-  }
-
   const handleUserToggle = (userId: string) => {
-    if (selectedUserIds.includes(userId)) {
-      setSelectedUserIds(selectedUserIds.filter(id => id !== userId))
-    } else {
-      setSelectedUserIds([...selectedUserIds, userId])
+    setSelectedUserIds((prev) => (prev.includes(userId) ? prev.filter((id) => id !== userId) : [...prev, userId]))
+  }
+
+  const toggleMode = (setter: (v: boolean) => void, value: boolean, blockers: boolean[]) => {
+    if (value && blockers.some(Boolean)) {
+      setError('Снимите галочку с другой функции, чтобы активировать эту')
+      return
     }
+    setter(value)
+    if (!value) setError('')
   }
 
   const addDate = () => {
@@ -110,38 +74,31 @@ export const DeleteSlotsForm = ({ onClose, onSave }: DeleteSlotsFormProps) => {
     setError('')
   }
 
-  const removeDate = (date: string) => {
-    setSelectedDates(selectedDates.filter((d) => d !== date))
-  }
+  const removeDate = (date: string) => setSelectedDates(selectedDates.filter((d) => d !== date))
 
   const handleDelete = async () => {
-    // Allow admin to delete slots even without user
     if (!isAdmin && !user) {
       setError('Пользователь не найден')
       return
     }
 
-    const targetUserIds = isAdmin ? selectedUserIds : (user ? [user.id] : [])
+    const targetUserIds = isAdmin ? selectedUserIds : user ? [user.id] : []
     if (targetUserIds.length === 0) {
       setError('Выберите хотя бы одного участника')
       return
     }
-
     if (!deleteByWeekDay && !deleteByDates && !deleteByDateRange) {
-      setError('Выберите способ удаления слотов')
+      setError('Выберите способ удаления')
       return
     }
-
     if (deleteByWeekDay && selectedWeekDays.length === 0) {
       setError('Выберите день недели')
       return
     }
-
     if (deleteByDates && selectedDates.length === 0) {
       setError('Добавьте хотя бы одну дату')
       return
     }
-
     if (deleteByDateRange) {
       if (!dateRangeStart || !dateRangeEnd) {
         setError('Укажите начальную и конечную дату диапазона')
@@ -157,65 +114,101 @@ export const DeleteSlotsForm = ({ onClose, onSave }: DeleteSlotsFormProps) => {
     setLoading(true)
 
     try {
-      // Get all slots for all selected users
-      const allSlotsPromises = targetUserIds.map(userId => getWorkSlots(userId))
-      const allSlotsArrays = await Promise.all(allSlotsPromises)
+      const allSlotsArrays = await Promise.all(targetUserIds.map((u) => getWorkSlots(u)))
+      const allStatusesArrays = await Promise.all(targetUserIds.map((u) => getDayStatuses(u)))
       const allSlots = allSlotsArrays.flat()
-      
-      let slotsToDelete: string[] = []
+      const allStatuses = allStatusesArrays.flat()
 
-      if (deleteByWeekDay) {
-        // Filter slots by day of week
-        slotsToDelete = allSlots
+      const overlapsRange = (date: string, end?: string) => {
+        if (!dateRangeStart || !dateRangeEnd) return false
+        const endVal = end || date
+        return !(endVal < dateRangeStart || date > dateRangeEnd)
+      }
+      const matchesDateList = (date: string, end?: string) => {
+        if (selectedDates.length === 0) return false
+        if (!end) return selectedDates.includes(date)
+        return selectedDates.some((d) => d >= date && d <= (end || date))
+      }
+      const matchesWeekDays = (date: string, end?: string) => {
+        if (selectedWeekDays.length === 0) return false
+        const dates: string[] = []
+        const start = new Date(date + 'T00:00:00')
+        const endDate = end ? new Date(end + 'T00:00:00') : new Date(date + 'T00:00:00')
+        let cursor = start
+        while (cursor <= endDate) {
+          dates.push(formatDate(cursor, 'yyyy-MM-dd'))
+          cursor.setDate(cursor.getDate() + 1)
+        }
+        return dates.some((dStr) => {
+          const d = new Date(dStr + 'T00:00:00')
+          const dow = d.getDay() === 0 ? 6 : d.getDay() - 1
+          return selectedWeekDays.includes(dow)
+        })
+      }
+
+      let idsToDelete: string[] = []
+      if (deleteType === 'slots') {
+        idsToDelete = allSlots
           .filter((slot) => {
-            const dateObj = new Date(slot.date + 'T00:00:00')
-            const dayOfWeek = dateObj.getDay() === 0 ? 6 : dateObj.getDay() - 1
-            return selectedWeekDays.includes(dayOfWeek)
+            if (deleteByWeekDay && matchesWeekDays(slot.date)) return true
+            if (deleteByDates && selectedDates.includes(slot.date)) return true
+            if (deleteByDateRange && overlapsRange(slot.date)) return true
+            return false
           })
           .map((slot) => slot.id)
-      } else if (deleteByDates) {
-        // Filter slots by selected dates
-        slotsToDelete = allSlots
-          .filter((slot) => selectedDates.includes(slot.date))
-          .map((slot) => slot.id)
-      } else if (deleteByDateRange) {
-        // Filter slots by date range
-        slotsToDelete = allSlots
-          .filter((slot) => slot.date >= dateRangeStart && slot.date <= dateRangeEnd)
-          .map((slot) => slot.id)
+      } else {
+        idsToDelete = allStatuses
+          .filter((s: DayStatus) => {
+            if (s.type !== deleteType) return false
+            if (deleteByWeekDay && matchesWeekDays(s.date, s.endDate)) return true
+            if (deleteByDates && matchesDateList(s.date, s.endDate)) return true
+            if (deleteByDateRange && overlapsRange(s.date, s.endDate)) return true
+            return false
+          })
+          .map((s) => s.id)
       }
 
-      if (slotsToDelete.length === 0) {
-        setError('Слоты для удаления не найдены')
+      if (idsToDelete.length === 0) {
+        setError('Ничего не найдено под выбранные условия')
         setLoading(false)
         return
       }
 
-      // Confirm deletion
-      const usersText = targetUserIds.length > 1 
-        ? `${targetUserIds.length} участников`
-        : TEAM_MEMBERS.find(m => m.id === targetUserIds[0])?.name || 'участника'
-
+      const usersText =
+        targetUserIds.length > 1
+          ? `${targetUserIds.length} участников`
+          : TEAM_MEMBERS.find((m) => m.id === targetUserIds[0])?.name || 'участника'
       const weekDaysText = selectedWeekDays.map((d) => weekDays[d]).join(', ')
-      const confirmMessage = deleteByWeekDay
-        ? `Удалить все слоты ${usersText} на ${weekDaysText}? (${slotsToDelete.length} слотов)`
-        : deleteByDateRange
-        ? `Удалить все слоты ${usersText} с ${formatDate(dateRangeStart, 'dd.MM.yyyy')} по ${formatDate(dateRangeEnd, 'dd.MM.yyyy')}? (${slotsToDelete.length} слотов)`
-        : `Удалить слоты ${usersText} на выбранные даты? (${slotsToDelete.length} слотов)`
+      const typeText =
+        deleteType === 'slots'
+          ? 'слоты'
+          : deleteType === 'dayoff'
+          ? 'выходные'
+          : deleteType === 'sick'
+          ? 'больничные'
+          : 'отпуска'
+      const scopeText = deleteByWeekDay
+        ? `по дням недели (${weekDaysText})`
+        : deleteByDates
+        ? `по датам: ${selectedDates.map((d) => formatDate(d, 'dd.MM')).join(', ')}`
+        : `по диапазону ${formatDate(dateRangeStart, 'dd.MM')} — ${formatDate(dateRangeEnd, 'dd.MM')}`
 
-      if (!confirm(confirmMessage)) {
+      if (!confirm(`Удалить ${typeText} (${idsToDelete.length}) ${scopeText} для ${usersText}?`)) {
         setLoading(false)
         return
       }
 
-      // Delete all slots
-      await Promise.all(slotsToDelete.map((id) => deleteWorkSlot(id)))
+      if (deleteType === 'slots') {
+        for (const id of idsToDelete) await deleteWorkSlot(id)
+      } else {
+        for (const id of idsToDelete) await deleteDayStatus(id)
+      }
 
       onSave()
-    } catch (err: any) {
-      console.error('Error deleting slots:', err)
-      const errorMessage = err.message || err.code || 'Ошибка при удалении слотов'
-      setError(errorMessage)
+      onClose()
+    } catch (err) {
+      console.error('Error deleting items:', err)
+      setError('Ошибка при удалении')
     } finally {
       setLoading(false)
     }
@@ -229,11 +222,11 @@ export const DeleteSlotsForm = ({ onClose, onSave }: DeleteSlotsFormProps) => {
             <div className="space-y-1">
               <div className="flex items-center gap-2 text-xs font-semibold text-[#4E6E49] tracking-tight">
                 <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-[#4E6E49]/10 text-[#4E6E49] border border-[#4E6E49]/30">
-                  Очистка слотов
+                  Очистить расписание
                 </span>
               </div>
               <h3 className={`text-2xl sm:text-3xl font-bold ${headingColor}`}>
-                Удаление слотов
+                Удаление слотов и отсутствий
               </h3>
             </div>
             <button
@@ -245,7 +238,7 @@ export const DeleteSlotsForm = ({ onClose, onSave }: DeleteSlotsFormProps) => {
           </div>
 
           <div className="mt-5 grid lg:grid-cols-[0.95fr_1.45fr] gap-4 lg:gap-6 flex-1 overflow-hidden">
-            {/* Navigation / summary */}
+            {/* Summary */}
             <aside className={`rounded-2xl border ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-slate-200 bg-white'} p-4 sm:p-5 space-y-4 sticky top-0 self-start max-h-full overflow-y-auto`}>
               <div className="flex items-center justify-between">
                 <p className="text-sm font-semibold">Навигация</p>
@@ -254,8 +247,8 @@ export const DeleteSlotsForm = ({ onClose, onSave }: DeleteSlotsFormProps) => {
               <div className="space-y-2">
                 {[
                   { label: 'Участники', detail: selectedNames || 'Не выбрано', done: selectedUserIds.length > 0 || !isAdmin },
-                  { label: 'Режим', detail: activeMode, done: activeMode !== 'Не выбран' },
-                  { label: 'Параметры', detail: selectionInfo, done: selectionInfo !== 'Выберите режим' },
+                  { label: 'Тип удаления', detail: deleteType === 'slots' ? 'Слоты' : deleteType === 'dayoff' ? 'Выходные' : deleteType === 'sick' ? 'Больничные' : 'Отпуска', done: true },
+                  { label: 'Режим', detail: selectionInfo, done: selectionInfo !== 'Выберите режим' },
                 ].map((step, index) => (
                   <div
                     key={step.label}
@@ -274,234 +267,239 @@ export const DeleteSlotsForm = ({ onClose, onSave }: DeleteSlotsFormProps) => {
               <div className={`rounded-xl border px-3 py-3 space-y-2 ${theme === 'dark' ? 'border-emerald-900/50 bg-emerald-900/20' : 'border-emerald-100 bg-emerald-50'}`}>
                 <p className="text-xs uppercase tracking-wide text-emerald-600 font-semibold">Подсказка</p>
                 <p className="text-sm text-emerald-700 dark:text-emerald-200">
-                  Выберите только один способ удаления: по дню, по списку дат или по диапазону.
+                  Один режим за раз: дни недели, конкретные даты или диапазон.
                 </p>
               </div>
             </aside>
 
             <div className="space-y-4 overflow-y-auto overscroll-contain pr-1 pb-6 flex-1 min-h-0">
-              {/* User selection for admin */}
-            {isAdmin && (
-              <div>
-                <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                  Участники {selectedUserIds.length > 0 && `(${selectedUserIds.length} выбрано)`}
-                </label>
+              {/* Type selection */}
+              <div className="space-y-2">
+                <p className={`text-sm font-semibold ${headingColor}`}>Что удаляем</p>
                 <div className="flex flex-wrap gap-2">
-                  {TEAM_MEMBERS.map((member) => {
-                    const isSelected = selectedUserIds.includes(member.id)
-                    return (
-                      <button
-                        key={member.id}
-                        onClick={() => handleUserToggle(member.id)}
-                        className={`px-3 py-1.5 rounded-lg transition-colors ${
-                          isSelected
-                            ? 'bg-red-500 text-white'
-                            : theme === 'dark'
-                            ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                        }`}
-                      >
-                        {member.name}
-                      </button>
-                    )
-                  })}
+                  {[
+                    { key: 'slots', label: 'Слоты' },
+                    { key: 'dayoff', label: 'Выходные' },
+                    { key: 'sick', label: 'Больничные' },
+                    { key: 'vacation', label: 'Отпуска' },
+                  ].map((item) => (
+                    <button
+                      key={item.key}
+                      onClick={() => setDeleteType(item.key as typeof deleteType)}
+                      className={`px-3 py-1.5 rounded-lg border text-sm ${
+                        deleteType === item.key
+                          ? 'bg-red-500 text-white border-red-500'
+                          : theme === 'dark'
+                          ? 'bg-gray-700 text-gray-200 border-gray-700 hover:bg-gray-600'
+                          : 'bg-gray-100 text-gray-800 border-gray-200 hover:bg-gray-200'
+                      }`}
+                    >
+                      {item.label}
+                    </button>
+                  ))}
                 </div>
               </div>
-            )}
 
-            {/* Delete by week day option */}
-            <label className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={deleteByWeekDay}
-                onChange={(e) => handleWeekDayToggle(e.target.checked)}
-                className="w-4 h-4"
-              />
-              <span className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                Удалить по дню недели
-              </span>
-            </label>
-
-            {deleteByWeekDay && (
-              <div className="ml-6">
-                <p className={`text-sm mb-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                  Выберите дни недели:
-                </p>
-                <div className="flex gap-2 flex-wrap">
-                  {weekDays.map((day, index) => {
-                    const isSelected = selectedWeekDays.includes(index)
-                    return (
-                      <button
-                        key={index}
-                        onClick={() => {
-                          setSelectedWeekDays((prev) =>
-                            prev.includes(index) ? prev.filter((d) => d !== index) : [...prev, index]
-                          )
-                        }}
-                        className={`px-3 py-1 rounded-lg transition-colors ${
-                          isSelected
-                            ? 'bg-red-500 text-white'
-                            : theme === 'dark'
-                            ? 'bg-gray-700 text-gray-300'
-                            : 'bg-gray-200 text-gray-700'
-                        }`}
-                      >
-                        {day}
-                      </button>
-                    )
-                  })}
-                </div>
-              </div>
-            )}
-
-            {/* Delete by dates option */}
-            <label className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={deleteByDates}
-                onChange={(e) => handleDatesToggle(e.target.checked)}
-                className="w-4 h-4"
-              />
-              <span className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                Удалить по конкретным датам
-              </span>
-            </label>
-
-            {deleteByDates && (
-              <div className="ml-6 space-y-3">
-                <div className="flex gap-2">
-                  <input
-                    type="date"
-                    value={currentDate}
-                    onChange={(e) => setCurrentDate(e.target.value)}
-                    className={`flex-1 px-4 py-2 rounded-lg border ${
-                      theme === 'dark'
-                        ? 'bg-gray-700 border-gray-800 text-white'
-                        : 'bg-white border-gray-300 text-gray-900'
-                    } focus:outline-none focus:ring-2 focus:ring-red-500`}
-                  />
-                  <button
-                    onClick={addDate}
-                    className="px-4 py-2 bg-[#4E6E49] hover:bg-[#4E6E49] text-white rounded-lg transition-colors"
-                  >
-                    Добавить
-                  </button>
-                </div>
-
-                {/* Selected dates */}
-                {selectedDates.length > 0 && (
-                  <div className="space-y-2">
-                    <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                      Выбранные даты ({selectedDates.length}):
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      {selectedDates.map((date) => (
-                        <div
-                          key={date}
-                          className={`flex items-center gap-2 px-3 py-1 rounded-lg ${
-                            theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100'
+              {/* Users (admin) */}
+              {isAdmin && (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <p className={`text-sm font-semibold ${headingColor}`}>Участники</p>
+                    <button
+                      onClick={() =>
+                        setSelectedUserIds((prev) =>
+                          prev.length === TEAM_MEMBERS.length ? [] : TEAM_MEMBERS.map((m) => m.id)
+                        )
+                      }
+                      className="text-xs text-[#4E6E49] font-semibold"
+                    >
+                      {selectedUserIds.length === TEAM_MEMBERS.length ? 'Снять выделение' : 'Выбрать всех'}
+                    </button>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {TEAM_MEMBERS.map((member) => {
+                      const isSelected = selectedUserIds.includes(member.id)
+                      return (
+                        <button
+                          key={member.id}
+                          onClick={() => handleUserToggle(member.id)}
+                          className={`px-3 py-1.5 rounded-lg transition-colors text-sm ${
+                            isSelected
+                              ? 'bg-red-500 text-white'
+                              : theme === 'dark'
+                              ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                           }`}
                         >
-                          <span className={headingColor}>{formatDate(date, 'dd.MM.yyyy')}</span>
-                          <button
-                            onClick={() => removeDate(date)}
-                            className="p-1 text-red-500 hover:bg-red-500 hover:text-white rounded transition-colors"
-                          >
-                            <X className="w-3 h-3" />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Delete by date range option */}
-            <label className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={deleteByDateRange}
-                onChange={(e) => handleDateRangeToggle(e.target.checked)}
-                className="w-4 h-4"
-              />
-              <span className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                Удалить по диапазону дат
-              </span>
-            </label>
-
-            {deleteByDateRange && (
-              <div className="ml-6 space-y-3">
-                <div className="flex gap-2">
-                  <div className="flex-1">
-                    <label className={`block text-xs mb-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                      Начальная дата
-                    </label>
-                    <input
-                      type="date"
-                      value={dateRangeStart}
-                      onChange={(e) => setDateRangeStart(e.target.value)}
-                      className={`w-full px-4 py-2 rounded-lg border ${
-                        theme === 'dark'
-                          ? 'bg-gray-700 border-gray-800 text-white'
-                          : 'bg-white border-gray-300 text-gray-900'
-                      } focus:outline-none focus:ring-2 focus:ring-red-500`}
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <label className={`block text-xs mb-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                      Конечная дата
-                    </label>
-                    <input
-                      type="date"
-                      value={dateRangeEnd}
-                      onChange={(e) => setDateRangeEnd(e.target.value)}
-                      min={dateRangeStart}
-                      className={`w-full px-4 py-2 rounded-lg border ${
-                        theme === 'dark'
-                          ? 'bg-gray-700 border-gray-800 text-white'
-                          : 'bg-white border-gray-300 text-gray-900'
-                      } focus:outline-none focus:ring-2 focus:ring-red-500`}
-                    />
+                          {member.name}
+                        </button>
+                      )
+                    })}
                   </div>
                 </div>
-                {dateRangeStart && dateRangeEnd && (
-                  <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                    Будет удалено: с {formatDate(dateRangeStart, 'dd.MM.yyyy')} по {formatDate(dateRangeEnd, 'dd.MM.yyyy')}
-                  </p>
-                )}
-              </div>
-            )}
+              )}
 
-            {error && (
-              <div className="p-3 bg-red-500 text-white rounded-lg text-sm">
-                {error}
-              </div>
-            )}
+              {/* By weekday */}
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={deleteByWeekDay}
+                  onChange={(e) => toggleMode(setDeleteByWeekDay, e.target.checked, [deleteByDates, deleteByDateRange])}
+                  className="w-4 h-4"
+                />
+                <span className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Удалить по дню недели</span>
+              </label>
+              {deleteByWeekDay && (
+                <div className="ml-6">
+                  <p className={`text-sm mb-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Выберите дни недели:</p>
+                  <div className="flex gap-2 flex-wrap">
+                    {weekDays.map((day, idx) => {
+                      const active = selectedWeekDays.includes(idx)
+                      return (
+                        <button
+                          key={day}
+                          onClick={() =>
+                            setSelectedWeekDays((prev) => (active ? prev.filter((d) => d !== idx) : [...prev, idx]))
+                          }
+                          className={`px-3 py-1 rounded-lg transition-colors ${
+                            active
+                              ? 'bg-red-500 text-white'
+                              : theme === 'dark'
+                              ? 'bg-gray-700 text-gray-300'
+                              : 'bg-gray-200 text-gray-700'
+                          }`}
+                        >
+                          {day}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
 
-            <div className="flex gap-3">
-              <button
-                onClick={handleDelete}
-                disabled={loading || (!deleteByWeekDay && !deleteByDates && !deleteByDateRange)}
-                className="flex-1 px-4 py-2 bg-red-500 hover:bg-red-600 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg transition-colors flex items-center justify-center gap-2"
-              >
-                <Trash2 className="w-4 h-4" />
-                {loading ? 'Удаление...' : 'Удалить слоты'}
-              </button>
-              <button
-                onClick={onClose}
-                className={`px-4 py-2 rounded-lg transition-colors ${
-                  theme === 'dark' ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-200 hover:bg-gray-300'
-                }`}
-              >
-                Отмена
-              </button>
+              {/* By dates */}
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={deleteByDates}
+                  onChange={(e) => toggleMode(setDeleteByDates, e.target.checked, [deleteByWeekDay, deleteByDateRange])}
+                  className="w-4 h-4"
+                />
+                <span className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Удалить по конкретным датам</span>
+              </label>
+              {deleteByDates && (
+                <div className="ml-6 space-y-3">
+                  <div className="flex gap-2">
+                    <input
+                      type="date"
+                      value={currentDate}
+                      onChange={(e) => setCurrentDate(e.target.value)}
+                      className={`flex-1 px-4 py-2 rounded-lg border ${
+                        theme === 'dark' ? 'bg-gray-700 border-gray-800 text-white' : 'bg-white border-gray-300 text-gray-900'
+                      } focus:outline-none focus:ring-2 focus:ring-red-500`}
+                    />
+                    <button
+                      onClick={addDate}
+                      className="px-4 py-2 bg-[#4E6E49] hover:bg-[#4E6E49] text-white rounded-lg transition-colors"
+                    >
+                      Добавить
+                    </button>
+                  </div>
+                  {selectedDates.length > 0 && (
+                    <div className="space-y-2">
+                      <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                        Выбранные даты ({selectedDates.length}):
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {selectedDates.map((d) => (
+                          <div
+                            key={d}
+                            className={`flex items-center gap-2 px-3 py-1 rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100'}`}
+                          >
+                            <span className={headingColor}>{formatDate(d, 'dd.MM.yyyy')}</span>
+                            <button
+                              onClick={() => removeDate(d)}
+                              className="p-1 text-red-500 hover:bg-red-500 hover:text-white rounded transition-colors"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* By range */}
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={deleteByDateRange}
+                  onChange={(e) => toggleMode(setDeleteByDateRange, e.target.checked, [deleteByWeekDay, deleteByDates])}
+                  className="w-4 h-4"
+                />
+                <span className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Удалить по диапазону дат</span>
+              </label>
+              {deleteByDateRange && (
+                <div className="ml-6 space-y-3">
+                  <div className="flex gap-2">
+                    <div className="flex-1">
+                      <label className={`block text-xs mb-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Начальная дата</label>
+                      <input
+                        type="date"
+                        value={dateRangeStart}
+                        onChange={(e) => setDateRangeStart(e.target.value)}
+                        className={`w-full px-4 py-2 rounded-lg border ${
+                          theme === 'dark' ? 'bg-gray-700 border-gray-800 text-white' : 'bg-white border-gray-300 text-gray-900'
+                        } focus:outline-none focus:ring-2 focus:ring-red-500`}
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <label className={`block text-xs mb-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Конечная дата</label>
+                      <input
+                        type="date"
+                        value={dateRangeEnd}
+                        onChange={(e) => setDateRangeEnd(e.target.value)}
+                        min={dateRangeStart}
+                        className={`w-full px-4 py-2 rounded-lg border ${
+                          theme === 'dark' ? 'bg-gray-700 border-gray-800 text-white' : 'bg-white border-gray-300 text-gray-900'
+                        } focus:outline-none focus:ring-2 focus:ring-red-500`}
+                      />
+                    </div>
+                  </div>
+                  {dateRangeStart && dateRangeEnd && (
+                    <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                      Будет удалено: с {formatDate(dateRangeStart, 'dd.MM.yyyy')} по {formatDate(dateRangeEnd, 'dd.MM.yyyy')}
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {error && <div className="p-3 bg-red-500 text-white rounded-lg text-sm">{error}</div>}
+
+              <div className="flex gap-3">
+                <button
+                  onClick={handleDelete}
+                  disabled={loading || (!deleteByWeekDay && !deleteByDates && !deleteByDateRange)}
+                  className="flex-1 px-4 py-2 bg-red-500 hover:bg-red-600 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg transition-colors flex items-center justify-center gap-2"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  {loading ? 'Удаление...' : 'Очистить расписание'}
+                </button>
+                <button
+                  onClick={onClose}
+                  className={`px-4 py-2 rounded-lg transition-colors ${
+                    theme === 'dark' ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-200 hover:bg-gray-300'
+                  }`}
+                >
+                  Отмена
+                </button>
+              </div>
             </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
   )
 }
-

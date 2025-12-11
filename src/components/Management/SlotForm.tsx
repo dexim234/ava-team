@@ -5,7 +5,7 @@ import { useThemeStore } from '@/store/themeStore'
 import { useAdminStore } from '@/store/adminStore'
 import { addApprovalRequest, getWorkSlots, addWorkSlot, updateWorkSlot } from '@/services/firestoreService'
 import { calculateHours, timeOverlaps, formatDate, getDatesInRange, normalizeDatesList, parseTime } from '@/utils/dateUtils'
-import { X, Plus, Trash2, Edit } from 'lucide-react'
+import { X, Plus, Trash2, Edit, CalendarDays, CalendarRange } from 'lucide-react'
 import { WorkSlot, TimeSlot, TEAM_MEMBERS } from '@/types'
 import { useScrollLock } from '@/hooks/useScrollLock'
 
@@ -47,6 +47,8 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
   const [comment, setComment] = useState(slot?.comment || '')
   const [repeatMonth, setRepeatMonth] = useState(false)
   const [repeatDays, setRepeatDays] = useState<number[]>([])
+  const [repeatWeek, setRepeatWeek] = useState(false)
+  const [weekDaySelection, setWeekDaySelection] = useState<number[]>([])
   const [dateMode, setDateMode] = useState<'single' | 'range' | 'multiple'>('single')
   const [rangeStart, setRangeStart] = useState(initialDate)
   const [rangeEnd, setRangeEnd] = useState(initialDate)
@@ -72,9 +74,17 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
   }, [repeatMonth, date])
 
   useEffect(() => {
+    if (!repeatWeek) {
+      setWeekDaySelection([])
+    }
+  }, [repeatWeek])
+
+  useEffect(() => {
     if (dateMode !== 'single') {
       setRepeatMonth(false)
       setRepeatDays([])
+      setRepeatWeek(false)
+      setWeekDaySelection([])
     }
   }, [dateMode])
 
@@ -348,7 +358,50 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
         return multipleDates
       }
     }
-    return [date]
+
+    // Single-date flows
+    if (dateMode === 'single') {
+      if (repeatMonth && repeatDays.length > 0) {
+        const dates: string[] = []
+        const startDate = new Date(date)
+        const endDate = new Date(startDate.getFullYear(), startDate.getMonth() + 1, 0)
+        const dayOfWeek = repeatDays[0]
+
+        const current = new Date(startDate)
+        while (current <= endDate) {
+          const dow = current.getDay() === 0 ? 6 : current.getDay() - 1
+          if (dow === dayOfWeek) {
+            dates.push(formatDate(current, 'yyyy-MM-dd'))
+          }
+          current.setDate(current.getDate() + 1)
+        }
+        return dates
+      }
+
+      if (repeatWeek && weekDaySelection.length > 0) {
+        const dates: string[] = []
+        const startOfWeek = new Date(date)
+        const currentDow = startOfWeek.getDay() === 0 ? 6 : startOfWeek.getDay() - 1
+        startOfWeek.setDate(startOfWeek.getDate() - currentDow)
+        for (let i = 0; i < 7; i++) {
+          const d = new Date(startOfWeek)
+          d.setDate(startOfWeek.getDate() + i)
+          const dow = d.getDay() === 0 ? 6 : d.getDay() - 1
+          if (weekDaySelection.includes(dow)) {
+            dates.push(formatDate(d, 'yyyy-MM-dd'))
+          }
+        }
+        return dates
+      }
+
+      return [date]
+    }
+
+    if (dateMode === 'range') {
+      return getDatesInRange(rangeStart, rangeEnd)
+    }
+
+    return multipleDates
   }
 
   const getTargetUsers = (): string[] => {
@@ -452,9 +505,11 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
         return { ...s, ...(s.endDate ? { endDate: s.endDate } : {}) }
       })
 
-      const validationError = await validateSlot(dateStr, adjustedSlots)
-      if (validationError) {
-        throw new Error(`[${getMemberName(targetUserId)} • ${formatDate(new Date(dateStr), 'dd.MM.yyyy')}] ${validationError}`)
+      if (!isAdmin) {
+        const validationError = await validateSlot(dateStr, adjustedSlots)
+        if (validationError) {
+          throw new Error(`[${getMemberName(targetUserId)} • ${formatDate(new Date(dateStr), 'dd.MM.yyyy')}] ${validationError}`)
+        }
       }
 
       const slotData: WorkSlot = {

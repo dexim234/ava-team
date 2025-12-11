@@ -2,6 +2,9 @@
 import { Link, useLocation } from 'react-router-dom'
 import { useThemeStore } from '@/store/themeStore'
 import { useAdminStore } from '@/store/adminStore'
+import { useAuthStore } from '@/store/authStore'
+import { getApprovalRequests } from '@/services/firestoreService'
+import { formatDate } from '@/utils/dateUtils'
 import {
   Moon,
   Sun,
@@ -17,6 +20,7 @@ import {
   ChevronDown,
   Info,
   ArrowUpRight,
+  Bell,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import logo from '@/assets/logo.png'
@@ -25,16 +29,19 @@ import { useState, useEffect } from 'react'
 export const Layout = ({ children }: { children: React.ReactNode }) => {
   const { theme, toggleTheme } = useThemeStore()
   const { isAdmin } = useAdminStore()
+  const { user } = useAuthStore()
   const location = useLocation()
   const [showFunctionalityMenu, setShowFunctionalityMenu] = useState(false)
+  const [showNotifications, setShowNotifications] = useState(false)
+  const [notifications, setNotifications] = useState<{ id: string; text: string; time: string; status: string }[]>([])
 
   const functionalitySubItems: { path: string; label: string; icon: LucideIcon }[] = [
     { path: '/management', label: 'Расписание', icon: Calendar },
     { path: '/earnings', label: 'Заработок', icon: DollarSign },
     { path: '/tasks', label: 'Задачи', icon: CheckSquare },
     { path: '/rating', label: 'Рейтинг', icon: TrendingUp },
-    ...(isAdmin ? [{ path: '/call', label: 'HUB', icon: Zap }] : []),
-    ...(isAdmin ? [{ path: '/approvals', label: 'Согласования', icon: CheckCircle2 }] : []),
+    { path: '/call', label: 'HUB', icon: Zap },
+    { path: '/approvals', label: 'Согласования', icon: CheckCircle2 },
   ]
 
   const isFunctionalityActive = functionalitySubItems.some(item => location.pathname === item.path)
@@ -43,6 +50,38 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     setShowFunctionalityMenu(false)
   }, [location.pathname])
+
+  useEffect(() => {
+    const loadNotifications = async () => {
+      try {
+        if (!user && !isAdmin) {
+          setNotifications([])
+          return
+        }
+        const approvals = await getApprovalRequests()
+        const cutoff = Date.now() - 6 * 60 * 60 * 1000 // 6 hours
+        const filtered = approvals.filter((a) => {
+          if (!isAdmin && user && a.authorId !== user.id && a.targetUserId !== user.id) return false
+          const ts = Date.parse(a.updatedAt || a.createdAt)
+          return !Number.isNaN(ts) && ts >= cutoff
+        })
+        setNotifications(
+          filtered.map((a) => ({
+            id: a.id,
+            status: a.status,
+            text: `${a.entity === 'slot' ? 'Слот' : 'Статус'} • ${a.status === 'approved' ? 'Подтверждено' : a.status === 'rejected' ? 'Отклонено' : 'На согласовании'}${a.adminComment ? `: ${a.adminComment}` : ''}`,
+            time: formatDate(a.updatedAt || a.createdAt || new Date().toISOString(), 'dd.MM HH:mm'),
+          }))
+        )
+      } catch (err) {
+        console.error('Failed to load notifications', err)
+      }
+    }
+
+    loadNotifications()
+    const id = setInterval(loadNotifications, 2 * 60 * 1000)
+    return () => clearInterval(id)
+  }, [user, isAdmin])
 
   return (
     <div className="app-shell">
@@ -72,17 +111,15 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
             </div>
 
             <nav className="hidden lg:flex items-center gap-2 flex-1 justify-center">
-              {!isAdmin && (
-                <Link
-                  to="/call"
-                  data-active={location.pathname === '/call'}
-                  className="nav-chip"
-                >
-                  <Zap className="w-4 h-4" />
-                  <span>HUB</span>
-                  <ArrowUpRight className="w-4 h-4 opacity-70" />
-                </Link>
-              )}
+              <Link
+                to="/call"
+                data-active={location.pathname === '/call'}
+                className="nav-chip"
+              >
+                <Zap className="w-4 h-4" />
+                <span>HUB</span>
+                <ArrowUpRight className="w-4 h-4 opacity-70" />
+              </Link>
 
               <div className="relative">
                 <button
@@ -126,17 +163,15 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                 )}
               </div>
 
-              {!isAdmin && (
-                <Link
-                  to="/about"
-                  data-active={location.pathname === '/about'}
-                  className="nav-chip"
-                >
-                  <Info className="w-4 h-4" />
-                  <span>О нас</span>
-                  <ArrowUpRight className="w-4 h-4 opacity-70" />
-                </Link>
-              )}
+              <Link
+                to="/about"
+                data-active={location.pathname === '/about'}
+                className="nav-chip"
+              >
+                <Info className="w-4 h-4" />
+                <span>О нас</span>
+                <ArrowUpRight className="w-4 h-4 opacity-70" />
+              </Link>
 
               <Link
                 to="/profile"
@@ -172,13 +207,42 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
               )}
             </nav>
 
-            <div className="flex items-center gap-3 ml-auto">
-              {isAdmin && (
-                <div className="badge-glow px-3 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 text-white font-semibold shadow-lg hidden md:inline-flex items-center gap-2">
-                  <Shield className="w-4 h-4" />
-                  <span className="text-sm">Админ</span>
-                </div>
-              )}
+            <div className="flex items-center gap-3 ml-auto relative">
+              <div className="relative">
+                <button
+                  onClick={() => setShowNotifications((prev) => !prev)}
+                  className="nav-chip px-3 py-2"
+                  data-active={showNotifications}
+                  aria-label="Notifications"
+                >
+                  <Bell className="w-5 h-5" />
+                  {notifications.length > 0 && (
+                    <span className="absolute -top-1 -right-1 inline-flex items-center justify-center px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-red-500 text-white">
+                      {notifications.length}
+                    </span>
+                  )}
+                </button>
+                {showNotifications && (
+                  <>
+                    <div className="fixed inset-0 z-40" onClick={() => setShowNotifications(false)} />
+                    <div className={`absolute right-0 mt-2 w-80 max-w-[88vw] glass-panel rounded-2xl border border-white/60 dark:border-white/10 shadow-2xl z-50 overflow-hidden`}>
+                      <div className="p-4 space-y-2 max-h-[360px] overflow-y-auto">
+                        {notifications.length === 0 ? (
+                          <p className="text-sm text-gray-600 dark:text-gray-300">Новых уведомлений нет (храним до 6 часов).</p>
+                        ) : (
+                          notifications.map((n) => (
+                            <div key={n.id} className="rounded-xl border border-white/40 dark:border-white/10 bg-white/80 dark:bg-white/5 p-3 space-y-1">
+                              <div className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">{n.time}</div>
+                              <div className="text-sm font-semibold text-gray-900 dark:text-white">{n.text}</div>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+
               <button
                 onClick={toggleTheme}
                 className="nav-chip px-3 py-2"
@@ -204,18 +268,16 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
         <div className="max-w-5xl mx-auto">
           <div className="glass-panel rounded-2xl shadow-2xl border border-white/60 dark:border-white/10">
             <div className="grid grid-cols-4 divide-x divide-white/40 dark:divide-white/5">
-              {!isAdmin && (
-                <Link
-                  to="/call"
-                  className={`flex flex-col items-center justify-center gap-1 py-3 ${location.pathname === '/call' ? 'text-[#4E6E49]' : theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}
-                >
-                  <Zap className="w-5 h-5" />
-                  <div className="flex items-center gap-1">
-                    <span className="text-[11px] font-semibold">HUB</span>
-                    <ArrowUpRight className="w-3 h-3 opacity-70" />
-                  </div>
-                </Link>
-              )}
+              <Link
+                to="/call"
+                className={`flex flex-col items-center justify-center gap-1 py-3 ${location.pathname === '/call' ? 'text-[#4E6E49]' : theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}
+              >
+                <Zap className="w-5 h-5" />
+                <div className="flex items-center gap-1">
+                  <span className="text-[11px] font-semibold">HUB</span>
+                  <ArrowUpRight className="w-3 h-3 opacity-70" />
+                </div>
+              </Link>
               <button
                 onClick={() => {
                   setShowFunctionalityMenu(!showFunctionalityMenu)
@@ -228,18 +290,16 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                   <ChevronDown className="w-3 h-3 opacity-70" />
                 </div>
               </button>
-              {!isAdmin && (
-                <Link
-                  to="/about"
-                  className={`flex flex-col items-center justify-center gap-1 py-3 ${location.pathname === '/about' ? 'text-[#4E6E49]' : theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}
-                >
-                  <Info className="w-5 h-5" />
-                  <div className="flex items-center gap-1">
-                    <span className="text-[11px] font-semibold">О нас</span>
-                    <ArrowUpRight className="w-3 h-3 opacity-70" />
-                  </div>
-                </Link>
-              )}
+              <Link
+                to="/about"
+                className={`flex flex-col items-center justify-center gap-1 py-3 ${location.pathname === '/about' ? 'text-[#4E6E49]' : theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}
+              >
+                <Info className="w-5 h-5" />
+                <div className="flex items-center gap-1">
+                  <span className="text-[11px] font-semibold">О нас</span>
+                  <ArrowUpRight className="w-3 h-3 opacity-70" />
+                </div>
+              </Link>
               <Link
                 to="/profile"
                 className={`flex flex-col items-center justify-center gap-1 py-3 ${location.pathname === '/profile' ? 'text-[#4E6E49]' : theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}

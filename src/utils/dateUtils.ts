@@ -3,8 +3,15 @@ import { format, addDays, startOfWeek, endOfWeek, eachDayOfInterval, parseISO, i
 import { ru } from 'date-fns/locale'
 
 export const formatDate = (date: Date | string, formatStr: string = 'dd.MM.yyyy'): string => {
-  const dateObj = typeof date === 'string' ? parseISO(date) : date
-  return format(dateObj, formatStr, { locale: ru })
+  try {
+    const dateObj = typeof date === 'string' ? parseISO(date) : date
+    if (!dateObj || Number.isNaN(dateObj.getTime())) {
+      return ''
+    }
+    return format(dateObj, formatStr, { locale: ru })
+  } catch {
+    return ''
+  }
 }
 
 export const getWeekRange = (date: Date = new Date()) => {

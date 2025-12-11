@@ -14,8 +14,6 @@ import {
   PlusCircle,
   Trash2,
   Moon,
-  HeartPulse,
-  Plane,
   Users,
   Timer,
   Hourglass,
@@ -30,7 +28,7 @@ import { getWeekDays, formatDate } from '@/utils/dateUtils'
 
 type ViewMode = 'table' | 'week'
 export type SlotFilter = 'all' | 'upcoming' | 'completed'
-type ActionType = 'add-slot' | 'delete-slots' | 'dayoff' | 'sick' | 'vacation'
+type ActionType = 'add-slot' | 'delete-slots' | 'absence'
 
 export const Management = () => {
   const { theme } = useThemeStore()
@@ -276,6 +274,14 @@ export const Management = () => {
     setStatusType(type)
     setEditingStatus(null)
     setShowStatusForm(true)
+  }
+
+  const handleAddAbsence = () => {
+    const choice = prompt('Тип отсутствия: dayoff (выходной), sick (больничный), vacation (отпуск)', 'dayoff')
+    if (choice === 'dayoff' || choice === 'sick' || choice === 'vacation') {
+      handleAddStatus(choice)
+      setActionType('absence')
+    }
   }
 
   const handleEditStatus = (status: any) => {
@@ -546,10 +552,8 @@ export const Management = () => {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
               {[
                 { key: 'add-slot', label: 'Добавить слот', desc: 'Разовое или серия', icon: <PlusCircle className="w-5 h-5" />, tone: 'bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-100 dark:border-emerald-800', action: handleAddSlot },
-                { key: 'delete-slots', label: 'Удалить слоты', desc: 'Очистить интервалы', icon: <Trash2 className="w-5 h-5" />, tone: 'bg-rose-100 text-rose-800 border-rose-200 dark:bg-rose-900/30 dark:text-rose-100 dark:border-rose-800', action: handleDeleteSlots },
-                { key: 'dayoff', label: 'Выходной', desc: 'Отметить отдых', icon: <Moon className="w-5 h-5" />, tone: 'bg-teal-100 text-teal-800 border-teal-200 dark:bg-teal-900/30 dark:text-teal-100 dark:border-teal-800', action: () => handleAddStatus('dayoff') },
-                { key: 'sick', label: 'Больничный', desc: 'Подтвердить отсутствие', icon: <HeartPulse className="w-5 h-5" />, tone: 'bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-900/30 dark:text-amber-100 dark:border-amber-700', action: () => handleAddStatus('sick') },
-                { key: 'vacation', label: 'Отпуск', desc: 'Запланировать отпуск', icon: <Plane className="w-5 h-5" />, tone: 'bg-sky-100 text-sky-800 border-sky-200 dark:bg-sky-900/30 dark:text-sky-100 dark:border-sky-800', action: () => handleAddStatus('vacation') },
+                { key: 'delete-slots', label: 'Очистить расписание', desc: 'Удалить слоты/статусы', icon: <Trash2 className="w-5 h-5" />, tone: 'bg-rose-100 text-rose-800 border-rose-200 dark:bg-rose-900/30 dark:text-rose-100 dark:border-rose-800', action: handleDeleteSlots },
+                { key: 'absence', label: 'Добавить отсутствие', desc: 'Выходной, больничный, отпуск', icon: <Moon className="w-5 h-5" />, tone: 'bg-teal-100 text-teal-800 border-teal-200 dark:bg-teal-900/30 dark:text-teal-100 dark:border-teal-800', action: handleAddAbsence },
               ].map((action) => (
                 <button
                   key={action.key}

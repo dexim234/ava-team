@@ -98,12 +98,13 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
   const getMemberName = (userId: string) => nicknameMap[userId] || TEAM_MEMBERS.find((member) => member.id === userId)?.name || userId
 
   const getDatePayloads = (): { date: string; endDate?: string }[] => {
+    // Админ — без ограничений, используем как есть выбранный режим
     if (adminBulkMode) {
       if (dateMode === 'range') {
-        if (type === 'dayoff') {
-          return getDatesInRange(rangeStart, rangeEnd).map((d) => ({ date: d }))
-        }
         if (rangeStart && rangeEnd) {
+          if (type === 'dayoff') {
+            return getDatesInRange(rangeStart, rangeEnd).map((d) => ({ date: d }))
+          }
           return [{ date: rangeStart, endDate: rangeEnd }]
         }
         return []
@@ -114,7 +115,9 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
         }
         return multipleDates.map((d) => ({ date: d, endDate: d }))
       }
-    } else if (type === 'dayoff') {
+    }
+
+    if (type === 'dayoff') {
       if (dateMode === 'range') {
         return getDatesInRange(rangeStart, rangeEnd).map((d) => ({ date: d }))
       }
@@ -131,8 +134,11 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
   }
 
   const validateStatus = async (targetUserId: string, startDate: string, endDateValue?: string): Promise<string | null> => {
-    // Allow admin to validate without user
-    if (!isAdmin && !user) return 'Пользователь не найден'
+    // Админ может ставить любые даты без ограничений
+    if (isAdmin) return null
+
+    // Allow member validation only with user
+    if (!user) return 'Пользователь не найден'
 
     const today = new Date()
     const selectedDate = new Date(startDate)
@@ -279,9 +285,11 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
     }
 
     const saveStatusFor = async (targetUserId: string, payload: { date: string; endDate?: string }) => {
-      const validationError = await validateStatus(targetUserId, payload.date, payload.endDate)
-      if (validationError) {
-        throw new Error(`[${getMemberName(targetUserId)} • ${formatDate(payload.date, 'dd.MM.yyyy')}] ${validationError}`)
+      if (!isAdmin) {
+        const validationError = await validateStatus(targetUserId, payload.date, payload.endDate)
+        if (validationError) {
+          throw new Error(`[${getMemberName(targetUserId)} • ${formatDate(payload.date, 'dd.MM.yyyy')}] ${validationError}`)
+        }
       }
 
       const statusData: DayStatus = {
