@@ -1,7 +1,27 @@
 // Hook for tracking user activity (login time, browser, session duration)
 import { useEffect, useRef } from 'react'
+import { useLocation } from 'react-router-dom'
 import { useAuthStore } from '@/store/authStore'
 import { addUserActivity, markActivityAsInactive, updateUserActivity } from '@/services/firestoreService'
+import { PageView } from '@/types'
+
+// Map route paths to human-readable section names
+const getSectionName = (path: string): string => {
+  const routeMap: Record<string, string> = {
+    '/management': 'Расписание',
+    '/earnings': 'Заработок',
+    '/tasks': 'Задачи',
+    '/rating': 'Рейтинг',
+    '/call': 'HUB',
+    '/profile': 'Профиль',
+    '/approvals': 'Согласования',
+    '/admin': 'Админ-панель',
+    '/about': 'О проекте',
+    '/rules': 'Правила',
+    '/login': 'Вход',
+  }
+  return routeMap[path] || path
+}
 
 // Helper to detect browser from user agent
 const detectBrowser = (userAgent: string): string => {
@@ -25,9 +45,13 @@ const detectBrowser = (userAgent: string): string => {
 
 export const useUserActivity = () => {
   const { user } = useAuthStore()
+  const location = useLocation()
   const activityIdRef = useRef<string | null>(null)
   const loginTimeRef = useRef<number>(Date.now())
   const isTrackingRef = useRef<boolean>(false)
+  const currentPageRef = useRef<string | null>(null)
+  const pageStartTimeRef = useRef<number>(Date.now())
+  const pageViewsRef = useRef<PageView[]>([])
 
   useEffect(() => {
     if (!user?.id || isTrackingRef.current) return
@@ -128,4 +152,79 @@ export const useUserActivity = () => {
       }
     }
   }, [user?.id])
+
+  // Track page navigation
+  useEffect(() => {
+    if (!activityIdRef.current || !user?.id) return
+
+    const currentPath = location.pathname
+    const now = Date.now()
+
+    // If user navigated to a new page
+    if (currentPageRef.current && currentPageRef.current !== currentPath) {
+      // Calculate duration on previous page
+      const previousPageDuration = Math.floor((now - pageStartTimeRef.current) / 1000)
+      
+      // Update the previous page view duration
+      const previousPageView = pageViewsRef.current[pageViewsRef.current.length - 1]
+      if (previousPageView) {
+        previousPageView.duration = previousPageDuration
+      }
+    }
+
+    // Add new page view (skip if it's the same page and we just started tracking)
+    if (currentPageRef.current !== currentPath) {
+      const newPageView: PageView = {
+        path: currentPath,
+        sectionName: getSectionName(currentPath),
+        viewedAt: new Date().toISOString(),
+      }
+      pageViewsRef.current.push(newPageView)
+      currentPageRef.current = currentPath
+      pageStartTimeRef.current = now
+
+      // Update activity with new page views
+      updateUserActivity(activityIdRef.current, {
+        pageViews: [...pageViewsRef.current],
+      }).catch((error) => {
+        console.error('Failed to update page views:', error)
+      })
+    }
+
+    // Update duration for current page periodically
+    const updatePageInterval = setInterval(() => {
+      if (activityIdRef.current && currentPageRef.current === currentPath && !document.hidden) {
+        const currentPageDuration = Math.floor((Date.now() - pageStartTimeRef.current) / 1000)
+        const currentPageView = pageViewsRef.current[pageViewsRef.current.length - 1]
+        if (currentPageView && currentPageView.path === currentPath) {
+          currentPageView.duration = currentPageDuration
+          
+          updateUserActivity(activityIdRef.current, {
+            pageViews: [...pageViewsRef.current],
+          }).catch((error) => {
+            console.error('Failed to update current page duration:', error)
+          })
+        }
+      }
+    }, 10000) // Update every 10 seconds
+
+    return () => {
+      clearInterval(updatePageInterval)
+      
+      // Final update for current page when path changes
+      if (activityIdRef.current && currentPageRef.current === currentPath) {
+        const finalDuration = Math.floor((Date.now() - pageStartTimeRef.current) / 1000)
+        const currentPageView = pageViewsRef.current[pageViewsRef.current.length - 1]
+        if (currentPageView && currentPageView.path === currentPath) {
+          currentPageView.duration = finalDuration
+          
+          updateUserActivity(activityIdRef.current, {
+            pageViews: [...pageViewsRef.current],
+          }).catch((error) => {
+            console.error('Failed to update final page duration:', error)
+          })
+        }
+      }
+    }
+  }, [location.pathname, user?.id])
 }

@@ -335,6 +335,13 @@ export interface Note {
 }
 
 // User activity tracking
+export interface PageView {
+  path: string // Route path (e.g., /management, /rating, /tasks)
+  sectionName: string // Human-readable section name
+  viewedAt: string // ISO timestamp when user visited this page
+  duration?: number // Time spent on this page in seconds
+}
+
 export interface UserActivity {
   id: string
   userId: string
@@ -344,6 +351,7 @@ export interface UserActivity {
   userAgent: string // Full user agent string
   sessionDuration?: number // Duration in seconds
   isActive: boolean // Whether session is still active
+  pageViews?: PageView[] // History of pages/sections viewed during this session
 }
 
 // Team members

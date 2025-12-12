@@ -6,7 +6,7 @@ import { useAuthStore } from '@/store/authStore'
 import { useAdminStore } from '@/store/adminStore'
 import { RatingCard } from '@/components/Rating/RatingCard'
 import { ReferralForm } from '@/components/Rating/ReferralForm'
-import { getRatingData, getEarnings, getDayStatuses, getReferrals, getWorkSlots, getWeeklyMessages, deleteReferral, addApprovalRequest, getLatestUserActivities } from '@/services/firestoreService'
+import { getRatingData, getEarnings, getDayStatuses, getReferrals, getWorkSlots, getWeeklyMessages, deleteReferral, addApprovalRequest, getLatestUserActivities, getUserActivitiesLast24Hours } from '@/services/firestoreService'
 import { getLastNDaysRange, getWeekRange, formatDate, calculateHours, countDaysInPeriod } from '@/utils/dateUtils'
 import { calculateRating, getRatingBreakdown } from '@/utils/ratingUtils'
 import { RatingData, Referral, TEAM_MEMBERS, UserActivity } from '@/types'
@@ -22,6 +22,7 @@ export const Rating = () => {
   const [showReferralForm, setShowReferralForm] = useState(false)
   const [activeReferral, setActiveReferral] = useState<Referral | null>(null)
   const [userActivities, setUserActivities] = useState<UserActivity[]>([])
+  const [activities24h, setActivities24h] = useState<UserActivity[]>([])
 
   useEffect(() => {
     loadRatings()
@@ -142,6 +143,10 @@ export const Rating = () => {
       // Load user activities
       const activities = await getLatestUserActivities()
       setUserActivities(activities)
+      
+      // Load activities for last 24 hours
+      const activitiesLast24h = await getUserActivitiesLast24Hours()
+      setActivities24h(activitiesLast24h)
     } catch (error) {
       console.error('Error loading ratings:', error)
     } finally {
@@ -504,6 +509,226 @@ export const Rating = () => {
               Данные об активности пока отсутствуют.
             </div>
           )}
+
+          {/* Статистика за последние 24 часа */}
+          <div className="mt-6">
+            <div className="flex flex-col gap-2 mb-4">
+              <p className={`text-xs uppercase tracking-[0.12em] ${subTextColor}`}>Статистика</p>
+              <h4 className={`text-xl font-bold ${headingColor}`}>Активность за последние 24 часа</h4>
+              <p className={`text-sm ${subTextColor}`}>Сводная информация о посещениях за сутки.</p>
+            </div>
+            {activities24h.length > 0 ? (
+              <div className="overflow-auto rounded-xl border border-white/10 bg-white/5">
+                <table className="min-w-[700px] w-full text-sm text-white/90">
+                  <thead className="bg-white/5 text-white/70 text-left">
+                    <tr>
+                      <th className="py-3 px-4 font-semibold">Участник</th>
+                      <th className="py-3 px-4 font-semibold">Входов</th>
+                      <th className="py-3 px-4 font-semibold">Общее время</th>
+                      <th className="py-3 px-4 font-semibold">Среднее время сессии</th>
+                      <th className="py-3 px-4 font-semibold">Последний вход</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {TEAM_MEMBERS.map((member) => {
+                      const memberActivities = activities24h.filter((a) => a.userId === member.id)
+                      
+                      const formatSessionDuration = (seconds?: number): string => {
+                        if (!seconds) return '—'
+                        const hours = Math.floor(seconds / 3600)
+                        const minutes = Math.floor((seconds % 3600) / 60)
+                        const secs = seconds % 60
+                        if (hours > 0) {
+                          return `${hours}ч ${minutes}м ${secs}с`
+                        } else if (minutes > 0) {
+                          return `${minutes}м ${secs}с`
+                        } else {
+                          return `${secs}с`
+                        }
+                      }
+                      
+                      const formatDateTime = (isoString: string): string => {
+                        try {
+                          const date = new Date(isoString)
+                          return formatDate(date, 'dd.MM.yyyy HH:mm')
+                        } catch {
+                          return isoString
+                        }
+                      }
+
+                      // Calculate statistics
+                      const totalSessions = memberActivities.length
+                      const totalDuration = memberActivities.reduce((sum, a) => {
+                        return sum + (a.sessionDuration || 0)
+                      }, 0)
+                      const avgDuration = totalSessions > 0 ? Math.floor(totalDuration / totalSessions) : 0
+                      
+                      // Get latest activity
+                      const latestActivity = memberActivities.length > 0
+                        ? memberActivities.reduce((latest, current) => {
+                            return new Date(current.loginAt) > new Date(latest.loginAt) ? current : latest
+                          })
+                        : null
+
+                      return (
+                        <tr
+                          key={member.id}
+                          className="border-t border-white/10 hover:bg-white/5 transition-colors"
+                        >
+                          <td className="py-3 px-4 font-semibold text-white whitespace-nowrap">{member.name}</td>
+                          <td className="py-3 px-4 text-white/80 whitespace-nowrap text-center">
+                            {totalSessions > 0 ? totalSessions : '—'}
+                          </td>
+                          <td className="py-3 px-4 text-white/80 whitespace-nowrap">
+                            {totalDuration > 0 ? formatSessionDuration(totalDuration) : '—'}
+                          </td>
+                          <td className="py-3 px-4 text-white/80 whitespace-nowrap">
+                            {avgDuration > 0 ? formatSessionDuration(avgDuration) : '—'}
+                          </td>
+                          <td className="py-3 px-4 text-white/80 whitespace-nowrap">
+                            {latestActivity ? formatDateTime(latestActivity.loginAt) : '—'}
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="rounded-xl border border-white/10 bg-white/5 p-4 text-white/70">
+                За последние 24 часа активности не зафиксировано.
+              </div>
+            )}
+          </div>
+
+          {/* Детали сессий за последние 24 часа */}
+          <div className="mt-6">
+            <div className="flex flex-col gap-2 mb-4">
+              <p className={`text-xs uppercase tracking-[0.12em] ${subTextColor}`}>Детали сессий</p>
+              <h4 className={`text-xl font-bold ${headingColor}`}>История посещений за последние 24 часа</h4>
+              <p className={`text-sm ${subTextColor}`}>Подробная информация по каждой сессии: время входа, длительность, просмотренные разделы.</p>
+            </div>
+            {activities24h.length > 0 ? (
+              <div className="space-y-4">
+                {TEAM_MEMBERS.map((member) => {
+                  const memberSessions = activities24h
+                    .filter((a) => a.userId === member.id)
+                    .sort((a, b) => new Date(b.loginAt).getTime() - new Date(a.loginAt).getTime())
+
+                  if (memberSessions.length === 0) return null
+
+                  const formatSessionDuration = (seconds?: number): string => {
+                    if (!seconds) return '—'
+                    const hours = Math.floor(seconds / 3600)
+                    const minutes = Math.floor((seconds % 3600) / 60)
+                    const secs = seconds % 60
+                    if (hours > 0) {
+                      return `${hours}ч ${minutes}м ${secs}с`
+                    } else if (minutes > 0) {
+                      return `${minutes}м ${secs}с`
+                    } else {
+                      return `${secs}с`
+                    }
+                  }
+
+                  const formatDateTime = (isoString: string): string => {
+                    try {
+                      const date = new Date(isoString)
+                      return formatDate(date, 'dd.MM.yyyy HH:mm')
+                    } catch {
+                      return isoString
+                    }
+                  }
+
+                  const formatTime = (isoString: string): string => {
+                    try {
+                      const date = new Date(isoString)
+                      return formatDate(date, 'HH:mm')
+                    } catch {
+                      return isoString
+                    }
+                  }
+
+                  return (
+                    <div key={member.id} className="rounded-xl border border-white/10 bg-white/5 overflow-hidden">
+                      <div className="p-4 border-b border-white/10">
+                        <h5 className={`text-lg font-bold ${headingColor}`}>{member.name}</h5>
+                        <p className={`text-sm ${subTextColor}`}>
+                          Всего сессий: <span className="font-semibold text-white">{memberSessions.length}</span>
+                        </p>
+                      </div>
+                      <div className="overflow-auto">
+                        <table className="min-w-[900px] w-full text-sm text-white/90">
+                          <thead className="bg-white/5 text-white/70 text-left">
+                            <tr>
+                              <th className="py-3 px-4 font-semibold">Вход</th>
+                              <th className="py-3 px-4 font-semibold">Выход</th>
+                              <th className="py-3 px-4 font-semibold">Длительность</th>
+                              <th className="py-3 px-4 font-semibold">Браузер</th>
+                              <th className="py-3 px-4 font-semibold">Просмотренные разделы</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {memberSessions.map((session) => (
+                              <tr
+                                key={session.id}
+                                className="border-t border-white/10 hover:bg-white/5 transition-colors"
+                              >
+                                <td className="py-3 px-4 text-white/80 whitespace-nowrap">
+                                  {formatDateTime(session.loginAt)}
+                                </td>
+                                <td className="py-3 px-4 text-white/80 whitespace-nowrap">
+                                  {session.logoutAt
+                                    ? formatDateTime(session.logoutAt)
+                                    : session.isActive
+                                    ? 'Активен'
+                                    : '—'}
+                                </td>
+                                <td className="py-3 px-4 text-white/80 whitespace-nowrap">
+                                  {formatSessionDuration(session.sessionDuration)}
+                                </td>
+                                <td className="py-3 px-4 text-white/80 whitespace-nowrap">
+                                  {session.browser}
+                                </td>
+                                <td className="py-3 px-4 text-white/80">
+                                  {session.pageViews && session.pageViews.length > 0 ? (
+                                    <div className="flex flex-wrap gap-2">
+                                      {session.pageViews.map((pageView, idx) => (
+                                        <div
+                                          key={idx}
+                                          className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-white/10 border border-white/20 text-xs"
+                                        >
+                                          <span className="font-medium">{pageView.sectionName}</span>
+                                          {pageView.duration && (
+                                            <span className="text-white/60">
+                                              ({formatSessionDuration(pageView.duration)})
+                                            </span>
+                                          )}
+                                          <span className="text-white/50 text-[10px]">
+                                            {formatTime(pageView.viewedAt)}
+                                          </span>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  ) : (
+                                    <span className="text-white/50">Нет данных</span>
+                                  )}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            ) : (
+              <div className="rounded-xl border border-white/10 bg-white/5 p-4 text-white/70">
+                За последние 24 часа сессий не зафиксировано.
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Referral stats */}

@@ -1122,6 +1122,7 @@ export const getUserActivities = async (userId?: string): Promise<UserActivity[]
       userAgent: data.userAgent || '',
       sessionDuration: data.sessionDuration || undefined,
       isActive: data.isActive !== false,
+      pageViews: data.pageViews || [],
     } as UserActivity
   })
 }
@@ -1143,6 +1144,7 @@ export const getLatestUserActivities = async (): Promise<UserActivity[]> => {
       userAgent: data.userAgent || '',
       sessionDuration: data.sessionDuration || undefined,
       isActive: data.isActive !== false,
+      pageViews: data.pageViews || [],
     } as UserActivity
   })
 
@@ -1177,6 +1179,38 @@ export const markActivityAsInactive = async (id: string, logoutAt: string, sessi
     logoutAt,
     sessionDuration,
     isActive: false,
+  })
+}
+
+export const getUserActivitiesLast24Hours = async (): Promise<UserActivity[]> => {
+  const activitiesRef = collection(db, 'userActivities')
+  const now = new Date()
+  const last24Hours = new Date(now.getTime() - 24 * 60 * 60 * 1000)
+  const last24HoursIso = last24Hours.toISOString()
+  
+  // Get all activities from last 24 hours
+  const q = query(activitiesRef, orderBy('loginAt', 'desc'))
+  const snapshot = await getDocs(q)
+  
+  const allActivities = snapshot.docs.map((docSnap) => {
+    const data = docSnap.data() as any
+    return {
+      id: docSnap.id,
+      userId: data.userId || '',
+      loginAt: data.loginAt || new Date().toISOString(),
+      logoutAt: data.logoutAt || undefined,
+      browser: data.browser || 'Unknown',
+      userAgent: data.userAgent || '',
+      sessionDuration: data.sessionDuration || undefined,
+      isActive: data.isActive !== false,
+      pageViews: data.pageViews || [],
+    } as UserActivity
+  })
+  
+  // Filter activities from last 24 hours
+  return allActivities.filter((activity) => {
+    const loginTime = new Date(activity.loginAt)
+    return loginTime >= last24Hours
   })
 }
 
