@@ -1186,7 +1186,6 @@ export const getUserActivitiesLast24Hours = async (): Promise<UserActivity[]> =>
   const activitiesRef = collection(db, 'userActivities')
   const now = new Date()
   const last24Hours = new Date(now.getTime() - 24 * 60 * 60 * 1000)
-  const last24HoursIso = last24Hours.toISOString()
   
   // Get all activities from last 24 hours
   const q = query(activitiesRef, orderBy('loginAt', 'desc'))
