@@ -15,6 +15,8 @@ import {
   addNote,
   updateNote,
   deleteNote,
+  getUserLogin,
+  addApprovalRequest,
 } from '@/services/firestoreService'
 import {
   getWeekRange,
@@ -74,6 +76,10 @@ export const Profile = () => {
   })
   const [loading, setLoading] = useState(true)
   const [loginCopied, setLoginCopied] = useState(false)
+  const [customLogin, setCustomLogin] = useState<string | null>(null)
+  const [newLogin, setNewLogin] = useState('')
+  const [isEditingLogin, setIsEditingLogin] = useState(false)
+  const [loginRequestPending, setLoginRequestPending] = useState(false)
 
   const userData = user || (isAdmin ? { name: 'Администратор', login: 'admin', password: ADMIN_PASSWORD } : null)
   const profileAvatar = user?.id ? TEAM_MEMBERS.find((m) => m.id === user.id)?.avatar : undefined
@@ -86,6 +92,26 @@ export const Profile = () => {
       loadProfileData()
     }
   }, [user, isAdmin])
+
+  // Refresh custom login when approval might be processed
+  useEffect(() => {
+    const checkLoginUpdates = async () => {
+      if (user?.id && !isAdmin) {
+        const userLogin = await getUserLogin(user.id)
+        if (userLogin) {
+          setCustomLogin(userLogin.login)
+        } else {
+          setCustomLogin(null)
+        }
+      }
+    }
+    
+    // Check every 30 seconds for login updates
+    const interval = setInterval(checkLoginUpdates, 30000)
+    checkLoginUpdates() // Check immediately
+    
+    return () => clearInterval(interval)
+  }, [user?.id, isAdmin])
 
   const loadProfileData = async () => {
     if (!user && !isAdmin) return
@@ -229,6 +255,12 @@ export const Profile = () => {
             const userNotes = await getUserNotes(user.id, isAdmin)
             setNotes(userNotes)
             saveLocalNotes(userNotes)
+            
+            // Load custom login
+            const userLogin = await getUserLogin(user.id)
+            if (userLogin) {
+              setCustomLogin(userLogin.login)
+            }
           } else if (isAdmin) {
             const allNotes = await getUserNotes(undefined, true)
             setNotes(allNotes)
@@ -362,10 +394,49 @@ export const Profile = () => {
   }
 
   const handleCopyLogin = () => {
-    if (userData?.login) {
-      navigator.clipboard.writeText(userData.login)
+    const loginToCopy = customLogin || userData?.login
+    if (loginToCopy) {
+      navigator.clipboard.writeText(loginToCopy)
       setLoginCopied(true)
       setTimeout(() => setLoginCopied(false), 2000)
+    }
+  }
+
+  const handleRequestLoginChange = async () => {
+    if (!user?.id || !newLogin.trim()) return
+    
+    const trimmedLogin = newLogin.trim()
+    const currentLogin = customLogin || userData?.login || ''
+    
+    // Check if login is different
+    if (trimmedLogin === currentLogin) {
+      setIsEditingLogin(false)
+      setNewLogin('')
+      return
+    }
+    
+    setLoginRequestPending(true)
+    try {
+      const currentUserLogin = await getUserLogin(user.id)
+      
+      await addApprovalRequest({
+        entity: 'login',
+        action: 'update',
+        authorId: user.id,
+        targetUserId: user.id,
+        before: currentUserLogin || { id: '', userId: user.id, login: currentLogin, createdAt: '', updatedAt: '' },
+        after: { id: '', userId: user.id, login: trimmedLogin, createdAt: '', updatedAt: '' },
+        comment: `Запрос на изменение ника с "${currentLogin}" на "${trimmedLogin}"`,
+      })
+      
+      setIsEditingLogin(false)
+      setNewLogin('')
+      alert('Запрос на изменение ника отправлен на согласование администратору')
+    } catch (error) {
+      console.error('Error requesting login change:', error)
+      alert('Ошибка при отправке запроса на изменение ника')
+    } finally {
+      setLoginRequestPending(false)
     }
   }
 
@@ -478,17 +549,72 @@ export const Profile = () => {
                       <p className={`mt-1 text-lg font-bold ${headingColor}`}>{userData.name}</p>
                     </div>
                     <div className={`p-4 rounded-xl border ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-white'} shadow-sm`}>
-                      <p className={`text-xs font-semibold uppercase tracking-wide ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Логин</p>
-                    <div className="flex items-center gap-2 mt-1">
-                      <p className={`text-lg font-bold ${headingColor}`}>{userData.login}</p>
-                      <button
-                        onClick={handleCopyLogin}
-                        className={`p-2 rounded-lg border transition ${loginCopied ? 'bg-[#4E6E49] text-white border-[#4E6E49]' : theme === 'dark' ? 'border-white/10 bg-white/5 hover:border-white/30' : 'border-gray-200 bg-white hover:border-gray-300'}`}
-                        title="Скопировать логин"
-                      >
-                        {loginCopied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                      </button>
-                    </div>
+                      <div className="flex items-center justify-between mb-1">
+                        <p className={`text-xs font-semibold uppercase tracking-wide ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Ник</p>
+                        {!isEditingLogin && user && !isAdmin && (
+                          <button
+                            onClick={() => {
+                              setIsEditingLogin(true)
+                              setNewLogin(customLogin || userData.login)
+                            }}
+                            className={`text-xs px-2 py-1 rounded-lg border transition ${theme === 'dark' ? 'border-white/10 bg-white/5 hover:border-white/30 text-white' : 'border-gray-200 bg-white hover:border-gray-300 text-gray-700'}`}
+                          >
+                            <Edit3 className="w-3 h-3 inline mr-1" />
+                            Изменить
+                          </button>
+                        )}
+                      </div>
+                      {isEditingLogin ? (
+                        <div className="space-y-2 mt-1">
+                          <input
+                            type="text"
+                            value={newLogin}
+                            onChange={(e) => setNewLogin(e.target.value)}
+                            placeholder="Введите новый ник"
+                            className={`w-full px-3 py-2 rounded-lg border ${theme === 'dark' ? 'border-white/10 bg-white/5 text-white' : 'border-gray-200 bg-white text-gray-900'} text-sm`}
+                            disabled={loginRequestPending}
+                          />
+                          <div className="flex gap-2">
+                            <button
+                              onClick={handleRequestLoginChange}
+                              disabled={loginRequestPending || !newLogin.trim()}
+                              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
+                                loginRequestPending || !newLogin.trim()
+                                  ? 'opacity-50 cursor-not-allowed'
+                                  : 'bg-[#4E6E49] text-white hover:bg-[#3d5639]'
+                              }`}
+                            >
+                              {loginRequestPending ? 'Отправка...' : 'Отправить на согласование'}
+                            </button>
+                            <button
+                              onClick={() => {
+                                setIsEditingLogin(false)
+                                setNewLogin('')
+                              }}
+                              disabled={loginRequestPending}
+                              className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition ${
+                                theme === 'dark' ? 'border-white/10 bg-white/5 hover:border-white/30 text-white' : 'border-gray-200 bg-white hover:border-gray-300 text-gray-700'
+                              }`}
+                            >
+                              Отмена
+                            </button>
+                          </div>
+                          <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                            Изменение ника требует согласования администратора
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2 mt-1">
+                          <p className={`text-lg font-bold ${headingColor}`}>@{customLogin || userData.login}</p>
+                          <button
+                            onClick={handleCopyLogin}
+                            className={`p-2 rounded-lg border transition ${loginCopied ? 'bg-[#4E6E49] text-white border-[#4E6E49]' : theme === 'dark' ? 'border-white/10 bg-white/5 hover:border-white/30' : 'border-gray-200 bg-white hover:border-gray-300'}`}
+                            title="Скопировать ник"
+                          >
+                            {loginCopied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
                   <div className="mt-4 space-y-2">

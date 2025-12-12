@@ -31,7 +31,10 @@ export const Earnings = () => {
   const getPoolValue = (earning: EarningsType) => earning.poolAmount || earning.amount * POOL_RATE
   const getNetValue = (earning: EarningsType) => Math.max(earning.amount - getPoolValue(earning), 0)
   const getParticipants = (earning: EarningsType) => earning.participants?.length ? earning.participants : [earning.userId]
-  const getUserName = (userId: string) => TEAM_MEMBERS.find((m) => m.id === userId)?.name || userId
+  const getUserName = (userId: string) => {
+    const { getUserLoginSync } = require('@/utils/userUtils')
+    return getUserLoginSync(userId) || userId
+  }
   const getCategoryIcon = (key: EarningsCategory, className = 'w-4 h-4') => {
     switch (key) {
       case 'memecoins':

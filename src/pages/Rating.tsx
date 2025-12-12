@@ -9,6 +9,7 @@ import { ReferralForm } from '@/components/Rating/ReferralForm'
 import { getRatingData, getEarnings, getDayStatuses, getReferrals, getWorkSlots, getWeeklyMessages, deleteReferral, addApprovalRequest, getLatestUserActivities, getUserActivitiesLast24Hours } from '@/services/firestoreService'
 import { getLastNDaysRange, getWeekRange, formatDate, calculateHours, countDaysInPeriod } from '@/utils/dateUtils'
 import { calculateRating, getRatingBreakdown } from '@/utils/ratingUtils'
+import { getUserLoginAsync, clearAllLoginCache } from '@/utils/userUtils'
 import { RatingData, Referral, TEAM_MEMBERS, UserActivity } from '@/types'
 
 export const Rating = () => {
@@ -199,7 +200,7 @@ export const Rating = () => {
   }, [ratings])
 
   const topMember = sortedRatings[0]
-  const topMemberName = topMember ? TEAM_MEMBERS.find((m) => m.id === topMember.userId)?.name || '—' : '—'
+  const topMemberName = topMember ? TEAM_MEMBERS.find((m) => m.id === topMember.userId)?.login || '—' : '—'
   const todayLabel = new Date().toLocaleDateString('ru-RU')
 
   type HeroTone = 'emerald' | 'amber' | 'blue' | 'slate' | 'purple' | 'pink' | 'indigo'
@@ -251,8 +252,22 @@ export const Rating = () => {
       : 'bg-gray-50 border-gray-200 text-gray-900'
   }
 
-  const getMemberNameById = (id: string) =>
-    TEAM_MEMBERS.find((m) => m.id === id)?.name || '—'
+  const getMemberNameById = (id: string) => {
+    // Use sync version for immediate display, will be updated when cache is populated
+    const { getUserLoginSync } = require('@/utils/userUtils')
+    return getUserLoginSync(id) || '—'
+  }
+  
+  // Load custom logins on mount
+  useEffect(() => {
+    const loadCustomLogins = async () => {
+      clearAllLoginCache()
+      for (const member of TEAM_MEMBERS) {
+        await getUserLoginAsync(member.id)
+      }
+    }
+    loadCustomLogins()
+  }, [])
 
   const handleAddReferral = () => {
     setActiveReferral(null)
@@ -474,7 +489,7 @@ export const Rating = () => {
                         key={member.id}
                         className="border-t border-white/10 hover:bg-white/5 transition-colors"
                       >
-                        <td className="py-3 px-4 font-semibold text-white whitespace-nowrap">{member.name}</td>
+                        <td className="py-3 px-4 font-semibold text-white whitespace-nowrap">@{member.login}</td>
                         <td className="py-3 px-4 text-white/80 whitespace-nowrap">
                           {activity ? formatDateTime(activity.loginAt) : '—'}
                         </td>
@@ -575,7 +590,7 @@ export const Rating = () => {
                           key={member.id}
                           className="border-t border-white/10 hover:bg-white/5 transition-colors"
                         >
-                          <td className="py-3 px-4 font-semibold text-white whitespace-nowrap">{member.name}</td>
+                          <td className="py-3 px-4 font-semibold text-white whitespace-nowrap">@{member.login}</td>
                           <td className="py-3 px-4 text-white/80 whitespace-nowrap text-center">
                             {totalSessions > 0 ? totalSessions : '—'}
                           </td>
@@ -601,134 +616,6 @@ export const Rating = () => {
             )}
           </div>
 
-          {/* Детали сессий за последние 24 часа */}
-          <div className="mt-6">
-            <div className="flex flex-col gap-2 mb-4">
-              <p className={`text-xs uppercase tracking-[0.12em] ${subTextColor}`}>Детали сессий</p>
-              <h4 className={`text-xl font-bold ${headingColor}`}>История посещений за последние 24 часа</h4>
-              <p className={`text-sm ${subTextColor}`}>Подробная информация по каждой сессии: время входа, длительность, просмотренные разделы.</p>
-            </div>
-            {activities24h.length > 0 ? (
-              <div className="space-y-4">
-                {TEAM_MEMBERS.map((member) => {
-                  const memberSessions = activities24h
-                    .filter((a) => a.userId === member.id)
-                    .sort((a, b) => new Date(b.loginAt).getTime() - new Date(a.loginAt).getTime())
-
-                  if (memberSessions.length === 0) return null
-
-                  const formatSessionDuration = (seconds?: number): string => {
-                    if (!seconds) return '—'
-                    const hours = Math.floor(seconds / 3600)
-                    const minutes = Math.floor((seconds % 3600) / 60)
-                    const secs = seconds % 60
-                    if (hours > 0) {
-                      return `${hours}ч ${minutes}м ${secs}с`
-                    } else if (minutes > 0) {
-                      return `${minutes}м ${secs}с`
-                    } else {
-                      return `${secs}с`
-                    }
-                  }
-
-                  const formatDateTime = (isoString: string): string => {
-                    try {
-                      const date = new Date(isoString)
-                      return formatDate(date, 'dd.MM.yyyy HH:mm')
-                    } catch {
-                      return isoString
-                    }
-                  }
-
-                  const formatTime = (isoString: string): string => {
-                    try {
-                      const date = new Date(isoString)
-                      return formatDate(date, 'HH:mm')
-                    } catch {
-                      return isoString
-                    }
-                  }
-
-                  return (
-                    <div key={member.id} className="rounded-xl border border-white/10 bg-white/5 overflow-hidden">
-                      <div className="p-4 border-b border-white/10">
-                        <h5 className={`text-lg font-bold ${headingColor}`}>{member.name}</h5>
-                        <p className={`text-sm ${subTextColor}`}>
-                          Всего сессий: <span className="font-semibold text-white">{memberSessions.length}</span>
-                        </p>
-                      </div>
-                      <div className="overflow-auto">
-                        <table className="min-w-[900px] w-full text-sm text-white/90">
-                          <thead className="bg-white/5 text-white/70 text-left">
-                            <tr>
-                              <th className="py-3 px-4 font-semibold">Вход</th>
-                              <th className="py-3 px-4 font-semibold">Выход</th>
-                              <th className="py-3 px-4 font-semibold">Длительность</th>
-                              <th className="py-3 px-4 font-semibold">Браузер</th>
-                              <th className="py-3 px-4 font-semibold">Просмотренные разделы</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {memberSessions.map((session) => (
-                              <tr
-                                key={session.id}
-                                className="border-t border-white/10 hover:bg-white/5 transition-colors"
-                              >
-                                <td className="py-3 px-4 text-white/80 whitespace-nowrap">
-                                  {formatDateTime(session.loginAt)}
-                                </td>
-                                <td className="py-3 px-4 text-white/80 whitespace-nowrap">
-                                  {session.logoutAt
-                                    ? formatDateTime(session.logoutAt)
-                                    : session.isActive
-                                    ? 'Активен'
-                                    : '—'}
-                                </td>
-                                <td className="py-3 px-4 text-white/80 whitespace-nowrap">
-                                  {formatSessionDuration(session.sessionDuration)}
-                                </td>
-                                <td className="py-3 px-4 text-white/80 whitespace-nowrap">
-                                  {session.browser}
-                                </td>
-                                <td className="py-3 px-4 text-white/80">
-                                  {session.pageViews && session.pageViews.length > 0 ? (
-                                    <div className="flex flex-wrap gap-2">
-                                      {session.pageViews.map((pageView, idx) => (
-                                        <div
-                                          key={idx}
-                                          className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-white/10 border border-white/20 text-xs"
-                                        >
-                                          <span className="font-medium">{pageView.sectionName}</span>
-                                          {pageView.duration && (
-                                            <span className="text-white/60">
-                                              ({formatSessionDuration(pageView.duration)})
-                                            </span>
-                                          )}
-                                          <span className="text-white/50 text-[10px]">
-                                            {formatTime(pageView.viewedAt)}
-                                          </span>
-                                        </div>
-                                      ))}
-                                    </div>
-                                  ) : (
-                                    <span className="text-white/50">Нет данных</span>
-                                  )}
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-            ) : (
-              <div className="rounded-xl border border-white/10 bg-white/5 p-4 text-white/70">
-                За последние 24 часа сессий не зафиксировано.
-              </div>
-            )}
-          </div>
         </div>
 
         {/* Referral stats */}

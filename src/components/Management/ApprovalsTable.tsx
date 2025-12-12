@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { CheckCircle2, Clock, ThumbsDown, CheckSquare, Square } from 'lucide-react'
 import { getApprovalRequests, approveApprovalRequest, rejectApprovalRequest } from '@/services/firestoreService'
-import { ApprovalRequest, DayStatus, TEAM_MEMBERS, WorkSlot } from '@/types'
+import { ApprovalRequest, DayStatus, TEAM_MEMBERS, WorkSlot, UserLogin } from '@/types'
 import { formatDate } from '@/utils/dateUtils'
 import { useAuthStore } from '@/store/authStore'
 
@@ -16,6 +16,7 @@ const entityLabelMap: Record<ApprovalRequest['entity'], string> = {
   status: 'Статус',
   earning: 'Заработок',
   referral: 'Реферал',
+  login: 'Ник',
 }
 
 const statusToneMap: Record<ApprovalRequest['status'], string> = {
@@ -149,6 +150,29 @@ export const ApprovalsTable = () => {
     }
   }
 
+  const handleRejectSelected = async () => {
+    if (bulkSubmitting || submittingId || selectedIds.length === 0) return
+    
+    const adminComment = prompt('Комментарий для отклонения выбранных заявок', 'Отклонено без комментария') || 'Отклонено без комментария'
+    if (adminComment === null) return // User cancelled
+    
+    setBulkSubmitting(true)
+    setError(null)
+    try {
+      for (const id of selectedIds) {
+        await rejectApprovalRequest(id, user?.id || 'admin', adminComment)
+      }
+      await loadApprovals()
+      setSelectedIds([])
+    } catch (e: any) {
+      console.error('Ошибка при отклонении выбранных', e)
+      setError(`Не удалось отклонить выбранные заявки: ${e?.message || e}`)
+      await loadApprovals()
+    } finally {
+      setBulkSubmitting(false)
+    }
+  }
+
   const toggleSelection = (id: string) => {
     setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]))
   }
@@ -165,9 +189,20 @@ export const ApprovalsTable = () => {
       const afterSlot = approval.after as WorkSlot | null
       return `${formatSlotPreview(beforeSlot)} → ${formatSlotPreview(afterSlot)}`
     }
-    const beforeStatus = approval.before as DayStatus | null
-    const afterStatus = approval.after as DayStatus | null
-    return `${formatStatusPreview(beforeStatus)} → ${formatStatusPreview(afterStatus)}`
+    if (approval.entity === 'status') {
+      const beforeStatus = approval.before as DayStatus | null
+      const afterStatus = approval.after as DayStatus | null
+      return `${formatStatusPreview(beforeStatus)} → ${formatStatusPreview(afterStatus)}`
+    }
+    if (approval.entity === 'login') {
+      const beforeLogin = approval.before as UserLogin | null
+      const afterLogin = approval.after as UserLogin | null
+      const beforeValue = beforeLogin?.login || '—'
+      const afterValue = afterLogin?.login || '—'
+      return `@${beforeValue} → @${afterValue}`
+    }
+    // For other entities (earning, referral), show basic info
+    return approval.after ? 'Изменение' : approval.before ? 'Удаление' : 'Создание'
   }
 
   if (loading) {
@@ -192,6 +227,13 @@ export const ApprovalsTable = () => {
             className="text-sm px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 text-white font-semibold"
           >
             {bulkSubmitting ? 'Подтверждаем...' : `Принять выбранные (${selectedIds.length})`}
+          </button>
+          <button
+            onClick={handleRejectSelected}
+            disabled={bulkSubmitting || submittingId !== null || selectedIds.length === 0}
+            className="text-sm px-3 py-2 rounded-lg bg-rose-600 hover:bg-rose-700 disabled:bg-rose-400 text-white font-semibold"
+          >
+            {bulkSubmitting ? 'Отклоняем...' : `Отклонить выбранные (${selectedIds.length})`}
           </button>
           <button
             onClick={loadApprovals}

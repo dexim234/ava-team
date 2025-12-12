@@ -84,7 +84,8 @@ export const EarningsList = ({ earnings, onEdit, onDelete }: EarningsListProps) 
   }
 
   const getUserName = (userId: string) => {
-    return TEAM_MEMBERS.find(m => m.id === userId)?.name || userId
+    const { getUserLoginSync } = require('@/utils/userUtils')
+    return getUserLoginSync(userId) || userId
   }
 
   const canEditOrDelete = (earning: Earnings) => {

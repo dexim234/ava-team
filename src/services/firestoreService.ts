@@ -12,7 +12,7 @@ import {
   orderBy,
 } from 'firebase/firestore'
 import { db } from '@/firebase/config'
-import { WorkSlot, DayStatus, Earnings, RatingData, Referral, Call, Task, TaskStatus, Note, TaskPriority, StageAssignee, ApprovalRequest, ApprovalStatus, UserActivity } from '@/types'
+import { WorkSlot, DayStatus, Earnings, RatingData, Referral, Call, Task, TaskStatus, Note, TaskPriority, StageAssignee, ApprovalRequest, ApprovalStatus, UserActivity, UserLogin } from '@/types'
 
 const DATA_RETENTION_DAYS = 30
 
@@ -370,6 +370,24 @@ const applyReferralChange = async (request: ApprovalRequest) => {
   }
 }
 
+const applyLoginChange = async (request: ApprovalRequest) => {
+  const afterL = request.after as UserLogin | null | undefined
+
+  switch (request.action) {
+    case 'update': {
+      if (!afterL || !afterL.login) throw new Error('No login payload for update')
+      await setUserLogin(request.targetUserId, afterL.login)
+      return
+    }
+    case 'delete': {
+      await deleteUserLogin(request.targetUserId)
+      return
+    }
+    default:
+      return
+  }
+}
+
 export const addApprovalRequest = async (
   request: Omit<ApprovalRequest, 'id' | 'status' | 'createdAt' | 'updatedAt' | 'reviewedBy'>
 ) => {
@@ -453,6 +471,11 @@ export const approveApprovalRequest = async (id: string, adminId: string, adminC
     await applyEarningChange(request)
   } else if (request.entity === 'referral') {
     await applyReferralChange(request)
+  } else if (request.entity === 'login') {
+    await applyLoginChange(request)
+    // Clear login cache after approval
+    const { clearLoginCache } = require('@/utils/userUtils')
+    clearLoginCache(request.targetUserId)
   }
 
   const approvePayload: Record<string, any> = {
@@ -1180,6 +1203,59 @@ export const markActivityAsInactive = async (id: string, logoutAt: string, sessi
     sessionDuration,
     isActive: false,
   })
+}
+
+// User Login (Custom Nickname) management
+export const getUserLogin = async (userId: string): Promise<UserLogin | null> => {
+  const loginsRef = collection(db, 'userLogins')
+  const q = query(loginsRef, where('userId', '==', userId))
+  const snapshot = await getDocs(q)
+  
+  if (snapshot.empty) return null
+  
+  const data = snapshot.docs[0].data() as any
+  return {
+    id: snapshot.docs[0].id,
+    userId: data.userId || '',
+    login: data.login || '',
+    createdAt: data.createdAt || new Date().toISOString(),
+    updatedAt: data.updatedAt || new Date().toISOString(),
+  }
+}
+
+export const getUserLoginValue = async (userId: string): Promise<string | null> => {
+  const userLogin = await getUserLogin(userId)
+  return userLogin?.login || null
+}
+
+export const setUserLogin = async (userId: string, login: string): Promise<string> => {
+  const loginsRef = collection(db, 'userLogins')
+  const existing = await getUserLogin(userId)
+  const now = new Date().toISOString()
+  
+  if (existing) {
+    const ref = doc(db, 'userLogins', existing.id)
+    await updateDoc(ref, {
+      login,
+      updatedAt: now,
+    })
+    return existing.id
+  } else {
+    const res = await addDoc(loginsRef, {
+      userId,
+      login,
+      createdAt: now,
+      updatedAt: now,
+    })
+    return res.id
+  }
+}
+
+export const deleteUserLogin = async (userId: string): Promise<void> => {
+  const existing = await getUserLogin(userId)
+  if (existing) {
+    await deleteDoc(doc(db, 'userLogins', existing.id))
+  }
 }
 
 export const getUserActivitiesLast24Hours = async (): Promise<UserActivity[]> => {

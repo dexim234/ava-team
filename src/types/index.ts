@@ -37,9 +37,17 @@ export interface DayStatus {
   endDate?: string // for multi-day statuses
 }
 
-export type ApprovalEntity = 'slot' | 'status' | 'earning' | 'referral'
+export type ApprovalEntity = 'slot' | 'status' | 'earning' | 'referral' | 'login'
 export type ApprovalAction = 'create' | 'update' | 'delete'
 export type ApprovalStatus = 'pending' | 'approved' | 'rejected'
+
+export interface UserLogin {
+  id: string
+  userId: string
+  login: string // Custom login (nickname)
+  createdAt: string
+  updatedAt: string
+}
 
 export interface ApprovalRequest {
   id: string
@@ -48,8 +56,8 @@ export interface ApprovalRequest {
   status: ApprovalStatus
   authorId: string
   targetUserId: string
-  before?: WorkSlot | DayStatus | Earnings | Referral | null
-  after?: WorkSlot | DayStatus | Earnings | Referral | null
+  before?: WorkSlot | DayStatus | Earnings | Referral | UserLogin | null
+  after?: WorkSlot | DayStatus | Earnings | Referral | UserLogin | null
   comment?: string // note from author
   adminComment?: string // decision note
   reviewedBy?: string

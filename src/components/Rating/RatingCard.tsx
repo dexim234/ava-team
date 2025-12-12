@@ -208,7 +208,6 @@ export const RatingCard = ({ rating, place }: RatingCardProps) => {
               <h3 className={`text-2xl font-bold ${headingColor} truncate`}>
                 @{member?.login || 'unknown'}
               </h3>
-              {member?.name && <span className={`text-xs ${mutedColor}`}>{member.name}</span>}
             </div>
             <div className="flex items-center gap-2 mt-1">
               <span
