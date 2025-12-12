@@ -44,7 +44,6 @@ export const TaskCard = ({ task, onEdit, onDelete, onUpdate }: TaskCardProps) =>
   const categoryInfo = TASK_CATEGORIES[task.category]
   const statusInfo = TASK_STATUSES[task.status]
   const CategoryIcon = CATEGORY_ICONS[task.category]
-  const createdByUser = TEAM_MEMBERS.find((m) => m.id === task.createdBy)
   const assignees =
     task.assignees && task.assignees.length > 0
       ? task.assignees
