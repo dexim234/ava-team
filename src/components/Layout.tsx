@@ -88,7 +88,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
             return {
               id: `approval_${a.id}`,
               status: a.status,
-              text: `${a.entity === 'slot' ? 'Слот' : 'Статус'} • ${a.status === 'approved' ? 'Подтверждено' : a.status === 'rejected' ? 'Отклонено' : 'На согласовании'}${a.adminComment ? `: ${a.adminComment}` : ''}`,
+              text: `${a.entity === 'slot' ? 'Слот' : a.entity === 'status' ? 'Статус' : a.entity === 'login' ? 'Ник' : a.entity === 'earning' ? 'Заработок' : a.entity === 'referral' ? 'Реферал' : 'Изменение'} • ${a.status === 'approved' ? 'Подтверждено' : a.status === 'rejected' ? 'Отклонено' : 'На согласовании'}${a.adminComment ? `: ${a.adminComment}` : ''}`,
               time: formatDate(a.updatedAt || a.createdAt || new Date().toISOString(), 'dd.MM HH:mm'),
               timestamp: Number.isNaN(timestamp) ? now : timestamp,
             }

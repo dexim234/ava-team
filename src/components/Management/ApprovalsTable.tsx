@@ -195,6 +195,16 @@ export const ApprovalsTable = () => {
   }
 
   const renderChangePreview = (approval: ApprovalRequest) => {
+    // Check entity type first to avoid incorrect type casting
+    // IMPORTANT: Check 'login' entity BEFORE 'status' to prevent incorrect type inference
+    if (approval.entity === 'login') {
+      const beforeData = approval.before as any
+      const afterData = approval.after as any
+      // Read nickname field directly from data object
+      const beforeValue = beforeData?.nickname || '—'
+      const afterValue = afterData?.nickname || '—'
+      return `${beforeValue} → ${afterValue}`
+    }
     if (approval.entity === 'slot') {
       const beforeSlot = approval.before as WorkSlot | null
       const afterSlot = approval.after as WorkSlot | null
@@ -204,13 +214,6 @@ export const ApprovalsTable = () => {
       const beforeStatus = approval.before as DayStatus | null
       const afterStatus = approval.after as DayStatus | null
       return `${formatStatusPreview(beforeStatus)} → ${formatStatusPreview(afterStatus)}`
-    }
-    if (approval.entity === 'login') {
-      const beforeNickname = approval.before as UserNickname | null
-      const afterNickname = approval.after as UserNickname | null
-      const beforeValue = beforeNickname?.nickname || '—'
-      const afterValue = afterNickname?.nickname || '—'
-      return `${beforeValue} → ${afterValue}`
     }
     // For other entities (earning, referral), show basic info
     return approval.after ? 'Изменение' : approval.before ? 'Удаление' : 'Создание'
