@@ -6,10 +6,10 @@ import { useAuthStore } from '@/store/authStore'
 import { useAdminStore } from '@/store/adminStore'
 import { RatingCard } from '@/components/Rating/RatingCard'
 import { ReferralForm } from '@/components/Rating/ReferralForm'
-import { getRatingData, getEarnings, getDayStatuses, getReferrals, getWorkSlots, getWeeklyMessages, deleteReferral, addApprovalRequest } from '@/services/firestoreService'
+import { getRatingData, getEarnings, getDayStatuses, getReferrals, getWorkSlots, getWeeklyMessages, deleteReferral, addApprovalRequest, getLatestUserActivities } from '@/services/firestoreService'
 import { getLastNDaysRange, getWeekRange, formatDate, calculateHours, countDaysInPeriod } from '@/utils/dateUtils'
 import { calculateRating, getRatingBreakdown } from '@/utils/ratingUtils'
-import { RatingData, Referral, TEAM_MEMBERS } from '@/types'
+import { RatingData, Referral, TEAM_MEMBERS, UserActivity } from '@/types'
 
 export const Rating = () => {
   const { theme } = useThemeStore()
@@ -21,6 +21,7 @@ export const Rating = () => {
   const [referrals, setReferrals] = useState<Referral[]>([])
   const [showReferralForm, setShowReferralForm] = useState(false)
   const [activeReferral, setActiveReferral] = useState<Referral | null>(null)
+  const [userActivities, setUserActivities] = useState<UserActivity[]>([])
 
   useEffect(() => {
     loadRatings()
@@ -137,6 +138,10 @@ export const Rating = () => {
       // Sort by rating
       allRatings.sort((a, b) => b.rating - a.rating)
       setRatings(allRatings)
+
+      // Load user activities
+      const activities = await getLatestUserActivities()
+      setUserActivities(activities)
     } catch (error) {
       console.error('Error loading ratings:', error)
     } finally {
@@ -412,6 +417,93 @@ export const Rating = () => {
               )
             })}
           </div>
+        </div>
+
+        {/* Последняя активность на сайте */}
+        <div className={`rounded-2xl p-6 sm:p-7 ${cardBg} ${cardShadow} border ${calmBorder}`}>
+          <div className="flex flex-col gap-2 mb-4">
+            <p className={`text-xs uppercase tracking-[0.12em] ${subTextColor}`}>Активность</p>
+            <h3 className={`text-2xl font-bold ${headingColor}`}>Последняя активность на сайте</h3>
+            <p className={`text-sm ${subTextColor}`}>Информация о последнем посещении каждого участника.</p>
+          </div>
+          {userActivities.length > 0 ? (
+            <div className="overflow-auto rounded-xl border border-white/10 bg-white/5">
+              <table className="min-w-[800px] w-full text-sm text-white/90">
+                <thead className="bg-white/5 text-white/70 text-left">
+                  <tr>
+                    <th className="py-3 px-4 font-semibold">Участник</th>
+                    <th className="py-3 px-4 font-semibold">Последний вход</th>
+                    <th className="py-3 px-4 font-semibold">Браузер</th>
+                    <th className="py-3 px-4 font-semibold">Время на сайте</th>
+                    <th className="py-3 px-4 font-semibold">Выход</th>
+                    <th className="py-3 px-4 font-semibold">Статус</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {TEAM_MEMBERS.map((member) => {
+                    const activity = userActivities.find((a) => a.userId === member.id)
+                    const formatSessionDuration = (seconds?: number): string => {
+                      if (!seconds) return '—'
+                      const hours = Math.floor(seconds / 3600)
+                      const minutes = Math.floor((seconds % 3600) / 60)
+                      const secs = seconds % 60
+                      if (hours > 0) {
+                        return `${hours}ч ${minutes}м ${secs}с`
+                      } else if (minutes > 0) {
+                        return `${minutes}м ${secs}с`
+                      } else {
+                        return `${secs}с`
+                      }
+                    }
+                    const formatDateTime = (isoString: string): string => {
+                      try {
+                        const date = new Date(isoString)
+                        return formatDate(date, 'dd.MM.yyyy HH:mm')
+                      } catch {
+                        return isoString
+                      }
+                    }
+
+                    return (
+                      <tr
+                        key={member.id}
+                        className="border-t border-white/10 hover:bg-white/5 transition-colors"
+                      >
+                        <td className="py-3 px-4 font-semibold text-white whitespace-nowrap">{member.name}</td>
+                        <td className="py-3 px-4 text-white/80 whitespace-nowrap">
+                          {activity ? formatDateTime(activity.loginAt) : '—'}
+                        </td>
+                        <td className="py-3 px-4 text-white/80 whitespace-nowrap">
+                          {activity?.browser || '—'}
+                        </td>
+                        <td className="py-3 px-4 text-white/80 whitespace-nowrap">
+                          {activity ? formatSessionDuration(activity.sessionDuration) : '—'}
+                        </td>
+                        <td className="py-3 px-4 text-white/80 whitespace-nowrap">
+                          {activity?.logoutAt ? formatDateTime(activity.logoutAt) : activity?.isActive ? 'Активен' : '—'}
+                        </td>
+                        <td className="py-3 px-4 whitespace-nowrap">
+                          {activity?.isActive ? (
+                            <span className="px-2 py-1 rounded-lg text-xs font-semibold bg-emerald-500/20 text-emerald-200 border border-emerald-400/30">
+                              Онлайн
+                            </span>
+                          ) : (
+                            <span className="px-2 py-1 rounded-lg text-xs font-semibold bg-gray-500/20 text-gray-300 border border-gray-400/30">
+                              Офлайн
+                            </span>
+                          )}
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="rounded-xl border border-white/10 bg-white/5 p-4 text-white/70">
+              Данные об активности пока отсутствуют.
+            </div>
+          )}
         </div>
 
         {/* Referral stats */}

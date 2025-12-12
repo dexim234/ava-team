@@ -24,6 +24,7 @@ import {
 import type { LucideIcon } from 'lucide-react'
 import logo from '@/assets/logo.png'
 import { useState, useEffect } from 'react'
+import { useUserActivity } from '@/hooks/useUserActivity'
 
 export const Layout = ({ children }: { children: React.ReactNode }) => {
   const { theme, toggleTheme } = useThemeStore()
@@ -33,6 +34,9 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
   const [showFunctionalityMenu, setShowFunctionalityMenu] = useState(false)
   const [showNotifications, setShowNotifications] = useState(false)
   const [notifications, setNotifications] = useState<{ id: string; text: string; time: string; status: string; timestamp?: number }[]>([])
+  
+  // Track user activity
+  useUserActivity()
 
   const functionalitySubItems: { path: string; label: string; icon: LucideIcon }[] = [
     { path: '/management', label: 'Расписание', icon: Calendar },

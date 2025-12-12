@@ -334,6 +334,18 @@ export interface Note {
   updatedAt: string
 }
 
+// User activity tracking
+export interface UserActivity {
+  id: string
+  userId: string
+  loginAt: string // ISO timestamp when user logged in/opened site
+  logoutAt?: string // ISO timestamp when user closed tab/navigated away
+  browser: string // Browser name (Chrome, Firefox, Safari, etc.)
+  userAgent: string // Full user agent string
+  sessionDuration?: number // Duration in seconds
+  isActive: boolean // Whether session is still active
+}
+
 // Team members
 export const TEAM_MEMBERS: User[] = [
   { id: '1', name: 'Артём', login: 'artyom03', password: '248artdex', avatar: '/avatars/artyom.jpg' },

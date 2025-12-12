@@ -12,7 +12,7 @@ import {
   orderBy,
 } from 'firebase/firestore'
 import { db } from '@/firebase/config'
-import { WorkSlot, DayStatus, Earnings, RatingData, Referral, Call, Task, TaskStatus, Note, TaskPriority, StageAssignee, ApprovalRequest, ApprovalStatus } from '@/types'
+import { WorkSlot, DayStatus, Earnings, RatingData, Referral, Call, Task, TaskStatus, Note, TaskPriority, StageAssignee, ApprovalRequest, ApprovalStatus, UserActivity } from '@/types'
 
 const DATA_RETENTION_DAYS = 30
 
@@ -1097,5 +1097,86 @@ export const updateNote = async (id: string, updates: Partial<Omit<Note, 'id' | 
 export const deleteNote = async (id: string): Promise<void> => {
   const noteRef = doc(db, 'notes', id)
   await deleteDoc(noteRef)
+}
+
+// User Activity tracking
+export const getUserActivities = async (userId?: string): Promise<UserActivity[]> => {
+  const activitiesRef = collection(db, 'userActivities')
+  let q: ReturnType<typeof query>
+
+  if (userId) {
+    q = query(activitiesRef, where('userId', '==', userId), orderBy('loginAt', 'desc'))
+  } else {
+    q = query(activitiesRef, orderBy('loginAt', 'desc'))
+  }
+
+  const snapshot = await getDocs(q)
+  return snapshot.docs.map((docSnap) => {
+    const data = docSnap.data()
+    return {
+      id: docSnap.id,
+      userId: data.userId || '',
+      loginAt: data.loginAt || new Date().toISOString(),
+      logoutAt: data.logoutAt || undefined,
+      browser: data.browser || 'Unknown',
+      userAgent: data.userAgent || '',
+      sessionDuration: data.sessionDuration || undefined,
+      isActive: data.isActive !== false,
+    } as UserActivity
+  })
+}
+
+export const getLatestUserActivities = async (): Promise<UserActivity[]> => {
+  const activitiesRef = collection(db, 'userActivities')
+  // Get all activities, then group by userId and get latest for each
+  const q = query(activitiesRef, orderBy('loginAt', 'desc'))
+  const snapshot = await getDocs(q)
+  
+  const allActivities = snapshot.docs.map((docSnap) => {
+    const data = docSnap.data()
+    return {
+      id: docSnap.id,
+      userId: data.userId || '',
+      loginAt: data.loginAt || new Date().toISOString(),
+      logoutAt: data.logoutAt || undefined,
+      browser: data.browser || 'Unknown',
+      userAgent: data.userAgent || '',
+      sessionDuration: data.sessionDuration || undefined,
+      isActive: data.isActive !== false,
+    } as UserActivity
+  })
+
+  // Group by userId and get latest activity for each user
+  const latestByUser = new Map<string, UserActivity>()
+  for (const activity of allActivities) {
+    const existing = latestByUser.get(activity.userId)
+    if (!existing || new Date(activity.loginAt) > new Date(existing.loginAt)) {
+      latestByUser.set(activity.userId, activity)
+    }
+  }
+
+  return Array.from(latestByUser.values())
+}
+
+export const addUserActivity = async (activity: Omit<UserActivity, 'id'>): Promise<string> => {
+  const activitiesRef = collection(db, 'userActivities')
+  const res = await addDoc(activitiesRef, activity)
+  return res.id
+}
+
+export const updateUserActivity = async (id: string, updates: Partial<Omit<UserActivity, 'id' | 'userId'>>): Promise<void> => {
+  const activityRef = doc(db, 'userActivities', id)
+  const cleanUpdates = Object.fromEntries(
+    Object.entries(updates).filter(([_, value]) => value !== undefined)
+  )
+  await updateDoc(activityRef, cleanUpdates as any)
+}
+
+export const markActivityAsInactive = async (id: string, logoutAt: string, sessionDuration: number): Promise<void> => {
+  await updateUserActivity(id, {
+    logoutAt,
+    sessionDuration,
+    isActive: false,
+  })
 }
 
