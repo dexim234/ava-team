@@ -45,6 +45,7 @@ export const useUserActivity = () => {
           browser,
           userAgent,
           isActive: true,
+          pageViews: [],
         })
         activityIdRef.current = activityId
       } catch (error) {

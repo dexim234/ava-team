@@ -5,6 +5,7 @@ import { RatingData, TEAM_MEMBERS } from '@/types'
 import { formatHours } from '@/utils/dateUtils'
 import { UserNickname } from '@/components/UserNickname'
 import { Calendar, Heart, Plane, Clock, DollarSign, Users, MessageSquare, TrendingUp, Info } from 'lucide-react'
+import { useState } from 'react'
 
 interface RatingCardProps {
   rating: RatingData & { breakdown?: ReturnType<typeof getRatingBreakdown> }
