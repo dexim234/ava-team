@@ -70,4 +70,27 @@ export const getUserLoginAsync = getUserNicknameAsync
 export const clearLoginCache = clearNicknameCache
 export const clearAllLoginCache = clearAllNicknameCache
 
+/**
+ * React hook for user nickname that automatically updates when nickname changes
+ */
+import { useState, useEffect } from 'react'
+
+export const useUserNickname = (userId: string): string => {
+  const [nickname, setNickname] = useState(() => getUserNicknameSync(userId))
+
+  useEffect(() => {
+    const handleNicknameUpdate = (event: Event) => {
+      const customEvent = event as CustomEvent<{ userId: string }>
+      const { userId: updatedUserId } = customEvent.detail || {}
+      if (updatedUserId === userId) {
+        setNickname(getUserNicknameSync(userId))
+      }
+    }
+
+    window.addEventListener('nicknameUpdated', handleNicknameUpdate)
+    return () => window.removeEventListener('nicknameUpdated', handleNicknameUpdate)
+  }, [userId])
+
+  return nickname
+}
 
