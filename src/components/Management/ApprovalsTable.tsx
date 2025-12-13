@@ -219,9 +219,9 @@ export const ApprovalsTable = () => {
       return `${formatSlotPreview(beforeSlot)} → ${formatSlotPreview(afterSlot)}`
     }
     if (approval.entity === 'status') {
-      const beforeStatus = approval.before as DayStatus | null
-      const afterStatus = approval.after as DayStatus | null
-      return `${formatStatusPreview(beforeStatus)} → ${formatStatusPreview(afterStatus)}`
+    const beforeStatus = approval.before as DayStatus | null
+    const afterStatus = approval.after as DayStatus | null
+    return `${formatStatusPreview(beforeStatus)} → ${formatStatusPreview(afterStatus)}`
     }
     // For other entities (earning, referral), show basic info
     return approval.after ? 'Изменение' : approval.before ? 'Удаление' : 'Создание'

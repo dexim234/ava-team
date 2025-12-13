@@ -630,16 +630,16 @@ export const Profile = () => {
                     </div>
                     <div className={`p-4 rounded-xl border ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-white'} shadow-sm`}>
                       <p className={`text-xs font-semibold uppercase tracking-wide ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Логин</p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <p className={`text-lg font-bold ${headingColor}`}>{userData.login}</p>
-                        <button
-                          onClick={handleCopyLogin}
-                          className={`p-2 rounded-lg border transition ${loginCopied ? 'bg-[#4E6E49] text-white border-[#4E6E49]' : theme === 'dark' ? 'border-white/10 bg-white/5 hover:border-white/30' : 'border-gray-200 bg-white hover:border-gray-300'}`}
-                          title="Скопировать логин"
-                        >
-                          {loginCopied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                        </button>
-                      </div>
+                    <div className="flex items-center gap-2 mt-1">
+                      <p className={`text-lg font-bold ${headingColor}`}>{userData.login}</p>
+                      <button
+                        onClick={handleCopyLogin}
+                        className={`p-2 rounded-lg border transition ${loginCopied ? 'bg-[#4E6E49] text-white border-[#4E6E49]' : theme === 'dark' ? 'border-white/10 bg-white/5 hover:border-white/30' : 'border-gray-200 bg-white hover:border-gray-300'}`}
+                        title="Скопировать логин"
+                      >
+                        {loginCopied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                      </button>
+                    </div>
                     </div>
                   </div>
                   <div className="mt-4 space-y-2">

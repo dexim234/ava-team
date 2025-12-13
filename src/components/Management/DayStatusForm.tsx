@@ -290,8 +290,8 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
         weekDayoffs = weekDayoffs.filter(s => s.id !== status.id)
       }
 
-      if (weekDayoffs.length >= 2) {
-        return 'Выходные на неделе ограничены максимум 2 днями'
+      if (weekDayoffs.length >= 4) {
+        return 'Выходные на неделе ограничены максимум 4 днями'
       }
 
       const allStatuses = await getDayStatuses()

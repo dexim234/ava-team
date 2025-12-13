@@ -37,17 +37,9 @@ export interface DayStatus {
   endDate?: string // for multi-day statuses
 }
 
-export type ApprovalEntity = 'slot' | 'status' | 'earning' | 'referral' | 'login'
+export type ApprovalEntity = 'slot' | 'status' | 'earning' | 'referral'
 export type ApprovalAction = 'create' | 'update' | 'delete'
 export type ApprovalStatus = 'pending' | 'approved' | 'rejected'
-
-export interface UserNickname {
-  id: string
-  userId: string
-  nickname: string // Custom nickname (отображается в расписании и везде на сайте)
-  createdAt: string
-  updatedAt: string
-}
 
 export interface ApprovalRequest {
   id: string
@@ -56,8 +48,8 @@ export interface ApprovalRequest {
   status: ApprovalStatus
   authorId: string
   targetUserId: string
-  before?: WorkSlot | DayStatus | Earnings | Referral | UserNickname | null
-  after?: WorkSlot | DayStatus | Earnings | Referral | UserNickname | null
+  before?: WorkSlot | DayStatus | Earnings | Referral | null
+  after?: WorkSlot | DayStatus | Earnings | Referral | null
   comment?: string // note from author
   adminComment?: string // decision note
   reviewedBy?: string
@@ -340,26 +332,6 @@ export interface Note {
   priority: 'low' | 'medium' | 'high'
   createdAt: string
   updatedAt: string
-}
-
-// User activity tracking
-export interface PageView {
-  path: string // Route path (e.g., /management, /rating, /tasks)
-  sectionName: string // Human-readable section name
-  viewedAt: string // ISO timestamp when user visited this page
-  duration?: number // Time spent on this page in seconds
-}
-
-export interface UserActivity {
-  id: string
-  userId: string
-  loginAt: string // ISO timestamp when user logged in/opened site
-  logoutAt?: string // ISO timestamp when user closed tab/navigated away
-  browser: string // Browser name (Chrome, Firefox, Safari, etc.)
-  userAgent: string // Full user agent string
-  sessionDuration?: number // Duration in seconds
-  isActive: boolean // Whether session is still active
-  pageViews?: PageView[] // History of pages/sections viewed during this session
 }
 
 // Team members

@@ -27,8 +27,8 @@ export const calculateRating = (
 ): number => {
   let rating = 0
 
-  // Выходные: нет или <=2 дня в неделю = 10%
-  if (data.daysOff === 0 || data.daysOff <= 2) {
+  // Выходные: нет или <=3 дня в неделю = 10%
+  if (data.daysOff === 0 || data.daysOff <= 3) {
     rating += 10
   }
 
@@ -74,7 +74,7 @@ export const getRatingBreakdown = (
   weeklyEarnings: number = 0,
   weeklyMessages: number = 0
 ): RatingBreakdown => {
-  const daysOffPoints = (data.daysOff === 0 || data.daysOff <= 2) ? 10 : 0
+  const daysOffPoints = (data.daysOff === 0 || data.daysOff <= 3) ? 10 : 0
   const sickDaysPoints = data.sickDays <= 7 ? 10 : 0
   const vacationDaysPoints = data.vacationDays <= 7 ? 10 : 0
   
