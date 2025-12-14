@@ -498,14 +498,6 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
     }
 
     const createSlotForUserDate = async (targetUserId: string, dateStr: string, participants: string[] = [targetUserId]) => {
-      // Check restrictions for slot creation
-      if (!isAdmin) {
-        const restrictionCheck = await checkRestriction('slots', dateStr)
-        if (restrictionCheck.restricted) {
-          throw new Error(`[${getMemberName(targetUserId)} • ${formatDate(new Date(dateStr), 'dd.MM.yyyy')}] ${restrictionCheck.reason}`)
-        }
-      }
-
       // Пересчитываем endDate под каждую целевую дату, чтобы слоты, переходящие через полночь,
       // сдвигались на следующий день именно относительно текущей даты цикла.
       const adjustedSlots: TimeSlot[] = slots.map((s) => {
@@ -521,6 +513,28 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
         // Если у слота задан endDate, но разница 0, оставляем как есть; если была вручную очищена — убираем поле.
         return { ...s, ...(s.endDate ? { endDate: s.endDate } : {}) }
       })
+
+      // Check restrictions for slot creation
+      if (!isAdmin) {
+        // Get the earliest slot start time for time-based restrictions
+        const earliestSlotStart = adjustedSlots.length > 0 ? adjustedSlots[0].start : undefined
+
+        // Check restriction for the main date
+        const restrictionCheck = await checkRestriction('slots', dateStr, earliestSlotStart)
+        if (restrictionCheck.restricted) {
+          throw new Error(`[${getMemberName(targetUserId)} • ${formatDate(new Date(dateStr), 'dd.MM.yyyy')}] ${restrictionCheck.reason}`)
+        }
+
+        // For slots that cross midnight, also check the next day
+        for (const slot of adjustedSlots) {
+          if (slot.endDate && slot.endDate !== dateStr) {
+            const nextDayCheck = await checkRestriction('slots', slot.endDate)
+            if (nextDayCheck.restricted) {
+              throw new Error(`[${getMemberName(targetUserId)} • ${formatDate(new Date(slot.endDate), 'dd.MM.yyyy')}] ${nextDayCheck.reason}`)
+            }
+          }
+        }
+      }
 
       if (!isAdmin) {
         const validationError = await validateSlot(dateStr, adjustedSlots)

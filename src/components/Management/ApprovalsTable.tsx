@@ -5,6 +5,7 @@ import { ApprovalRequest, DayStatus, WorkSlot } from '@/types'
 import { formatDate } from '@/utils/dateUtils'
 import { getUserNicknameSync, clearNicknameCache, getUserNicknameAsync } from '@/utils/userUtils'
 import { useAuthStore } from '@/store/authStore'
+import { useAdminStore } from '@/store/adminStore'
 
 const actionLabelMap: Record<ApprovalRequest['action'], string> = {
   create: 'Создание',
@@ -74,6 +75,7 @@ const formatStatusPreview = (status?: DayStatus | null) => {
 
 export const ApprovalsTable = () => {
   const { user } = useAuthStore()
+  const { isAdmin } = useAdminStore()
   const [approvals, setApprovals] = useState<ApprovalRequest[]>([])
   const [loading, setLoading] = useState(true)
   const [submittingId, setSubmittingId] = useState<string | null>(null)
@@ -86,7 +88,18 @@ export const ApprovalsTable = () => {
     setError(null)
     try {
       const data = await getApprovalRequests()
-      setApprovals(data)
+
+      // For admin, limit to 60 hours (to avoid showing too old requests)
+      let filteredData = data
+      if (isAdmin) {
+        const sixtyHoursAgo = new Date()
+        sixtyHoursAgo.setHours(sixtyHoursAgo.getHours() - 60)
+        filteredData = data.filter(approval =>
+          new Date(approval.createdAt) >= sixtyHoursAgo
+        )
+      }
+
+      setApprovals(filteredData)
     } catch (error) {
       console.error('Не удалось загрузить заявки на согласование', error)
       setError('Не удалось загрузить заявки')
