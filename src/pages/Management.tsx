@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import { Layout } from '@/components/Layout'
 import { useThemeStore } from '@/store/themeStore'
+import { useAdminStore } from '@/store/adminStore'
 import { ManagementTable } from '@/components/Management/ManagementTable'
 import { ManagementWeekView } from '@/components/Management/ManagementWeekView'
 import { SlotForm } from '@/components/Management/SlotForm'
@@ -34,6 +35,7 @@ type ActionType = 'add-slot' | 'delete-slots' | 'absence' | 'restriction'
 
 export const Management = () => {
   const { theme } = useThemeStore()
+  const { isAdmin } = useAdminStore()
   const [viewMode, setViewMode] = useState<ViewMode>('week')
   const [slotFilter, setSlotFilter] = useState<SlotFilter>('all')
   const [showSlotForm, setShowSlotForm] = useState(false)

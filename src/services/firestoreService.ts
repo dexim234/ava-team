@@ -12,7 +12,7 @@ import {
   orderBy,
 } from 'firebase/firestore'
 import { db } from '@/firebase/config'
-import { WorkSlot, DayStatus, Earnings, RatingData, Referral, Call, Task, TaskStatus, Note, TaskPriority, StageAssignee, ApprovalRequest, ApprovalStatus, UserActivity, UserNickname, Restriction } from '@/types'
+import { WorkSlot, DayStatus, Earnings, RatingData, Referral, Call, Task, TaskStatus, Note, TaskPriority, StageAssignee, ApprovalRequest, ApprovalStatus, UserActivity, UserNickname, Restriction, RestrictionType } from '@/types'
 import { clearNicknameCache, getUserNicknameAsync } from '@/utils/userUtils'
 import { formatDate } from '@/utils/dateUtils'
 
