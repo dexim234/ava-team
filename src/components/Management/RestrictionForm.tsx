@@ -354,20 +354,15 @@ export const RestrictionForm = ({ onClose, onSave }: RestrictionFormProps) => {
             {/* Create/Edit Form */}
             {showCreateForm && (
               <div className="border-t pt-6">
-                  <h4 className={`text-lg font-semibold mb-4 ${headingColor}`}>
-                    {editingRestriction ? 'Редактировать ограничение' : 'Создать новое ограничение'}
-                  </h4>
-                </div>
+                <h4 className={`text-lg font-semibold mb-4 ${headingColor}`}>
+                  {editingRestriction ? 'Редактировать ограничение' : 'Создать новое ограничение'}
+                </h4>
 
                 {/* Restriction Type */}
                 <div>
                   <label className={`block text-xs sm:text-sm font-medium mb-3 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
                     Что запретить
                   </label>
-            <div>
-              <label className={`block text-xs sm:text-sm font-medium mb-3 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                Что запретить
-              </label>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 {Object.entries(restrictionTypeLabels).map(([key, label]) => (
                   <label
