@@ -363,7 +363,7 @@ export const RestrictionForm = ({ onClose, onSave }: RestrictionFormProps) => {
                   <label className={`block text-xs sm:text-sm font-medium mb-3 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
                     Что запретить
                   </label>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 {Object.entries(restrictionTypeLabels).map(([key, label]) => (
                   <label
                     key={key}
