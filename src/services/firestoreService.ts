@@ -245,6 +245,7 @@ export const getRestrictions = async (isActive?: boolean) => {
       startDate: data?.startDate || '',
       endDate: data?.endDate,
       startTime: data?.startTime,
+      blockFutureDates: data?.blockFutureDates || false,
       comment: data?.comment,
       createdBy: data?.createdBy || '',
       createdAt: data?.createdAt || '',
@@ -296,6 +297,7 @@ export const checkRestriction = async (
 ): Promise<{ restricted: boolean; restriction?: Restriction; reason?: string }> => {
   try {
     const restrictions = await getRestrictions(true)
+    const now = new Date()
 
     for (const restriction of restrictions) {
       // Check if restriction applies to this action type
@@ -303,8 +305,26 @@ export const checkRestriction = async (
         continue
       }
 
-      // Check date range
       const checkDate = new Date(date)
+      const restrictionDateTime = new Date(`${restriction.startDate}${restriction.startTime ? `T${restriction.startTime}` : ''}`)
+
+      // Check if blockFutureDates restriction is active
+      if (restriction.blockFutureDates && now >= restrictionDateTime) {
+        // Block creating records only on the next day after the restriction date
+        const restrictionDate = new Date(restriction.startDate);
+        const nextDay = new Date(restrictionDate);
+        nextDay.setDate(restrictionDate.getDate() + 1);
+
+        if (checkDate.toDateString() === nextDay.toDateString()) {
+          return {
+            restricted: true,
+            restriction,
+            reason: `После ${formatDate(restrictionDateTime, 'dd.MM.yyyy')}${restriction.startTime ? ` ${restriction.startTime}` : ''} запрещено создавать ${restrictionTypeToLabel(actionType)} на следующий день ${formatDate(nextDay, 'dd.MM.yyyy')}`
+          }
+        }
+      }
+
+      // Check date range restrictions (existing logic)
       const startDate = new Date(restriction.startDate)
 
       let dateInRange = false

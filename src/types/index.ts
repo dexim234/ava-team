@@ -46,6 +46,7 @@ export interface Restriction {
   startDate: string // YYYY-MM-DD format
   endDate?: string // YYYY-MM-DD format for ranges, optional for single dates
   startTime?: string // HH:mm format, optional - if set, restriction starts from this time
+  blockFutureDates?: boolean // if true, after restriction time blocks creating records only on the next day after restriction date
   comment?: string
   createdBy: string // admin user ID
   createdAt: string

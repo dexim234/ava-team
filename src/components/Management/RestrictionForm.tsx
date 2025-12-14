@@ -30,6 +30,7 @@ export const RestrictionForm = ({ onClose, onSave }: RestrictionFormProps) => {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [isActive, setIsActive] = useState(true)
+  const [blockFutureDates, setBlockFutureDates] = useState(false)
 
   // Состояние для списка ограничений
   const [restrictions, setRestrictions] = useState<Restriction[]>([])
@@ -75,6 +76,7 @@ export const RestrictionForm = ({ onClose, onSave }: RestrictionFormProps) => {
     setHasTimeRestriction(!!restriction.startTime)
     setComment(restriction.comment || '')
     setIsActive(restriction.isActive)
+    setBlockFutureDates(restriction.blockFutureDates || false)
     setShowCreateForm(true)
     setError('')
   }
@@ -102,6 +104,7 @@ export const RestrictionForm = ({ onClose, onSave }: RestrictionFormProps) => {
     setHasTimeRestriction(false)
     setComment('')
     setIsActive(true)
+    setBlockFutureDates(false)
     setShowCreateForm(true)
     setError('')
   }
@@ -170,6 +173,7 @@ export const RestrictionForm = ({ onClose, onSave }: RestrictionFormProps) => {
         startDate,
         ...(isRange && endDate !== startDate && { endDate }),
         ...(hasTimeRestriction && startTime && { startTime }),
+        ...(blockFutureDates && { blockFutureDates }),
         ...(comment && { comment }),
         createdBy: user?.id || 'admin',
         createdAt: editingRestriction?.createdAt || new Date().toISOString(),
@@ -316,6 +320,15 @@ export const RestrictionForm = ({ onClose, onSave }: RestrictionFormProps) => {
                                 <Clock className="w-4 h-4 text-gray-500" />
                                 <span className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>
                                   С {restriction.startTime}
+                                </span>
+                              </div>
+                            )}
+
+                            {restriction.blockFutureDates && (
+                              <div className="flex items-center gap-2">
+                                <AlertTriangle className="w-4 h-4 text-amber-500" />
+                                <span className={`text-xs ${theme === 'dark' ? 'text-amber-300' : 'text-amber-700'}`}>
+                                  Блокировка следующего дня после наступления времени ограничения
                                 </span>
                               </div>
                             )}
@@ -542,6 +555,30 @@ export const RestrictionForm = ({ onClose, onSave }: RestrictionFormProps) => {
                 </label>
               </div>
             )}
+
+            {/* Block Past Dates */}
+            <div>
+              <label className="flex items-center gap-2 text-sm cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={blockFutureDates}
+                  onChange={(e) => setBlockFutureDates(e.target.checked)}
+                  className={`w-4 h-4 rounded border-2 ${
+                    theme === 'dark'
+                      ? 'border-gray-800 bg-gray-700 checked:bg-[#4E6E49] checked:border-[#4E6E49]'
+                      : 'border-gray-300 bg-white checked:bg-[#4E6E49] checked:border-[#4E6E49]'
+                  } focus:ring-2 focus:ring-[#4E6E49] cursor-pointer touch-manipulation`}
+                />
+                <span className={theme === 'dark' ? 'text-gray-200' : 'text-gray-700'}>
+                  После наступления даты/времени ограничения блокировать создание записей только на следующий день
+                </span>
+              </label>
+              {blockFutureDates && (
+                <p className={`mt-2 text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                  Пример: после 14.12 21:00 нельзя будет создавать слоты/отпуска только на 15.12 (следующий день)
+                </p>
+              )}
+            </div>
 
             {error && (
               <div className="p-3 bg-red-500 text-white rounded-lg text-sm">
