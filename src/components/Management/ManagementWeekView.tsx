@@ -5,7 +5,7 @@ import { useThemeStore } from '@/store/themeStore'
 import { useAuthStore } from '@/store/authStore'
 import { useAdminStore } from '@/store/adminStore'
 import { getWorkSlots, getDayStatuses, addApprovalRequest, deleteWorkSlot, updateDayStatus, addDayStatus, deleteDayStatus } from '@/services/firestoreService'
-import { formatDate, getWeekDays, isSameDate } from '@/utils/dateUtils'
+import { formatDate, getWeekDays, isSameDate, getMoscowTime } from '@/utils/dateUtils'
 import { getUserNicknameSync } from '@/utils/userUtils'
 import { WorkSlot, DayStatus } from '@/types'
 import { TEAM_MEMBERS } from '@/types'
@@ -295,17 +295,18 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
   }
 
   const isSlotUpcoming = (slot: WorkSlot): boolean => {
-    const today = new Date()
+    const moscowTime = getMoscowTime()
+    const today = new Date(moscowTime)
     today.setHours(0, 0, 0, 0)
     const slotDate = new Date(slot.date)
     slotDate.setHours(0, 0, 0, 0)
-    
+
     // If slot date is in the future, it's upcoming
     if (slotDate > today) return true
-    
+
     // If slot date is today, check if any slot time hasn't ended yet
     if (slotDate.getTime() === today.getTime()) {
-      const now = new Date()
+      const now = getMoscowTime()
       const currentTime = now.getHours() * 60 + now.getMinutes() // minutes since midnight
       
       // Check if any slot hasn't ended yet

@@ -27,7 +27,7 @@ import { TEAM_MEMBERS } from '@/types'
 import { DeleteSlotsForm } from '@/components/Management/DeleteSlotsForm'
 import { RestrictionForm } from '@/components/Management/RestrictionForm'
 import { getWorkSlots, getDayStatuses } from '@/services/firestoreService'
-import { getWeekDays, formatDate } from '@/utils/dateUtils'
+import { getWeekDays, formatDate, getMoscowTime } from '@/utils/dateUtils'
 
 type ViewMode = 'table' | 'week'
 export type SlotFilter = 'all' | 'upcoming' | 'completed'
@@ -103,17 +103,18 @@ export const Management = () => {
   }, [timeAnchors])
 
   const isSlotUpcoming = (slot: any): boolean => {
-    const today = new Date()
+    const moscowTime = getMoscowTime()
+    const today = new Date(moscowTime)
     today.setHours(0, 0, 0, 0)
     const slotDate = new Date(slot.date)
     slotDate.setHours(0, 0, 0, 0)
-    
+
     // If slot date is in the future, it's upcoming
     if (slotDate > today) return true
-    
+
     // If slot date is today, check if any slot time hasn't ended yet
     if (slotDate.getTime() === today.getTime()) {
-      const now = new Date()
+      const now = getMoscowTime()
       const currentTime = now.getHours() * 60 + now.getMinutes() // minutes since midnight
       
       // Check if any slot hasn't ended yet
