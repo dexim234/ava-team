@@ -1,10 +1,10 @@
 // Rating card component
 import { useThemeStore } from '@/store/themeStore'
-import { getRatingBreakdown } from '@/utils/ratingUtils'
+import { getRatingBreakdown, getExclusionStatus } from '@/utils/ratingUtils'
 import { RatingData, TEAM_MEMBERS } from '@/types'
 import { formatHours } from '@/utils/dateUtils'
 import { UserNickname } from '@/components/UserNickname'
-import { Calendar, Heart, Plane, Clock, DollarSign, Users, MessageSquare, TrendingUp, Info } from 'lucide-react'
+import { Calendar, Heart, Plane, Clock, DollarSign, Users, MessageSquare, TrendingUp, Info, AlertTriangle } from 'lucide-react'
 import { useState } from 'react'
 
 interface RatingCardProps {
@@ -133,6 +133,16 @@ export const RatingCard = ({ rating, place }: RatingCardProps) => {
       color: 'bg-orange-200 text-orange-900'
     },
     {
+      icon: <AlertTriangle className="w-5 h-5" />,
+      label: 'Прогулы',
+      value: `${rating.breakdown.absenceDays} дней`,
+      points: rating.breakdown.absenceDaysPoints,
+      maxPoints: 0, // штраф, так что максимум 0
+      explanation: 'До 1 прогула в неделю = рейтинг не страдает. Более 2 прогулов = -30% к рейтингу. Учитывается за последние 7 дней.',
+      threshold: '≤1 дня',
+      color: 'bg-red-200 text-red-900'
+    },
+    {
       icon: <Clock className="w-5 h-5" />,
       label: 'Часы работы',
       value: formatHours(rating.breakdown.weeklyHours),
@@ -174,7 +184,13 @@ export const RatingCard = ({ rating, place }: RatingCardProps) => {
     }
   ] : []
 
-  const totalPoints = metrics.reduce((sum, m) => sum + m.points, 0)
+  // Рассчитываем итоговый рейтинг с учетом штрафов за прогулы
+  const basePoints = metrics
+    .filter(m => m.label !== 'Прогулы')
+    .reduce((sum, m) => sum + m.points, 0)
+  const absencePenalty = metrics.find(m => m.label === 'Прогулы')?.points || 0
+  const totalPoints = Math.max(0, Math.min(100, basePoints + absencePenalty))
+  const exclusionStatus = getExclusionStatus(rating.rating)
 
   const placeBadge = (() => {
     if (!place) return null
@@ -241,6 +257,25 @@ export const RatingCard = ({ rating, place }: RatingCardProps) => {
             <span className={`text-xs ${mutedColor}`}>Общий рейтинг</span>
             <span className={`text-xs font-semibold ${mutedColor}`}>{totalPoints}/100 баллов</span>
           </div>
+        </div>
+
+        {/* Exclusion Status */}
+        <div className="mt-3">
+          <div
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-sm font-medium"
+            style={{
+              backgroundColor: `${exclusionStatus.color}15`,
+              borderColor: `${exclusionStatus.color}40`,
+              color: exclusionStatus.color
+            }}
+          >
+            <div
+              className="w-2 h-2 rounded-full animate-pulse"
+              style={{ backgroundColor: exclusionStatus.color }}
+            />
+            <span>{exclusionStatus.label}</span>
+          </div>
+          <p className={`text-xs mt-1 ${mutedColor}`}>{exclusionStatus.description}</p>
         </div>
       </div>
 
@@ -315,6 +350,14 @@ export const RatingCard = ({ rating, place }: RatingCardProps) => {
           <div className={`p-3 rounded-lg ${softSurface}`}>
             <div className={`text-xs ${mutedColor} mb-1`}>В пул</div>
             <div className={`text-lg font-bold ${headingColor}`}>{rating.poolAmount.toFixed(0)} ₽</div>
+          </div>
+          <div className={`p-3 rounded-lg ${softSurface}`}>
+            <div className={`text-xs ${mutedColor} mb-1`}>Прогулы (неделя)</div>
+            <div className={`text-lg font-bold ${headingColor}`}>{rating.absenceDays} дней</div>
+          </div>
+          <div className={`p-3 rounded-lg ${softSurface}`}>
+            <div className={`text-xs ${mutedColor} mb-1`}>Сигналы</div>
+            <div className={`text-lg font-bold ${headingColor}`}>{rating.signals}/{rating.profitableSignals}</div>
           </div>
         </div>
       </div>

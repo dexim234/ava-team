@@ -112,6 +112,7 @@ export interface RatingData {
   daysOff: number
   sickDays: number
   vacationDays: number
+  absenceDays: number
   poolAmount: number
   rating: number
   lastUpdated: string

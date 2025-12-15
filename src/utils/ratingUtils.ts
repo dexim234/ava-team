@@ -8,6 +8,8 @@ export interface RatingBreakdown {
   sickDaysPoints: number
   vacationDays: number
   vacationDaysPoints: number
+  absenceDays: number
+  absenceDaysPoints: number
   weeklyHours: number
   weeklyHoursPoints: number
   weeklyEarnings: number
@@ -42,6 +44,12 @@ export const calculateRating = (
     rating += 10
   }
 
+  // Прогулы: <=1 в неделю = рейтинг не страдает, >2 в неделю = рейтинг -30%
+  let absencePenalty = 0
+  if (data.absenceDays > 2) {
+    absencePenalty = 30
+  }
+
   // Часы работы в неделю: <15 = 0%, >=15 = 15%, >=20 = 25%
   if (weeklyHours >= 20) {
     rating += 25
@@ -65,6 +73,9 @@ export const calculateRating = (
     rating += 15
   }
 
+  // Применяем штраф за прогулы
+  rating = Math.max(0, rating - absencePenalty)
+
   return Math.min(rating, 100)
 }
 
@@ -77,7 +88,13 @@ export const getRatingBreakdown = (
   const daysOffPoints = (data.daysOff === 0 || data.daysOff <= 3) ? 10 : 0
   const sickDaysPoints = data.sickDays <= 7 ? 10 : 0
   const vacationDaysPoints = data.vacationDays <= 7 ? 10 : 0
-  
+
+  // Прогулы: <=1 в неделю = 0% штрафа, >2 в неделю = -30%
+  let absenceDaysPoints = 0
+  if (data.absenceDays > 2) {
+    absenceDaysPoints = -30
+  }
+
   let weeklyHoursPoints = 0
   if (weeklyHours >= 20) {
     weeklyHoursPoints = 25
@@ -95,16 +112,17 @@ export const getRatingBreakdown = (
   const referralsPoints = Math.min(data.referrals * 5, 30)
   const weeklyMessagesPoints = weeklyMessages > 50 ? 15 : 0
 
-  const totalRating = Math.min(
-    daysOffPoints +
+  // Базовый рейтинг без учета прогулов
+  const baseRating = daysOffPoints +
     sickDaysPoints +
     vacationDaysPoints +
     weeklyHoursPoints +
     weeklyEarningsPoints +
     referralsPoints +
-    weeklyMessagesPoints,
-    100
-  )
+    weeklyMessagesPoints
+
+  // Применяем штраф за прогулы
+  const totalRating = Math.min(Math.max(0, baseRating + absenceDaysPoints), 100)
 
   return {
     daysOff: data.daysOff,
@@ -113,6 +131,8 @@ export const getRatingBreakdown = (
     sickDaysPoints,
     vacationDays: data.vacationDays,
     vacationDaysPoints,
+    absenceDays: data.absenceDays,
+    absenceDaysPoints,
     weeklyHours,
     weeklyHoursPoints,
     weeklyEarnings,
@@ -130,6 +150,38 @@ export const getRatingColor = (rating: number): string => {
   if (rating >= 60) return '#3b82f6' // Уверенно (синий)
   if (rating >= 40) return '#f59e0b' // В пути (янтарный)
   return '#f43f5e' // Зона роста (розовый)
+}
+
+export interface ExclusionStatus {
+  status: 'excluded' | 'warning' | 'ok'
+  label: string
+  description: string
+  color: string
+}
+
+export const getExclusionStatus = (rating: number): ExclusionStatus => {
+  if (rating < 20) {
+    return {
+      status: 'excluded',
+      label: 'Исключен',
+      description: 'Участник исключается из сообщества',
+      color: '#dc2626' // красный
+    }
+  } else if (rating >= 21 && rating <= 45) {
+    return {
+      status: 'warning',
+      label: 'Исправиться',
+      description: 'Необходимо улучшить показатели',
+      color: '#f59e0b' // янтарный
+    }
+  } else {
+    return {
+      status: 'ok',
+      label: 'В команде',
+      description: 'Участник в команде',
+      color: '#10b981' // зеленый
+    }
+  }
 }
 
 
