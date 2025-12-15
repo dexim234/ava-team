@@ -144,17 +144,31 @@ export const Management = () => {
       })
     }
     
-    // Check if slot has endDate in the future
-    const hasFutureEndDate = slot.slots.some((s: any) => {
+    // Check if slot has endDate in the future or ends today but time hasn't passed
+    const now = getMoscowTime()
+    const currentTime = now.getHours() * 60 + now.getMinutes()
+
+    const hasActiveEndDate = slot.slots.some((s: any) => {
       if (s.endDate) {
         const endDate = new Date(s.endDate)
         endDate.setHours(0, 0, 0, 0)
-        return endDate >= today
+
+        // If endDate is in the future, slot is upcoming
+        if (endDate > today) return true
+
+        // If endDate is today, check if end time hasn't passed
+        if (endDate.getTime() === today.getTime()) {
+          const [endHour, endMin] = s.end.split(':').map(Number)
+          const endTime = endHour * 60 + endMin
+          return endTime > currentTime
+        }
+
+        return false
       }
       return false
     })
-    
-    return hasFutureEndDate
+
+    return hasActiveEndDate
   }
 
   const nicknameMap: Record<string, string> = {
