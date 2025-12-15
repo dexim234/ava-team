@@ -4,7 +4,7 @@ import { getRatingBreakdown, getExclusionStatus } from '@/utils/ratingUtils'
 import { RatingData, TEAM_MEMBERS } from '@/types'
 import { formatHours } from '@/utils/dateUtils'
 import { UserNickname } from '@/components/UserNickname'
-import { Calendar, Heart, Plane, Clock, DollarSign, Users, MessageSquare, TrendingUp, Info, AlertTriangle } from 'lucide-react'
+import { Calendar, Heart, Plane, Clock, DollarSign, Users, TrendingUp, Info, AlertTriangle } from 'lucide-react'
 import { useState } from 'react'
 
 interface RatingCardProps {

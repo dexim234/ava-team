@@ -10,7 +10,6 @@ import {
   getDayStatuses,
   getReferrals,
   getWorkSlots,
-  getWeeklyMessages,
   getUserNotes,
   addNote,
   updateNote,
