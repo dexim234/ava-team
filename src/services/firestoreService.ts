@@ -376,6 +376,7 @@ const restrictionTypeToLabel = (type: RestrictionType): string => {
     dayoff: 'выходные',
     sick: 'больничные',
     vacation: 'отпуска',
+    absence: 'прогулы',
     all: 'любые записи',
   }
   return labels[type]

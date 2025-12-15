@@ -403,7 +403,6 @@ export const ManagementTable = ({ selectedUserId, slotFilter, onEditSlot, onEdit
   }
 
   const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
-  const subtleColor = theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
   const statusTone = {
     dayoff: 'bg-amber-50 text-amber-900 border border-amber-200 shadow-inner dark:bg-amber-900/30 dark:text-amber-50 dark:border-amber-700',
     sick: 'bg-orange-50 text-orange-900 border border-orange-200 shadow-inner dark:bg-orange-900/30 dark:text-orange-50 dark:border-orange-700',
