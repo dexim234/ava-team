@@ -648,6 +648,8 @@ export const Management = () => {
                 refreshKey={refreshKey}
                 onEditSlot={handleEditSlot}
                 onEditStatus={handleEditStatus}
+                setStatusType={setStatusType}
+                setShowStatusForm={setShowStatusForm}
               />
             )}
           </div>

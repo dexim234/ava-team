@@ -17,10 +17,12 @@ interface ManagementTableProps {
   slotFilter: SlotFilter
   onEditSlot: (slot: WorkSlot) => void
   onEditStatus: (status: DayStatus) => void
+  setStatusType: (type: 'dayoff' | 'sick' | 'vacation' | 'absence') => void
+  setShowStatusForm: (show: boolean) => void
   refreshKey: number
 }
 
-export const ManagementTable = ({ selectedUserId, slotFilter, onEditSlot, onEditStatus, refreshKey }: ManagementTableProps) => {
+export const ManagementTable = ({ selectedUserId, slotFilter, onEditSlot, onEditStatus, setStatusType, setShowStatusForm, refreshKey }: ManagementTableProps) => {
   const { theme } = useThemeStore()
   const { user } = useAuthStore()
   const { isAdmin } = useAdminStore()
