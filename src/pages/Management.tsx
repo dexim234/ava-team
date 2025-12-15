@@ -42,7 +42,7 @@ export const Management = () => {
   const [showDeleteSlotsForm, setShowDeleteSlotsForm] = useState(false)
   const [showStatusForm, setShowStatusForm] = useState(false)
   const [showRestrictionForm, setShowRestrictionForm] = useState(false)
-  const [statusType, setStatusType] = useState<'dayoff' | 'sick' | 'vacation' | 'absence' | null>(null)
+  const [statusType, setStatusType] = useState<'dayoff' | 'sick' | 'vacation' | null>(null)
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null)
   const [editingSlot, setEditingSlot] = useState<any>(null)
   const [editingStatus, setEditingStatus] = useState<any>(null)
@@ -648,8 +648,6 @@ export const Management = () => {
                 refreshKey={refreshKey}
                 onEditSlot={handleEditSlot}
                 onEditStatus={handleEditStatus}
-                setStatusType={setStatusType}
-                setShowStatusForm={setShowStatusForm}
               />
             )}
           </div>

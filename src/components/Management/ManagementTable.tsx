@@ -17,12 +17,10 @@ interface ManagementTableProps {
   slotFilter: SlotFilter
   onEditSlot: (slot: WorkSlot) => void
   onEditStatus: (status: DayStatus) => void
-  setStatusType: (type: 'dayoff' | 'sick' | 'vacation' | 'absence' | null) => void
-  setShowStatusForm: (show: boolean) => void
   refreshKey: number
 }
 
-export const ManagementTable = ({ selectedUserId, slotFilter, onEditSlot, onEditStatus, setStatusType, setShowStatusForm, refreshKey }: ManagementTableProps) => {
+export const ManagementTable = ({ selectedUserId, slotFilter, onEditSlot, onEditStatus, refreshKey }: ManagementTableProps) => {
   const { theme } = useThemeStore()
   const { user } = useAuthStore()
   const { isAdmin } = useAdminStore()
@@ -665,19 +663,24 @@ export const ManagementTable = ({ selectedUserId, slotFilter, onEditSlot, onEdit
                                   </button>
                                 </>
                               )}
+                                <>
+                                  <button
+                                    disabled
+                                    className="p-1 text-gray-400 cursor-not-allowed rounded"
+                                    title="Вы можете редактировать только свои статусы"
+                                  >
+                                    <Edit className="w-3 h-3" />
+                                  </button>
+                                  <button
+                                    disabled
+                                    className="p-1 text-gray-400 cursor-not-allowed rounded"
+                                    title="Вы можете удалять только свои статусы"
+                                  >
+                                    <Trash2 className="w-3 h-3" />
+                                  </button>
+                                </>
+                              )}
                             </div>
-                          </div>
-                        ) : !slot && !status && dateStr === todayStr ? (
-                          <div className="space-y-1">
-                            <button
-                              onClick={() => {
-                                setStatusType('absence')
-                                setShowStatusForm(true)
-                              }}
-                              className="w-full rounded-lg px-3 py-2 text-xs font-semibold bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 dark:bg-red-900/30 dark:text-red-100 dark:border-red-800 transition-colors"
-                            >
-                              + Прогул
-                            </button>
                           </div>
                         ) : (
                           <span className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>—</span>
