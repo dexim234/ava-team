@@ -32,13 +32,13 @@ export interface DayStatus {
   id: string
   userId: string
   date: string
-  type: 'dayoff' | 'sick' | 'vacation'
+  type: 'dayoff' | 'sick' | 'vacation' | 'absence'
   comment?: string
   endDate?: string // for multi-day statuses
 }
 
 // Restriction types
-export type RestrictionType = 'slots' | 'dayoff' | 'sick' | 'vacation' | 'all'
+export type RestrictionType = 'slots' | 'dayoff' | 'sick' | 'vacation' | 'absence' | 'all'
 
 export interface Restriction {
   id: string

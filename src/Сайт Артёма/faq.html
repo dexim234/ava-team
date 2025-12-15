@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FAQ - AV DexIm, co-founder ApeVault Frontier</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            font-family: 'Arial', sans-serif;
+            background-color: #0A0A0A;
+            color: #4E6E49;
+            line-height: 1.6;
+            padding: 0;
+            margin: 0;
+            height: 100%;
+        }
+
+        body {
+            padding-top: 0;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+            padding: 30px 0;
+            border-bottom: 2px solid #4E6E49;
+        }
+
+        .profile-image {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #4E6E49;
+            box-shadow: 0 4px 15px rgba(78, 110, 73, 0.3);
+            margin-bottom: 20px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .logo {
+            font-size: 3rem;
+            font-weight: bold;
+            color: white;
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px rgba(78, 110, 73, 0.3);
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: #4E6E49;
+        }
+
+        .section-title {
+            font-size: 1rem;
+            color: #4E6E49;
+            margin-top: 5px;
+            font-weight: normal;
+        }
+
+        .nav-container {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 0;
+            position: relative;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 50px;
+            z-index: 1000;
+            box-sizing: border-box;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .nav-tabs {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            box-sizing: border-box;
+        }
+
+        .nav-tab {
+            background: none;
+            border: none;
+            color: #4E6E49;
+            padding: 15px 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            font-weight: 600;
+            position: relative;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .nav-tab:hover {
+            color: white;
+            background: rgba(78, 110, 73, 0.1);
+        }
+
+        .nav-tab.active {
+            color: white;
+            background: rgba(78, 110, 73, 0.2);
+        }
+
+        .content-wrapper {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .faq-section {
+            margin-bottom: 40px;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .faq-item {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(78, 110, 73, 0.3);
+            border-radius: 10px;
+            margin-bottom: 20px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .faq-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(78, 110, 73, 0.2);
+        }
+
+        .faq-question {
+            background: linear-gradient(135deg, rgba(78, 110, 73, 0.1), rgba(78, 110, 73, 0.05));
+            padding: 20px 25px;
+            cursor: pointer;
+            position: relative;
+            transition: background-color 0.3s ease;
+        }
+
+        .faq-question:hover {
+            background: linear-gradient(135deg, rgba(78, 110, 73, 0.2), rgba(78, 110, 73, 0.1));
+        }
+
+        .faq-question h3 {
+            color: white;
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .faq-question::after {
+            content: '+';
+            position: absolute;
+            right: 25px;
+            top: 20px;
+            font-size: 1.5rem;
+            color: #4E6E49;
+            transition: transform 0.3s ease;
+        }
+
+        .faq-item.active .faq-question::after {
+            content: '−';
+            transform: rotate(180deg);
+        }
+
+        .faq-answer {
+            padding: 0 25px;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease, padding 0.3s ease;
+        }
+
+        .faq-item.active .faq-answer {
+            padding: 25px;
+            max-height: 1000px;
+        }
+
+        .faq-answer p {
+            margin-bottom: 15px;
+            color: white;
+        }
+
+        .faq-answer a {
+            color: white;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .faq-answer a:hover {
+            color: #4E6E49;
+        }
+
+        .warning-box {
+            background: linear-gradient(135deg, rgba(255, 0, 0, 0.1), rgba(255, 0, 0, 0.05));
+            border: 1px solid rgba(255, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 30px 0;
+            text-align: center;
+        }
+
+        .warning-box h3 {
+            color: white;
+            margin-bottom: 10px;
+            font-size: 1.3rem;
+        }
+
+        .warning-box p {
+            color: white;
+            font-weight: 500;
+        }
+
+        .project-info {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(78, 110, 73, 0.3);
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+            margin-top: 50px;
+        }
+
+        .project-info h2 {
+            color: white;
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+        }
+
+        .project-links {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .project-link {
+            background: linear-gradient(135deg, #4E6E49, rgba(78, 110, 73, 0.8));
+            color: white;
+            padding: 12px 25px;
+            border-radius: 25px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .project-link svg {
+            flex-shrink: 0;
+        }
+
+        .project-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(78, 110, 73, 0.4);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            .profile-image {
+                width: 80px;
+                height: 80px;
+            }
+
+            .logo {
+                font-size: 2rem;
+            }
+
+            .section-title {
+                font-size: 0.9rem;
+            }
+
+            .faq-section {
+                margin-left: 15px;
+                margin-right: 15px;
+            }
+
+            .faq-question {
+                padding: 15px 35px 15px 20px;
+            }
+
+            .faq-question h3 {
+                font-size: 1.1rem;
+            }
+
+            .faq-question::after {
+                right: 15px;
+                top: 15px;
+                font-size: 1.2rem;
+            }
+
+            .faq-item.active .faq-answer {
+                padding: 15px 20px;
+            }
+
+            .project-links {
+                gap: 15px;
+            }
+
+            .project-link {
+                padding: 10px 20px;
+                font-size: 0.9rem;
+            }
+
+            .warning-box {
+                margin-left: 15px;
+                margin-right: 15px;
+            }
+
+            .project-info {
+                margin-left: 15px;
+                margin-right: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="nav-container">
+        <div class="nav-tabs">
+            <a href="index.html" class="nav-tab">Главная</a>
+            <a href="story.html" class="nav-tab">История</a>
+            <a href="faq.html" class="nav-tab active">FAQ</a>
+        </div>
+    </nav>
+
+    <!-- FAQ Section -->
+    <section class="content-wrapper">
+        <header>
+            <img src="AVDEX.png" alt="AV DexIm" class="profile-image">
+            <div class="logo">AV — DexIm</div>
+            <div class="subtitle">Co-founder ApeVault Frontier</div>
+            <div class="section-title">Часто задаваемые вопросы</div>
+        </header>
+
+        <section class="faq-section">
+            <div class="faq-item">
+                <div class="faq-question">
+                    <h3>1) Ты берёшь деньги или активы в управление?</h3>
+                </div>
+                <div class="faq-answer">
+                    <p>Нет. Никогда. Ни я, ни кто-либо из нашей команды.</p>
+                    <p>Если вам пишут первыми с предложениями «преумножения», инвестиций «под ключ», управления депозитом, традиционного инвестирования или любой подобной чепухи — это не мы.</p>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">
+                    <h3>2) Но ведь в канале иногда есть упоминания традиционного рынка?</h3>
+                </div>
+                <div class="faq-answer">
+                    <p>Да, часть команды (да и я) действительно работает с традиционными инструментами. Это указано и на сайте в FAQ.</p>
+                    <p>Но мы никогда не советуем акции, облигации, опционы; не разбираем конкретные компании; не приглашаем в «инвест-клубы»; не даём ссылки на такие продукты — даже реферальные.</p>
+                    <p>Максимум, что могу посоветовать здесь — академию тинькофф инвестиций, не более. Если и говорим о традиционном рынке, то только на уровне секторов и всегда в связке с криптой.</p>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">
+                    <h3>3) Почему именно криптовалюта? Почему не фондовый рынок или недвижимость?</h3>
+                </div>
+                <div class="faq-answer">
+                    <p>Я давно интересуюсь технологиями и инновациями. Криптовалюты предлагают уникальные возможности заработка благодаря своей новизне и потенциалу роста до сих пор (актуальность на февраль 2026 года).</p>
+                    <p>Традиционные рынки стабильнее, но менее интересны и прибыльны для активных инвесторов, хотя, конечно, все зависит от объема средств и времени, которое уделяется рынку.</p>
+                    <p>Мне приятнее в любом случае крипто-рынок, а фондовый рынок я рассматриваю скорее как подушку безопасности и пассивный доход с помощью дивидендных компаний.</p>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">
+                    <h3>4) Зачем ты создал свой личный канал?</h3>
+                </div>
+                <div class="faq-answer">
+                    <p>Этот канал — мой рабочий дневник. Веду его в первую очередь для себя, но понимаю, что мой опыт может быть полезен. Поэтому стараюсь писать чётко, без воды и с логикой.</p>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">
+                    <h3>5) Есть ли марафоны, конкурсы?</h3>
+                </div>
+                <div class="faq-answer">
+                    <p>Марафонов нет и не будет. Никаких «есть 1000$ — пиши в ЛС» или «депо от 500$, беру процент». Это не я и не команда.</p>
+                    <p>Конкурсы — да, но только внутри Telegram.</p>
+                    <p>Призы чаще всего стандарты — подписка премиум или звезды, есть и дополнительные — например, скидки на продукты сообщества, полезные материалы, реже — устройства или доступы за активность.</p>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">
+                    <h3>6) А челленджи есть?</h3>
+                </div>
+                <div class="faq-answer">
+                    <p>Да, но только для себя. Выбираю актив, захожу и веду по своим стратегиям. Иногда делюсь уже по факту, иногда — в процессе. Решения о входе и выходе вы принимаете сами. Всегда.</p>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">
+                    <h3>7) Помогаешь ли ты с покупкой или продажей крипты?</h3>
+                </div>
+                <div class="faq-answer">
+                    <p>Только рекомендациями. Деньги и активы не принимаю. Следовательно, я не осуществляю и обмен на биржах в качестве мерчанта.</p>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">
+                    <h3>8) Можно ли тебе написать и задать вопрос?</h3>
+                </div>
+                <div class="faq-answer">
+                    <p>Можно. По рабочим вопросам, идеям, жизненным моментам, совету.</p>
+                    <p>Бывает, что можем подружиться и проводить время вместе в разных форматах, но это не значит, что будут какие-то привилегии. Дружба и работа = разное.</p>
+                    <p>Но выпрашивать доступы, сигналы, личную информацию — плохая идея. Отвечаю через чаты сообщества, официальную почту проекта, поддержку, личные сообщения и комментарии.</p>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">
+                    <h3>9) В канале есть сигналы. Что это?</h3>
+                </div>
+                <div class="faq-answer">
+                    <p>Это активы и токены, которые я сам беру в портфель на определённый горизонт. Обычно сразу объясняю логику.</p>
+                    <p>Иногда — дополняю позже (UPD), особенно с мемкоинами: там времени на длинные тексты часто нет.</p>
+                    <p>Не ИИР, не финансовая рекомендация и не совет. Ответственность за ваши средства — всегда на вас.</p>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">
+                    <h3>10) Ты ведешь этот канал один? Есть ли у тебя помощники?</h3>
+                </div>
+                <div class="faq-answer">
+                    <p>Веду канал один, помощников нет.</p>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">
+                    <h3>11) Как долго ты занимаешься торговлей криптовалютами? Какие успехи были достигнуты?</h3>
+                </div>
+                <div class="faq-answer">
+                    <p>Торговля криптовалютами стала частью моей жизни около 1,5 года назад. За это время было много взлетов и падений, но главное достижение — способность стабильно зарабатывать на торговле и помогать другим делать то же самое. Перейдите на вкладку "История" для подробностей.</p>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">
+                    <h3>12) Рассказываешь ли ты о своих собственных сделках? Если да, зачем?</h3>
+                </div>
+                <div class="faq-answer">
+                    <p>Часто рассказываю о собственных сделках, чтобы показать реальные примеры стратегий и подходов.</p>
+                    <p>Цель не в том, чтобы давать инвестиционные советы, что и запрещено законом, а скорее поделиться опытом и научить правильно анализировать рынок (во всяком случае, дать одну из точек мнения, не претендую на одну правильную версию).</p>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">
+                    <h3>13) Получаешь ли ты доход от своего канала? Как устроено монетизация?</h3>
+                </div>
+                <div class="faq-answer">
+                    <p>Доход от каналов минимален и практически отсутствует. Основной фокус — создание качественного контента.</p>
+                    <p>Если реклама и есть, то явно только непосредственных сервисов и нашего проекта ApeVault Frontier, а еще реклама TG, тут уж, извиняйте, ничего сделать не могу – она не относится ко мне.</p>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">
+                    <h3>14) Какие технологии или инструменты используешь для анализа рынка?</h3>
+                </div>
+                <div class="faq-answer">
+                    <p>Использую комбинацию технического анализа, фундаментального анализа и изучения новостей.</p>
+                    <p>В мемкоинах придерживаюсь двух стратегий, которые относятся скорее к техническому анализу, о них можно узнать в нашей PRO академии.</p>
+                    <p>Основные инструменты включают торговые терминалы (например Alpha One, Axiom), графический анализ на Trading View. Есть и другие инструменты, отошлю по этому вопросу в канал.</p>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">
+                    <h3>15) Может ли твоя стратегия применяться в традиционных рынках акций и облигаций?</h3>
+                </div>
+                <div class="faq-answer">
+                    <p>Стратегии, которые я применяю, разработаны специально для криптовалютного рынка. Она учитывает высокую волатильность и специфику цифровых активов.</p>
+                    <p>Применять её на традиционных рынках возможно, но требует значительных изменений и адаптации.</p>
+                    <p>Если у кого-то это получится, то буду рад, если расскажете как это сделали и какие результаты приносит.</p>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">
+                    <h3>16) Какой самый важный урок ты вынес из своего опыта торговли криптовалютами?</h3>
+                </div>
+                <div class="faq-answer">
+                    <p>Самый важный урок — дисциплина и терпение. Успех приходит к тем, кто способен контролировать эмоции и придерживаться выбранной стратегии, несмотря на колебания рынка.</p>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">
+                    <h3>17) Есть ли у тебя девушка/жена, дети?</h3>
+                </div>
+                <div class="faq-answer">
+                    <p>Девушка есть, жены и детей нет</p>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">
+                    <h3>18) Планируешь развивать канал дальше? Появятся новые форматы контента?</h3>
+                </div>
+                <div class="faq-answer">
+                    <p>Безусловно планирую развитие канала. Новые форматы могут включать обзоры новых проектов, интервью с интересными людьми из индустрии и разбор популярных торговых стратегий. Всё будет зависеть от обратной связи и пожеланий подписчиков.</p>
+                </div>
+            </div>
+        </section>
+
+        <div class="warning-box">
+            <h3>⚠ Будьте внимательны!</h3>
+            <p>Если сомневаетесь, что пост от меня или написали именно мне — спросите в чатах сообщества, у поддержки или у членов команды. Ребята подскажут, имеет ли это отношение ко мне и к проекту.<br><br><strong>И не кормите мошенников.</strong></p>
+        </div>
+
+        <div class="project-info">
+            <h2>Проект ApeVault Frontier</h2>
+            <div class="project-links">
+                <a href="https://apevault.ru" class="project-link" target="_blank">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Сайт проекта
+                </a>
+                <a href="https://t.me/apevault_frontier" class="project-link" target="_blank">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Канал проекта
+                </a>
+                <a href="https://t.me/arty_ommedoed" class="project-link" target="_blank">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                    Личный аккаунт
+                </a>
+                <a href="https://t.me/av_dexim_frontier" class="project-link" target="_blank">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <polygon points="23 7 16 12 23 17 23 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <rect x="1" y="5" width="15" height="14" rx="2" ry="2" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                    Личный канал
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // FAQ accordion functionality
+            const faqItems = document.querySelectorAll('.faq-item');
+
+            faqItems.forEach(item => {
+                const question = item.querySelector('.faq-question');
+
+                question.addEventListener('click', () => {
+                    // Close all other items
+                    faqItems.forEach(otherItem => {
+                        if (otherItem !== item) {
+                            otherItem.classList.remove('active');
+                        }
+                    });
+
+                    // Toggle current item
+                    item.classList.toggle('active');
+                });
+            });
+        });
+    </script>
+</body>
+</html>

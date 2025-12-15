@@ -401,6 +401,7 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
     dayoff: 'bg-amber-50 text-amber-900 border border-amber-200 shadow-inner dark:bg-amber-900/25 dark:text-amber-50 dark:border-amber-700',
     sick: 'bg-orange-50 text-orange-900 border border-orange-200 shadow-inner dark:bg-orange-900/25 dark:text-orange-50 dark:border-orange-700',
     vacation: 'bg-sky-50 text-sky-900 border border-sky-200 shadow-inner dark:bg-sky-900/25 dark:text-sky-50 dark:border-sky-700',
+    absence: 'bg-red-50 text-red-900 border border-red-200 shadow-inner dark:bg-red-900/25 dark:text-red-50 dark:border-red-700',
   } as const
 
   return (
@@ -478,7 +479,7 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
                       <div className="flex flex-col sm:flex-row sm:items-center gap-2 justify-center sm:justify-start w-full">
                         <span className="font-semibold text-base sm:text-lg">{displayName}</span>
                         <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/70 dark:bg-white/10 text-xs sm:text-sm font-semibold">
-                          {status.type === 'dayoff' ? 'Выходной' : status.type === 'sick' ? 'Больничный' : 'Отпуск'}
+                          {status.type === 'dayoff' ? 'Выходной' : status.type === 'sick' ? 'Больничный' : status.type === 'vacation' ? 'Отпуск' : 'Прогул'}
                         </span>
                       </div>
                       <div className="flex gap-2 justify-center sm:justify-end w-full">
@@ -654,9 +655,9 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
                 })}
 
                 {daySlots.length === 0 && dayStatuses.length === 0 && (
-                  <p className={`text-sm ${subtleColor}`}>
-                    Нет данных
-                  </p>
+                  <div className={`rounded-lg px-3 py-2 text-xs font-semibold ring-1 ring-inset ring-black/5 dark:ring-white/10 ${statusTone.absence}`}>
+                    Прогул
+                  </div>
                 )}
               </div>
             </div>

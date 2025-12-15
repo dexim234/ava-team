@@ -379,8 +379,9 @@ export const ManagementTable = ({ selectedUserId, slotFilter, onEditSlot, onEdit
     const daysOff = userStatuses.filter((s) => s.type === 'dayoff').length
     const sickDays = userStatuses.filter((s) => s.type === 'sick').length
     const vacationDays = userStatuses.filter((s) => s.type === 'vacation').length
+    const absenceDays = userStatuses.filter((s) => s.type === 'absence').length
 
-    return { totalHours, daysOff, sickDays, vacationDays }
+    return { totalHours, daysOff, sickDays, vacationDays, absenceDays }
   }
 
   const navigateWeek = (direction: 'prev' | 'next') => {
@@ -407,6 +408,7 @@ export const ManagementTable = ({ selectedUserId, slotFilter, onEditSlot, onEdit
     dayoff: 'bg-amber-50 text-amber-900 border border-amber-200 shadow-inner dark:bg-amber-900/30 dark:text-amber-50 dark:border-amber-700',
     sick: 'bg-orange-50 text-orange-900 border border-orange-200 shadow-inner dark:bg-orange-900/30 dark:text-orange-50 dark:border-orange-700',
     vacation: 'bg-sky-50 text-sky-900 border border-sky-200 shadow-inner dark:bg-sky-900/30 dark:text-sky-50 dark:border-sky-700',
+    absence: 'bg-red-50 text-red-900 border border-red-200 shadow-inner dark:bg-red-900/30 dark:text-red-50 dark:border-red-700',
   } as const
 
   return (
@@ -544,12 +546,12 @@ export const ManagementTable = ({ selectedUserId, slotFilter, onEditSlot, onEdit
                           <div className="space-y-2">
                             {(() => {
                               const isUpcoming = isSlotUpcoming(slot)
-                              const slotBg = isUpcoming 
-                                ? 'bg-gradient-to-r from-emerald-500 to-teal-600' 
+                              const slotBg = isUpcoming
+                                ? 'bg-gradient-to-r from-emerald-500 to-teal-600'
                                 : 'bg-gradient-to-r from-slate-500 to-slate-700'
                               const slotIcon = isUpcoming ? CalendarIcon : CheckCircle2
                               const SlotIcon = slotIcon
-                              
+
                               return slot.slots.map((s, slotIdx) => (
                                 <div key={slotIdx} className="space-y-1">
                                   {/* Main slot time */}
@@ -626,7 +628,7 @@ export const ManagementTable = ({ selectedUserId, slotFilter, onEditSlot, onEdit
                             <div
                               className={`rounded-lg px-3 py-2 text-xs font-semibold ring-1 ring-inset ring-black/5 dark:ring-white/10 ${statusTone[status.type]}`}
                             >
-                              {status.type === 'dayoff' ? 'Выходной' : status.type === 'sick' ? 'Больничный' : 'Отпуск'}
+                              {status.type === 'dayoff' ? 'Выходной' : status.type === 'sick' ? 'Больничный' : status.type === 'vacation' ? 'Отпуск' : 'Прогул'}
                             </div>
                             <div className="flex gap-1 justify-center">
                               {(isAdmin || user?.id === status.userId) ? (
@@ -665,7 +667,13 @@ export const ManagementTable = ({ selectedUserId, slotFilter, onEditSlot, onEdit
                             </div>
                           </div>
                         ) : (
-                          <span className={`text-sm ${subtleColor}`}>—</span>
+                          <div className="space-y-1">
+                            <div
+                              className={`rounded-lg px-3 py-2 text-xs font-semibold ring-1 ring-inset ring-black/5 dark:ring-white/10 ${statusTone.absence}`}
+                            >
+                              Прогул
+                            </div>
+                          </div>
                         )}
                       </td>
                     )
@@ -676,6 +684,7 @@ export const ManagementTable = ({ selectedUserId, slotFilter, onEditSlot, onEdit
                       <div>Выходных: {stats.daysOff}</div>
                       <div>Больничных: {stats.sickDays}</div>
                       <div>Отпусков: {stats.vacationDays}</div>
+                      <div>Прогудов: {stats.absenceDays}</div>
                     </div>
                   </td>
                 </tr>

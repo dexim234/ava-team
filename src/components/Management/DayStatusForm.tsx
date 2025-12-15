@@ -11,7 +11,7 @@ import { DayStatus, TEAM_MEMBERS } from '@/types'
 import { useScrollLock } from '@/hooks/useScrollLock'
 
 interface DayStatusFormProps {
-  type?: 'dayoff' | 'sick' | 'vacation'
+  type?: 'dayoff' | 'sick' | 'vacation' | 'absence'
   status?: DayStatus | null
   onClose: () => void
   onSave: () => void
@@ -30,7 +30,7 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
   const [endDate, setEndDate] = useState(status?.endDate || initialDate)
   const [isMultiDay, setIsMultiDay] = useState(!!status?.endDate)
   const [comment, setComment] = useState(status?.comment || '')
-  const [selectedType, setSelectedType] = useState<'dayoff' | 'sick' | 'vacation' | null>(type || status?.type || null)
+  const [selectedType, setSelectedType] = useState<'dayoff' | 'sick' | 'vacation' | 'absence' | null>(type || status?.type || null)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [dateMode, setDateMode] = useState<'single' | 'range' | 'multiple'>('single')
@@ -127,7 +127,7 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
 
   const getMemberName = (userId: string) => getUserNicknameSync(userId)
 
-  const getDatePayloads = (currentType: 'dayoff' | 'sick' | 'vacation'): { date: string; endDate?: string }[] => {
+  const getDatePayloads = (currentType: 'dayoff' | 'sick' | 'vacation' | 'absence'): { date: string; endDate?: string }[] => {
     if (adminBulkMode) {
       if (dateMode === 'range') {
         if (rangeStart && rangeEnd) {
@@ -199,7 +199,7 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
     return [payload]
   }
 
-  const validateStatus = async (targetUserId: string, startDate: string, endDateValue: string | undefined, currentType: 'dayoff' | 'sick' | 'vacation'): Promise<string | null> => {
+  const validateStatus = async (targetUserId: string, startDate: string, endDateValue: string | undefined, currentType: 'dayoff' | 'sick' | 'vacation' | 'absence'): Promise<string | null> => {
     // Админ может ставить любые даты без ограничений
     if (isAdmin) return null
 
@@ -299,15 +299,17 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
         (s) => s.type === 'dayoff' && s.date === startDate
       )
       const uniqueUsers = new Set(dateDayoffs.map(s => s.userId))
-      
+
       if (status && status.type === 'dayoff' && status.date === startDate) {
         uniqueUsers.delete(status.userId)
       }
-      
+
       if (uniqueUsers.size >= 3) {
         return 'На этот день уже установлено максимальное количество выходных (3 человека). Выберите другую дату.'
       }
     }
+
+    // Для статуса "Прогул" не нужны специальные ограничения, так как он устанавливается автоматически или админом
 
     return null
   }
@@ -432,6 +434,7 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
     dayoff: 'bg-yellow-500',
     sick: 'bg-purple-500',
     vacation: 'bg-orange-500',
+    absence: 'bg-red-500',
   }
 
 
@@ -444,7 +447,7 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
   const selectedNames = selectedUserIds.map((id) => getMemberName(id)).join(', ')
 
   const steps = [
-    { label: 'Тип', detail: selectedType ? (selectedType === 'dayoff' ? 'Выходной' : selectedType === 'sick' ? 'Больничный' : 'Отпуск') : 'Не выбран', done: !!selectedType, anchor: '#type' },
+    { label: 'Тип', detail: selectedType ? (selectedType === 'dayoff' ? 'Выходной' : selectedType === 'sick' ? 'Больничный' : selectedType === 'vacation' ? 'Отпуск' : 'Прогул') : 'Не выбран', done: !!selectedType, anchor: '#type' },
     { label: 'Members', detail: selectedNames || 'Не выбрано', done: selectedUserIds.length > 0 || !!status, anchor: '#members' },
     { label: 'Даты', detail: previewDates.slice(0, 2).join(' · '), done: previewDates.length > 0, anchor: '#dates' },
     { label: 'Комментарий', detail: comment ? 'Заполнен' : 'Необязателен', done: !!comment, anchor: '#notes' },
@@ -457,10 +460,11 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
     { value: 'multiple', label: 'Конкретные даты', hint: 'Точечный выбор', icon: '◎' },
   ]
 
-  const nounByType: Record<'dayoff' | 'sick' | 'vacation', string> = {
+  const nounByType: Record<'dayoff' | 'sick' | 'vacation' | 'absence', string> = {
     dayoff: 'выходной',
     sick: 'больничный',
     vacation: 'отпуск',
+    absence: 'прогул',
   }
 
   const headingTitle = selectedType ? `${status ? 'Редактировать' : 'Добавить'} ${nounByType[selectedType]}` : 'Добавить отсутствие'
@@ -602,6 +606,7 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
                       { key: 'dayoff', label: 'Выходной', icon: '🌙' },
                       { key: 'sick', label: 'Больничный', icon: '🏥' },
                       { key: 'vacation', label: 'Отпуск', icon: '✈️' },
+                      { key: 'absence', label: 'Прогул', icon: '🚫' },
                     ].map((item) => (
                       <button
                         key={item.key}
