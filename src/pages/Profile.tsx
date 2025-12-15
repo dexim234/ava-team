@@ -185,6 +185,9 @@ export const Profile = () => {
         const vacationDays = monthStatuses
           .filter(s => s.type === 'vacation')
           .reduce((sum, s) => sum + countDaysInPeriod(s.date, s.endDate, monthStart, monthEnd), 0)
+        const absenceDays = monthStatuses
+          .filter(s => s.type === 'absence')
+          .reduce((sum, s) => sum + countDaysInPeriod(s.date, s.endDate, monthStart, monthEnd), 0)
 
         const slots = await getWorkSlots(userId)
         const weekSlots = slots.filter(s => s.date >= weekStart && s.date <= weekEnd)
@@ -203,6 +206,7 @@ export const Profile = () => {
           daysOff: 0,
           sickDays: 0,
           vacationDays: 0,
+          absenceDays: 0,
           poolAmount: 0,
           rating: 0,
           lastUpdated: new Date().toISOString(),
@@ -222,6 +226,7 @@ export const Profile = () => {
           daysOff,
           sickDays,
           vacationDays,
+          absenceDays,
           poolAmount,
           lastUpdated: new Date().toISOString(),
         }

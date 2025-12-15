@@ -783,6 +783,7 @@ export const getRatingData = async (userId?: string) => {
       daysOff: data.daysOff || 0,
       sickDays: data.sickDays || 0,
       vacationDays: data.vacationDays || 0,
+      absenceDays: data.absenceDays || 0,
       poolAmount: data.poolAmount || 0,
       rating: data.rating || 0,
       lastUpdated: data.lastUpdated || new Date().toISOString(),
