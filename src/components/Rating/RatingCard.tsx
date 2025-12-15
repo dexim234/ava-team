@@ -107,9 +107,9 @@ export const RatingCard = ({ rating, place }: RatingCardProps) => {
       label: 'Выходные',
       value: `${rating.breakdown.daysOff} день`,
       points: rating.breakdown.daysOffPoints,
-      maxPoints: 10,
-      explanation: '0-2 выходных в неделю = 10% к рейтингу. Более 2 выходных = 0%. Показывает стабильность присутствия.',
-      threshold: '0-2 дня',
+      maxPoints: 5,
+      explanation: 'Менее 2 выходных в неделю = +5% к рейтингу. Более 3 выходных = -15%. Показывает стабильность присутствия.',
+      threshold: '<2 дня: +5% | >3 дня: -15%',
       color: 'bg-amber-200 text-amber-900'
     },
     {
@@ -117,9 +117,9 @@ export const RatingCard = ({ rating, place }: RatingCardProps) => {
       label: 'Больничные',
       value: `${rating.breakdown.sickDays} дней`,
       points: rating.breakdown.sickDaysPoints,
-      maxPoints: 10,
-      explanation: 'До 7 дней больничного в месяц = 10% к рейтингу. Более 7 дней = 0%. Учитывается за последние 30 дней.',
-      threshold: '≤7 дней',
+      maxPoints: 5,
+      explanation: 'Менее 3 дней больничных в неделю И ≤9 дней в месяц = +5%. Более 4 дней в неделю ИЛИ >10 дней в месяц = -15%.',
+      threshold: '<3/нед + ≤9/мес: +5% | >4/нед или >10/мес: -15%',
       color: 'bg-purple-200 text-purple-900'
     },
     {
@@ -128,8 +128,8 @@ export const RatingCard = ({ rating, place }: RatingCardProps) => {
       value: `${rating.breakdown.vacationDays} дней`,
       points: rating.breakdown.vacationDaysPoints,
       maxPoints: 10,
-      explanation: 'До 7 дней отпуска в месяц = 10% к рейтингу. Более 7 дней = 0%. Учитывается за последние 30 дней.',
-      threshold: '≤7 дней',
+      explanation: 'Менее 12 дней отпуска в месяц И ≤30 дней за 90 дней = +10%. Более 12 дней в месяц ИЛИ >30 дней за 90 дней = -10%.',
+      threshold: '<12/мес + ≤30/90дн: +10% | >12/мес или >30/90дн: -10%',
       color: 'bg-orange-200 text-orange-900'
     },
     {
@@ -172,16 +172,6 @@ export const RatingCard = ({ rating, place }: RatingCardProps) => {
       threshold: '5% за каждого (макс 30%)',
       color: 'bg-pink-200 text-pink-900'
     },
-    {
-      icon: <MessageSquare className="w-5 h-5" />,
-      label: 'Сообщения',
-      value: `${rating.breakdown.weeklyMessages} сообщений`,
-      points: rating.breakdown.weeklyMessagesPoints,
-      maxPoints: 15,
-      explanation: 'Более 50 сообщений в неделю в группе = 15% к рейтингу. Менее 50 = 0%. Учитываются все типы сообщений (текст, фото, стикеры и т.д.). Показывает активность в общении.',
-      threshold: '>50 сообщений',
-      color: 'bg-indigo-200 text-indigo-900'
-    }
   ] : []
 
   // Рассчитываем итоговый рейтинг с учетом штрафов за прогулы

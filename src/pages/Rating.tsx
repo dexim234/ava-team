@@ -43,6 +43,10 @@ export const Rating = () => {
       const monthIsoStart = monthRange.start.toISOString()
       const monthIsoEnd = monthRange.end.toISOString()
 
+      const ninetyDayRange = getLastNDaysRange(90)
+      const ninetyDayStart = formatDate(ninetyDayRange.start, 'yyyy-MM-dd')
+      const ninetyDayEnd = formatDate(ninetyDayRange.end, 'yyyy-MM-dd')
+
       const currentReferrals = await getReferrals(undefined, monthIsoStart, monthIsoEnd)
       setReferrals(currentReferrals)
       const allRatings: (RatingData & { breakdown?: ReturnType<typeof getRatingBreakdown> })[] = []
@@ -88,12 +92,34 @@ export const Rating = () => {
           .filter(s => s.type === 'absence')
           .reduce((sum, s) => sum + countDaysInPeriod(s.date, s.endDate, monthStart, monthEnd), 0)
 
+        // Недельные выходные и больничные
+        const weekStatuses = statuses.filter(s => {
+          const statusStart = s.date
+          const statusEnd = s.endDate || s.date
+          return statusStart <= weekEnd && statusEnd >= weekStart
+        })
+
+        const weeklyDaysOff = weekStatuses
+          .filter(s => s.type === 'dayoff')
+          .reduce((sum, s) => sum + countDaysInPeriod(s.date, s.endDate, weekStart, weekEnd), 0)
+        const weeklySickDays = weekStatuses
+          .filter(s => s.type === 'sick')
+          .reduce((sum, s) => sum + countDaysInPeriod(s.date, s.endDate, weekStart, weekEnd), 0)
+
+        // Отпуск за 90 дней
+        const ninetyDayStatuses = statuses.filter(s => {
+          const statusStart = s.date
+          const statusEnd = s.endDate || s.date
+          return statusStart <= ninetyDayEnd && statusEnd >= ninetyDayStart
+        })
+
+        const ninetyDayVacationDays = ninetyDayStatuses
+          .filter(s => s.type === 'vacation')
+          .reduce((sum, s) => sum + countDaysInPeriod(s.date, s.endDate, ninetyDayStart, ninetyDayEnd), 0)
+
         const slots = await getWorkSlots(member.id)
         const weekSlots = slots.filter(s => s.date >= weekStart && s.date <= weekEnd)
         const weeklyHours = weekSlots.reduce((sum, slot) => sum + calculateHours(slot.slots), 0)
-
-        // Сообщения за неделю - из коллекции messages
-        const weeklyMessages = await getWeeklyMessages(member.id, weekStart, weekEnd)
         
         // Для статистики используем общее количество из ratings
         const existingRatings = await getRatingData(member.id)
@@ -132,8 +158,8 @@ export const Rating = () => {
           lastUpdated: new Date().toISOString(),
         }
 
-        const rating = calculateRating(updatedData, weeklyHours, weeklyEarnings, weeklyMessages)
-        const breakdown = getRatingBreakdown(updatedData, weeklyHours, weeklyEarnings, weeklyMessages)
+        const rating = calculateRating(updatedData, weeklyHours, weeklyEarnings, weeklyDaysOff, weeklySickDays, ninetyDayVacationDays)
+        const breakdown = getRatingBreakdown(updatedData, weeklyHours, weeklyEarnings, weeklyDaysOff, weeklySickDays, ninetyDayVacationDays)
 
         allRatings.push({
           ...updatedData,
@@ -182,10 +208,9 @@ export const Rating = () => {
     if (r.breakdown.weeklyHoursPoints < 25) tips.push('Дотяни рабочие часы до 20+ в неделю (25%).')
     if (r.breakdown.weeklyEarningsPoints < 30) tips.push('Увеличь недельный доход до 6000+ ₽ (30%).')
     if (r.breakdown.referralsPoints < 30) tips.push('Добавь рефералов: до +30% (6 человек).')
-    if (r.breakdown.weeklyMessagesPoints < 15) tips.push('Сообщения: >50 в неделю для +15%.')
-    if (r.breakdown.daysOffPoints < 10) tips.push('Сократи выходные до 0–2 за неделю.')
-    if (r.breakdown.sickDaysPoints < 10) tips.push('Больничные держи ≤7 дней в месяц.')
-    if (r.breakdown.vacationDaysPoints < 10) tips.push('Отпуск ≤7 дней в месяц.')
+    if (r.breakdown.daysOffPoints <= 0) tips.push('Выходные: <2 дней в неделю для +5%.')
+    if (r.breakdown.sickDaysPoints <= 0) tips.push('Больничные: <3 дней в неделю И ≤9 дней в месяц для +5%.')
+    if (r.breakdown.vacationDaysPoints <= 0) tips.push('Отпуск: <12 дней в месяц И ≤30 дней за 90 дней для +10%.')
     return tips.length ? tips : ['Отлично! Держи текущий темп.']
   }
 

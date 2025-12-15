@@ -149,6 +149,10 @@ export const Profile = () => {
         const monthIsoStart = monthRange.start.toISOString()
         const monthIsoEnd = monthRange.end.toISOString()
 
+        const ninetyDayRange = getLastNDaysRange(90)
+        const ninetyDayStart = formatDate(ninetyDayRange.start, 'yyyy-MM-dd')
+        const ninetyDayEnd = formatDate(ninetyDayRange.end, 'yyyy-MM-dd')
+
         const weekEarnings = await getEarnings(userId, weekStart, weekEnd)
         const weeklyEarnings = weekEarnings.reduce((sum, e) => {
           const participantCount = e.participants && e.participants.length > 0 ? e.participants.length : 1
@@ -189,11 +193,35 @@ export const Profile = () => {
           .filter(s => s.type === 'absence')
           .reduce((sum, s) => sum + countDaysInPeriod(s.date, s.endDate, monthStart, monthEnd), 0)
 
+        // Недельные выходные и больничные
+        const weekStatuses = statuses.filter(s => {
+          const statusStart = s.date
+          const statusEnd = s.endDate || s.date
+          return statusStart <= weekEnd && statusEnd >= weekStart
+        })
+
+        const weeklyDaysOff = weekStatuses
+          .filter(s => s.type === 'dayoff')
+          .reduce((sum, s) => sum + countDaysInPeriod(s.date, s.endDate, weekStart, weekEnd), 0)
+        const weeklySickDays = weekStatuses
+          .filter(s => s.type === 'sick')
+          .reduce((sum, s) => sum + countDaysInPeriod(s.date, s.endDate, weekStart, weekEnd), 0)
+
+        // Отпуск за 90 дней
+        const ninetyDayStatuses = statuses.filter(s => {
+          const statusStart = s.date
+          const statusEnd = s.endDate || s.date
+          return statusStart <= ninetyDayEnd && statusEnd >= ninetyDayStart
+        })
+
+        const ninetyDayVacationDays = ninetyDayStatuses
+          .filter(s => s.type === 'vacation')
+          .reduce((sum, s) => sum + countDaysInPeriod(s.date, s.endDate, ninetyDayStart, ninetyDayEnd), 0)
+
         const slots = await getWorkSlots(userId)
         const weekSlots = slots.filter(s => s.date >= weekStart && s.date <= weekEnd)
         const weeklyHours = weekSlots.reduce((sum, slot) => sum + calculateHours(slot.slots), 0)
 
-        const weeklyMessages = await getWeeklyMessages(userId, weekStart, weekEnd)
         const existingRatings = await getRatingData(userId)
         const ratingData = existingRatings[0] || {
           userId,
@@ -235,14 +263,18 @@ export const Profile = () => {
           updatedData,
           weeklyHours,
           weeklyEarnings,
-          weeklyMessages
+          weeklyDaysOff,
+          weeklySickDays,
+          ninetyDayVacationDays
         )
 
         const breakdown = getRatingBreakdown(
           updatedData,
           weeklyHours,
           weeklyEarnings,
-          weeklyMessages
+          weeklyDaysOff,
+          weeklySickDays,
+          ninetyDayVacationDays
         )
 
         setRating({ ...updatedData, rating: calculatedRating })
@@ -965,13 +997,12 @@ export const Profile = () => {
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      {[{label:'Выходные',value:`${rating.daysOff} дн`,pts:ratingBreakdown.daysOffPoints,classes:theme==='dark'?'bg-slate-700/40 border-slate-600/60':'bg-slate-50 border-slate-200'},
+                      {[{label:'Выходные',value:`${ratingBreakdown.daysOff} дн`,pts:ratingBreakdown.daysOffPoints,classes:theme==='dark'?'bg-slate-700/40 border-slate-600/60':'bg-slate-50 border-slate-200'},
                         {label:'Больничные',value:`${rating.sickDays} дн`,pts:ratingBreakdown.sickDaysPoints,classes:theme==='dark'?'bg-amber-500/15 border-amber-500/30':'bg-amber-50 border-amber-200'},
                         {label:'Отпуск',value:`${rating.vacationDays} дн`,pts:ratingBreakdown.vacationDaysPoints,classes:theme==='dark'?'bg-orange-500/15 border-orange-500/30':'bg-orange-50 border-orange-200'},
                         {label:'Часы',value:`${ratingBreakdown.weeklyHours.toFixed(1)} ч/нед`,pts:ratingBreakdown.weeklyHoursPoints,classes:theme==='dark'?'bg-blue-500/15 border-blue-500/30':'bg-blue-50 border-blue-200'},
                         {label:'Заработок',value:`${ratingBreakdown.weeklyEarnings.toFixed(0)} ₽/нед`,pts:ratingBreakdown.weeklyEarningsPoints,classes:theme==='dark'?'bg-emerald-500/15 border-emerald-500/30':'bg-emerald-50 border-emerald-200'},
-                        {label:'Рефералы',value:`${rating.referrals}`,pts:ratingBreakdown.referralsPoints,classes:theme==='dark'?'bg-purple-500/15 border-purple-500/30':'bg-purple-50 border-purple-200'},
-                        {label:'Сообщения',value:`${ratingBreakdown.weeklyMessages} сообщ/нед`,pts:ratingBreakdown.weeklyMessagesPoints,classes:theme==='dark'?'bg-pink-500/15 border-pink-500/30':'bg-pink-50 border-pink-200'}].map(item => (
+                        {label:'Рефералы',value:`${rating.referrals}`,pts:ratingBreakdown.referralsPoints,classes:theme==='dark'?'bg-purple-500/15 border-purple-500/30':'bg-purple-50 border-purple-200'}].map(item => (
                         <div key={item.label} className={`p-3 rounded-xl border shadow-sm ${item.classes}`}>
                           <div className="text-xs font-semibold uppercase opacity-80">{item.label}</div>
                           <div className={`text-lg font-bold ${headingColor}`}>{item.value}</div>

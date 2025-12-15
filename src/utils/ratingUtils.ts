@@ -16,8 +16,6 @@ export interface RatingBreakdown {
   weeklyEarningsPoints: number
   referrals: number
   referralsPoints: number
-  weeklyMessages: number
-  weeklyMessagesPoints: number
   totalRating: number
 }
 
@@ -25,26 +23,34 @@ export const calculateRating = (
   data: Omit<RatingData, 'rating'>,
   weeklyHours: number = 0,
   weeklyEarnings: number = 0,
-  weeklyMessages: number = 0
+  weeklyDaysOff: number = 0,
+  weeklySickDays: number = 0,
+  ninetyDayVacationDays: number = 0
 ): number => {
   let rating = 0
 
-  // Выходные: нет или <=3 дня в неделю = 10%
-  if (data.daysOff === 0 || data.daysOff <= 3) {
-    rating += 10
+  // Выходные: <2 дней в неделю = +5%, >3 дней в неделю = -15%
+  if (weeklyDaysOff < 2) {
+    rating += 5
+  } else if (weeklyDaysOff > 3) {
+    rating -= 15
   }
 
-  // Больничные: <=7 дней за месяц = 10%, иначе 0%
-  if (data.sickDays <= 7) {
-    rating += 10
+  // Больничные: <3 дней в неделю И <=9 дней в месяц = +5%, >4 дней в неделю ИЛИ >10 дней в месяц = -15%
+  if (weeklySickDays < 3 && data.sickDays <= 9) {
+    rating += 5
+  } else if (weeklySickDays > 4 || data.sickDays > 10) {
+    rating -= 15
   }
 
-  // Отпуск: <=7 дней за месяц = 10%, иначе 0%
-  if (data.vacationDays <= 7) {
+  // Отпуск: <12 дней в месяц И <=30 дней за 90 дней = +10%, >12 дней в месяц ИЛИ >30 дней за 90 дней = -10%
+  if (data.vacationDays < 12 && ninetyDayVacationDays <= 30) {
     rating += 10
+  } else if (data.vacationDays > 12 || ninetyDayVacationDays > 30) {
+    rating -= 10
   }
 
-  // Прогулы: <=1 в неделю = рейтинг не страдает, >2 в неделю = рейтинг -30%
+  // Прогулы: >2 в неделю = рейтинг -30%
   let absencePenalty = 0
   if (data.absenceDays > 2) {
     absencePenalty = 30
@@ -68,11 +74,6 @@ export const calculateRating = (
   const referralsPoints = Math.min(data.referrals * 5, 30)
   rating += referralsPoints
 
-  // Сообщения: >50 за неделю = 15%, меньше = 0%
-  if (weeklyMessages > 50) {
-    rating += 15
-  }
-
   // Применяем штраф за прогулы
   rating = Math.max(0, rating - absencePenalty)
 
@@ -83,13 +84,35 @@ export const getRatingBreakdown = (
   data: Omit<RatingData, 'rating'>,
   weeklyHours: number = 0,
   weeklyEarnings: number = 0,
-  weeklyMessages: number = 0
+  weeklyDaysOff: number = 0,
+  weeklySickDays: number = 0,
+  ninetyDayVacationDays: number = 0
 ): RatingBreakdown => {
-  const daysOffPoints = (data.daysOff === 0 || data.daysOff <= 3) ? 10 : 0
-  const sickDaysPoints = data.sickDays <= 7 ? 10 : 0
-  const vacationDaysPoints = data.vacationDays <= 7 ? 10 : 0
+  // Выходные: <2 дней в неделю = +5%, >3 дней в неделю = -15%
+  let daysOffPoints = 0
+  if (weeklyDaysOff < 2) {
+    daysOffPoints = 5
+  } else if (weeklyDaysOff > 3) {
+    daysOffPoints = -15
+  }
 
-  // Прогулы: <=1 в неделю = 0% штрафа, >2 в неделю = -30%
+  // Больничные: <3 дней в неделю И <=9 дней в месяц = +5%, >4 дней в неделю ИЛИ >10 дней в месяц = -15%
+  let sickDaysPoints = 0
+  if (weeklySickDays < 3 && data.sickDays <= 9) {
+    sickDaysPoints = 5
+  } else if (weeklySickDays > 4 || data.sickDays > 10) {
+    sickDaysPoints = -15
+  }
+
+  // Отпуск: <12 дней в месяц И <=30 дней за 90 дней = +10%, >12 дней в месяц ИЛИ >30 дней за 90 дней = -10%
+  let vacationDaysPoints = 0
+  if (data.vacationDays < 12 && ninetyDayVacationDays <= 30) {
+    vacationDaysPoints = 10
+  } else if (data.vacationDays > 12 || ninetyDayVacationDays > 30) {
+    vacationDaysPoints = -10
+  }
+
+  // Прогулы: >2 в неделю = -30%
   let absenceDaysPoints = 0
   if (data.absenceDays > 2) {
     absenceDaysPoints = -30
@@ -110,7 +133,6 @@ export const getRatingBreakdown = (
   }
 
   const referralsPoints = Math.min(data.referrals * 5, 30)
-  const weeklyMessagesPoints = weeklyMessages > 50 ? 15 : 0
 
   // Базовый рейтинг без учета прогулов
   const baseRating = daysOffPoints +
@@ -118,18 +140,17 @@ export const getRatingBreakdown = (
     vacationDaysPoints +
     weeklyHoursPoints +
     weeklyEarningsPoints +
-    referralsPoints +
-    weeklyMessagesPoints
+    referralsPoints
 
   // Применяем штраф за прогулы
   const totalRating = Math.min(Math.max(0, baseRating + absenceDaysPoints), 100)
 
   return {
-    daysOff: data.daysOff,
+    daysOff: weeklyDaysOff, // Теперь показываем недельные выходные
     daysOffPoints,
-    sickDays: data.sickDays,
+    sickDays: data.sickDays, // Оставляем месячные больничные для отображения
     sickDaysPoints,
-    vacationDays: data.vacationDays,
+    vacationDays: data.vacationDays, // Оставляем месячные отпуска для отображения
     vacationDaysPoints,
     absenceDays: data.absenceDays,
     absenceDaysPoints,
@@ -139,8 +160,6 @@ export const getRatingBreakdown = (
     weeklyEarningsPoints,
     referrals: data.referrals,
     referralsPoints,
-    weeklyMessages,
-    weeklyMessagesPoints,
     totalRating,
   }
 }
