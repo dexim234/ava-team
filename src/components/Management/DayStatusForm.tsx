@@ -606,7 +606,7 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
                       { key: 'dayoff', label: 'Выходной', icon: '🌙' },
                       { key: 'sick', label: 'Больничный', icon: '🏥' },
                       { key: 'vacation', label: 'Отпуск', icon: '✈️' },
-                      { key: 'absence', label: 'Прогул', icon: '🚫' },
+                      ...(isAdmin ? [{ key: 'absence', label: 'Прогул', icon: '🚫' }] : []),
                     ].map((item) => (
                       <button
                         key={item.key}

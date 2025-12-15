@@ -27,34 +27,58 @@ export const calculateRating = (
   weeklySickDays: number = 0,
   ninetyDayVacationDays: number = 0
 ): number => {
+  console.log('calculateRating input:', {
+    userId: data.userId,
+    weeklyDaysOff,
+    weeklySickDays,
+    data_sickDays: data.sickDays,
+    data_vacationDays: data.vacationDays,
+    ninetyDayVacationDays,
+    data_absenceDays: data.absenceDays,
+    weeklyHours,
+    weeklyEarnings
+  })
   let rating = 0
 
   // Выходные: <2 дней в неделю = +5%, >3 дней в неделю = -15%
+  let daysOffPoints = 0
   if (weeklyDaysOff < 2) {
+    daysOffPoints = 5
     rating += 5
   } else if (weeklyDaysOff > 3) {
+    daysOffPoints = -15
     rating -= 15
   }
+  console.log('DaysOff calculation:', { weeklyDaysOff, daysOffPoints, currentRating: rating })
 
   // Больничные: <3 дней в неделю И <=9 дней в месяц = +5%, >4 дней в неделю ИЛИ >10 дней в месяц = -15%
+  let sickDaysPoints = 0
   if (weeklySickDays < 3 && data.sickDays <= 9) {
+    sickDaysPoints = 5
     rating += 5
   } else if (weeklySickDays > 4 || data.sickDays > 10) {
+    sickDaysPoints = -15
     rating -= 15
   }
+  console.log('SickDays calculation:', { weeklySickDays, monthlySickDays: data.sickDays, sickDaysPoints, currentRating: rating })
 
   // Отпуск: <12 дней в месяц И <=30 дней за 90 дней = +10%, >12 дней в месяц ИЛИ >30 дней за 90 дней = -10%
+  let vacationDaysPoints = 0
   if (data.vacationDays < 12 && ninetyDayVacationDays <= 30) {
+    vacationDaysPoints = 10
     rating += 10
   } else if (data.vacationDays > 12 || ninetyDayVacationDays > 30) {
+    vacationDaysPoints = -10
     rating -= 10
   }
+  console.log('Vacation calculation:', { monthlyVacationDays: data.vacationDays, ninetyDayVacationDays, vacationDaysPoints, currentRating: rating })
 
   // Прогулы: >2 в неделю = рейтинг -30%
   let absencePenalty = 0
   if (data.absenceDays > 2) {
     absencePenalty = 30
   }
+  console.log('Absence penalty:', { absenceDays: data.absenceDays, absencePenalty, currentRating: rating })
 
   // Часы работы в неделю: <15 = 0%, >=15 = 15%, >=20 = 25%
   if (weeklyHours >= 20) {
@@ -76,6 +100,11 @@ export const calculateRating = (
 
   // Применяем штраф за прогулы
   rating = Math.max(0, rating - absencePenalty)
+
+  console.log('Final rating calculation:', {
+    ratingAfterAbsencePenalty: rating,
+    finalRating: Math.min(rating, 100)
+  })
 
   return Math.min(rating, 100)
 }

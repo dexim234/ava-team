@@ -258,6 +258,15 @@ export const Profile = () => {
           lastUpdated: new Date().toISOString(),
         }
 
+        console.log('Profile.tsx calculateRating call for user:', userId, {
+          weeklyHours,
+          weeklyEarnings,
+          weeklyDaysOff,
+          weeklySickDays,
+          ninetyDayVacationDays,
+          updatedData
+        })
+
         const calculatedRating = calculateRating(
           updatedData,
           weeklyHours,
