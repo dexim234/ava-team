@@ -24,7 +24,7 @@ export const getUserNicknameSync = (userId: string): string => {
   if (cached !== undefined) {
     return cached || defaultNicknameMap[userId] || TEAM_MEMBERS.find((m) => m.id === userId)?.login || userId
   }
-  
+
   // Return default if not in cache
   return defaultNicknameMap[userId] || TEAM_MEMBERS.find((m) => m.id === userId)?.login || userId
 }
@@ -40,7 +40,7 @@ export const getUserNicknameAsync = async (userId: string): Promise<string> => {
       nicknameCache.set(userId, customNickname)
       return customNickname
     }
-    
+
     const defaultNickname = defaultNicknameMap[userId] || TEAM_MEMBERS.find((m) => m.id === userId)?.login || userId
     nicknameCache.set(userId, null) // Cache null to indicate no custom nickname
     return defaultNickname
@@ -79,10 +79,18 @@ export const useUserNickname = (userId: string): string => {
   const [nickname, setNickname] = useState(() => getUserNicknameSync(userId))
 
   useEffect(() => {
+    // Initial fetch if not in cache or if it's currently a fallback
+    // We check if the cache has the exact userId to see if we've ever fetched it
+    if (!nicknameCache.has(userId)) {
+      getUserNicknameAsync(userId).then(val => setNickname(val))
+    }
+
     const handleNicknameUpdate = (event: Event) => {
       const customEvent = event as CustomEvent<{ userId: string }>
       const { userId: updatedUserId } = customEvent.detail || {}
-      if (updatedUserId === userId) {
+
+      // Update if it's our userId or if it's a global update (no userId in detail)
+      if (!updatedUserId || updatedUserId === userId) {
         setNickname(getUserNicknameSync(userId))
       }
     }

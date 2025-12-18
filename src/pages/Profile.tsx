@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Layout } from '@/components/Layout'
 import { useThemeStore } from '@/store/themeStore'
 import { useAuthStore } from '@/store/authStore'
@@ -25,7 +25,7 @@ import {
   countDaysInPeriod
 } from '@/utils/dateUtils'
 import { calculateRating, getRatingBreakdown } from '@/utils/ratingUtils'
-import { Task, RatingData } from '@/types'
+import { Task, RatingData, Note, Earnings, DayStatus } from '@/types'
 import {
   User,
   LogOut,
@@ -44,8 +44,9 @@ import {
   BookOpen,
 } from 'lucide-react'
 import { useNavigate, Link } from 'react-router-dom'
-import { TEAM_MEMBERS, Note } from '@/types'
-import { getUserNicknameSync } from '@/utils/userUtils'
+import { TEAM_MEMBERS } from '@/types'
+import { useUserNickname } from '@/utils/userUtils'
+import { UserNickname } from '@/components/UserNickname'
 
 export const Profile = () => {
   const { theme } = useThemeStore()
@@ -76,10 +77,10 @@ export const Profile = () => {
   })
   const [loading, setLoading] = useState(true)
   const [loginCopied, setLoginCopied] = useState(false)
-  const [customNickname, setCustomNickname] = useState<string | null>(null)
   const [newNickname, setNewNickname] = useState('')
   const [isEditingNickname, setIsEditingNickname] = useState(false)
   const [nicknameRequestPending, setNicknameRequestPending] = useState(false)
+  const nickname = useUserNickname(user?.id || '')
 
   const userData = user || (isAdmin ? { name: 'Администратор', login: 'admin', password: ADMIN_PASSWORD } : null)
   const profileAvatar = user?.id ? TEAM_MEMBERS.find((m) => m.id === user.id)?.avatar : undefined
@@ -93,39 +94,7 @@ export const Profile = () => {
     }
   }, [user, isAdmin])
 
-  // Refresh custom nickname when approval might be processed
-  useEffect(() => {
-    const checkNicknameUpdates = async () => {
-      if (user?.id && !isAdmin) {
-        const userNickname = await getUserNickname(user.id)
-        if (userNickname) {
-          setCustomNickname(userNickname.nickname)
-        } else {
-          setCustomNickname(null)
-        }
-      }
-    }
-    
-    // Check every 30 seconds for nickname updates
-    const interval = setInterval(checkNicknameUpdates, 30000)
-    checkNicknameUpdates() // Check immediately
-    
-    // Listen for immediate nickname updates
-    const handleNicknameUpdate = async (event: Event) => {
-      const customEvent = event as CustomEvent<{ userId: string }>
-      const { userId } = customEvent.detail || {}
-      if (userId === user?.id) {
-        await checkNicknameUpdates()
-      }
-    }
-    
-    window.addEventListener('nicknameUpdated', handleNicknameUpdate)
-    
-    return () => {
-      clearInterval(interval)
-      window.removeEventListener('nicknameUpdated', handleNicknameUpdate as EventListener)
-    }
-  }, [user?.id, isAdmin])
+
 
   const loadProfileData = async () => {
     if (!user && !isAdmin) return
@@ -153,73 +122,73 @@ export const Profile = () => {
         const ninetyDayEnd = formatDate(ninetyDayRange.end, 'yyyy-MM-dd')
 
         const weekEarnings = await getEarnings(userId, weekStart, weekEnd)
-        const weeklyEarnings = weekEarnings.reduce((sum, e) => {
+        const weeklyEarnings = weekEarnings.reduce((sum: number, e: Earnings) => {
           const participantCount = e.participants && e.participants.length > 0 ? e.participants.length : 1
           return sum + (e.amount / participantCount)
         }, 0)
-        const weeklyPool = weekEarnings.reduce((sum, e) => {
+        const weeklyPool = weekEarnings.reduce((sum: number, e: Earnings) => {
           const participantCount = e.participants && e.participants.length > 0 ? e.participants.length : 1
           return sum + (e.poolAmount / participantCount)
         }, 0)
 
         const monthEarnings = await getEarnings(userId, monthStart, monthEnd)
-        const totalEarnings = monthEarnings.reduce((sum, e) => {
+        const totalEarnings = monthEarnings.reduce((sum: number, e: Earnings) => {
           const participantCount = e.participants && e.participants.length > 0 ? e.participants.length : 1
           return sum + (e.amount / participantCount)
         }, 0)
-        const poolAmount = monthEarnings.reduce((sum, e) => {
+        const poolAmount = monthEarnings.reduce((sum: number, e: Earnings) => {
           const participantCount = e.participants && e.participants.length > 0 ? e.participants.length : 1
           return sum + (e.poolAmount / participantCount)
         }, 0)
 
         const statuses = await getDayStatuses(userId)
-        const monthStatuses = statuses.filter(s => {
+        const monthStatuses = statuses.filter((s: DayStatus) => {
           const statusStart = s.date
           const statusEnd = s.endDate || s.date
           return statusStart <= monthEnd && statusEnd >= monthStart
         })
 
         const daysOff = monthStatuses
-          .filter(s => s.type === 'dayoff')
-          .reduce((sum, s) => sum + countDaysInPeriod(s.date, s.endDate, monthStart, monthEnd), 0)
+          .filter((s: any) => s.type === 'dayoff')
+          .reduce((sum: number, s: any) => sum + countDaysInPeriod(s.date, s.endDate, monthStart, monthEnd), 0)
         const sickDays = monthStatuses
-          .filter(s => s.type === 'sick')
-          .reduce((sum, s) => sum + countDaysInPeriod(s.date, s.endDate, monthStart, monthEnd), 0)
+          .filter((s: any) => s.type === 'sick')
+          .reduce((sum: number, s: any) => sum + countDaysInPeriod(s.date, s.endDate, monthStart, monthEnd), 0)
         const vacationDays = monthStatuses
-          .filter(s => s.type === 'vacation')
-          .reduce((sum, s) => sum + countDaysInPeriod(s.date, s.endDate, monthStart, monthEnd), 0)
+          .filter((s: any) => s.type === 'vacation')
+          .reduce((sum: number, s: any) => sum + countDaysInPeriod(s.date, s.endDate, monthStart, monthEnd), 0)
         const absenceDays = monthStatuses
-          .filter(s => s.type === 'absence')
-          .reduce((sum, s) => sum + countDaysInPeriod(s.date, s.endDate, monthStart, monthEnd), 0)
+          .filter((s: any) => s.type === 'absence')
+          .reduce((sum: number, s: any) => sum + countDaysInPeriod(s.date, s.endDate, monthStart, monthEnd), 0)
 
         // Недельные выходные и больничные
-        const weekStatuses = statuses.filter(s => {
+        const weekStatuses = statuses.filter((s: any) => {
           const statusStart = s.date
           const statusEnd = s.endDate || s.date
           return statusStart <= weekEnd && statusEnd >= weekStart
         })
 
         const weeklyDaysOff = weekStatuses
-          .filter(s => s.type === 'dayoff')
-          .reduce((sum, s) => sum + countDaysInPeriod(s.date, s.endDate, weekStart, weekEnd), 0)
+          .filter((s: any) => s.type === 'dayoff')
+          .reduce((sum: number, s: any) => sum + countDaysInPeriod(s.date, s.endDate, weekStart, weekEnd), 0)
         const weeklySickDays = weekStatuses
-          .filter(s => s.type === 'sick')
-          .reduce((sum, s) => sum + countDaysInPeriod(s.date, s.endDate, weekStart, weekEnd), 0)
+          .filter((s: any) => s.type === 'sick')
+          .reduce((sum: number, s: any) => sum + countDaysInPeriod(s.date, s.endDate, weekStart, weekEnd), 0)
 
         // Отпуск за 90 дней
-        const ninetyDayStatuses = statuses.filter(s => {
+        const ninetyDayStatuses = statuses.filter((s: any) => {
           const statusStart = s.date
           const statusEnd = s.endDate || s.date
           return statusStart <= ninetyDayEnd && statusEnd >= ninetyDayStart
         })
 
         const ninetyDayVacationDays = ninetyDayStatuses
-          .filter(s => s.type === 'vacation')
-          .reduce((sum, s) => sum + countDaysInPeriod(s.date, s.endDate, ninetyDayStart, ninetyDayEnd), 0)
+          .filter((s: any) => s.type === 'vacation')
+          .reduce((sum: number, s: any) => sum + countDaysInPeriod(s.date, s.endDate, ninetyDayStart, ninetyDayEnd), 0)
 
         const slots = await getWorkSlots(userId)
-        const weekSlots = slots.filter(s => s.date >= weekStart && s.date <= weekEnd)
-        const weeklyHours = weekSlots.reduce((sum, slot) => sum + calculateHours(slot.slots), 0)
+        const weekSlots = slots.filter((s: any) => s.date >= weekStart && s.date <= weekEnd)
+        const weeklyHours = weekSlots.reduce((sum: number, slot: any) => sum + calculateHours(slot.slots), 0)
 
         const existingRatings = await getRatingData(userId)
         const ratingData = existingRatings[0] || {
@@ -240,7 +209,7 @@ export const Profile = () => {
         }
 
         const currentReferrals = await getReferrals(undefined, monthIsoStart, monthIsoEnd)
-        const userReferrals = currentReferrals.filter((referral) => referral.ownerId === userId).length
+        const userReferrals = currentReferrals.filter((referral: any) => referral.ownerId === userId).length
 
         const updatedData: Omit<RatingData, 'rating'> = {
           userId,
@@ -315,12 +284,8 @@ export const Profile = () => {
             const userNotes = await getUserNotes(user.id, isAdmin)
             setNotes(userNotes)
             saveLocalNotes(userNotes)
-            
-            // Load custom nickname
-            const userNickname = await getUserNickname(user.id)
-            if (userNickname) {
-              setCustomNickname(userNickname.nickname)
-            }
+
+            // Nickname is now handled by useUserNickname hook at the top level
           } else if (isAdmin) {
             const allNotes = await getUserNotes(undefined, true)
             setNotes(allNotes)
@@ -370,7 +335,7 @@ export const Profile = () => {
           text: noteDraft.text,
           priority: noteDraft.priority,
         })
-        const next = notes.map((n) =>
+        const next = notes.map((n: Note) =>
           n.id === noteDraft.id
             ? { ...n, title: noteDraft.title, text: noteDraft.text, priority: noteDraft.priority, updatedAt: new Date().toISOString() }
             : n
@@ -408,7 +373,7 @@ export const Profile = () => {
   }
 
   const handleEditNote = (id: string) => {
-    const found = notes.find((n) => n.id === id)
+    const found = notes.find((n: Note) => n.id === id)
     if (found) setNoteDraft(found)
   }
 
@@ -426,7 +391,7 @@ export const Profile = () => {
 
     try {
       await deleteNote(id)
-      const next = notes.filter((n) => n.id !== id)
+      const next = notes.filter((n: Note) => n.id !== id)
       setNotes(next)
       saveLocalNotes(next)
       if (noteDraft.id === id) {
@@ -464,22 +429,21 @@ export const Profile = () => {
 
   const handleRequestNicknameChange = async () => {
     if (!user?.id || !newNickname.trim()) return
-    
+
     const trimmedNickname = newNickname.trim()
-    const { getUserNicknameSync } = await import('@/utils/userUtils')
-    const currentNickname = customNickname || getUserNicknameSync(user.id) || ''
-    
+    const currentNickname = nickname || ''
+
     // Check if nickname is different
     if (trimmedNickname === currentNickname) {
       setIsEditingNickname(false)
       setNewNickname('')
       return
     }
-    
+
     setNicknameRequestPending(true)
     try {
       const currentUserNickname = await getUserNickname(user.id)
-      
+
       await addApprovalRequest({
         entity: 'login',
         action: 'update',
@@ -489,7 +453,7 @@ export const Profile = () => {
         after: { id: '', userId: user.id, nickname: trimmedNickname, createdAt: '', updatedAt: '' },
         comment: `Запрос на изменение ника с "${currentNickname}" на "${trimmedNickname}"`,
       })
-      
+
       setIsEditingNickname(false)
       setNewNickname('')
       alert('Запрос на изменение ника отправлен на согласование администратору')
@@ -501,9 +465,9 @@ export const Profile = () => {
     }
   }
 
-  const inProgressTasks = tasks.filter(t => t.status === 'in_progress').length
-  const completedTasks = tasks.filter(t => t.status === 'completed').length
-  const closedTasks = tasks.filter(t => t.status === 'closed').length
+  const inProgressTasks = tasks.filter((t: Task) => t.status === 'in_progress').length
+  const completedTasks = tasks.filter((t: Task) => t.status === 'completed').length
+  const closedTasks = tasks.filter((t: Task) => t.status === 'closed').length
   const taskStatusMeta: Record<Task['status'], { label: string; classes: string }> = {
     in_progress: {
       label: 'В работе',
@@ -541,7 +505,7 @@ export const Profile = () => {
                     src={profileAvatar}
                     alt={userData.name}
                     className="w-full h-full object-cover"
-                    onError={(e) => {
+                    onError={(e: React.SyntheticEvent<HTMLImageElement, Event>) => {
                       const target = e.target as HTMLImageElement
                       target.style.display = 'none'
                     }}
@@ -615,9 +579,8 @@ export const Profile = () => {
                         {!isEditingNickname && user && !isAdmin && (
                           <button
                             onClick={async () => {
-                              const { getUserNicknameSync } = await import('@/utils/userUtils')
                               setIsEditingNickname(true)
-                              setNewNickname(customNickname || getUserNicknameSync(user.id) || '')
+                              setNewNickname(nickname || '')
                             }}
                             className={`text-xs px-2 py-1 rounded-lg border transition ${theme === 'dark' ? 'border-white/10 bg-white/5 hover:border-white/30 text-white' : 'border-gray-200 bg-white hover:border-gray-300 text-gray-700'}`}
                           >
@@ -631,7 +594,7 @@ export const Profile = () => {
                           <input
                             type="text"
                             value={newNickname}
-                            onChange={(e) => setNewNickname(e.target.value)}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewNickname(e.target.value)}
                             placeholder="Введите новый ник"
                             className={`w-full px-3 py-2 rounded-lg border ${theme === 'dark' ? 'border-white/10 bg-white/5 text-white' : 'border-gray-200 bg-white text-gray-900'} text-sm`}
                             disabled={nicknameRequestPending}
@@ -640,11 +603,10 @@ export const Profile = () => {
                             <button
                               onClick={handleRequestNicknameChange}
                               disabled={nicknameRequestPending || !newNickname.trim()}
-                              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
-                                nicknameRequestPending || !newNickname.trim()
-                                  ? 'opacity-50 cursor-not-allowed'
-                                  : 'bg-[#4E6E49] text-white hover:bg-[#3d5639]'
-                              }`}
+                              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${nicknameRequestPending || !newNickname.trim()
+                                ? 'opacity-50 cursor-not-allowed'
+                                : 'bg-[#4E6E49] text-white hover:bg-[#3d5639]'
+                                }`}
                             >
                               {nicknameRequestPending ? 'Отправка...' : 'Отправить на согласование'}
                             </button>
@@ -654,9 +616,8 @@ export const Profile = () => {
                                 setNewNickname('')
                               }}
                               disabled={nicknameRequestPending}
-                              className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition ${
-                                theme === 'dark' ? 'border-white/10 bg-white/5 hover:border-white/30 text-white' : 'border-gray-200 bg-white hover:border-gray-300 text-gray-700'
-                              }`}
+                              className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition ${theme === 'dark' ? 'border-white/10 bg-white/5 hover:border-white/30 text-white' : 'border-gray-200 bg-white hover:border-gray-300 text-gray-700'
+                                }`}
                             >
                               Отмена
                             </button>
@@ -668,23 +629,23 @@ export const Profile = () => {
                       ) : (
                         <div className="flex items-center gap-2 mt-1">
                           <p className={`text-lg font-bold ${headingColor}`}>
-                            {user?.id ? getUserNicknameSync(user.id) : '—'}
+                            {user?.id ? <UserNickname userId={user.id} /> : '—'}
                           </p>
                         </div>
                       )}
                     </div>
                     <div className={`p-4 rounded-xl border ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-white'} shadow-sm`}>
                       <p className={`text-xs font-semibold uppercase tracking-wide ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Логин</p>
-                    <div className="flex items-center gap-2 mt-1">
-                      <p className={`text-lg font-bold ${headingColor}`}>{userData.login}</p>
-                      <button
-                        onClick={handleCopyLogin}
-                        className={`p-2 rounded-lg border transition ${loginCopied ? 'bg-[#4E6E49] text-white border-[#4E6E49]' : theme === 'dark' ? 'border-white/10 bg-white/5 hover:border-white/30' : 'border-gray-200 bg-white hover:border-gray-300'}`}
-                        title="Скопировать логин"
-                      >
-                        {loginCopied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                      </button>
-                    </div>
+                      <div className="flex items-center gap-2 mt-1">
+                        <p className={`text-lg font-bold ${headingColor}`}>{userData.login}</p>
+                        <button
+                          onClick={handleCopyLogin}
+                          className={`p-2 rounded-lg border transition ${loginCopied ? 'bg-[#4E6E49] text-white border-[#4E6E49]' : theme === 'dark' ? 'border-white/10 bg-white/5 hover:border-white/30' : 'border-gray-200 bg-white hover:border-gray-300'}`}
+                          title="Скопировать логин"
+                        >
+                          {loginCopied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                        </button>
+                      </div>
                     </div>
                   </div>
                   <div className="mt-4 space-y-2">
@@ -741,10 +702,10 @@ export const Profile = () => {
                     </div>
                   </div>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
-                    {[{label:'В работе',value:inProgressTasks,classes:theme==='dark'?'bg-blue-500/15 border-blue-500/30 text-blue-100':'bg-blue-50 border-blue-200 text-blue-900'},
-                      {label:'Выполнено',value:completedTasks,classes:theme==='dark'?'bg-emerald-500/15 border-emerald-500/30 text-emerald-50':'bg-emerald-50 border-emerald-200 text-emerald-900'},
-                      {label:'Закрыто',value:closedTasks,classes:theme==='dark'?'bg-gray-600/20 border-gray-500/40 text-gray-100':'bg-gray-50 border-gray-200 text-gray-800'},
-                      {label:'Всего',value:tasks.length,classes:theme==='dark'?'bg-gray-600/20 border-gray-500/40 text-gray-100':'bg-gray-50 border-gray-200 text-gray-800'}].map(({label,value,classes})=>(
+                    {[{ label: 'В работе', value: inProgressTasks, classes: theme === 'dark' ? 'bg-blue-500/15 border-blue-500/30 text-blue-100' : 'bg-blue-50 border-blue-200 text-blue-900' },
+                    { label: 'Выполнено', value: completedTasks, classes: theme === 'dark' ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-50' : 'bg-emerald-50 border-emerald-200 text-emerald-900' },
+                    { label: 'Закрыто', value: closedTasks, classes: theme === 'dark' ? 'bg-gray-600/20 border-gray-500/40 text-gray-100' : 'bg-gray-50 border-gray-200 text-gray-800' },
+                    { label: 'Всего', value: tasks.length, classes: theme === 'dark' ? 'bg-gray-600/20 border-gray-500/40 text-gray-100' : 'bg-gray-50 border-gray-200 text-gray-800' }].map(({ label, value, classes }) => (
                       <div key={label} className={`p-4 rounded-xl border shadow-sm transition-all hover:translate-y-[-2px] ${classes}`}>
                         <div className="text-xs font-semibold mb-2 opacity-80">{label}</div>
                         <div className={`text-3xl font-extrabold ${headingColor}`}>{value}</div>
@@ -757,7 +718,7 @@ export const Profile = () => {
                         Активные задачи
                       </p>
                       <div className="space-y-2">
-                        {tasks.slice(0, 3).map((task) => (
+                        {tasks.slice(0, 3).map((task: Task) => (
                           <div
                             key={task.id}
                             className={`p-3 rounded-lg border ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-gray-50'} shadow-sm`}
@@ -792,7 +753,7 @@ export const Profile = () => {
                       <input
                         type="text"
                         value={noteDraft.title}
-                        onChange={(e) => setNoteDraft({ ...noteDraft, title: e.target.value })}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNoteDraft({ ...noteDraft, title: e.target.value })}
                         placeholder="Заголовок"
                         className={`px-3 py-2 rounded-lg border ${theme === 'dark' ? 'border-white/10 bg-white/5 text-white' : 'border-gray-200 bg-white text-gray-900'} text-sm`}
                       />
@@ -801,13 +762,12 @@ export const Profile = () => {
                           <button
                             key={p}
                             onClick={() => setNoteDraft({ ...noteDraft, priority: p })}
-                            className={`px-3 py-2 rounded-lg border text-sm flex-1 ${
-                              noteDraft.priority === p
-                                ? 'border-[#4E6E49] bg-[#4E6E49]/10 text-[#4E6E49]'
-                                : theme === 'dark'
+                            className={`px-3 py-2 rounded-lg border text-sm flex-1 ${noteDraft.priority === p
+                              ? 'border-[#4E6E49] bg-[#4E6E49]/10 text-[#4E6E49]'
+                              : theme === 'dark'
                                 ? 'border-white/10 bg-white/5 text-white'
                                 : 'border-gray-200 bg-white text-gray-800'
-                            }`}
+                              }`}
                           >
                             {p === 'low' ? 'Низкий' : p === 'medium' ? 'Средний' : 'Высокий'}
                           </button>
@@ -816,7 +776,7 @@ export const Profile = () => {
                     </div>
                     <textarea
                       value={noteDraft.text}
-                      onChange={(e) => setNoteDraft({ ...noteDraft, text: e.target.value })}
+                      onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setNoteDraft({ ...noteDraft, text: e.target.value })}
                       rows={3}
                       placeholder="Текст заметки"
                       className={`w-full px-3 py-2 rounded-lg border ${theme === 'dark' ? 'border-white/10 bg-white/5 text-white' : 'border-gray-200 bg-white text-gray-900'} text-sm`}
@@ -824,13 +784,12 @@ export const Profile = () => {
                     <div className="flex gap-2">
                       <button
                         onClick={handleSaveNote}
-                        className={`px-4 py-2 rounded-lg font-semibold flex items-center gap-2 ${
-                          !user?.id
-                            ? 'bg-gray-300 text-gray-600 cursor-not-allowed'
-                            : theme === 'dark'
+                        className={`px-4 py-2 rounded-lg font-semibold flex items-center gap-2 ${!user?.id
+                          ? 'bg-gray-300 text-gray-600 cursor-not-allowed'
+                          : theme === 'dark'
                             ? 'bg-[#4E6E49]/20 text-[#4E6E49] border border-[#4E6E49]/40'
                             : 'bg-gradient-to-r from-[#4E6E49] to-emerald-500 text-white'
-                        }`}
+                          }`}
                         disabled={!user?.id}
                       >
                         <Edit3 className="w-4 h-4" />
@@ -857,7 +816,7 @@ export const Profile = () => {
                     </div>
                     {notes.length > 0 && (
                       <div className="space-y-2">
-                        {notes.map((n) => (
+                        {notes.map((n: Note) => (
                           <div
                             key={n.id}
                             className={`p-3 rounded-lg border ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-gray-50'} flex flex-col gap-1`}
@@ -869,13 +828,12 @@ export const Profile = () => {
                               </div>
                               <div className="flex items-center gap-1">
                                 <span
-                                  className={`text-[11px] px-2 py-1 rounded-full border ${
-                                    n.priority === 'high'
-                                      ? 'border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-500/40 dark:bg-rose-500/15 dark:text-rose-50'
-                                      : n.priority === 'medium'
+                                  className={`text-[11px] px-2 py-1 rounded-full border ${n.priority === 'high'
+                                    ? 'border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-500/40 dark:bg-rose-500/15 dark:text-rose-50'
+                                    : n.priority === 'medium'
                                       ? 'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-500/40 dark:bg-amber-500/15 dark:text-amber-50'
                                       : 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-500/40 dark:bg-emerald-500/15 dark:text-emerald-50'
-                                  }`}
+                                    }`}
                                 >
                                   {n.priority === 'high' ? 'Высокий' : n.priority === 'medium' ? 'Средний' : 'Низкий'}
                                 </span>
@@ -1005,12 +963,12 @@ export const Profile = () => {
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      {[{label:'Выходные',value:`${ratingBreakdown.daysOff} дн`,pts:ratingBreakdown.daysOffPoints,classes:theme==='dark'?'bg-slate-700/40 border-slate-600/60':'bg-slate-50 border-slate-200'},
-                        {label:'Больничные',value:`${rating.sickDays} дн`,pts:ratingBreakdown.sickDaysPoints,classes:theme==='dark'?'bg-amber-500/15 border-amber-500/30':'bg-amber-50 border-amber-200'},
-                        {label:'Отпуск',value:`${rating.vacationDays} дн`,pts:ratingBreakdown.vacationDaysPoints,classes:theme==='dark'?'bg-orange-500/15 border-orange-500/30':'bg-orange-50 border-orange-200'},
-                        {label:'Часы',value:`${ratingBreakdown.weeklyHours.toFixed(1)} ч/нед`,pts:ratingBreakdown.weeklyHoursPoints,classes:theme==='dark'?'bg-blue-500/15 border-blue-500/30':'bg-blue-50 border-blue-200'},
-                        {label:'Заработок',value:`${ratingBreakdown.weeklyEarnings.toFixed(0)} ₽/нед`,pts:ratingBreakdown.weeklyEarningsPoints,classes:theme==='dark'?'bg-emerald-500/15 border-emerald-500/30':'bg-emerald-50 border-emerald-200'},
-                        {label:'Рефералы',value:`${rating.referrals}`,pts:ratingBreakdown.referralsPoints,classes:theme==='dark'?'bg-purple-500/15 border-purple-500/30':'bg-purple-50 border-purple-200'}].map(item => (
+                      {[{ label: 'Выходные', value: `${ratingBreakdown.daysOff} дн`, pts: ratingBreakdown.daysOffPoints, classes: theme === 'dark' ? 'bg-slate-700/40 border-slate-600/60' : 'bg-slate-50 border-slate-200' },
+                      { label: 'Больничные', value: `${rating.sickDays} дн`, pts: ratingBreakdown.sickDaysPoints, classes: theme === 'dark' ? 'bg-amber-500/15 border-amber-500/30' : 'bg-amber-50 border-amber-200' },
+                      { label: 'Отпуск', value: `${rating.vacationDays} дн`, pts: ratingBreakdown.vacationDaysPoints, classes: theme === 'dark' ? 'bg-orange-500/15 border-orange-500/30' : 'bg-orange-50 border-orange-200' },
+                      { label: 'Часы', value: `${ratingBreakdown.weeklyHours.toFixed(1)} ч/нед`, pts: ratingBreakdown.weeklyHoursPoints, classes: theme === 'dark' ? 'bg-blue-500/15 border-blue-500/30' : 'bg-blue-50 border-blue-200' },
+                      { label: 'Заработок', value: `${ratingBreakdown.weeklyEarnings.toFixed(0)} ₽/нед`, pts: ratingBreakdown.weeklyEarningsPoints, classes: theme === 'dark' ? 'bg-emerald-500/15 border-emerald-500/30' : 'bg-emerald-50 border-emerald-200' },
+                      { label: 'Рефералы', value: `${rating.referrals}`, pts: ratingBreakdown.referralsPoints, classes: theme === 'dark' ? 'bg-purple-500/15 border-purple-500/30' : 'bg-purple-50 border-purple-200' }].map(item => (
                         <div key={item.label} className={`p-3 rounded-xl border shadow-sm ${item.classes}`}>
                           <div className="text-xs font-semibold uppercase opacity-80">{item.label}</div>
                           <div className={`text-lg font-bold ${headingColor}`}>{item.value}</div>
@@ -1033,7 +991,7 @@ export const Profile = () => {
               </div>
             </div>
 
-            <div className={`rounded-2xl p-5 border ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-white'} shadow`}> 
+            <div className={`rounded-2xl p-5 border ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-white'} shadow`}>
               <button
                 onClick={handleLogout}
                 className={`w-full px-6 py-3.5 rounded-lg font-semibold transition-all flex items-center justify-center gap-2 ${theme === 'dark' ? 'bg-gradient-to-r from-red-500/20 to-pink-500/20 text-red-300 border border-red-500/50' : 'bg-gradient-to-r from-red-50 to-pink-50 text-red-700 border border-red-200'}`}

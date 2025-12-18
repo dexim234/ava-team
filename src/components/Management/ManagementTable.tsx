@@ -1,11 +1,12 @@
 // Table view for management
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useThemeStore } from '@/store/themeStore'
 import { useAuthStore } from '@/store/authStore'
 import { useAdminStore } from '@/store/adminStore'
 import { getWorkSlots, getDayStatuses, addApprovalRequest, deleteWorkSlot, updateDayStatus, addDayStatus, deleteDayStatus } from '@/services/firestoreService'
 import { formatDate, calculateHours, getWeekDays, getMoscowTime } from '@/utils/dateUtils'
 import { getUserNicknameSync } from '@/utils/userUtils'
+import { UserNickname } from '@/components/UserNickname'
 import { WorkSlot, DayStatus } from '@/types'
 import { TEAM_MEMBERS } from '@/types'
 import { Edit, Trash2, CheckCircle2, Calendar as CalendarIcon } from 'lucide-react'
@@ -53,21 +54,21 @@ export const ManagementTable = ({ selectedUserId, slotFilter, onEditSlot, onEdit
   // Reload when window gets focus (user returns to tab)
   useEffect(() => {
     const handleFocus = () => {
-      loadData()
+      loadData(true)
     }
     window.addEventListener('focus', handleFocus)
     return () => window.removeEventListener('focus', handleFocus)
   }, [])
 
-  const loadData = async () => {
-    setLoading(true)
+  const loadData = async (isSilent = false) => {
+    if (!isSilent) setLoading(true)
     try {
       // Format dates to ensure correct timezone handling
       const weekStartDate = new Date(weekDays[0])
       weekStartDate.setHours(0, 0, 0, 0)
       const weekEndDate = new Date(weekDays[6])
       weekEndDate.setHours(23, 59, 59, 999)
-      
+
       const weekStart = formatDate(weekStartDate, 'yyyy-MM-dd')
       const weekEnd = formatDate(weekEndDate, 'yyyy-MM-dd')
 
@@ -78,9 +79,9 @@ export const ManagementTable = ({ selectedUserId, slotFilter, onEditSlot, onEdit
       ])
 
       // Filter by week range
-      const weekSlots = allSlots.filter((s) => s.date >= weekStart && s.date <= weekEnd)
+      const weekSlots = allSlots.filter((s: any) => s.date >= weekStart && s.date <= weekEnd)
       // For statuses, check if any day in the status range overlaps with the week
-      const weekStatuses = allStatuses.filter((s) => {
+      const weekStatuses = allStatuses.filter((s: any) => {
         const statusStart = s.date
         const statusEnd = s.endDate || s.date
         // Status overlaps with week if statusStart <= weekEnd AND statusEnd >= weekStart
@@ -88,28 +89,19 @@ export const ManagementTable = ({ selectedUserId, slotFilter, onEditSlot, onEdit
       })
 
       // If user filter is selected, filter by user
-      const filteredSlots = selectedUserId 
-        ? weekSlots.filter((s) => s.userId === selectedUserId)
+      const filteredSlots = selectedUserId
+        ? weekSlots.filter((s: any) => s.userId === selectedUserId)
         : weekSlots
       const filteredStatuses = selectedUserId
-        ? weekStatuses.filter((s) => s.userId === selectedUserId)
+        ? weekStatuses.filter((s: any) => s.userId === selectedUserId)
         : weekStatuses
-
-      console.log('Loaded slots:', {
-        weekStart,
-        weekEnd,
-        allSlotsCount: allSlots.length,
-        weekSlotsCount: weekSlots.length,
-        filteredSlotsCount: filteredSlots.length,
-        selectedUserId
-      })
 
       setSlots(filteredSlots)
       setStatuses(filteredStatuses)
     } catch (error) {
       console.error('Error loading data:', error)
     } finally {
-      setLoading(false)
+      if (!isSilent) setLoading(false)
     }
   }
 
@@ -304,7 +296,7 @@ export const ManagementTable = ({ selectedUserId, slotFilter, onEditSlot, onEdit
     if (slotDate.getTime() === today.getTime()) {
       const now = getMoscowTime()
       const currentTime = now.getHours() * 60 + now.getMinutes() // minutes since midnight
-      
+
       // Check if any slot hasn't ended yet
       return slot.slots.some((s) => {
         // If slot crosses midnight (has endDate), check endDate instead
@@ -313,27 +305,27 @@ export const ManagementTable = ({ selectedUserId, slotFilter, onEditSlot, onEdit
           endDate.setHours(0, 0, 0, 0)
           const todayEnd = new Date(today)
           todayEnd.setHours(23, 59, 59)
-          
+
           // If endDate is in the future, slot is upcoming
           if (endDate > today) return true
-          
+
           // If endDate is today, check if end time hasn't passed
           if (endDate.getTime() === today.getTime()) {
             const [endHour, endMin] = s.end.split(':').map(Number)
             const endTime = endHour * 60 + endMin
             return endTime > currentTime
           }
-          
+
           return false
         }
-        
+
         // Regular same-day slot
         const [endHour, endMin] = s.end.split(':').map(Number)
         const endTime = endHour * 60 + endMin
         return endTime > currentTime
       })
     }
-    
+
     // Check if slot has endDate in the future or ends today but time hasn't passed
     const now = getMoscowTime()
     const currentTime = now.getHours() * 60 + now.getMinutes()
@@ -363,14 +355,14 @@ export const ManagementTable = ({ selectedUserId, slotFilter, onEditSlot, onEdit
 
   const getSlotForDay = (userId: string, date: string): WorkSlot | null => {
     const slot = slots.find((s) => s.userId === userId && s.date === date) || null
-    
+
     // Apply filter
     if (slot && slotFilter !== 'all') {
       const isUpcoming = isSlotUpcoming(slot)
       if (slotFilter === 'upcoming' && !isUpcoming) return null
       if (slotFilter === 'completed' && isUpcoming) return null
     }
-    
+
     return slot
   }
 
@@ -387,7 +379,7 @@ export const ManagementTable = ({ selectedUserId, slotFilter, onEditSlot, onEdit
   }
 
   const getUserStats = (userId: string) => {
-    const userSlots = slots.filter((s) => s.userId === userId)
+    const userSlots = slots.filter((s: any) => s.userId === userId)
     const totalHours = userSlots.reduce((sum, slot) => sum + calculateHours(slot.slots), 0)
 
     const userStatuses = statuses.filter((s) => s.userId === userId)
@@ -433,11 +425,10 @@ export const ManagementTable = ({ selectedUserId, slotFilter, onEditSlot, onEdit
       >
         <button
           onClick={() => navigateWeek('prev')}
-          className={`w-full sm:w-auto px-3 py-2 text-sm sm:text-base rounded-lg transition-colors flex items-center justify-center gap-2 whitespace-nowrap ${
-            theme === 'dark'
-              ? 'border border-gray-700 bg-gray-900/60 hover:border-[#4E6E49]/50 hover:bg-gray-900'
-              : 'border border-gray-200 bg-white hover:border-[#4E6E49]/40 hover:bg-gray-50'
-          }`}
+          className={`w-full sm:w-auto px-3 py-2 text-sm sm:text-base rounded-lg transition-colors flex items-center justify-center gap-2 whitespace-nowrap ${theme === 'dark'
+            ? 'border border-gray-700 bg-gray-900/60 hover:border-[#4E6E49]/50 hover:bg-gray-900'
+            : 'border border-gray-200 bg-white hover:border-[#4E6E49]/40 hover:bg-gray-50'
+            }`}
         >
           <span>←</span>
           <span>Предыдущая неделя</span>
@@ -447,11 +438,10 @@ export const ManagementTable = ({ selectedUserId, slotFilter, onEditSlot, onEdit
         </span>
         <button
           onClick={() => navigateWeek('next')}
-          className={`w-full sm:w-auto px-3 py-2 text-sm sm:text-base rounded-lg transition-colors flex items-center justify-center gap-2 whitespace-nowrap ${
-            theme === 'dark'
-              ? 'border border-gray-700 bg-gray-900/60 hover:border-[#4E6E49]/50 hover:bg-gray-900'
-              : 'border border-gray-200 bg-white hover:border-[#4E6E49]/40 hover:bg-gray-50'
-          }`}
+          className={`w-full sm:w-auto px-3 py-2 text-sm sm:text-base rounded-lg transition-colors flex items-center justify-center gap-2 whitespace-nowrap ${theme === 'dark'
+            ? 'border border-gray-700 bg-gray-900/60 hover:border-[#4E6E49]/50 hover:bg-gray-900'
+            : 'border border-gray-200 bg-white hover:border-[#4E6E49]/40 hover:bg-gray-50'
+            }`}
         >
           <span>Следующая неделя</span>
           <span>→</span>
@@ -464,9 +454,8 @@ export const ManagementTable = ({ selectedUserId, slotFilter, onEditSlot, onEdit
           <table className="w-full">
             <thead className="sticky top-0 z-30">
               <tr className={`${theme === 'dark' ? 'bg-[#0f172a]' : 'bg-gray-50'} shadow-sm`}>
-                <th className={`px-2 sm:px-3 md:px-4 py-3 text-left text-xs sm:text-sm font-semibold ${headingColor} sticky left-0 z-30 ${
-                  theme === 'dark' ? 'bg-[#0f172a]' : 'bg-gray-50'
-                }`}>Members</th>
+                <th className={`px-2 sm:px-3 md:px-4 py-3 text-left text-xs sm:text-sm font-semibold ${headingColor} sticky left-0 z-30 ${theme === 'dark' ? 'bg-[#0f172a]' : 'bg-gray-50'
+                  }`}>Members</th>
                 {weekDays.map((day) => (
                   <th key={day.toISOString()} className="px-1.5 sm:px-2 md:px-3 lg:px-4 py-3">
                     <div className={`mx-auto w-full max-w-[110px] rounded-xl border ${theme === 'dark' ? 'border-white/10 bg-white/5 text-white' : 'border-gray-200 bg-white text-gray-900'} shadow-sm text-center`}>
@@ -479,225 +468,224 @@ export const ManagementTable = ({ selectedUserId, slotFilter, onEditSlot, onEdit
               </tr>
             </thead>
             <tbody>
-            {displayUsers.map((user, index) => {
-              const stats = getUserStats(user.id)
-              const isEven = index % 2 === 0
-              return (
-                <tr 
-                  key={user.id} 
-                  className={`
+              {displayUsers.map((user, index) => {
+                const stats = getUserStats(user.id)
+                const isEven = index % 2 === 0
+                return (
+                  <tr
+                    key={user.id}
+                    className={`
                     group border-b transition-all duration-300 relative
                     ${theme === 'dark' ? 'border-gray-800/30' : 'border-gray-200/30'}
-                    ${isEven 
-                      ? theme === 'dark' 
-                        ? 'bg-gradient-to-r from-[#1a1a1a]/40 via-[#1a1a1a]/20 to-transparent hover:from-[#1a1a1a]/70 hover:via-[#1a1a1a]/50 hover:shadow-lg hover:shadow-#4E6E49/10' 
-                        : 'bg-gradient-to-r from-gray-50/70 via-gray-50/40 to-transparent hover:from-gray-100/90 hover:via-gray-100/70 hover:shadow-lg hover:shadow-#4E6E49/5'
-                      : theme === 'dark' 
-                        ? 'bg-gradient-to-r from-[#1a1a1a]/10 via-[#1a1a1a]/5 to-transparent hover:from-[#1a1a1a]/50 hover:via-[#1a1a1a]/30 hover:shadow-lg hover:shadow-#4E6E49/10' 
-                        : 'bg-gradient-to-r from-white via-gray-50/30 to-transparent hover:from-gray-50 hover:via-gray-50/60 hover:shadow-lg hover:shadow-#4E6E49/5'
-                    }
+                    ${isEven
+                        ? theme === 'dark'
+                          ? 'bg-gradient-to-r from-[#1a1a1a]/40 via-[#1a1a1a]/20 to-transparent hover:from-[#1a1a1a]/70 hover:via-[#1a1a1a]/50 hover:shadow-lg hover:shadow-#4E6E49/10'
+                          : 'bg-gradient-to-r from-gray-50/70 via-gray-50/40 to-transparent hover:from-gray-100/90 hover:via-gray-100/70 hover:shadow-lg hover:shadow-#4E6E49/5'
+                        : theme === 'dark'
+                          ? 'bg-gradient-to-r from-[#1a1a1a]/10 via-[#1a1a1a]/5 to-transparent hover:from-[#1a1a1a]/50 hover:via-[#1a1a1a]/30 hover:shadow-lg hover:shadow-#4E6E49/10'
+                          : 'bg-gradient-to-r from-white via-gray-50/30 to-transparent hover:from-gray-50 hover:via-gray-50/60 hover:shadow-lg hover:shadow-#4E6E49/5'
+                      }
                     hover:scale-[1.01] hover:-translate-y-0.5
                   `}
-                >
-                  <td className={`px-2 sm:px-3 md:px-4 py-2 sm:py-3 md:py-4 font-semibold text-xs sm:text-sm ${headingColor} sticky left-0 z-10 transition-all duration-300 backdrop-blur-sm min-w-[120px] sm:min-w-[140px] ${
-                    isEven 
-                      ? theme === 'dark' 
-                        ? 'bg-gradient-to-r from-[#1a1a1a]/40 via-[#1a1a1a]/20 to-transparent group-hover:from-[#1a1a1a]/70 group-hover:via-[#1a1a1a]/50' 
+                  >
+                    <td className={`px-2 sm:px-3 md:px-4 py-2 sm:py-3 md:py-4 font-semibold text-xs sm:text-sm ${headingColor} sticky left-0 z-10 transition-all duration-300 backdrop-blur-sm min-w-[120px] sm:min-w-[140px] ${isEven
+                      ? theme === 'dark'
+                        ? 'bg-gradient-to-r from-[#1a1a1a]/40 via-[#1a1a1a]/20 to-transparent group-hover:from-[#1a1a1a]/70 group-hover:via-[#1a1a1a]/50'
                         : 'bg-gradient-to-r from-gray-50/70 via-gray-50/40 to-transparent group-hover:from-gray-100/90 group-hover:via-gray-100/70'
-                      : theme === 'dark' 
-                        ? 'bg-gradient-to-r from-[#1a1a1a]/10 via-[#1a1a1a]/5 to-transparent group-hover:from-[#1a1a1a]/50 group-hover:via-[#1a1a1a]/30' 
+                      : theme === 'dark'
+                        ? 'bg-gradient-to-r from-[#1a1a1a]/10 via-[#1a1a1a]/5 to-transparent group-hover:from-[#1a1a1a]/50 group-hover:via-[#1a1a1a]/30'
                         : 'bg-gradient-to-r from-white via-gray-50/30 to-transparent group-hover:from-gray-50 group-hover:via-gray-50/60'
-                  }`}>
+                      }`}>
                       <div className="flex items-center gap-2 sm:gap-3">
-                      <div className="relative flex-shrink-0 group/avatar">
-                            {user.avatar ? (
-                          <img 
-                            src={user.avatar} 
-                                alt={getDisplayName(user.id)}
-                            className="w-8 h-8 sm:w-10 sm:h-10 md:w-11 md:h-11 rounded-full object-cover border-2 shadow-lg transition-all duration-300 group-hover:scale-110 group-hover:shadow-xl group-hover:shadow-#4E6E49/30 ring-2 ring-transparent group-hover:ring-#4E6E49/50"
-                            style={{
-                              borderColor: theme === 'dark' ? 'rgba(34, 197, 94, 0.6)' : 'rgba(34, 197, 94, 0.4)',
-                            } as React.CSSProperties}
-                            onError={(e) => {
-                              // Fallback to letter if image fails to load
-                              const target = e.target as HTMLImageElement
-                              target.style.display = 'none'
-                              const fallback = target.nextElementSibling as HTMLElement
-                              if (fallback) fallback.style.display = 'flex'
-                            }}
-                          />
-                        ) : null}
-                        <div 
-                          className={`w-8 h-8 sm:w-10 sm:h-10 md:w-11 md:h-11 rounded-full flex items-center justify-center font-bold text-xs sm:text-sm transition-all duration-300 shadow-lg ring-2 ring-transparent group-hover/avatar:scale-110 group-hover/avatar:shadow-xl group-hover/avatar:ring-#4E6E49/50 ${
-                            theme === 'dark' 
-                              ? 'bg-gradient-to-br from-[#4E6E49] via-[#4E6E49] to-blue-500 text-white group-hover/avatar:shadow-#4E6E49/40' 
+                        <div className="relative flex-shrink-0 group/avatar">
+                          {user.avatar ? (
+                            <img
+                              src={user.avatar}
+                              alt={getDisplayName(user.id)}
+                              className="w-8 h-8 sm:w-10 sm:h-10 md:w-11 md:h-11 rounded-full object-cover border-2 shadow-lg transition-all duration-300 group-hover:scale-110 group-hover:shadow-xl group-hover:shadow-#4E6E49/30 ring-2 ring-transparent group-hover:ring-#4E6E49/50"
+                              style={{
+                                borderColor: theme === 'dark' ? 'rgba(34, 197, 94, 0.6)' : 'rgba(34, 197, 94, 0.4)',
+                              } as React.CSSProperties}
+                              onError={(e) => {
+                                // Fallback to letter if image fails to load
+                                const target = e.target as HTMLImageElement
+                                target.style.display = 'none'
+                                const fallback = target.nextElementSibling as HTMLElement
+                                if (fallback) fallback.style.display = 'flex'
+                              }}
+                            />
+                          ) : null}
+                          <div
+                            className={`w-8 h-8 sm:w-10 sm:h-10 md:w-11 md:h-11 rounded-full flex items-center justify-center font-bold text-xs sm:text-sm transition-all duration-300 shadow-lg ring-2 ring-transparent group-hover/avatar:scale-110 group-hover/avatar:shadow-xl group-hover/avatar:ring-#4E6E49/50 ${theme === 'dark'
+                              ? 'bg-gradient-to-br from-[#4E6E49] via-[#4E6E49] to-blue-500 text-white group-hover/avatar:shadow-#4E6E49/40'
                               : 'bg-gradient-to-br from-[#4E6E49] via-[#4E6E49] to-blue-400 text-white group-hover/avatar:shadow-#4E6E49/40'
-                          } ${user.avatar ? 'absolute inset-0 hidden' : ''}`}
-                        >
-                          {getDisplayName(user.id).charAt(0).toUpperCase()}
+                              } ${user.avatar ? 'absolute inset-0 hidden' : ''}`}
+                          >
+                            <UserNickname userId={user.id} formatter={(n: string) => n.charAt(0).toUpperCase()} />
+                          </div>
+                          <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 sm:w-3 sm:h-3 md:w-3.5 md:h-3.5 bg-[#4E6E49] rounded-full border border-white sm:border-2 shadow-lg animate-pulse opacity-0 group-hover/avatar:opacity-100 transition-opacity duration-300"></div>
                         </div>
-                        <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 sm:w-3 sm:h-3 md:w-3.5 md:h-3.5 bg-[#4E6E49] rounded-full border border-white sm:border-2 shadow-lg animate-pulse opacity-0 group-hover/avatar:opacity-100 transition-opacity duration-300"></div>
+                        <span className="font-semibold group-hover:text-[#4E6E49] transition-colors duration-300 truncate hidden sm:inline">
+                          <UserNickname userId={user.id} />
+                        </span>
+                        <span className="font-semibold group-hover:text-[#4E6E49] transition-colors duration-300 sm:hidden">
+                          <UserNickname userId={user.id} formatter={(n: string) => (n.split(' ')[0] || n).substring(0, 8)} />
+                        </span>
                       </div>
-                      <span className="font-semibold group-hover:text-[#4E6E49] transition-colors duration-300 truncate hidden sm:inline">{getDisplayName(user.id)}</span>
-                      <span className="font-semibold group-hover:text-[#4E6E49] transition-colors duration-300 sm:hidden">{(getDisplayName(user.id).split(' ')[0] || getDisplayName(user.id)).substring(0, 8)}</span>
-                    </div>
-                  </td>
-                  {weekDays.map((day) => {
-                    const dateStr = formatDate(day, 'yyyy-MM-dd')
-                    const slot = getSlotForDay(user.id, dateStr)
-                    const status = getStatusForDay(user.id, dateStr)
+                    </td>
+                    {weekDays.map((day: Date) => {
+                      const dateStr = formatDate(day, 'yyyy-MM-dd')
+                      const slot = getSlotForDay(user.id, dateStr)
+                      const status = getStatusForDay(user.id, dateStr)
 
                       return (
                         <td
                           key={dateStr}
-                          className={`px-1 sm:px-2 py-2 sm:py-3 text-center border-l border-r border-transparent hover:border-blue-500/20 transition-colors min-w-[80px] sm:min-w-[100px] ${
-                            dateStr === todayStr
-                              ? 'bg-emerald-50 dark:bg-emerald-900/20 ring-1 ring-emerald-300/70 dark:ring-emerald-500/40'
-                              : ''
-                          }`}
+                          className={`px-1 sm:px-2 py-2 sm:py-3 text-center border-l border-r border-transparent hover:border-blue-500/20 transition-colors min-w-[80px] sm:min-w-[100px] ${dateStr === todayStr
+                            ? 'bg-emerald-50 dark:bg-emerald-900/20 ring-1 ring-emerald-300/70 dark:ring-emerald-500/40'
+                            : ''
+                            }`}
                         >
-                        {slot ? (
-                          <div className="space-y-2">
-                            {(() => {
-                              const isUpcoming = isSlotUpcoming(slot)
-                              const slotBg = isUpcoming
-                                ? 'bg-gradient-to-r from-emerald-500 to-teal-600'
-                                : 'bg-gradient-to-r from-slate-500 to-slate-700'
-                              const slotIcon = isUpcoming ? CalendarIcon : CheckCircle2
-                              const SlotIcon = slotIcon
+                          {slot ? (
+                            <div className="space-y-2">
+                              {(() => {
+                                const isUpcoming = isSlotUpcoming(slot)
+                                const slotBg = isUpcoming
+                                  ? 'bg-gradient-to-r from-emerald-500 to-teal-600'
+                                  : 'bg-gradient-to-r from-slate-500 to-slate-700'
+                                const slotIcon = isUpcoming ? CalendarIcon : CheckCircle2
+                                const SlotIcon = slotIcon
 
-                              return slot.slots.map((s, slotIdx) => (
-                                <div key={slotIdx} className="space-y-1">
-                                  {/* Main slot time */}
-                                  <div className={`${slotBg} text-white rounded-md sm:rounded-lg px-2 sm:px-3 py-1 sm:py-1.5 text-[10px] sm:text-xs font-semibold shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl ${
-                                    isUpcoming ? 'hover:shadow-emerald-500/40 ring-2 ring-emerald-400/40' : 'hover:shadow-slate-500/40 ring-2 ring-slate-400/40'
-                                  }`}>
-                                    <div className="flex items-center justify-center gap-0.5 sm:gap-1 flex-wrap">
-                                      <SlotIcon className="w-2.5 h-2.5 sm:w-3 sm:h-3 animate-pulse flex-shrink-0" />
-                                      <span className="whitespace-nowrap">{s.start} - {s.end}</span>
-                                      {s.endDate && (
-                                        <span className="text-[9px] sm:text-[10px] opacity-90 whitespace-nowrap">
-                                          (до {formatDate(new Date(s.endDate), 'dd.MM')})
-                                        </span>
-                                      )}
-                                    </div>
-                                  </div>
-                                  {/* Breaks */}
-                                  {s.breaks && s.breaks.length > 0 && (
-                                    <div className="space-y-1">
-                                      <div className={`text-[10px] ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} font-medium`}>Перерывы:</div>
-                                      {s.breaks.map((breakItem, breakIdx) => (
-                                        <div key={breakIdx} className={`${theme === 'dark' ? 'bg-gray-700/90' : 'bg-white'} ${theme === 'dark' ? 'text-gray-200' : 'text-gray-900'} border-2 ${theme === 'dark' ? 'border-orange-500/50' : 'border-orange-300'} rounded-md sm:rounded-lg px-1.5 sm:px-2 py-0.5 sm:py-1 text-[9px] sm:text-[10px] font-medium shadow-md transition-all duration-300 hover:scale-105 hover:shadow-lg ${
-                                          theme === 'dark' ? 'hover:border-orange-400/70 hover:shadow-orange-500/20' : 'hover:border-orange-400 hover:shadow-orange-400/20'
-                                        }`}>
-                                          <span className="flex items-center gap-0.5 sm:gap-1 justify-center flex-wrap">
-                                            <span className="w-0.5 h-0.5 sm:w-1 sm:h-1 rounded-full bg-orange-500 flex-shrink-0"></span>
-                                            <span className="whitespace-nowrap">{breakItem.start} - {breakItem.end}</span>
+                                return slot.slots.map((s, slotIdx) => (
+                                  <div key={slotIdx} className="space-y-1">
+                                    {/* Main slot time */}
+                                    <div className={`${slotBg} text-white rounded-md sm:rounded-lg px-2 sm:px-3 py-1 sm:py-1.5 text-[10px] sm:text-xs font-semibold shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl ${isUpcoming ? 'hover:shadow-emerald-500/40 ring-2 ring-emerald-400/40' : 'hover:shadow-slate-500/40 ring-2 ring-slate-400/40'
+                                      }`}>
+                                      <div className="flex items-center justify-center gap-0.5 sm:gap-1 flex-wrap">
+                                        <SlotIcon className="w-2.5 h-2.5 sm:w-3 sm:h-3 animate-pulse flex-shrink-0" />
+                                        <span className="whitespace-nowrap">{s.start} - {s.end}</span>
+                                        {s.endDate && (
+                                          <span className="text-[9px] sm:text-[10px] opacity-90 whitespace-nowrap">
+                                            (до {formatDate(new Date(s.endDate), 'dd.MM')})
                                           </span>
-                                        </div>
-                                      ))}
+                                        )}
+                                      </div>
                                     </div>
-                                  )}
-                                </div>
-                              ))
-                            })()}
-                            <div className="flex gap-1 justify-center">
-                              {(isAdmin || user?.id === slot.userId) ? (
-                                <>
-                                  <button
-                                    onClick={() => onEditSlot(slot)}
-                                    className="p-1 text-blue-500 hover:bg-blue-500 hover:text-white rounded"
-                                  >
-                                    <Edit className="w-3 h-3" />
-                                  </button>
-                                  <button
-                                    onClick={() => handleDeleteSlot(slot)}
-                                    className="p-1 text-red-500 hover:bg-red-500 hover:text-white rounded"
-                                  >
-                                    <Trash2 className="w-3 h-3" />
-                                  </button>
-                                </>
-                              ) : (
-                                <>
-                                  <button
-                                    disabled
-                                    className="p-1 text-gray-400 cursor-not-allowed rounded"
-                                    title="Вы можете редактировать только свои слоты"
-                                  >
-                                    <Edit className="w-3 h-3" />
-                                  </button>
-                                  <button
-                                    disabled
-                                    className="p-1 text-gray-400 cursor-not-allowed rounded"
-                                    title="Вы можете удалять только свои слоты"
-                                  >
-                                    <Trash2 className="w-3 h-3" />
-                                  </button>
-                                </>
-                              )}
+                                    {/* Breaks */}
+                                    {s.breaks && s.breaks.length > 0 && (
+                                      <div className="space-y-1">
+                                        <div className={`text-[10px] ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} font-medium`}>Перерывы:</div>
+                                        {s.breaks.map((breakItem, breakIdx) => (
+                                          <div key={breakIdx} className={`${theme === 'dark' ? 'bg-gray-700/90' : 'bg-white'} ${theme === 'dark' ? 'text-gray-200' : 'text-gray-900'} border-2 ${theme === 'dark' ? 'border-orange-500/50' : 'border-orange-300'} rounded-md sm:rounded-lg px-1.5 sm:px-2 py-0.5 sm:py-1 text-[9px] sm:text-[10px] font-medium shadow-md transition-all duration-300 hover:scale-105 hover:shadow-lg ${theme === 'dark' ? 'hover:border-orange-400/70 hover:shadow-orange-500/20' : 'hover:border-orange-400 hover:shadow-orange-400/20'
+                                            }`}>
+                                            <span className="flex items-center gap-0.5 sm:gap-1 justify-center flex-wrap">
+                                              <span className="w-0.5 h-0.5 sm:w-1 sm:h-1 rounded-full bg-orange-500 flex-shrink-0"></span>
+                                              <span className="whitespace-nowrap">{breakItem.start} - {breakItem.end}</span>
+                                            </span>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    )}
+                                  </div>
+                                ))
+                              })()}
+                              <div className="flex gap-1 justify-center">
+                                {(isAdmin || user?.id === slot.userId) ? (
+                                  <>
+                                    <button
+                                      onClick={() => onEditSlot(slot)}
+                                      className="p-1 text-blue-500 hover:bg-blue-500 hover:text-white rounded"
+                                    >
+                                      <Edit className="w-3 h-3" />
+                                    </button>
+                                    <button
+                                      onClick={() => handleDeleteSlot(slot)}
+                                      className="p-1 text-red-500 hover:bg-red-500 hover:text-white rounded"
+                                    >
+                                      <Trash2 className="w-3 h-3" />
+                                    </button>
+                                  </>
+                                ) : (
+                                  <>
+                                    <button
+                                      disabled
+                                      className="p-1 text-gray-400 cursor-not-allowed rounded"
+                                      title="Вы можете редактировать только свои слоты"
+                                    >
+                                      <Edit className="w-3 h-3" />
+                                    </button>
+                                    <button
+                                      disabled
+                                      className="p-1 text-gray-400 cursor-not-allowed rounded"
+                                      title="Вы можете удалять только свои слоты"
+                                    >
+                                      <Trash2 className="w-3 h-3" />
+                                    </button>
+                                  </>
+                                )}
+                              </div>
                             </div>
-                          </div>
-                        ) : status ? (
-                          <div className="space-y-1">
-                            <div
-                              className={`rounded-lg px-3 py-2 text-xs font-semibold ring-1 ring-inset ring-black/5 dark:ring-white/10 ${statusTone[status.type]}`}
-                            >
-                              {status.type === 'dayoff' ? 'Выходной' : status.type === 'sick' ? 'Больничный' : status.type === 'vacation' ? 'Отпуск' : 'Прогул'}
+                          ) : status ? (
+                            <div className="space-y-1">
+                              <div
+                                className={`rounded-lg px-3 py-2 text-xs font-semibold ring-1 ring-inset ring-black/5 dark:ring-white/10 ${statusTone[status.type]}`}
+                              >
+                                {status.type === 'dayoff' ? 'Выходной' : status.type === 'sick' ? 'Больничный' : status.type === 'vacation' ? 'Отпуск' : 'Прогул'}
+                              </div>
+                              <div className="flex gap-1 justify-center">
+                                {(isAdmin || (status.type !== 'absence' && user?.id === status.userId)) ? (
+                                  <>
+                                    <button
+                                      onClick={() => onEditStatus(status)}
+                                      className="p-1 text-blue-500 hover:bg-blue-500 hover:text-white rounded"
+                                    >
+                                      <Edit className="w-3 h-3" />
+                                    </button>
+                                    <button
+                                      onClick={() => handleDeleteStatus(status, dateStr)}
+                                      className="p-1 text-red-500 hover:bg-red-500 hover:text-white rounded"
+                                    >
+                                      <Trash2 className="w-3 h-3" />
+                                    </button>
+                                  </>
+                                ) : (
+                                  <>
+                                    <button
+                                      disabled
+                                      className="p-1 text-gray-400 cursor-not-allowed rounded"
+                                      title="Вы можете редактировать только свои статусы"
+                                    >
+                                      <Edit className="w-3 h-3" />
+                                    </button>
+                                    <button
+                                      disabled
+                                      className="p-1 text-gray-400 cursor-not-allowed rounded"
+                                      title="Вы можете удалять только свои статусы"
+                                    >
+                                      <Trash2 className="w-3 h-3" />
+                                    </button>
+                                  </>
+                                )}
+                              </div>
                             </div>
-                            <div className="flex gap-1 justify-center">
-                              {(isAdmin || (status.type !== 'absence' && user?.id === status.userId)) ? (
-                                <>
-                                  <button
-                                    onClick={() => onEditStatus(status)}
-                                    className="p-1 text-blue-500 hover:bg-blue-500 hover:text-white rounded"
-                                  >
-                                    <Edit className="w-3 h-3" />
-                                  </button>
-                                  <button
-                                    onClick={() => handleDeleteStatus(status, dateStr)}
-                                    className="p-1 text-red-500 hover:bg-red-500 hover:text-white rounded"
-                                  >
-                                    <Trash2 className="w-3 h-3" />
-                                  </button>
-                                </>
-                              ) : (
-                                <>
-                                  <button
-                                    disabled
-                                    className="p-1 text-gray-400 cursor-not-allowed rounded"
-                                    title="Вы можете редактировать только свои статусы"
-                                  >
-                                    <Edit className="w-3 h-3" />
-                                  </button>
-                                  <button
-                                    disabled
-                                    className="p-1 text-gray-400 cursor-not-allowed rounded"
-                                    title="Вы можете удалять только свои статусы"
-                                  >
-                                    <Trash2 className="w-3 h-3" />
-                                  </button>
-                                </>
-                              )}
-                            </div>
-                          </div>
-                        ) : (
-                          <span className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>—</span>
-                        )}
-                      </td>
-                    )
-                  })}
-                  <td className={`px-4 py-3 text-sm ${headingColor} text-center`}>
-                    <div className="space-y-1">
-                      <div>Часов: {stats.totalHours.toFixed(1)}</div>
-                      <div>Выходных: {stats.daysOff}</div>
-                      <div>Больничных: {stats.sickDays}</div>
-                      <div>Отпусков: {stats.vacationDays}</div>
-                      <div>Прогудов: {stats.absenceDays}</div>
-                    </div>
-                  </td>
-                </tr>
-              )
-            })}
+                          ) : (
+                            <span className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>—</span>
+                          )}
+                        </td>
+                      )
+                    })}
+                    <td className={`px-4 py-3 text-sm ${headingColor} text-center`}>
+                      <div className="space-y-1">
+                        <div>Часов: {stats.totalHours.toFixed(1)}</div>
+                        <div>Выходных: {stats.daysOff}</div>
+                        <div>Больничных: {stats.sickDays}</div>
+                        <div>Отпусков: {stats.vacationDays}</div>
+                        <div>Прогудов: {stats.absenceDays}</div>
+                      </div>
+                    </td>
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
         </div>

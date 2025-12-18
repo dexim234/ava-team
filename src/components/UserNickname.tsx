@@ -5,11 +5,18 @@ interface UserNicknameProps {
   userId: string
   className?: string
   fallback?: string
+  formatter?: (nickname: string) => string
 }
 
-export const UserNickname = ({ userId, className = '', fallback = 'unknown' }: UserNicknameProps) => {
+export const UserNickname = ({
+  userId,
+  className = '',
+  fallback = 'unknown',
+  formatter
+}: UserNicknameProps) => {
   const nickname = useUserNickname(userId)
-  return <span className={className}>{nickname || fallback}</span>
+  const displayNickname = nickname || fallback
+  return <span className={className}>{formatter ? formatter(displayNickname) : displayNickname}</span>
 }
 
 

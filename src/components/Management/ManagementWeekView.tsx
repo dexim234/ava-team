@@ -56,21 +56,21 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
   // Reload when window gets focus (user returns to tab)
   useEffect(() => {
     const handleFocus = () => {
-      loadData()
+      loadData(true) // Silent reload, don't show loader
     }
     window.addEventListener('focus', handleFocus)
     return () => window.removeEventListener('focus', handleFocus)
   }, [])
 
-  const loadData = async () => {
-    setLoading(true)
+  const loadData = async (isSilent = false) => {
+    if (!isSilent) setLoading(true)
     try {
       // Format dates to ensure correct timezone handling
       const weekStartDate = new Date(weekDays[0])
       weekStartDate.setHours(0, 0, 0, 0)
       const weekEndDate = new Date(weekDays[6])
       weekEndDate.setHours(23, 59, 59, 999)
-      
+
       const weekStart = formatDate(weekStartDate, 'yyyy-MM-dd')
       const weekEnd = formatDate(weekEndDate, 'yyyy-MM-dd')
 
@@ -81,9 +81,9 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
       ])
 
       // Filter by week range
-      const weekSlots = allSlots.filter((s) => s.date >= weekStart && s.date <= weekEnd)
+      const weekSlots = allSlots.filter((s: any) => s.date >= weekStart && s.date <= weekEnd)
       // For statuses, check if any day in the status range overlaps with the week
-      const weekStatuses = allStatuses.filter((s) => {
+      const weekStatuses = allStatuses.filter((s: any) => {
         const statusStart = s.date
         const statusEnd = s.endDate || s.date
         // Status overlaps with week if statusStart <= weekEnd AND statusEnd >= weekStart
@@ -91,11 +91,11 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
       })
 
       // If user filter is selected, filter by user
-      const filteredSlots = selectedUserId 
-        ? weekSlots.filter((s) => s.userId === selectedUserId)
+      const filteredSlots = selectedUserId
+        ? weekSlots.filter((s: any) => s.userId === selectedUserId)
         : weekSlots
       const filteredStatuses = selectedUserId
-        ? weekStatuses.filter((s) => s.userId === selectedUserId)
+        ? weekStatuses.filter((s: any) => s.userId === selectedUserId)
         : weekStatuses
 
       console.log('Loaded slots (week view):', {
@@ -112,7 +112,7 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
     } catch (error) {
       console.error('Error loading data:', error)
     } finally {
-      setLoading(false)
+      if (!isSilent) setLoading(false)
     }
   }
 
@@ -154,120 +154,120 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
     if (status.endDate && dateStr) {
       const statusStart = status.date
       const statusEnd = status.endDate
-      
+
       // Если удаляется первый день диапазона, обновляем дату начала
       if (dateStr === statusStart) {
-          if (isAdmin ? confirm('Удалить первый день диапазона?') : confirm('Отправить на согласование удаление первого дня диапазона?')) {
+        if (isAdmin ? confirm('Удалить первый день диапазона?') : confirm('Отправить на согласование удаление первого дня диапазона?')) {
           const newStart = new Date(parseISO(statusStart))
           newStart.setDate(newStart.getDate() + 1)
           const newStartStr = formatDate(newStart, 'yyyy-MM-dd')
-          
-            if (isAdmin) {
-              await updateDayStatus(status.id, { ...status, date: newStartStr })
-            } else {
-              await addApprovalRequest({
-                entity: 'status',
-                action: 'update',
-                authorId: user?.id || status.userId,
-                targetUserId: status.userId,
-                before: status,
-                after: {
-                  ...status,
-                  date: newStartStr
-                },
-                comment: status.comment,
-              })
-            }
+
+          if (isAdmin) {
+            await updateDayStatus(status.id, { ...status, date: newStartStr })
+          } else {
+            await addApprovalRequest({
+              entity: 'status',
+              action: 'update',
+              authorId: user?.id || status.userId,
+              targetUserId: status.userId,
+              before: status,
+              after: {
+                ...status,
+                date: newStartStr
+              },
+              comment: status.comment,
+            })
+          }
           loadData()
         }
         return
       }
-      
+
       // Если удаляется последний день диапазона, обновляем дату окончания
       if (dateStr === statusEnd) {
-          if (isAdmin ? confirm('Удалить последний день диапазона?') : confirm('Отправить на согласование удаление последнего дня диапазона?')) {
+        if (isAdmin ? confirm('Удалить последний день диапазона?') : confirm('Отправить на согласование удаление последнего дня диапазона?')) {
           const newEnd = new Date(parseISO(statusEnd))
           newEnd.setDate(newEnd.getDate() - 1)
           const newEndStr = formatDate(newEnd, 'yyyy-MM-dd')
-          
-            if (isAdmin) {
-              await updateDayStatus(status.id, { ...status, endDate: newEndStr })
-            } else {
-              await addApprovalRequest({
-                entity: 'status',
-                action: 'update',
-                authorId: user?.id || status.userId,
-                targetUserId: status.userId,
-                before: status,
-                after: {
-                  ...status,
-                  endDate: newEndStr
-                },
-                comment: status.comment,
-              })
-            }
+
+          if (isAdmin) {
+            await updateDayStatus(status.id, { ...status, endDate: newEndStr })
+          } else {
+            await addApprovalRequest({
+              entity: 'status',
+              action: 'update',
+              authorId: user?.id || status.userId,
+              targetUserId: status.userId,
+              before: status,
+              after: {
+                ...status,
+                endDate: newEndStr
+              },
+              comment: status.comment,
+            })
+          }
           loadData()
         }
         return
       }
-      
+
       // Если удаляется день из середины диапазона, разбиваем на два статуса
       if (dateStr > statusStart && dateStr < statusEnd) {
-          if (isAdmin ? confirm('Удалить этот день? Диапазон будет разбит на две части.') : confirm('Отправить на согласование удаление этого дня? Диапазон будет разбит на две части.')) {
+        if (isAdmin ? confirm('Удалить этот день? Диапазон будет разбит на две части.') : confirm('Отправить на согласование удаление этого дня? Диапазон будет разбит на две части.')) {
           // Создаем первый статус (до удаляемого дня)
-            const firstEnd = new Date(parseISO(dateStr))
+          const firstEnd = new Date(parseISO(dateStr))
           firstEnd.setDate(firstEnd.getDate() - 1)
           const firstEndStr = formatDate(firstEnd, 'yyyy-MM-dd')
-          
-            if (isAdmin) {
-              await updateDayStatus(status.id, { ...status, endDate: firstEndStr })
-              const secondStart = new Date(parseISO(dateStr))
-              secondStart.setDate(secondStart.getDate() + 1)
-              const secondStartStr = formatDate(secondStart, 'yyyy-MM-dd')
-              await addDayStatus({
+
+          if (isAdmin) {
+            await updateDayStatus(status.id, { ...status, endDate: firstEndStr })
+            const secondStart = new Date(parseISO(dateStr))
+            secondStart.setDate(secondStart.getDate() + 1)
+            const secondStartStr = formatDate(secondStart, 'yyyy-MM-dd')
+            await addDayStatus({
+              userId: status.userId,
+              date: secondStartStr,
+              endDate: statusEnd,
+              type: status.type,
+              comment: status.comment
+            })
+          } else {
+            // Создаем заявки на оба изменения
+            await addApprovalRequest({
+              entity: 'status',
+              action: 'update',
+              authorId: user?.id || status.userId,
+              targetUserId: status.userId,
+              before: status,
+              after: {
+                ...status,
+                endDate: firstEndStr
+              },
+              comment: status.comment,
+            })
+
+            const secondStart = new Date(parseISO(dateStr))
+            secondStart.setDate(secondStart.getDate() + 1)
+            const secondStartStr = formatDate(secondStart, 'yyyy-MM-dd')
+
+            await addApprovalRequest({
+              entity: 'status',
+              action: 'create',
+              authorId: user?.id || status.userId,
+              targetUserId: status.userId,
+              before: null,
+              after: {
+                id: '',
                 userId: status.userId,
                 date: secondStartStr,
                 endDate: statusEnd,
                 type: status.type,
                 comment: status.comment
-              })
-            } else {
-              // Создаем заявки на оба изменения
-              await addApprovalRequest({
-                entity: 'status',
-                action: 'update',
-                authorId: user?.id || status.userId,
-                targetUserId: status.userId,
-                before: status,
-                after: {
-                  ...status,
-                  endDate: firstEndStr
-                },
-                comment: status.comment,
-              })
-              
-              const secondStart = new Date(parseISO(dateStr))
-              secondStart.setDate(secondStart.getDate() + 1)
-              const secondStartStr = formatDate(secondStart, 'yyyy-MM-dd')
-              
-              await addApprovalRequest({
-                entity: 'status',
-                action: 'create',
-                authorId: user?.id || status.userId,
-                targetUserId: status.userId,
-                before: null,
-                after: {
-                  id: '',
-                  userId: status.userId,
-                  date: secondStartStr,
-                  endDate: statusEnd,
-                  type: status.type,
-                  comment: status.comment
-                },
-                comment: status.comment,
-              })
-            }
-          
+              },
+              comment: status.comment,
+            })
+          }
+
           loadData()
         }
         return
@@ -308,7 +308,7 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
     if (slotDate.getTime() === today.getTime()) {
       const now = getMoscowTime()
       const currentTime = now.getHours() * 60 + now.getMinutes() // minutes since midnight
-      
+
       // Check if any slot hasn't ended yet
       return slot.slots.some((s) => {
         // If slot crosses midnight (has endDate), check endDate instead
@@ -317,27 +317,27 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
           endDate.setHours(0, 0, 0, 0)
           const todayEnd = new Date(today)
           todayEnd.setHours(23, 59, 59)
-          
+
           // If endDate is in the future, slot is upcoming
           if (endDate > today) return true
-          
+
           // If endDate is today, check if end time hasn't passed
           if (endDate.getTime() === today.getTime()) {
             const [endHour, endMin] = s.end.split(':').map(Number)
             const endTime = endHour * 60 + endMin
             return endTime > currentTime
           }
-          
+
           return false
         }
-        
+
         // Regular same-day slot
         const [endHour, endMin] = s.end.split(':').map(Number)
         const endTime = endHour * 60 + endMin
         return endTime > currentTime
       })
     }
-    
+
     // Check if slot has endDate in the future or ends today but time hasn't passed
     const now = getMoscowTime()
     const currentTime = now.getHours() * 60 + now.getMinutes()
@@ -367,7 +367,7 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
 
   const getSlotsForDay = (date: string): WorkSlot[] => {
     let daySlots = slots.filter((s) => s.date === date)
-    
+
     // Apply filter
     if (slotFilter !== 'all') {
       daySlots = daySlots.filter(slot => {
@@ -377,7 +377,7 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
         return true
       })
     }
-    
+
     return daySlots
   }
 
@@ -426,11 +426,10 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
       >
         <button
           onClick={() => navigateWeek('prev')}
-          className={`w-full sm:w-auto px-3 sm:px-4 py-2 text-xs sm:text-sm md:text-base rounded-lg transition-colors touch-manipulation active:scale-95 flex items-center justify-center gap-2 whitespace-nowrap ${
-            theme === 'dark'
+          className={`w-full sm:w-auto px-3 sm:px-4 py-2 text-xs sm:text-sm md:text-base rounded-lg transition-colors touch-manipulation active:scale-95 flex items-center justify-center gap-2 whitespace-nowrap ${theme === 'dark'
               ? 'border border-gray-700 bg-gray-900/60 hover:border-[#4E6E49]/50 hover:bg-gray-900'
               : 'border border-gray-200 bg-white hover:border-[#4E6E49]/40 hover:bg-gray-50'
-          }`}
+            }`}
         >
           <span>←</span>
           <span>Предыдущая неделя</span>
@@ -440,11 +439,10 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
         </span>
         <button
           onClick={() => navigateWeek('next')}
-          className={`w-full sm:w-auto px-3 sm:px-4 py-2 text-xs sm:text-sm md:text-base rounded-lg transition-colors touch-manipulation active:scale-95 flex items-center justify-center gap-2 whitespace-nowrap ${
-            theme === 'dark'
+          className={`w-full sm:w-auto px-3 sm:px-4 py-2 text-xs sm:text-sm md:text-base rounded-lg transition-colors touch-manipulation active:scale-95 flex items-center justify-center gap-2 whitespace-nowrap ${theme === 'dark'
               ? 'border border-gray-700 bg-gray-900/60 hover:border-[#4E6E49]/50 hover:bg-gray-900'
               : 'border border-gray-200 bg-white hover:border-[#4E6E49]/40 hover:bg-gray-50'
-          }`}
+            }`}
         >
           <span>Следующая неделя</span>
           <span>→</span>
@@ -486,9 +484,8 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
                   return (
                     <div
                       key={status.id}
-                      className={`relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 rounded-2xl border-2 transition-all duration-300 hover:shadow-xl backdrop-blur text-center sm:text-left ring-1 ring-inset ring-black/5 dark:ring-white/5 ${
-                        statusTone[status.type]
-                      }`}
+                      className={`relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 rounded-2xl border-2 transition-all duration-300 hover:shadow-xl backdrop-blur text-center sm:text-left ring-1 ring-inset ring-black/5 dark:ring-white/5 ${statusTone[status.type]
+                        }`}
                     >
                       <div className="flex flex-col sm:flex-row sm:items-center gap-2 justify-center sm:justify-start w-full">
                         <span className="font-semibold text-base sm:text-lg">{displayName}</span>
@@ -539,32 +536,30 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
                 {daySlots.map((slot) => {
                   const { member: slotUser, displayName } = resolveUser(slot.userId)
                   const isUpcoming = isSlotUpcoming(slot)
-                  const slotBg = isUpcoming 
-                    ? 'bg-gradient-to-r from-emerald-500 to-teal-600 border-emerald-300/40' 
+                  const slotBg = isUpcoming
+                    ? 'bg-gradient-to-r from-emerald-500 to-teal-600 border-emerald-300/40'
                     : 'bg-gradient-to-r from-slate-500 to-slate-700 border-slate-300/40'
                   const SlotIcon = isUpcoming ? CalendarIcon : CheckCircle2
-                  
+
                   return (
                     <div
                       key={slot.id}
-                      className={`group relative space-y-2 sm:space-y-3 p-3 sm:p-4 ${slotBg} rounded-lg sm:rounded-xl shadow-xl border-2 transition-all duration-300 hover:shadow-2xl active:scale-[0.98] sm:hover:scale-[1.03] mb-2 sm:mb-3 ${
-                        isUpcoming 
-                          ? 'hover:border-emerald-200/80 ring-2 ring-emerald-200/40 hover:ring-4 hover:ring-emerald-200/60' 
+                      className={`group relative space-y-2 sm:space-y-3 p-3 sm:p-4 ${slotBg} rounded-lg sm:rounded-xl shadow-xl border-2 transition-all duration-300 hover:shadow-2xl active:scale-[0.98] sm:hover:scale-[1.03] mb-2 sm:mb-3 ${isUpcoming
+                          ? 'hover:border-emerald-200/80 ring-2 ring-emerald-200/40 hover:ring-4 hover:ring-emerald-200/60'
                           : 'hover:border-slate-200/80 ring-2 ring-slate-200/40 hover:ring-4 hover:ring-slate-200/60'
-                      }`}
+                        }`}
                     >
                       <div className="flex items-center justify-between border-b border-white/20 pb-2 sm:pb-3">
                         <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
                           <div className="relative flex-shrink-0 group/avatar">
                             {slotUser?.avatar ? (
-                              <img 
-                                src={slotUser.avatar} 
+                              <img
+                                src={slotUser.avatar}
                                 alt={displayName}
-                                className={`w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 lg:w-11 lg:h-11 rounded-full object-cover border-2 shadow-xl transition-all duration-300 group-hover/avatar:scale-110 group-hover/avatar:shadow-2xl ${
-                                  isUpcoming 
-                                    ? 'border-white/50 ring-2 ring-white/40 ring-offset-2 ring-offset-emerald-400/30 group-hover/avatar:ring-4 group-hover/avatar:ring-white/60' 
+                                className={`w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 lg:w-11 lg:h-11 rounded-full object-cover border-2 shadow-xl transition-all duration-300 group-hover/avatar:scale-110 group-hover/avatar:shadow-2xl ${isUpcoming
+                                    ? 'border-white/50 ring-2 ring-white/40 ring-offset-2 ring-offset-emerald-400/30 group-hover/avatar:ring-4 group-hover/avatar:ring-white/60'
                                     : 'border-white/40 ring-2 ring-white/30 ring-offset-2 ring-offset-slate-400/30 group-hover/avatar:ring-4 group-hover/avatar:ring-white/50'
-                                }`}
+                                  }`}
                                 onError={(e) => {
                                   const target = e.target as HTMLImageElement
                                   target.style.display = 'none'
@@ -573,18 +568,16 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
                                 }}
                               />
                             ) : null}
-                            <div 
-                              className={`w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 lg:w-11 lg:h-11 rounded-full flex items-center justify-center font-bold text-xs sm:text-sm transition-all duration-300 shadow-xl group-hover/avatar:scale-110 group-hover/avatar:shadow-2xl ${
-                                isUpcoming 
-                                  ? 'bg-white/25 backdrop-blur-md border-2 border-white/40 ring-2 ring-white/30 group-hover/avatar:ring-4 group-hover/avatar:ring-white/60' 
+                            <div
+                              className={`w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 lg:w-11 lg:h-11 rounded-full flex items-center justify-center font-bold text-xs sm:text-sm transition-all duration-300 shadow-xl group-hover/avatar:scale-110 group-hover/avatar:shadow-2xl ${isUpcoming
+                                  ? 'bg-white/25 backdrop-blur-md border-2 border-white/40 ring-2 ring-white/30 group-hover/avatar:ring-4 group-hover/avatar:ring-white/60'
                                   : 'bg-white/15 backdrop-blur-md border-2 border-white/30 ring-2 ring-white/20 group-hover/avatar:ring-4 group-hover/avatar:ring-white/50'
-                              } ${slotUser?.avatar ? 'absolute inset-0 hidden' : ''}`}
+                                } ${slotUser?.avatar ? 'absolute inset-0 hidden' : ''}`}
                             >
                               {displayName.charAt(0).toUpperCase()}
                             </div>
-                            <div className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 sm:w-3 sm:h-3 md:w-3.5 md:h-3.5 rounded-full border border-white sm:border-2 shadow-lg animate-pulse opacity-0 group-hover/avatar:opacity-100 transition-opacity duration-300 ${
-                              isUpcoming ? 'bg-emerald-300' : 'bg-slate-400'
-                            }`}></div>
+                            <div className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 sm:w-3 sm:h-3 md:w-3.5 md:h-3.5 rounded-full border border-white sm:border-2 shadow-lg animate-pulse opacity-0 group-hover/avatar:opacity-100 transition-opacity duration-300 ${isUpcoming ? 'bg-emerald-300' : 'bg-slate-400'
+                              }`}></div>
                           </div>
                           <span className="text-white font-bold text-sm sm:text-base group-hover:scale-105 transition-transform duration-300 truncate">{displayName}</span>
                         </div>
@@ -598,7 +591,7 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
                                 <Edit className="w-4 h-4 text-white" />
                               </button>
                               <button
-                              onClick={() => handleDeleteSlot(slot)}
+                                onClick={() => handleDeleteSlot(slot)}
                                 className="p-1.5 bg-white/20 hover:bg-white/30 rounded-lg transition-colors"
                               >
                                 <Trash2 className="w-4 h-4 text-white" />
@@ -628,11 +621,10 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
                         {slot.slots.map((s, slotIdx) => (
                           <div key={slotIdx} className="space-y-1.5">
                             {/* Main slot time */}
-                            <div className={`bg-white/25 backdrop-blur-md rounded-md sm:rounded-lg px-2 sm:px-3 py-1.5 sm:py-2 border-2 transition-all duration-300 hover:scale-105 hover:shadow-xl ${
-                              isUpcoming 
-                                ? 'border-white/40 ring-2 ring-white/20 hover:border-white/60 hover:ring-4 hover:ring-white/40' 
+                            <div className={`bg-white/25 backdrop-blur-md rounded-md sm:rounded-lg px-2 sm:px-3 py-1.5 sm:py-2 border-2 transition-all duration-300 hover:scale-105 hover:shadow-xl ${isUpcoming
+                                ? 'border-white/40 ring-2 ring-white/20 hover:border-white/60 hover:ring-4 hover:ring-white/40'
                                 : 'border-white/30 ring-2 ring-white/10 hover:border-white/50 hover:ring-4 hover:ring-white/30'
-                            }`}>
+                              }`}>
                               <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
                                 <SlotIcon className={`w-3.5 h-3.5 sm:w-4 sm:h-4 text-white flex-shrink-0 ${isUpcoming ? 'animate-pulse' : ''}`} />
                                 <span className="text-white font-bold text-xs sm:text-sm whitespace-nowrap">{s.start} - {s.end}</span>
@@ -648,11 +640,10 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
                               <div className="space-y-1 w-full">
                                 <div className={`text-[10px] ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} font-medium text-center sm:text-left`}>Перерывы:</div>
                                 {s.breaks.map((breakItem, breakIdx) => (
-                                  <div key={breakIdx} className={`${theme === 'dark' ? 'bg-gray-700/95' : 'bg-white'} ${theme === 'dark' ? 'text-gray-200' : 'text-gray-900'} border-2 ${theme === 'dark' ? 'border-orange-500/60' : 'border-orange-300'} rounded-md sm:rounded-lg px-2 sm:px-3 py-1 sm:py-1.5 text-[10px] sm:text-xs font-semibold shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl ${
-                                    theme === 'dark' 
-                                      ? 'hover:border-orange-400/80 hover:shadow-orange-500/30 ring-2 ring-orange-500/20 hover:ring-4 hover:ring-orange-400/40' 
+                                  <div key={breakIdx} className={`${theme === 'dark' ? 'bg-gray-700/95' : 'bg-white'} ${theme === 'dark' ? 'text-gray-200' : 'text-gray-900'} border-2 ${theme === 'dark' ? 'border-orange-500/60' : 'border-orange-300'} rounded-md sm:rounded-lg px-2 sm:px-3 py-1 sm:py-1.5 text-[10px] sm:text-xs font-semibold shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl ${theme === 'dark'
+                                      ? 'hover:border-orange-400/80 hover:shadow-orange-500/30 ring-2 ring-orange-500/20 hover:ring-4 hover:ring-orange-400/40'
                                       : 'hover:border-orange-400 hover:shadow-orange-400/30 ring-2 ring-orange-300/20 hover:ring-4 hover:ring-orange-300/40'
-                                  } w-full`}>
+                                    } w-full`}>
                                     <span className="flex items-center gap-1 sm:gap-1.5 justify-center flex-wrap w-full">
                                       <span className={`w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full ${theme === 'dark' ? 'bg-orange-400' : 'bg-orange-500'} animate-pulse flex-shrink-0`}></span>
                                       <span className="whitespace-nowrap">{breakItem.start} - {breakItem.end}</span>

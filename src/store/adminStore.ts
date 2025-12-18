@@ -8,7 +8,7 @@ interface AdminState {
   deactivateAdmin: () => void
 }
 
-export const ADMIN_PASSWORD = '9119ApeVault'
+export const ADMIN_PASSWORD = '4747'
 
 export const useAdminStore = create<AdminState>()(
   persist(

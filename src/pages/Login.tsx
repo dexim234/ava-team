@@ -1,10 +1,10 @@
 // Login page component
 import { useState, useEffect } from 'react'
-import { useNavigate, useSearchParams, Link } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuthStore } from '@/store/authStore'
 import { useThemeStore } from '@/store/themeStore'
 import { useAdminStore } from '@/store/adminStore'
-import { Moon, Sun, Shield, User, Users } from 'lucide-react'
+import { Moon, Sun, Shield, User, Users, Download, Send } from 'lucide-react'
 import logo from '../assets/logo.png'
 
 // Declare Telegram WebApp types
@@ -58,15 +58,15 @@ export const Login = () => {
     if (window.Telegram?.WebApp) {
       window.Telegram.WebApp.ready()
       window.Telegram.WebApp.expand()
-      
+
       // Try to get initData from URL params first (for deep links)
       const initDataFromUrl = searchParams.get('tgWebAppData')
       const initData = initDataFromUrl || window.Telegram.WebApp.initData
-      
+
       // Also check for login/password in URL params (from bot)
       const loginFromUrl = searchParams.get('login')
       const passwordFromUrl = searchParams.get('password')
-      
+
       if (loginFromUrl && passwordFromUrl) {
         // Auto-login with credentials from bot
         const success = loginUser(loginFromUrl, passwordFromUrl)
@@ -75,21 +75,21 @@ export const Login = () => {
           return
         }
       }
-      
+
       if (initData) {
         try {
           // Parse initData to extract user info
           // Format: user=%7B%22id%22%3A123456789%2C...%7D
           const params = new URLSearchParams(initData)
           const userParam = params.get('user')
-          
+
           if (userParam) {
             const userData = JSON.parse(decodeURIComponent(userParam))
             const telegramUserId = userData.id
-            
+
             // Store telegram user ID for later use
             sessionStorage.setItem('telegram_user_id', String(telegramUserId))
-            
+
             // Try to get saved credentials from localStorage (from previous session)
             const savedAuth = localStorage.getItem('apevault-auth')
             if (savedAuth) {
@@ -108,7 +108,7 @@ export const Login = () => {
                 console.error('Error parsing saved auth:', err)
               }
             }
-            
+
             console.log('Telegram Mini App detected, user ID:', telegramUserId)
             // User needs to login manually or bot should pass credentials
           }
@@ -116,7 +116,7 @@ export const Login = () => {
           console.error('Error parsing Telegram initData:', err)
         }
       }
-      
+
       // Also try initDataUnsafe for simpler access
       const unsafeUser = window.Telegram.WebApp.initDataUnsafe?.user
       if (unsafeUser) {
@@ -199,15 +199,27 @@ export const Login = () => {
                   <li>• Админ пароль: только для доверенных (режим администратора).</li>
                   <li>• Правила: открыты на странице «Правила» на сайте.</li>
                 </ul>
-                <Link
-                  to="/rules"
-                  className="inline-flex items-center justify-center gap-2 px-4 py-2 mt-2 text-xs font-semibold rounded-lg bg-gradient-to-r from-[#4E6E49] to-emerald-600 text-white shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all"
-                >
-                  <Shield className="w-3 h-3" />
-                  Ознакомиться с правилами
-                </Link>
-                <div className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                  Администратор: <span className="font-semibold">@artyommedoed</span>
+                <div className="flex flex-col sm:flex-row gap-2 mt-2">
+                  <a
+                    href="/rules.pdf"
+                    download
+                    className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 text-xs font-semibold rounded-lg bg-gradient-to-r from-[#4E6E49] to-emerald-600 text-white shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    Скачать правила
+                  </a>
+                  <a
+                    href="https://t.me/artyommedoed"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 text-xs font-semibold rounded-lg border transition-all hover:-translate-y-0.5 ${theme === 'dark'
+                      ? 'border-white/10 bg-white/5 text-white hover:bg-white/10'
+                      : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50'
+                      }`}
+                  >
+                    <Send className="w-3.5 h-3.5" />
+                    Админ (TG)
+                  </a>
                 </div>
               </div>
             </div>
@@ -271,17 +283,16 @@ export const Login = () => {
                       <User className="w-4 h-4 inline mr-2" />
                       Логин
                     </label>
-                <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2">
                       <input
                         id="login"
                         type="text"
                         value={login}
                         onChange={(e) => setLogin(e.target.value)}
-                        className={`w-full px-4 py-3 rounded-xl border transition-all ${
-                          theme === 'dark'
-                            ? 'bg-white/5 border-white/10 text-white placeholder-gray-500 focus:border-[#4E6E49]'
-                            : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400 focus:border-[#4E6E49]'
-                        } focus:outline-none focus:ring-4 focus:ring-[#4E6E49]/20`}
+                        className={`w-full px-4 py-3 rounded-xl border transition-all ${theme === 'dark'
+                          ? 'bg-white/5 border-white/10 text-white placeholder-gray-500 focus:border-[#4E6E49]'
+                          : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400 focus:border-[#4E6E49]'
+                          } focus:outline-none focus:ring-4 focus:ring-[#4E6E49]/20`}
                         placeholder="Введите ваш логин"
                         autoComplete="username"
                       />
@@ -299,11 +310,10 @@ export const Login = () => {
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className={`w-full px-4 py-3 rounded-xl border transition-all ${
-                      theme === 'dark'
-                        ? 'bg-white/5 border-white/10 text-white placeholder-gray-500 focus:border-[#4E6E49]'
-                        : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400 focus:border-[#4E6E49]'
-                    } focus:outline-none focus:ring-4 focus:ring-[#4E6E49]/20`}
+                    className={`w-full px-4 py-3 rounded-xl border transition-all ${theme === 'dark'
+                      ? 'bg-white/5 border-white/10 text-white placeholder-gray-500 focus:border-[#4E6E49]'
+                      : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400 focus:border-[#4E6E49]'
+                      } focus:outline-none focus:ring-4 focus:ring-[#4E6E49]/20`}
                     placeholder={userType === 'admin' ? 'Введите пароль администратора' : 'Введите ваш пароль'}
                     autoComplete={userType === 'admin' ? 'off' : 'current-password'}
                   />
@@ -315,11 +325,10 @@ export const Login = () => {
                 </div>
 
                 {error && (
-                  <div className={`p-4 rounded-xl border ${
-                    theme === 'dark' 
-                      ? 'bg-red-500/15 border-red-500/40 text-red-300' 
-                      : 'bg-red-50 border-red-300 text-red-700'
-                  } text-sm font-semibold animate-shake`}>
+                  <div className={`p-4 rounded-xl border ${theme === 'dark'
+                    ? 'bg-red-500/15 border-red-500/40 text-red-300'
+                    : 'bg-red-50 border-red-300 text-red-700'
+                    } text-sm font-semibold animate-shake`}>
                     {error}
                   </div>
                 )}

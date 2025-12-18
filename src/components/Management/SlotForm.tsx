@@ -5,6 +5,7 @@ import { useThemeStore } from '@/store/themeStore'
 import { useAdminStore } from '@/store/adminStore'
 import { addApprovalRequest, getWorkSlots, addWorkSlot, updateWorkSlot, checkRestriction } from '@/services/firestoreService'
 import { calculateHours, timeOverlaps, formatDate, getDatesInRange, normalizeDatesList, parseTime } from '@/utils/dateUtils'
+import { UserNickname } from '@/components/UserNickname'
 import { getUserNicknameSync } from '@/utils/userUtils'
 import { X, Plus, Trash2, Edit, CalendarDays, Calendar } from 'lucide-react'
 import { WorkSlot, TimeSlot, TEAM_MEMBERS } from '@/types'
@@ -187,43 +188,43 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
     const breakEndMin = parseTime(currentBreakEnd)
     const slotStartMin = parseTime(slot.start)
     const slotEndMin = parseTime(slot.end)
-    
+
     // Handle slots that cross midnight (endDate exists or end < start in minutes)
     const slotCrossesMidnight = slot.endDate || slotEndMin <= slotStartMin
-    
+
     let breakWithinSlot = false
-    
+
     if (slotCrossesMidnight) {
       // Slot crosses midnight (e.g., 20:00-02:00)
       // Break can be:
       // 1. Entirely in first part: from slot.start to 23:59
       // 2. Entirely in second part: from 00:00 to slot.end
       // 3. Spans across midnight: starts before midnight, ends after midnight
-      
+
       const minutesInDay = 24 * 60 // 1440 minutes
-      
+
       // Case 1: Break entirely in first part (same day)
       const breakInFirstPart = breakStartMin >= slotStartMin && breakStartMin < minutesInDay &&
-                                breakEndMin > breakStartMin && breakEndMin <= minutesInDay &&
-                                breakEndMin > breakStartMin
-      
+        breakEndMin > breakStartMin && breakEndMin <= minutesInDay &&
+        breakEndMin > breakStartMin
+
       // Case 2: Break entirely in second part (next day)
       const breakInSecondPart = breakStartMin >= 0 && breakStartMin <= slotEndMin &&
-                                 breakEndMin > breakStartMin && breakEndMin <= slotEndMin
-      
+        breakEndMin > breakStartMin && breakEndMin <= slotEndMin
+
       // Case 3: Break spans across midnight (starts in first part, ends in second part)
       const breakSpansMidnight = breakStartMin >= slotStartMin && breakStartMin < minutesInDay &&
-                                  breakEndMin > 0 && breakEndMin <= slotEndMin &&
-                                  breakStartMin > breakEndMin // Start is later in day than end
-      
+        breakEndMin > 0 && breakEndMin <= slotEndMin &&
+        breakStartMin > breakEndMin // Start is later in day than end
+
       breakWithinSlot = breakInFirstPart || breakInSecondPart || breakSpansMidnight
     } else {
       // Regular slot (same day) - break must be between slot.start and slot.end
       // Break start must be >= slot start and break end must be <= slot end
-      breakWithinSlot = breakStartMin >= slotStartMin && breakEndMin <= slotEndMin && 
-                        breakEndMin > breakStartMin
+      breakWithinSlot = breakStartMin >= slotStartMin && breakEndMin <= slotEndMin &&
+        breakEndMin > breakStartMin
     }
-    
+
     if (!breakWithinSlot) {
       setError(`Перерыв должен быть в пределах времени слота (${slot.start} - ${slot.end})`)
       return
@@ -276,7 +277,7 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
   const startEditBreak = (slotIndex: number, breakIndex: number) => {
     const slot = slots[slotIndex]
     if (!slot || !slot.breaks || !slot.breaks[breakIndex]) return
-    
+
     const breakTime = slot.breaks[breakIndex]
     setEditBreakSlotIndex(slotIndex)
     setEditBreakIndex(breakIndex)
@@ -299,7 +300,7 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
     const slot = slots[slotIndex]
     if (!slot || !slot.breaks) return
 
-    const updatedBreaks = slot.breaks.filter((_, i) => i !== breakIndex)
+    const updatedBreaks = slot.breaks.filter((_: any, i: number) => i !== breakIndex)
     const updatedSlots = [...slots]
     updatedSlots[slotIndex] = {
       ...slot,
@@ -310,7 +311,7 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
   }
 
   const removeTimeSlot = (index: number) => {
-    setSlots(slots.filter((_, i) => i !== index))
+    setSlots(slots.filter((_: any, i: number) => i !== index))
     if (editingTimeSlotIndex === index) {
       cancelEditTimeSlot()
     }
@@ -318,7 +319,7 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
 
   const handleDayToggle = (dayIndex: number) => {
     if (repeatDays.includes(dayIndex)) {
-      setRepeatDays(repeatDays.filter((d) => d !== dayIndex))
+      setRepeatDays(repeatDays.filter((d: number) => d !== dayIndex))
     } else {
       setRepeatDays([...repeatDays, dayIndex])
     }
@@ -326,14 +327,14 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
 
   const handleWeekDayToggle = (dayIndex: number) => {
     if (weekDaySelection.includes(dayIndex)) {
-      setWeekDaySelection(weekDaySelection.filter((d) => d !== dayIndex))
+      setWeekDaySelection(weekDaySelection.filter((d: number) => d !== dayIndex))
     } else {
       setWeekDaySelection([...weekDaySelection, dayIndex])
     }
   }
 
   const toggleUserSelection = (userId: string) => {
-    setSelectedUserIds((prev) => {
+    setSelectedUserIds((prev: string[]) => {
       if (prev.includes(userId)) {
         return prev.filter((id) => id !== userId)
       }
@@ -345,7 +346,7 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
     if (selectedUserIds.length === TEAM_MEMBERS.length) {
       setSelectedUserIds([])
     } else {
-      setSelectedUserIds(TEAM_MEMBERS.map((member) => member.id))
+      setSelectedUserIds(TEAM_MEMBERS.map((member: any) => member.id))
     }
   }
 
@@ -357,7 +358,7 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
   }
 
   const handleRemoveMultiDate = (dateToRemove: string) => {
-    setMultipleDates((prev) => prev.filter((d) => d !== dateToRemove))
+    setMultipleDates((prev: string[]) => prev.filter((d: string) => d !== dateToRemove))
   }
 
   const getTargetDates = (): string[] => {
@@ -436,7 +437,7 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
   const validateSlot = async (slotDate: string, timeSlots: TimeSlot[]): Promise<string | null> => {
     // Get all existing slots on this date (excluding the current slot if editing)
     const allExistingSlotsOnDate = await getWorkSlots(undefined, slotDate)
-    const existingSlotsOnDate = allExistingSlotsOnDate.filter(s => s.id !== slot?.id)
+    const existingSlotsOnDate = allExistingSlotsOnDate.filter((s: any) => s.id !== slot?.id)
 
     // Check max 3 people per slot (for overlapping times)
     for (const timeSlot of timeSlots) {
@@ -453,7 +454,7 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
       // If this slot crosses midnight, also check overlaps with slots on the next day
       if (timeSlot.endDate) {
         const nextDaySlots = await getWorkSlots(undefined, timeSlot.endDate)
-        const nextDayExistingSlots = nextDaySlots.filter(s => s.id !== slot?.id)
+        const nextDayExistingSlots = nextDaySlots.filter((s: any) => s.id !== slot?.id)
 
         for (const existingSlot of nextDayExistingSlots) {
           if (timeOverlaps(timeSlot, existingSlot.slots[0])) {
@@ -518,7 +519,7 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
     const createSlotForUserDate = async (targetUserId: string, dateStr: string, participants: string[] = [targetUserId]) => {
       // Пересчитываем endDate под каждую целевую дату, чтобы слоты, переходящие через полночь,
       // сдвигались на следующий день именно относительно текущей даты цикла.
-      const adjustedSlots: TimeSlot[] = slots.map((s) => {
+      const adjustedSlots: TimeSlot[] = slots.map((s: TimeSlot) => {
         const crossesWithoutEndDate = !s.endDate && parseTime(s.end) <= parseTime(s.start)
         const baseDiffDays = s.endDate ? daysBetween(date, s.endDate) : (crossesWithoutEndDate ? 1 : 0)
 
@@ -650,8 +651,7 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
   }
 
   const targetDatesPreview = adminBulkMode ? getTargetDates() : [date]
-  const selectedNames = selectedUserIds.map((id) => getMemberName(id)).join(', ')
-  const timeSummary = slots.map((s) => `${s.start}–${s.end}${s.endDate ? ' (+1)' : ''}`)
+  const timeSummary = slots.map((s: any) => `${s.start}–${s.end}${s.endDate ? ' (+1)' : ''}`)
 
   return (
     <div className="fixed inset-0 bg-slate-950/75 backdrop-blur-xl flex items-start sm:items-center justify-center z-[70] p-4 sm:p-6 touch-manipulation overflow-y-auto">
@@ -691,11 +691,24 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
               </div>
               <div className="space-y-2">
                 {[
-                  { label: 'Участники', detail: selectedNames || 'Не выбрано', done: selectedUserIds.length > 0 || !!slot },
-                  { label: 'Даты', detail: targetDatesPreview.slice(0, 2).map((d) => formatDate(d, 'dd.MM')).join(', ') || 'Выберите дату', done: targetDatesPreview.length > 0 },
+                  {
+                    label: 'Участники',
+                    detail: selectedUserIds.length > 0 ? (
+                      <div className="flex flex-wrap gap-x-1">
+                        {selectedUserIds.map((id: string, i: number) => (
+                          <span key={id}>
+                            <UserNickname userId={id} />
+                            {i < selectedUserIds.length - 1 ? ',' : ''}
+                          </span>
+                        ))}
+                      </div>
+                    ) : 'Не выбрано',
+                    done: selectedUserIds.length > 0 || !!slot
+                  },
+                  { label: 'Даты', detail: targetDatesPreview.slice(0, 2).map((d: string) => formatDate(d, 'dd.MM')).join(', ') || 'Выберите дату', done: targetDatesPreview.length > 0 },
                   { label: 'Время', detail: timeSummary.slice(0, 2).join(' · ') || 'Добавьте интервал', done: slots.length > 0 },
                   { label: 'Комментарий', detail: comment ? 'Заполнен' : 'Необязателен', done: !!comment },
-                ].map((step, index) => (
+                ].map((step, index: number) => (
                   <div
                     key={step.label}
                     className={`flex items-start gap-3 rounded-xl border px-3 py-3 ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-slate-200 bg-slate-50'}`}
@@ -703,9 +716,9 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
                     <span className={`mt-0.5 inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${step.done ? 'bg-[#4E6E49] text-white' : (theme === 'dark' ? 'bg-slate-800 text-gray-300' : 'bg-slate-200 text-slate-700')}`}>
                       {index + 1}
                     </span>
-                    <div className="flex-1">
+                    <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold">{step.label}</p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{step.detail}</p>
+                      <div className="text-xs text-gray-500 dark:text-gray-400 truncate">{step.detail}</div>
                     </div>
                   </div>
                 ))}
@@ -715,559 +728,541 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
             {/* Form column */}
             <div className="space-y-4 overflow-y-auto overscroll-contain pr-1 pb-6 flex-1 min-h-0">
               {/* User selection for admin when adding new slot */}
-            {adminBulkMode && (
-              <div>
-                <label className={`block text-xs sm:text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                  Участники
-                </label>
-                <div className="space-y-3">
-                  <div className="flex flex-wrap gap-2">
-                    {TEAM_MEMBERS.map((member) => (
-                      <label
-                        key={member.id}
-                        className={`px-3 py-1.5 rounded-full border cursor-pointer text-sm flex items-center gap-2 ${
-                          selectedUserIds.includes(member.id)
+              {adminBulkMode && (
+                <div>
+                  <label className={`block text-xs sm:text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Участники
+                  </label>
+                  <div className="space-y-3">
+                    <div className="flex flex-wrap gap-2">
+                      {TEAM_MEMBERS.map((member: any) => (
+                        <label
+                          key={member.id}
+                          className={`px-3 py-1.5 rounded-full border cursor-pointer text-sm flex items-center gap-2 ${selectedUserIds.includes(member.id)
                             ? 'bg-[#4E6E49] border-[#4E6E49] text-white'
                             : theme === 'dark'
-                            ? 'bg-gray-700 border-gray-800 text-gray-200'
-                            : 'bg-gray-100 border-gray-300 text-gray-700'
-                        }`}
-                      >
+                              ? 'bg-gray-700 border-gray-800 text-gray-200'
+                              : 'bg-gray-100 border-gray-300 text-gray-700'
+                            }`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={selectedUserIds.includes(member.id)}
+                            onChange={() => toggleUserSelection(member.id)}
+                            className="hidden"
+                          />
+                          <UserNickname userId={member.id} />
+                        </label>
+                      ))}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleSelectAllUsers}
+                      className="text-sm text-[#4E6E49] hover:text-[#4E6E49]"
+                    >
+                      {selectedUserIds.length === TEAM_MEMBERS.length ? 'Снять выделение' : 'Выбрать всех'}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {adminBulkMode && (
+                <div>
+                  <p className={`text-xs sm:text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Формат выбора дат
+                  </p>
+                  <div className="flex flex-wrap gap-4">
+                    {[
+                      { value: 'single', label: 'Один день' },
+                      { value: 'range', label: 'Диапазон дат' },
+                      { value: 'multiple', label: 'Конкретные даты' },
+                    ].map((option: any) => (
+                      <label key={option.value} className="flex items-center gap-2 text-sm cursor-pointer">
                         <input
-                          type="checkbox"
-                          checked={selectedUserIds.includes(member.id)}
-                          onChange={() => toggleUserSelection(member.id)}
-                          className="hidden"
+                          type="radio"
+                          value={option.value}
+                          checked={dateMode === option.value}
+                          onChange={(e) => setDateMode(e.target.value as typeof dateMode)}
                         />
-                        {getUserNicknameSync(member.id)}
+                        <span className={theme === 'dark' ? 'text-gray-200' : 'text-gray-700'}>{option.label}</span>
                       </label>
                     ))}
                   </div>
-                  <button
-                    type="button"
-                    onClick={handleSelectAllUsers}
-                    className="text-sm text-[#4E6E49] hover:text-[#4E6E49]"
-                  >
-                    {selectedUserIds.length === TEAM_MEMBERS.length ? 'Снять выделение' : 'Выбрать всех'}
-                  </button>
                 </div>
-              </div>
-            )}
+              )}
 
-            {adminBulkMode && (
-              <div>
-                <p className={`text-xs sm:text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                  Формат выбора дат
-                </p>
-                <div className="flex flex-wrap gap-4">
-                  {[
-                    { value: 'single', label: 'Один день' },
-                    { value: 'range', label: 'Диапазон дат' },
-                    { value: 'multiple', label: 'Конкретные даты' },
-                  ].map((option) => (
-                    <label key={option.value} className="flex items-center gap-2 text-sm cursor-pointer">
-                      <input
-                        type="radio"
-                        value={option.value}
-                        checked={dateMode === option.value}
-                        onChange={(e) => setDateMode(e.target.value as typeof dateMode)}
-                      />
-                      <span className={theme === 'dark' ? 'text-gray-200' : 'text-gray-700'}>{option.label}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Date */}
-            {(!adminBulkMode || dateMode === 'single') && (
-              <div>
-                <label className={`block text-xs sm:text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                  Дата
-                </label>
-                <input
-                  type="date"
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                  className={`w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base rounded-lg border touch-manipulation ${
-                    theme === 'dark'
-                      ? 'bg-gray-700 border-gray-800 text-white'
-                      : 'bg-white border-gray-300 text-gray-900'
-                  } focus:outline-none focus:ring-2 focus:ring-[#4E6E49]`}
-                />
-              </div>
-            )}
-
-            {adminBulkMode && dateMode === 'range' && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                <label className={`block text-xs sm:text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                  Начало диапазона
-                </label>
-                  <input
-                    type="date"
-                    value={rangeStart}
-                    onChange={(e) => setRangeStart(e.target.value)}
-                    className={`w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base rounded-lg border touch-manipulation ${
-                      theme === 'dark'
-                        ? 'bg-gray-700 border-gray-800 text-white'
-                        : 'bg-white border-gray-300 text-gray-900'
-                    } focus:outline-none focus:ring-2 focus:ring-[#4E6E49]`}
-                  />
-                </div>
+              {/* Date */}
+              {(!adminBulkMode || dateMode === 'single') && (
                 <div>
                   <label className={`block text-xs sm:text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                    Конец диапазона
+                    Дата
                   </label>
                   <input
                     type="date"
-                    value={rangeEnd}
-                    min={rangeStart}
-                    onChange={(e) => setRangeEnd(e.target.value)}
-                    className={`w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base rounded-lg border touch-manipulation ${
-                      theme === 'dark'
-                        ? 'bg-gray-700 border-gray-800 text-white'
-                        : 'bg-white border-gray-300 text-gray-900'
-                    } focus:outline-none focus:ring-2 focus:ring-[#4E6E49]`}
+                    value={date}
+                    onChange={(e) => setDate(e.target.value)}
+                    className={`w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base rounded-lg border touch-manipulation ${theme === 'dark'
+                      ? 'bg-gray-700 border-gray-800 text-white'
+                      : 'bg-white border-gray-300 text-gray-900'
+                      } focus:outline-none focus:ring-2 focus:ring-[#4E6E49]`}
                   />
                 </div>
-              </div>
-            )}
+              )}
 
-            {adminBulkMode && dateMode === 'multiple' && (
-              <div>
-                <label className={`block text-xs sm:text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                  Выбранные даты
-                </label>
-                <div className="flex flex-col gap-3">
-                  <div className="flex flex-col sm:flex-row gap-2">
+              {adminBulkMode && dateMode === 'range' && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className={`block text-xs sm:text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                      Начало диапазона
+                    </label>
                     <input
                       type="date"
-                      value={multiDateInput}
-                      onChange={(e) => setMultiDateInput(e.target.value)}
-                      className={`flex-1 px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base rounded-lg border touch-manipulation ${
-                        theme === 'dark'
-                          ? 'bg-gray-700 border-gray-800 text-white'
-                          : 'bg-white border-gray-300 text-gray-900'
-                      } focus:outline-none focus:ring-2 focus:ring-[#4E6E49]`}
+                      value={rangeStart}
+                      onChange={(e) => setRangeStart(e.target.value)}
+                      className={`w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base rounded-lg border touch-manipulation ${theme === 'dark'
+                        ? 'bg-gray-700 border-gray-800 text-white'
+                        : 'bg-white border-gray-300 text-gray-900'
+                        } focus:outline-none focus:ring-2 focus:ring-[#4E6E49]`}
                     />
-                    <button
-                      type="button"
-                      onClick={handleAddMultiDate}
-                      className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors"
-                    >
-                      Добавить
-                    </button>
                   </div>
-                  {multipleDates.length > 0 ? (
-                    <div className="flex flex-wrap gap-2">
-                      {multipleDates.map((d) => (
-                        <span
-                          key={d}
-                          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-100 text-gray-800 text-sm"
-                        >
-                          {formatDate(d, 'dd.MM.yyyy')}
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveMultiDate(d)}
-                            className="text-red-500 hover:text-red-600"
-                          >
-                            x
-                          </button>
-                        </span>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-sm text-gray-500">Пока не выбрано ни одной даты</p>
-                  )}
+                  <div>
+                    <label className={`block text-xs sm:text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                      Конец диапазона
+                    </label>
+                    <input
+                      type="date"
+                      value={rangeEnd}
+                      min={rangeStart}
+                      onChange={(e) => setRangeEnd(e.target.value)}
+                      className={`w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base rounded-lg border touch-manipulation ${theme === 'dark'
+                        ? 'bg-gray-700 border-gray-800 text-white'
+                        : 'bg-white border-gray-300 text-gray-900'
+                        } focus:outline-none focus:ring-2 focus:ring-[#4E6E49]`}
+                    />
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {/* Time slots */}
-            <div>
-              <label className={`block text-xs sm:text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                Временные слоты
-              </label>
-              <div className="space-y-2 mb-2">
-                <div className="flex flex-col sm:flex-row gap-2">
-                  <div className="flex gap-2 flex-1">
-                    <input
-                      type="time"
-                      value={currentStart}
-                      onChange={(e) => setCurrentStart(e.target.value)}
-                      className={`flex-1 px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base rounded-lg border touch-manipulation ${
-                        theme === 'dark'
+              {adminBulkMode && dateMode === 'multiple' && (
+                <div>
+                  <label className={`block text-xs sm:text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Выбранные даты
+                  </label>
+                  <div className="flex flex-col gap-3">
+                    <div className="flex flex-col sm:flex-row gap-2">
+                      <input
+                        type="date"
+                        value={multiDateInput}
+                        onChange={(e) => setMultiDateInput(e.target.value)}
+                        className={`flex-1 px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base rounded-lg border touch-manipulation ${theme === 'dark'
                           ? 'bg-gray-700 border-gray-800 text-white'
                           : 'bg-white border-gray-300 text-gray-900'
-                      } focus:outline-none focus:ring-2 focus:ring-[#4E6E49]`}
-                      placeholder="Начало"
-                    />
-                    <span className="mx-1 sm:mx-2 text-gray-500 text-sm sm:text-base flex items-center">—</span>
-                    <input
-                      type="time"
-                      value={currentEnd}
-                      onChange={(e) => setCurrentEnd(e.target.value)}
-                      className={`flex-1 px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base rounded-lg border touch-manipulation ${
-                        theme === 'dark'
-                          ? 'bg-gray-700 border-gray-800 text-white'
-                          : 'bg-white border-gray-300 text-gray-900'
-                      } focus:outline-none focus:ring-2 focus:ring-[#4E6E49]`}
-                      placeholder="Окончание"
-                    />
+                          } focus:outline-none focus:ring-2 focus:ring-[#4E6E49]`}
+                      />
+                      <button
+                        type="button"
+                        onClick={handleAddMultiDate}
+                        className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors"
+                      >
+                        Добавить
+                      </button>
+                    </div>
+                    {multipleDates.length > 0 ? (
+                      <div className="flex flex-wrap gap-2">
+                        {multipleDates.map((d: string) => (
+                          <span
+                            key={d}
+                            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-100 text-gray-800 text-sm"
+                          >
+                            {formatDate(d, 'dd.MM.yyyy')}
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveMultiDate(d)}
+                              className="text-red-500 hover:text-red-600"
+                            >
+                              x
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-gray-500">Пока не выбрано ни одной даты</p>
+                    )}
                   </div>
                 </div>
-                
-                {/* Cross midnight option */}
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    id="crossMidnight"
-                    checked={crossesMidnight}
-                    onChange={(e) => {
-                      setCrossesMidnight(e.target.checked)
-                    }}
-                    className={`w-4 h-4 rounded border-2 ${
-                      theme === 'dark'
+              )}
+
+              {/* Time slots */}
+              <div>
+                <label className={`block text-xs sm:text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                  Временные слоты
+                </label>
+                <div className="space-y-2 mb-2">
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <div className="flex gap-2 flex-1">
+                      <input
+                        type="time"
+                        value={currentStart}
+                        onChange={(e) => setCurrentStart(e.target.value)}
+                        className={`flex-1 px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base rounded-lg border touch-manipulation ${theme === 'dark'
+                          ? 'bg-gray-700 border-gray-800 text-white'
+                          : 'bg-white border-gray-300 text-gray-900'
+                          } focus:outline-none focus:ring-2 focus:ring-[#4E6E49]`}
+                        placeholder="Начало"
+                      />
+                      <span className="mx-1 sm:mx-2 text-gray-500 text-sm sm:text-base flex items-center">—</span>
+                      <input
+                        type="time"
+                        value={currentEnd}
+                        onChange={(e) => setCurrentEnd(e.target.value)}
+                        className={`flex-1 px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base rounded-lg border touch-manipulation ${theme === 'dark'
+                          ? 'bg-gray-700 border-gray-800 text-white'
+                          : 'bg-white border-gray-300 text-gray-900'
+                          } focus:outline-none focus:ring-2 focus:ring-[#4E6E49]`}
+                        placeholder="Окончание"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Cross midnight option */}
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      id="crossMidnight"
+                      checked={crossesMidnight}
+                      onChange={(e) => {
+                        setCrossesMidnight(e.target.checked)
+                      }}
+                      className={`w-4 h-4 rounded border-2 ${theme === 'dark'
                         ? 'border-gray-800 bg-gray-700 checked:bg-[#4E6E49] checked:border-[#4E6E49]'
                         : 'border-gray-300 bg-white checked:bg-[#4E6E49] checked:border-[#4E6E49]'
-                    } focus:ring-2 focus:ring-[#4E6E49] cursor-pointer touch-manipulation`}
-                  />
-                  <label
-                    htmlFor="crossMidnight"
-                    className={`text-xs sm:text-sm font-medium cursor-pointer ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}
-                  >
-                    Переходит через полночь (на следующий день)
-                  </label>
-                </div>
-
-                <div className="flex flex-col sm:flex-row gap-2">
-                  <button
-                    onClick={addOrUpdateTimeSlot}
-                    className="w-full px-4 py-2 bg-[#4E6E49] hover:bg-[#4E6E49] text-white rounded-lg transition-colors flex items-center justify-center gap-2"
-                  >
-                    {editingTimeSlotIndex !== null ? (
-                      <>
-                        <Edit className="w-4 h-4" />
-                        Сохранить слот
-                      </>
-                    ) : (
-                      <>
-                        <Plus className="w-4 h-4" />
-                        Добавить слот
-                      </>
-                    )}
-                  </button>
-                  {editingTimeSlotIndex !== null && (
-                    <button
-                      onClick={cancelEditTimeSlot}
-                      className={`w-full sm:w-auto px-4 py-2 rounded-lg border ${theme === 'dark' ? 'border-gray-700 text-gray-200 hover:bg-gray-700' : 'border-gray-300 text-gray-800 hover:bg-gray-100'}`}
+                        } focus:ring-2 focus:ring-[#4E6E49] cursor-pointer touch-manipulation`}
+                    />
+                    <label
+                      htmlFor="crossMidnight"
+                      className={`text-xs sm:text-sm font-medium cursor-pointer ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}
                     >
-                      Отмена
-                    </button>
-                  )}
-                </div>
-              </div>
+                      Переходит через полночь (на следующий день)
+                    </label>
+                  </div>
 
-              {/* Added slots */}
-              <div className="space-y-3">
-                {slots.map((s, index) => (
-                  <div
-                    key={index}
-                    className={`flex flex-col gap-2 p-3 rounded-lg ${
-                      theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between flex-wrap gap-2">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className={headingColor}>
-                          {s.start} - {s.end}
-                        </span>
-                        {s.endDate && (
-                          <span className={`text-xs px-2 py-0.5 rounded-full ${
-                            theme === 'dark'
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <button
+                      onClick={addOrUpdateTimeSlot}
+                      className="w-full px-4 py-2 bg-[#4E6E49] hover:bg-[#4E6E49] text-white rounded-lg transition-colors flex items-center justify-center gap-2"
+                    >
+                      {editingTimeSlotIndex !== null ? (
+                        <>
+                          <Edit className="w-4 h-4" />
+                          Сохранить слот
+                        </>
+                      ) : (
+                        <>
+                          <Plus className="w-4 h-4" />
+                          Добавить слот
+                        </>
+                      )}
+                    </button>
+                    {editingTimeSlotIndex !== null && (
+                      <button
+                        onClick={cancelEditTimeSlot}
+                        className={`w-full sm:w-auto px-4 py-2 rounded-lg border ${theme === 'dark' ? 'border-gray-700 text-gray-200 hover:bg-gray-700' : 'border-gray-300 text-gray-800 hover:bg-gray-100'}`}
+                      >
+                        Отмена
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Added slots */}
+                <div className="space-y-3">
+                  {slots.map((s: TimeSlot, index: number) => (
+                    <div
+                      key={index}
+                      className={`flex flex-col gap-2 p-3 rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100'
+                        }`}
+                    >
+                      <div className="flex items-center justify-between flex-wrap gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className={headingColor}>
+                            {s.start} - {s.end}
+                          </span>
+                          {s.endDate && (
+                            <span className={`text-xs px-2 py-0.5 rounded-full ${theme === 'dark'
                               ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
                               : 'bg-blue-100 text-blue-700 border border-blue-300'
-                          }`}>
-                            до {formatDate(new Date(s.endDate), 'dd.MM.yyyy')}
+                              }`}>
+                              до {formatDate(new Date(s.endDate), 'dd.MM.yyyy')}
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <button
+                            onClick={() => startEditTimeSlot(index)}
+                            className="p-1 text-blue-500 hover:bg-blue-500 hover:text-white rounded transition-colors flex-shrink-0"
+                            title="Редактировать слот"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => removeTimeSlot(index)}
+                            className="p-1 text-red-500 hover:bg-red-500 hover:text-white rounded transition-colors flex-shrink-0"
+                            title="Удалить слот"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Breaks for this slot */}
+                      {s.breaks && s.breaks.length > 0 && (
+                        <div className="ml-4 space-y-1">
+                          <span className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                            Перерывы:
                           </span>
+                          {s.breaks.map((breakTime: any, breakIndex: number) => {
+                            const isEditing = editBreakSlotIndex === index && editBreakIndex === breakIndex
+                            if (isEditing) {
+                              return null // Don't show break while editing, the edit form is below
+                            }
+                            return (
+                              <div key={breakIndex} className="flex items-center justify-between gap-2">
+                                <span className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                                  {breakTime.start} - {breakTime.end}
+                                </span>
+                                <div className="flex gap-1">
+                                  <button
+                                    onClick={() => startEditBreak(index, breakIndex)}
+                                    className="p-1 text-blue-400 hover:bg-blue-400 hover:text-white rounded transition-colors"
+                                    title="Редактировать перерыв"
+                                  >
+                                    <Edit className="w-3 h-3" />
+                                  </button>
+                                  <button
+                                    onClick={() => removeBreakFromSlot(index, breakIndex)}
+                                    className="p-1 text-red-400 hover:bg-red-400 hover:text-white rounded transition-colors"
+                                    title="Удалить перерыв"
+                                  >
+                                    <X className="w-3 h-3" />
+                                  </button>
+                                </div>
+                              </div>
+                            )
+                          })}
+                        </div>
+                      )}
+
+                      {/* Add/Edit break to this slot */}
+                      <div className="ml-4 space-y-2 border-t pt-2 border-gray-500 border-opacity-30">
+                        {currentSlotIndex === index ? (
+                          <div className="space-y-2">
+                            <div className="flex gap-2">
+                              <input
+                                type="time"
+                                value={currentBreakStart}
+                                onChange={(e) => setCurrentBreakStart(e.target.value)}
+                                className={`flex-1 px-3 py-1.5 text-sm rounded-lg border ${theme === 'dark'
+                                  ? 'bg-gray-600 border-gray-500 text-white'
+                                  : 'bg-white border-gray-300 text-gray-900'
+                                  } focus:outline-none focus:ring-2 focus:ring-[#4E6E49]`}
+                                placeholder="Начало"
+                              />
+                              <input
+                                type="time"
+                                value={currentBreakEnd}
+                                onChange={(e) => setCurrentBreakEnd(e.target.value)}
+                                className={`flex-1 px-3 py-1.5 text-sm rounded-lg border ${theme === 'dark'
+                                  ? 'bg-gray-600 border-gray-500 text-white'
+                                  : 'bg-white border-gray-300 text-gray-900'
+                                  } focus:outline-none focus:ring-2 focus:ring-[#4E6E49]`}
+                                placeholder="Конец"
+                              />
+                            </div>
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => addBreakToSlot(index)}
+                                className="flex-1 px-3 py-1.5 text-sm bg-[#4E6E49] hover:bg-[#4E6E49] text-white rounded-lg transition-colors"
+                              >
+                                {editBreakSlotIndex === index && editBreakIndex !== null ? 'Сохранить' : 'Добавить перерыв'}
+                              </button>
+                              <button
+                                onClick={cancelEditBreak}
+                                className="px-3 py-1.5 text-sm bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition-colors"
+                              >
+                                Отмена
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => {
+                              setCurrentSlotIndex(index)
+                              setCurrentBreakStart('')
+                              setCurrentBreakEnd('')
+                              setEditBreakSlotIndex(null)
+                              setEditBreakIndex(null)
+                              setError('')
+                            }}
+                            className="w-full px-3 py-1.5 text-sm bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors flex items-center justify-center gap-1"
+                          >
+                            <Plus className="w-3 h-3" />
+                            Добавить перерыв
+                          </button>
                         )}
                       </div>
-                      <div className="flex items-center gap-1">
-                        <button
-                          onClick={() => startEditTimeSlot(index)}
-                          className="p-1 text-blue-500 hover:bg-blue-500 hover:text-white rounded transition-colors flex-shrink-0"
-                          title="Редактировать слот"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => removeTimeSlot(index)}
-                          className="p-1 text-red-500 hover:bg-red-500 hover:text-white rounded transition-colors flex-shrink-0"
-                          title="Удалить слот"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
                     </div>
+                  ))}
+                </div>
 
-                    {/* Breaks for this slot */}
-                    {s.breaks && s.breaks.length > 0 && (
-                      <div className="ml-4 space-y-1">
-                        <span className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                          Перерывы:
-                        </span>
-                        {s.breaks.map((breakTime, breakIndex) => {
-                          const isEditing = editBreakSlotIndex === index && editBreakIndex === breakIndex
-                          if (isEditing) {
-                            return null // Don't show break while editing, the edit form is below
-                          }
-                          return (
-                            <div key={breakIndex} className="flex items-center justify-between gap-2">
-                              <span className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                                {breakTime.start} - {breakTime.end}
-                              </span>
-                              <div className="flex gap-1">
-                                <button
-                                  onClick={() => startEditBreak(index, breakIndex)}
-                                  className="p-1 text-blue-400 hover:bg-blue-400 hover:text-white rounded transition-colors"
-                                  title="Редактировать перерыв"
-                                >
-                                  <Edit className="w-3 h-3" />
-                                </button>
-                                <button
-                                  onClick={() => removeBreakFromSlot(index, breakIndex)}
-                                  className="p-1 text-red-400 hover:bg-red-400 hover:text-white rounded transition-colors"
-                                  title="Удалить перерыв"
-                                >
-                                  <X className="w-3 h-3" />
-                                </button>
-                              </div>
-                            </div>
-                          )
-                        })}
-                      </div>
-                    )}
-
-                    {/* Add/Edit break to this slot */}
-                    <div className="ml-4 space-y-2 border-t pt-2 border-gray-500 border-opacity-30">
-                      {currentSlotIndex === index ? (
-                        <div className="space-y-2">
-                          <div className="flex gap-2">
-                            <input
-                              type="time"
-                              value={currentBreakStart}
-                              onChange={(e) => setCurrentBreakStart(e.target.value)}
-                              className={`flex-1 px-3 py-1.5 text-sm rounded-lg border ${
-                                theme === 'dark'
-                                  ? 'bg-gray-600 border-gray-500 text-white'
-                                  : 'bg-white border-gray-300 text-gray-900'
-                              } focus:outline-none focus:ring-2 focus:ring-[#4E6E49]`}
-                              placeholder="Начало"
-                            />
-                            <input
-                              type="time"
-                              value={currentBreakEnd}
-                              onChange={(e) => setCurrentBreakEnd(e.target.value)}
-                              className={`flex-1 px-3 py-1.5 text-sm rounded-lg border ${
-                                theme === 'dark'
-                                  ? 'bg-gray-600 border-gray-500 text-white'
-                                  : 'bg-white border-gray-300 text-gray-900'
-                              } focus:outline-none focus:ring-2 focus:ring-[#4E6E49]`}
-                              placeholder="Конец"
-                            />
-                          </div>
-                          <div className="flex gap-2">
-                            <button
-                              onClick={() => addBreakToSlot(index)}
-                              className="flex-1 px-3 py-1.5 text-sm bg-[#4E6E49] hover:bg-[#4E6E49] text-white rounded-lg transition-colors"
-                            >
-                              {editBreakSlotIndex === index && editBreakIndex !== null ? 'Сохранить' : 'Добавить перерыв'}
-                            </button>
-                            <button
-                              onClick={cancelEditBreak}
-                              className="px-3 py-1.5 text-sm bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition-colors"
-                            >
-                              Отмена
-                            </button>
-                          </div>
-                        </div>
-                      ) : (
-                        <button
-                          onClick={() => {
-                            setCurrentSlotIndex(index)
-                            setCurrentBreakStart('')
-                            setCurrentBreakEnd('')
-                            setEditBreakSlotIndex(null)
-                            setEditBreakIndex(null)
-                            setError('')
-                          }}
-                          className="w-full px-3 py-1.5 text-sm bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors flex items-center justify-center gap-1"
-                        >
-                          <Plus className="w-3 h-3" />
-                          Добавить перерыв
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                ))}
+                {slots.length > 0 && (
+                  <p className={`text-sm mt-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                    Всего часов: {calculateHours(slots).toFixed(1)}
+                  </p>
+                )}
               </div>
 
-              {slots.length > 0 && (
-                <p className={`text-sm mt-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                  Всего часов: {calculateHours(slots).toFixed(1)}
-                </p>
+              {/* Repeat options */}
+              {(!adminBulkMode || dateMode === 'single') && (
+                <div>
+                  <p className={`text-xs sm:text-sm font-medium mb-3 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Повторы
+                  </p>
+                  <div className="grid sm:grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setRepeatWeek(!repeatWeek)
+                        setError('')
+                      }}
+                      className={`text-left rounded-xl border px-4 py-4 transition-all shadow-sm flex items-start gap-3 h-full ${repeatWeek
+                        ? 'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/30 dark:text-blue-100 dark:border-blue-800 ring-2 ring-blue-500/50 shadow-lg'
+                        : theme === 'dark'
+                          ? 'border-white/10 bg-white/5 text-gray-200 hover:border-white/30'
+                          : 'border-slate-200 bg-white text-gray-800 hover:border-slate-300'
+                        }`}
+                    >
+                      <CalendarDays className="w-5 h-5 flex-shrink-0 mt-0.5" />
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-sm">Повтор на неделю</p>
+                        <p className="text-xs mt-1 opacity-80">Актуальная неделя по дням</p>
+                        {repeatWeek && (
+                          <div className="mt-3 flex flex-wrap gap-2">
+                            {weekDays.map((day: string, index: number) => (
+                              <button
+                                key={index}
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleWeekDayToggle(index)
+                                }}
+                                className={`px-2 py-1 rounded-lg text-xs transition-colors ${weekDaySelection.includes(index)
+                                  ? 'bg-blue-600 text-white'
+                                  : theme === 'dark'
+                                    ? 'bg-gray-700 text-gray-300'
+                                    : 'bg-gray-200 text-gray-700'
+                                  }`}
+                              >
+                                {day}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setRepeatMonth(!repeatMonth)
+                        setError('')
+                      }}
+                      className={`text-left rounded-xl border px-4 py-4 transition-all shadow-sm flex items-start gap-3 h-full ${repeatMonth
+                        ? 'bg-purple-100 text-purple-800 border-purple-200 dark:bg-purple-900/30 dark:text-purple-100 dark:border-purple-800 ring-2 ring-purple-500/50 shadow-lg'
+                        : theme === 'dark'
+                          ? 'border-white/10 bg-white/5 text-gray-200 hover:border-white/30'
+                          : 'border-slate-200 bg-white text-gray-800 hover:border-slate-300'
+                        }`}
+                    >
+                      <Calendar className="w-5 h-5 flex-shrink-0 mt-0.5" />
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-sm">Повтор по месяцу</p>
+                        <p className="text-xs mt-1 opacity-80">На месяц вперед по дням</p>
+                        {repeatMonth && (
+                          <div className="mt-3 flex flex-wrap gap-2">
+                            {weekDays.map((day: string, index: number) => (
+                              <button
+                                key={index}
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleDayToggle(index)
+                                }}
+                                className={`px-2 py-1 rounded-lg text-xs transition-colors ${repeatDays.includes(index)
+                                  ? 'bg-purple-600 text-white'
+                                  : theme === 'dark'
+                                    ? 'bg-gray-700 text-gray-300'
+                                    : 'bg-gray-200 text-gray-700'
+                                  }`}
+                              >
+                                {day}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </button>
+                  </div>
+                </div>
               )}
-            </div>
 
-            {/* Repeat options */}
-            {(!adminBulkMode || dateMode === 'single') && (
-            <div>
-              <p className={`text-xs sm:text-sm font-medium mb-3 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                Повторы
-              </p>
-              <div className="grid sm:grid-cols-2 gap-3">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setRepeatWeek(!repeatWeek)
-                    setError('')
-                  }}
-                  className={`text-left rounded-xl border px-4 py-4 transition-all shadow-sm flex items-start gap-3 h-full ${
-                    repeatWeek
-                      ? 'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/30 dark:text-blue-100 dark:border-blue-800 ring-2 ring-blue-500/50 shadow-lg'
-                      : theme === 'dark'
-                      ? 'border-white/10 bg-white/5 text-gray-200 hover:border-white/30'
-                      : 'border-slate-200 bg-white text-gray-800 hover:border-slate-300'
-                  }`}
-                >
-                  <CalendarDays className="w-5 h-5 flex-shrink-0 mt-0.5" />
-                  <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-sm">Повтор на неделю</p>
-                    <p className="text-xs mt-1 opacity-80">Актуальная неделя по дням</p>
-                    {repeatWeek && (
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        {weekDays.map((day, index) => (
-                          <button
-                            key={index}
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              handleWeekDayToggle(index)
-                            }}
-                            className={`px-2 py-1 rounded-lg text-xs transition-colors ${
-                              weekDaySelection.includes(index)
-                                ? 'bg-blue-600 text-white'
-                                : theme === 'dark'
-                                ? 'bg-gray-700 text-gray-300'
-                                : 'bg-gray-200 text-gray-700'
-                            }`}
-                          >
-                            {day}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setRepeatMonth(!repeatMonth)
-                    setError('')
-                  }}
-                  className={`text-left rounded-xl border px-4 py-4 transition-all shadow-sm flex items-start gap-3 h-full ${
-                    repeatMonth
-                      ? 'bg-purple-100 text-purple-800 border-purple-200 dark:bg-purple-900/30 dark:text-purple-100 dark:border-purple-800 ring-2 ring-purple-500/50 shadow-lg'
-                      : theme === 'dark'
-                      ? 'border-white/10 bg-white/5 text-gray-200 hover:border-white/30'
-                      : 'border-slate-200 bg-white text-gray-800 hover:border-slate-300'
-                  }`}
-                >
-                  <Calendar className="w-5 h-5 flex-shrink-0 mt-0.5" />
-                  <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-sm">Повтор по месяцу</p>
-                    <p className="text-xs mt-1 opacity-80">На месяц вперед по дням</p>
-                    {repeatMonth && (
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        {weekDays.map((day, index) => (
-                          <button
-                            key={index}
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              handleDayToggle(index)
-                            }}
-                            className={`px-2 py-1 rounded-lg text-xs transition-colors ${
-                              repeatDays.includes(index)
-                                ? 'bg-purple-600 text-white'
-                                : theme === 'dark'
-                                ? 'bg-gray-700 text-gray-300'
-                                : 'bg-gray-200 text-gray-700'
-                            }`}
-                          >
-                            {day}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </button>
-              </div>
-            </div>
-            )}
-
-            {/* Comment */}
-            <div>
-              <label className={`block text-xs sm:text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                Комментарий
-              </label>
-              <textarea
-                value={comment}
-                onChange={(e) => setComment(e.target.value)}
-                rows={3}
-                className={`w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base rounded-lg border touch-manipulation resize-y ${
-                  theme === 'dark'
+              {/* Comment */}
+              <div>
+                <label className={`block text-xs sm:text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                  Комментарий
+                </label>
+                <textarea
+                  value={comment}
+                  onChange={(e) => setComment(e.target.value)}
+                  rows={3}
+                  className={`w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base rounded-lg border touch-manipulation resize-y ${theme === 'dark'
                     ? 'bg-gray-700 border-gray-800 text-white'
                     : 'bg-white border-gray-300 text-gray-900'
-                } focus:outline-none focus:ring-2 focus:ring-[#4E6E49]`}
-                placeholder="Добавьте комментарий (необязательно)"
-              />
-            </div>
-
-            {error && (
-              <div className="p-3 bg-red-500 text-white rounded-lg text-sm">
-                {error}
+                    } focus:outline-none focus:ring-2 focus:ring-[#4E6E49]`}
+                  placeholder="Добавьте комментарий (необязательно)"
+                />
               </div>
-            )}
 
-            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-2">
-              <button
-                onClick={(e) => {
-                  console.log('Save button clicked!', { loading, slotsCount: slots.length, disabled: loading || slots.length === 0 })
-                  e.preventDefault()
-                  handleSave()
-                }}
-                disabled={loading || slots.length === 0}
-                className="flex-1 px-4 py-2.5 sm:py-2 bg-[#4E6E49] hover:bg-[#4E6E49] disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg sm:rounded-xl transition-colors text-sm sm:text-base font-medium touch-manipulation active:scale-95 disabled:active:scale-100"
-              >
-                {loading ? 'Отправка...' : 'Отправить на согласование'}
-              </button>
-              <button
-                onClick={onClose}
-                className={`px-4 py-2.5 sm:py-2 rounded-lg sm:rounded-xl transition-colors text-sm sm:text-base font-medium touch-manipulation active:scale-95 ${
-                  theme === 'dark' ? 'bg-gray-700 hover:bg-gray-600 active:bg-gray-500' : 'bg-gray-200 hover:bg-gray-300 active:bg-gray-400'
-                }`}
-              >
-                Отмена
-              </button>
+              {error && (
+                <div className="p-3 bg-red-500 text-white rounded-lg text-sm">
+                  {error}
+                </div>
+              )}
+
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-2">
+                <button
+                  onClick={(e) => {
+                    console.log('Save button clicked!', { loading, slotsCount: slots.length, disabled: loading || slots.length === 0 })
+                    e.preventDefault()
+                    handleSave()
+                  }}
+                  disabled={loading || slots.length === 0}
+                  className="flex-1 px-4 py-2.5 sm:py-2 bg-[#4E6E49] hover:bg-[#4E6E49] disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg sm:rounded-xl transition-colors text-sm sm:text-base font-medium touch-manipulation active:scale-95 disabled:active:scale-100"
+                >
+                  {loading ? 'Отправка...' : 'Отправить на согласование'}
+                </button>
+                <button
+                  onClick={onClose}
+                  className={`px-4 py-2.5 sm:py-2 rounded-lg sm:rounded-xl transition-colors text-sm sm:text-base font-medium touch-manipulation active:scale-95 ${theme === 'dark' ? 'bg-gray-700 hover:bg-gray-600 active:bg-gray-500' : 'bg-gray-200 hover:bg-gray-300 active:bg-gray-400'
+                    }`}
+                >
+                  Отмена
+                </button>
+              </div>
             </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
   )
 }
 

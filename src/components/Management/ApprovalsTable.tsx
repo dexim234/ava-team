@@ -4,6 +4,7 @@ import { getApprovalRequests, approveApprovalRequest, rejectApprovalRequest } fr
 import { ApprovalRequest, DayStatus, WorkSlot } from '@/types'
 import { formatDate } from '@/utils/dateUtils'
 import { getUserNicknameSync, clearNicknameCache, getUserNicknameAsync } from '@/utils/userUtils'
+import { UserNickname } from '@/components/UserNickname'
 import { useAuthStore } from '@/store/authStore'
 import { useAdminStore } from '@/store/adminStore'
 
@@ -45,8 +46,7 @@ const statusBadgeMap: Record<ApprovalRequest['status'], JSX.Element> = {
   ),
 }
 
-const getMemberName = (userId: string) =>
-  getUserNicknameSync(userId)
+
 
 const safeFormatDate = (value?: string | Date) => {
   if (!value) return '—'
@@ -184,10 +184,10 @@ export const ApprovalsTable = () => {
 
   const handleRejectSelected = async () => {
     if (bulkSubmitting || submittingId || selectedIds.length === 0) return
-    
+
     const adminComment = prompt('Комментарий для отклонения выбранных заявок', 'Отклонено без комментария') || 'Отклонено без комментария'
     if (adminComment === null) return // User cancelled
-    
+
     setBulkSubmitting(true)
     setError(null)
     try {
@@ -232,9 +232,9 @@ export const ApprovalsTable = () => {
       return `${formatSlotPreview(beforeSlot)} → ${formatSlotPreview(afterSlot)}`
     }
     if (approval.entity === 'status') {
-    const beforeStatus = approval.before as DayStatus | null
-    const afterStatus = approval.after as DayStatus | null
-    return `${formatStatusPreview(beforeStatus)} → ${formatStatusPreview(afterStatus)}`
+      const beforeStatus = approval.before as DayStatus | null
+      const afterStatus = approval.after as DayStatus | null
+      return `${formatStatusPreview(beforeStatus)} → ${formatStatusPreview(afterStatus)}`
     }
     // For other entities (earning, referral), show basic info
     return approval.after ? 'Изменение' : approval.before ? 'Удаление' : 'Создание'
@@ -318,8 +318,8 @@ export const ApprovalsTable = () => {
                 <td className="px-4 py-3 align-top">{actionLabelMap[approval.action]}</td>
                 <td className="px-4 py-3 align-top">
                   <div className="flex flex-col gap-1">
-                    <span className="font-semibold">{getMemberName(approval.targetUserId)}</span>
-                    <span className="text-xs text-gray-500 dark:text-gray-400">Автор: {getMemberName(approval.authorId)}</span>
+                    <span className="font-semibold"><UserNickname userId={approval.targetUserId} /></span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">Автор: <UserNickname userId={approval.authorId} /></span>
                     <span className="text-xs text-gray-500 dark:text-gray-400">
                       Создано: {safeFormatDate(approval.createdAt)} {/* safe on missing */}
                     </span>

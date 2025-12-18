@@ -41,7 +41,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
 
 
   const funcsSubItems: { path: string; label: string; icon: LucideIcon }[] = [
-    { path: '/call', label: 'HUB', icon: Zap },
+    { path: '/call', label: 'HUB', icon: Calendar },
     { path: '/management', label: 'Schedule', icon: Calendar },
     { path: '/tasks', label: 'Task', icon: CheckSquare },
     { path: '/earnings', label: 'Profit', icon: DollarSign },
@@ -307,10 +307,10 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                             to={item.path}
                             onClick={() => setShowToolsMenu(false)}
                             className={`flex items-center gap-3 px-4 py-3 transition-colors ${isToolsSubItemActive(item.path)
-                                ? 'bg-gradient-to-r from-[#4E6E49]/15 to-[#4E6E49]/5 text-[#4E6E49] dark:from-[#4E6E49]/20 dark:text-[#4E6E49]'
-                                : theme === 'dark'
-                                  ? 'hover:bg-white/5 text-gray-200'
-                                  : 'hover:bg-gray-50 text-gray-800'
+                              ? 'bg-gradient-to-r from-[#4E6E49]/15 to-[#4E6E49]/5 text-[#4E6E49] dark:from-[#4E6E49]/20 dark:text-[#4E6E49]'
+                              : theme === 'dark'
+                                ? 'hover:bg-white/5 text-gray-200'
+                                : 'hover:bg-gray-50 text-gray-800'
                               }`}
                           >
                             <item.icon className="w-4 h-4 flex-shrink-0" />
@@ -348,10 +348,10 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                             to={item.path}
                             onClick={() => setShowFuncsMenu(false)}
                             className={`flex items-center gap-3 px-4 py-3 transition-colors ${isFuncsSubItemActive(item.path)
-                                ? 'bg-gradient-to-r from-[#4E6E49]/15 to-[#4E6E49]/5 text-[#4E6E49] dark:from-[#4E6E49]/20 dark:text-[#4E6E49]'
-                                : theme === 'dark'
-                                  ? 'hover:bg-white/5 text-gray-200'
-                                  : 'hover:bg-gray-50 text-gray-800'
+                              ? 'bg-gradient-to-r from-[#4E6E49]/15 to-[#4E6E49]/5 text-[#4E6E49] dark:from-[#4E6E49]/20 dark:text-[#4E6E49]'
+                              : theme === 'dark'
+                                ? 'hover:bg-white/5 text-gray-200'
+                                : 'hover:bg-gray-50 text-gray-800'
                               }`}
                           >
                             <item.icon className="w-4 h-4 flex-shrink-0" />
@@ -540,10 +540,10 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                   to={item.path}
                   onClick={() => setShowFuncsMenu(false)}
                   className={`flex items-center gap-3 px-4 py-3 transition-colors ${isFuncsSubItemActive(item.path)
-                      ? 'bg-gradient-to-r from-[#4E6E49]/15 to-[#4E6E49]/5 text-[#4E6E49] dark:from-[#4E6E49]/20 dark:text-[#4E6E49]'
-                      : theme === 'dark'
-                        ? 'hover:bg-white/5 text-gray-200'
-                        : 'hover:bg-gray-50 text-gray-800'
+                    ? 'bg-gradient-to-r from-[#4E6E49]/15 to-[#4E6E49]/5 text-[#4E6E49] dark:from-[#4E6E49]/20 dark:text-[#4E6E49]'
+                    : theme === 'dark'
+                      ? 'hover:bg-white/5 text-gray-200'
+                      : 'hover:bg-gray-50 text-gray-800'
                     }`}
                 >
                   <item.icon className="w-4 h-4 flex-shrink-0" />
@@ -567,10 +567,10 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                   to={item.path}
                   onClick={() => setShowToolsMenu(false)}
                   className={`flex items-center gap-3 px-4 py-3 transition-colors ${isToolsSubItemActive(item.path)
-                      ? 'bg-gradient-to-r from-[#4E6E49]/15 to-[#4E6E49]/5 text-[#4E6E49] dark:from-[#4E6E49]/20 dark:text-[#4E6E49]'
-                      : theme === 'dark'
-                        ? 'hover:bg-white/5 text-gray-200'
-                        : 'hover:bg-gray-50 text-gray-800'
+                    ? 'bg-gradient-to-r from-[#4E6E49]/15 to-[#4E6E49]/5 text-[#4E6E49] dark:from-[#4E6E49]/20 dark:text-[#4E6E49]'
+                    : theme === 'dark'
+                      ? 'hover:bg-white/5 text-gray-200'
+                      : 'hover:bg-gray-50 text-gray-800'
                     }`}
                 >
                   <item.icon className="w-4 h-4 flex-shrink-0" />
