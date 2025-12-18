@@ -15,6 +15,7 @@ import { Profile } from './pages/Profile'
 import { About } from './pages/About'
 import { Rules } from './pages/Rules'
 import { Approvals } from './pages/Approvals'
+import { MemeEvaluation } from './pages/MemeEvaluation'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { cleanupOldData } from './services/firestoreService'
 
@@ -115,6 +116,14 @@ function App() {
           element={
             <ProtectedRoute>
               <Profile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/meme-evaluation"
+          element={
+            <ProtectedRoute>
+              <MemeEvaluation />
             </ProtectedRoute>
           }
         />

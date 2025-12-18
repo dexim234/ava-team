@@ -31,27 +31,36 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
   const { isAdmin } = useAdminStore()
   const { user } = useAuthStore()
   const location = useLocation()
-  const [showFunctionalityMenu, setShowFunctionalityMenu] = useState(false)
+  const [showFuncsMenu, setShowFuncsMenu] = useState(false)
+  const [showToolsMenu, setShowToolsMenu] = useState(false)
   const [showNotifications, setShowNotifications] = useState(false)
   const [notifications, setNotifications] = useState<{ id: string; text: string; time: string; status: string; timestamp?: number }[]>([])
   
   // Track user activity
   useUserActivity()
 
-  const functionalitySubItems: { path: string; label: string; icon: LucideIcon }[] = [
-    { path: '/management', label: 'Расписание', icon: Calendar },
-    { path: '/earnings', label: 'Заработок', icon: DollarSign },
-    { path: '/tasks', label: 'Задачи', icon: CheckSquare },
-    { path: '/rating', label: 'Рейтинг', icon: TrendingUp },
+  const funcsSubItems: { path: string; label: string; icon: LucideIcon }[] = [
     { path: '/call', label: 'HUB', icon: Zap },
+    { path: '/management', label: 'Schedule', icon: Calendar },
+    { path: '/tasks', label: 'Task', icon: CheckSquare },
+    { path: '/earnings', label: 'Profit', icon: DollarSign },
+    { path: '/rating', label: 'Score', icon: TrendingUp },
     ...(isAdmin ? [{ path: '/approvals', label: 'Согласования', icon: CheckCircle2 }] : []),
   ]
 
-  const isFunctionalityActive = functionalitySubItems.some(item => location.pathname === item.path)
-  const isFunctionalitySubItemActive = (path: string) => location.pathname === path
+  const toolsSubItems: { path: string; label: string; icon: LucideIcon }[] = [
+    { path: '/meme-evaluation', label: 'Оценка мема', icon: TrendingUp },
+  ]
+
+  const isFuncsActive = funcsSubItems.some(item => location.pathname === item.path)
+  const isFuncsSubItemActive = (path: string) => location.pathname === path
+
+  const isToolsActive = toolsSubItems.some(item => location.pathname === item.path)
+  const isToolsSubItemActive = (path: string) => location.pathname === path
 
   useEffect(() => {
-    setShowFunctionalityMenu(false)
+    setShowFuncsMenu(false)
+    setShowToolsMenu(false)
   }, [location.pathname])
 
   useEffect(() => {
@@ -271,41 +280,73 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
             </div>
 
             <nav className="hidden lg:flex items-center gap-2 flex-1 justify-center">
-              <Link
-                to="/call"
-                data-active={location.pathname === '/call'}
-                className="nav-chip"
-              >
-                <Zap className="w-4 h-4" />
-                <span>HUB</span>
-                <ArrowUpRight className="w-4 h-4 opacity-70" />
-              </Link>
+              <div className="relative">
+                <button
+                  onClick={() => {
+                    setShowFuncsMenu(!showFuncsMenu)
+                  }}
+                  data-active={isFuncsActive}
+                  className="nav-chip"
+                >
+                  <Settings className="w-4 h-4" />
+                  <span>Funcs</span>
+                  <ChevronDown className={`w-4 h-4 transition-transform ${showFuncsMenu ? 'rotate-180' : ''}`} />
+                </button>
+                {showFuncsMenu && (
+                  <>
+                    <div className="fixed inset-0 z-40" onClick={() => setShowFuncsMenu(false)} />
+                    <div className="absolute top-[calc(100%+12px)] left-0 min-w-[220px] glass-panel rounded-2xl border border-white/40 dark:border-white/10 shadow-2xl z-50 overflow-hidden">
+                      <div className="accent-dots" />
+                      <div className="relative z-10 divide-y divide-gray-100/60 dark:divide-white/5">
+                        {funcsSubItems.map((item) => (
+                          <Link
+                            key={item.path}
+                            to={item.path}
+                            onClick={() => setShowFuncsMenu(false)}
+                            className={`flex items-center gap-3 px-4 py-3 transition-colors ${
+                              isFuncsSubItemActive(item.path)
+                                ? 'bg-gradient-to-r from-[#4E6E49]/15 to-[#4E6E49]/5 text-[#4E6E49] dark:from-[#4E6E49]/20 dark:text-[#4E6E49]'
+                                : theme === 'dark'
+                                ? 'hover:bg-white/5 text-gray-200'
+                                : 'hover:bg-gray-50 text-gray-800'
+                            }`}
+                          >
+                            <item.icon className="w-4 h-4 flex-shrink-0" />
+                          <span className="font-semibold flex-1">{item.label}</span>
+                          <ArrowUpRight className="w-4 h-4 opacity-70" />
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
 
               <div className="relative">
                 <button
                   onClick={() => {
-                    setShowFunctionalityMenu(!showFunctionalityMenu)
+                    setShowToolsMenu(!showToolsMenu)
                   }}
-                  data-active={isFunctionalityActive}
+                  data-active={isToolsActive}
                   className="nav-chip"
                 >
                   <Settings className="w-4 h-4" />
-                  <span>Функционал</span>
-                  <ChevronDown className={`w-4 h-4 transition-transform ${showFunctionalityMenu ? 'rotate-180' : ''}`} />
+                  <span>Tools</span>
+                  <ChevronDown className={`w-4 h-4 transition-transform ${showToolsMenu ? 'rotate-180' : ''}`} />
                 </button>
-                {showFunctionalityMenu && (
+                {showToolsMenu && (
                   <>
-                    <div className="fixed inset-0 z-40" onClick={() => setShowFunctionalityMenu(false)} />
+                    <div className="fixed inset-0 z-40" onClick={() => setShowToolsMenu(false)} />
                     <div className="absolute top-[calc(100%+12px)] left-0 min-w-[220px] glass-panel rounded-2xl border border-white/40 dark:border-white/10 shadow-2xl z-50 overflow-hidden">
                       <div className="accent-dots" />
                       <div className="relative z-10 divide-y divide-gray-100/60 dark:divide-white/5">
-                        {functionalitySubItems.map((item) => (
+                        {toolsSubItems.map((item) => (
                           <Link
                             key={item.path}
                             to={item.path}
-                            onClick={() => setShowFunctionalityMenu(false)}
+                            onClick={() => setShowToolsMenu(false)}
                             className={`flex items-center gap-3 px-4 py-3 transition-colors ${
-                              isFunctionalitySubItemActive(item.path)
+                              isToolsSubItemActive(item.path)
                                 ? 'bg-gradient-to-r from-[#4E6E49]/15 to-[#4E6E49]/5 text-[#4E6E49] dark:from-[#4E6E49]/20 dark:text-[#4E6E49]'
                                 : theme === 'dark'
                                 ? 'hover:bg-white/5 text-gray-200'
@@ -330,7 +371,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                   className="nav-chip"
                 >
                   <Info className="w-4 h-4" />
-                  <span>О нас</span>
+                  <span>Info</span>
                   <ArrowUpRight className="w-4 h-4 opacity-70" />
                 </Link>
               )}
@@ -341,7 +382,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                 className="nav-chip"
               >
                 <User className="w-4 h-4" />
-                <span>ЛК</span>
+                <span>ACCT</span>
                 <ArrowUpRight className="w-4 h-4 opacity-70" />
               </Link>
               {isAdmin && (
@@ -423,26 +464,28 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
       <nav className="lg:hidden fixed bottom-4 left-0 right-0 px-3 z-50">
         <div className="max-w-5xl mx-auto">
           <div className="glass-panel rounded-2xl shadow-2xl border border-white/60 dark:border-white/10">
-            <div className="grid grid-cols-4 divide-x divide-white/40 dark:divide-white/5">
-              <Link
-                to="/call"
-                className={`flex flex-col items-center justify-center gap-1 py-3 ${location.pathname === '/call' ? 'text-[#4E6E49]' : theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}
-              >
-                <Zap className="w-5 h-5" />
-                <div className="flex items-center gap-1">
-                  <span className="text-[11px] font-semibold">HUB</span>
-                  <ArrowUpRight className="w-3 h-3 opacity-70" />
-                </div>
-              </Link>
+            <div className={`grid ${!isAdmin ? 'grid-cols-5' : 'grid-cols-4'} divide-x divide-white/40 dark:divide-white/5`}>
               <button
                 onClick={() => {
-                  setShowFunctionalityMenu(!showFunctionalityMenu)
+                  setShowToolsMenu(!showToolsMenu)
                 }}
-                className={`flex flex-col items-center justify-center gap-1 py-3 ${isFunctionalityActive ? 'text-[#4E6E49]' : theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}
+                className={`flex flex-col items-center justify-center gap-1 py-3 ${isToolsActive ? 'text-[#4E6E49]' : theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}
               >
                 <Settings className="w-5 h-5" />
                 <div className="flex items-center gap-1">
-                  <span className="text-[11px] font-semibold">Функционал</span>
+                  <span className="text-[11px] font-semibold">Tools</span>
+                  <ChevronDown className="w-3 h-3 opacity-70" />
+                </div>
+              </button>
+              <button
+                onClick={() => {
+                  setShowFuncsMenu(!showFuncsMenu)
+                }}
+                className={`flex flex-col items-center justify-center gap-1 py-3 ${isFuncsActive ? 'text-[#4E6E49]' : theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}
+              >
+                <Settings className="w-5 h-5" />
+                <div className="flex items-center gap-1">
+                  <span className="text-[11px] font-semibold">Funcs</span>
                   <ChevronDown className="w-3 h-3 opacity-70" />
                 </div>
               </button>
@@ -453,7 +496,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                 >
                   <Info className="w-5 h-5" />
                   <div className="flex items-center gap-1">
-                    <span className="text-[11px] font-semibold">О нас</span>
+                    <span className="text-[11px] font-semibold">Info</span>
                     <ArrowUpRight className="w-3 h-3 opacity-70" />
                   </div>
                 </Link>
@@ -464,7 +507,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
               >
                 <User className="w-5 h-5" />
                 <div className="flex items-center gap-1">
-                  <span className="text-[11px] font-semibold">ЛК</span>
+                  <span className="text-[11px] font-semibold">ACCT</span>
                   <ArrowUpRight className="w-3 h-3 opacity-70" />
                 </div>
               </Link>
@@ -473,18 +516,46 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
         </div>
       </nav>
 
-      {showFunctionalityMenu && (
-        <div className="lg:hidden fixed inset-0 z-40 bg-black/40 backdrop-blur-sm" onClick={() => setShowFunctionalityMenu(false)}>
+      {showFuncsMenu && (
+        <div className="lg:hidden fixed inset-0 z-40 bg-black/40 backdrop-blur-sm" onClick={() => setShowFuncsMenu(false)}>
           <div className="absolute bottom-24 left-1/2 -translate-x-1/2 w-[88%] max-w-sm glass-panel rounded-2xl shadow-2xl border border-white/50 dark:border-white/10 overflow-hidden">
             <div className="accent-dots" />
             <div className="relative z-10 divide-y divide-gray-100/60 dark:divide-white/5">
-              {functionalitySubItems.map((item) => (
+              {funcsSubItems.map((item) => (
                 <Link
                   key={item.path}
                   to={item.path}
-                  onClick={() => setShowFunctionalityMenu(false)}
+                  onClick={() => setShowFuncsMenu(false)}
                   className={`flex items-center gap-3 px-4 py-3 transition-colors ${
-                    isFunctionalitySubItemActive(item.path)
+                    isFuncsSubItemActive(item.path)
+                      ? 'bg-gradient-to-r from-[#4E6E49]/15 to-[#4E6E49]/5 text-[#4E6E49] dark:from-[#4E6E49]/20 dark:text-[#4E6E49]'
+                      : theme === 'dark'
+                      ? 'hover:bg-white/5 text-gray-200'
+                      : 'hover:bg-gray-50 text-gray-800'
+                  }`}
+                >
+                  <item.icon className="w-4 h-4 flex-shrink-0" />
+                <span className="font-semibold flex-1">{item.label}</span>
+                <ArrowUpRight className="w-4 h-4 opacity-70" />
+                </Link>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showToolsMenu && (
+        <div className="lg:hidden fixed inset-0 z-40 bg-black/40 backdrop-blur-sm" onClick={() => setShowToolsMenu(false)}>
+          <div className="absolute bottom-24 left-1/2 -translate-x-1/2 w-[88%] max-w-sm glass-panel rounded-2xl shadow-2xl border border-white/50 dark:border-white/10 overflow-hidden">
+            <div className="accent-dots" />
+            <div className="relative z-10 divide-y divide-gray-100/60 dark:divide-white/5">
+              {toolsSubItems.map((item) => (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  onClick={() => setShowToolsMenu(false)}
+                  className={`flex items-center gap-3 px-4 py-3 transition-colors ${
+                    isToolsSubItemActive(item.path)
                       ? 'bg-gradient-to-r from-[#4E6E49]/15 to-[#4E6E49]/5 text-[#4E6E49] dark:from-[#4E6E49]/20 dark:text-[#4E6E49]'
                       : theme === 'dark'
                       ? 'hover:bg-white/5 text-gray-200'
