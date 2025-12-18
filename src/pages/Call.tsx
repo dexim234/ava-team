@@ -540,7 +540,7 @@ export const CallPage = () => {
 
   return (
     <Layout>
-      <div className="space-y-6">
+      <div className="space-y-10 pb-20">
         {/* Hero */}
         <div
           className={`relative overflow-hidden ${sectionCardClass} p-5 sm:p-6 md:p-8 ${theme === 'dark'
@@ -571,39 +571,43 @@ export const CallPage = () => {
           </div>
         </div>
 
-        {/* Category mini-cards (aligned with Tasks style) */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-          {(Object.keys(CATEGORY_META) as CallCategory[]).map((cat) => {
-            const meta = CATEGORY_META[cat]
-            const stats = categoryStats[cat]
-            const tone = categoryTone[cat]
-            return (
-              <button
-                key={cat}
-                onClick={() => { setFormCategory(cat); setEditingCall(null); setShowForm(true) }}
-                className={`p-4 rounded-xl border-2 ${tone.border} ${tone.bg} text-left shadow-sm hover:shadow-lg transition-all hover:-translate-y-0.5 space-y-2`}
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-semibold border border-transparent ${tone.text}`}>
-                    {meta.icon}
-                    <span>{meta.label}</span>
+        {/* Category mini-cards (坐在灰色背景上) */}
+        <div className={`${sectionCardClass} shadow-2xl relative overflow-hidden`}>
+          <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
+          <div className="relative z-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 p-6 sm:p-8">
+            {(Object.keys(CATEGORY_META) as CallCategory[]).map((cat) => {
+              const meta = CATEGORY_META[cat]
+              const stats = categoryStats[cat]
+              const tone = categoryTone[cat]
+              return (
+                <button
+                  key={cat}
+                  onClick={() => { setFormCategory(cat); setEditingCall(null); setShowForm(true) }}
+                  className={`p-5 rounded-[1.5rem] border-2 ${tone.border} ${tone.bg} text-left shadow-lg hover:shadow-xl transition-all hover:-translate-y-1 space-y-3 group/card relative overflow-hidden`}
+                >
+                  <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity" />
+                  <div className="flex items-start justify-between gap-3 relative z-10">
+                    <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-[11px] font-bold ${tone.text} bg-white/10 border border-white/10 backdrop-blur-md`}>
+                      {meta.icon}
+                      <span>{meta.label}</span>
+                    </div>
+                    <span className={`px-2.5 py-1 rounded-lg text-[10px] font-bold border ${tone.border} ${tone.text} ${theme === 'dark' ? 'bg-black/20' : 'bg-white/50'} group-hover/card:bg-[#4E6E49] group-hover/card:text-white group-hover/card:border-transparent transition-all`}>
+                      Добавить
+                    </span>
                   </div>
-                  <span className={`px-2 py-0.5 rounded-lg text-[10px] font-semibold border ${tone.border} ${tone.text} ${theme === 'dark' ? 'bg-white/5' : 'bg-white/80'}`}>
-                    Добавить
-                  </span>
-                </div>
-                <div>
-                  <p className={`text-2xl font-extrabold ${textColor}`}>{stats?.total || 0}</p>
-                  <p className={`text-xs ${subtleColor}`}>Всего сигналов • Активных {stats?.active || 0}</p>
-                </div>
-              </button>
-            )
-          })}
+                  <div className="pl-1 relative z-10">
+                    <p className={`text-3xl font-black ${textColor} leading-none mb-1 group-hover/card:scale-105 transition-transform origin-left`}>{stats?.total || 0}</p>
+                    <p className={`text-[10px] uppercase tracking-wider font-bold ${subtleColor} opacity-80`}>Всего сигналов • Активных {stats?.active || 0}</p>
+                  </div>
+                </button>
+              )
+            })}
+          </div>
         </div>
 
         {/* Filters + analytics */}
-        <div className={`${sectionCardClass} p-4 sm:p-5`}>
-          <div className={`${surfaceCardClass} p-4 sm:p-5 space-y-4`}>
+        <div className={`${sectionCardClass} !p-0 shadow-2xl`}>
+          <div className="p-6 sm:p-8 space-y-8">
             <div className="flex flex-col gap-3">
               <div className="flex flex-wrap items-center gap-3">
                 <div className="flex items-center gap-2 text-sm font-semibold">
@@ -790,10 +794,11 @@ export const CallPage = () => {
                   <p className={`${subtleColor} text-lg`}>Загрузка сигналов...</p>
                 </div>
               ) : calls.length === 0 ? (
-                <div className={`${bgColor} rounded-2xl p-12 text-center ${borderColor} border shadow-xl`}>
-                  <Sparkles className={`w-16 h-16 mx-auto mb-4 ${subtleColor}`} />
-                  <p className={`text-xl font-bold ${textColor}`}>Пока пусто</p>
-                  <p className={subtleColor}>Создайте первый сигнал в новой структуре</p>
+                <div className={`${bgColor} rounded-[2rem] p-16 text-center ${borderColor} border-2 shadow-2xl backdrop-blur-sm relative overflow-hidden group`}>
+                  <div className="absolute inset-0 bg-gradient-to-br from-[#4E6E49]/5 via-transparent to-emerald-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <Sparkles className={`w-20 h-20 mx-auto mb-6 ${subtleColor} animate-pulse`} />
+                  <p className={`text-2xl font-black ${textColor} mb-2`}>Пока пусто</p>
+                  <p className={`${subtleColor} text-lg`}>Создайте первый сигнал в новой структуре</p>
                 </div>
               ) : filteredCalls.length === 0 ? (
                 <div className={`${bgColor} rounded-2xl p-12 text-center ${borderColor} border shadow-xl`}>

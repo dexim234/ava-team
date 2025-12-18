@@ -4,7 +4,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuthStore } from '@/store/authStore'
 import { useThemeStore } from '@/store/themeStore'
 import { useAdminStore } from '@/store/adminStore'
-import { Moon, Sun, Shield, User, Users } from 'lucide-react'
+import { Moon, Sun, Shield, User, Users, Download, Send } from 'lucide-react'
 import logo from '../assets/logo.png'
 
 // Declare Telegram WebApp types
@@ -176,8 +176,8 @@ export const Login = () => {
         <div className="glass-panel rounded-[28px] p-4 sm:p-6 md:p-8 border border-white/70 dark:border-white/10 shadow-2xl overflow-hidden w-full">
           <div className="accent-dots" />
           <div className="relative z-10 grid md:grid-cols-[1.05fr_0.95fr] gap-6 lg:gap-8 items-stretch">
-            <div className="section-card rounded-2xl p-6 lg:p-7 border border-white/60 dark:border-white/10 shadow-xl flex flex-col items-center text-center gap-4">
-              <div className="p-4 rounded-2xl bg-white/80 dark:bg-white/5 border border-white/50 dark:border-white/10 shadow-lg">
+            <div className="flex flex-col items-center text-center gap-6 py-10 relative">
+              <div className="p-4 rounded-2xl bg-white/80 dark:bg-white/5 border border-white/50 dark:border-white/10 shadow-lg backdrop-blur-sm">
                 <img src={logo} alt="ApeVault Logo" className="w-16 h-16 object-contain" />
               </div>
               <div className="space-y-1">
@@ -189,7 +189,28 @@ export const Login = () => {
                 Защищенный доступ
               </div>
 
-
+              <div className="w-full mt-6 flex flex-col sm:flex-row gap-3">
+                <a
+                  href="/rules.pdf"
+                  download
+                  className="flex-1 inline-flex items-center justify-center gap-2 px-5 py-3 text-sm font-bold rounded-xl bg-gradient-to-r from-[#4E6E49] to-emerald-600 text-white shadow-lg hover:shadow-[#4E6E49]/20 hover:-translate-y-0.5 transition-all"
+                >
+                  <Download className="w-4 h-4" />
+                  Скачать правила
+                </a>
+                <a
+                  href="https://t.me/artyommedoed"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`flex-1 inline-flex items-center justify-center gap-2 px-5 py-3 text-sm font-bold rounded-xl border transition-all hover:-translate-y-0.5 ${theme === 'dark'
+                    ? 'border-white/10 bg-white/5 text-white hover:bg-white/10'
+                    : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50'
+                    }`}
+                >
+                  <Send className="w-4 h-4" />
+                  Админ (TG)
+                </a>
+              </div>
             </div>
 
             <div className="section-card rounded-2xl p-6 lg:p-7 border border-white/60 dark:border-white/10 shadow-xl">
