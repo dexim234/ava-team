@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom'
 import { useThemeStore } from '@/store/themeStore'
 import { useAdminStore } from '@/store/adminStore'
 import { useAuthStore } from '@/store/authStore'
+import { useUserActivity } from '@/hooks/useUserActivity'
 import { getApprovalRequests, getTasks, getWorkSlots } from '@/services/firestoreService'
 import { formatDate } from '@/utils/dateUtils'
 import {
@@ -24,8 +25,6 @@ import {
 import type { LucideIcon } from 'lucide-react'
 import logo from '@/assets/logo.png'
 import { useState, useEffect } from 'react'
-import { useThemeStore } from '@/store/themeStore'
-import { useUserActivity } from '@/hooks/useUserActivity'
 
 export const Layout = ({ children }: { children: React.ReactNode }) => {
   const { theme, toggleTheme } = useThemeStore()
@@ -141,7 +140,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
     }
 
     // Detect when user tries to leave page (might be screenshot attempt)
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+    const handleBeforeUnload = () => {
       // Some screenshot tools trigger this
       setShowScreenshotWarning(true)
       setTimeout(() => setShowScreenshotWarning(false), 1000)
