@@ -24,6 +24,7 @@ import {
 import type { LucideIcon } from 'lucide-react'
 import logo from '@/assets/logo.png'
 import { useState, useEffect } from 'react'
+import { useThemeStore } from '@/store/themeStore'
 import { useUserActivity } from '@/hooks/useUserActivity'
 
 export const Layout = ({ children }: { children: React.ReactNode }) => {
@@ -34,10 +35,141 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
   const [showFuncsMenu, setShowFuncsMenu] = useState(false)
   const [showToolsMenu, setShowToolsMenu] = useState(false)
   const [showNotifications, setShowNotifications] = useState(false)
+  const [showScreenshotWarning, setShowScreenshotWarning] = useState(false)
+  const [isScreenshotDetected, setIsScreenshotDetected] = useState(false)
   const [notifications, setNotifications] = useState<{ id: string; text: string; time: string; status: string; timestamp?: number }[]>([])
   
   // Track user activity
   useUserActivity()
+
+  // Anti-screenshot protection
+  useEffect(() => {
+    let screenshotTimeout: NodeJS.Timeout
+
+    const handleContextMenu = (e: MouseEvent) => {
+      e.preventDefault()
+      setShowScreenshotWarning(true)
+      setTimeout(() => setShowScreenshotWarning(false), 3000)
+    }
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Detect Print Screen key and common screenshot shortcuts
+      if (e.key === 'PrintScreen' ||
+          (e.ctrlKey && e.key === 'p') ||
+          (e.ctrlKey && e.shiftKey && e.key === 's') ||
+          (e.metaKey && e.shiftKey && e.key === '4') || // macOS screenshot
+          (e.metaKey && e.shiftKey && e.key === '5')) {  // macOS screenshot app
+
+        e.preventDefault()
+        setIsScreenshotDetected(true)
+        setShowScreenshotWarning(true)
+
+        // Apply blur effect for mobile
+        if (window.innerWidth <= 768) {
+          document.body.classList.add('screenshot-detected')
+        }
+
+        // Clear any existing timeout
+        if (screenshotTimeout) {
+          clearTimeout(screenshotTimeout)
+        }
+
+        // Hide warning and effects after 5 seconds
+        screenshotTimeout = setTimeout(() => {
+          setIsScreenshotDetected(false)
+          setShowScreenshotWarning(false)
+          document.body.classList.remove('screenshot-detected')
+        }, 5000)
+      }
+    }
+
+    const handleVisibilityChange = () => {
+      // Detect when page becomes hidden (possible screenshot attempt)
+      if (document.hidden) {
+        setIsScreenshotDetected(true)
+        setTimeout(() => setIsScreenshotDetected(false), 2000)
+      }
+    }
+
+    // Detect mobile screenshot attempts
+    const handleTouchStart = (e: TouchEvent) => {
+      // Detect long press (potential screenshot attempt)
+      if (e.touches.length === 1) {
+        const touch = e.touches[0]
+        const startTime = Date.now()
+        const startX = touch.clientX
+        const startY = touch.clientY
+
+        const handleTouchEnd = (endEvent: TouchEvent) => {
+          const endTouch = endEvent.changedTouches[0]
+          const endTime = Date.now()
+          const duration = endTime - startTime
+          const distance = Math.sqrt(
+            Math.pow(endTouch.clientX - startX, 2) +
+            Math.pow(endTouch.clientY - startY, 2)
+          )
+
+          // If long press with minimal movement, show warning
+          if (duration > 1000 && distance < 10) {
+            setShowScreenshotWarning(true)
+            setTimeout(() => setShowScreenshotWarning(false), 3000)
+          }
+
+          document.removeEventListener('touchend', handleTouchEnd)
+        }
+
+        document.addEventListener('touchend', handleTouchEnd)
+      }
+    }
+
+    // Detect orientation changes (potential screenshot attempts)
+    const handleOrientationChange = () => {
+      // Some screenshot apps trigger orientation changes
+      setShowScreenshotWarning(true)
+      setTimeout(() => setShowScreenshotWarning(false), 2000)
+    }
+
+    // Detect focus/blur events that might indicate screenshot apps
+    const handleBlur = () => {
+      // When page loses focus, might be screenshot attempt
+      setTimeout(() => {
+        if (document.hidden || document.visibilityState === 'hidden') {
+          setIsScreenshotDetected(true)
+          setTimeout(() => setIsScreenshotDetected(false), 2000)
+        }
+      }, 100)
+    }
+
+    // Detect when user tries to leave page (might be screenshot attempt)
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      // Some screenshot tools trigger this
+      setShowScreenshotWarning(true)
+      setTimeout(() => setShowScreenshotWarning(false), 1000)
+    }
+
+    // Add event listeners
+    document.addEventListener('contextmenu', handleContextMenu)
+    document.addEventListener('keydown', handleKeyDown)
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    document.addEventListener('touchstart', handleTouchStart)
+    window.addEventListener('orientationchange', handleOrientationChange)
+    window.addEventListener('blur', handleBlur)
+    window.addEventListener('beforeunload', handleBeforeUnload)
+
+    // Cleanup
+    return () => {
+      document.removeEventListener('contextmenu', handleContextMenu)
+      document.removeEventListener('keydown', handleKeyDown)
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+      document.removeEventListener('touchstart', handleTouchStart)
+      window.removeEventListener('orientationchange', handleOrientationChange)
+      window.removeEventListener('blur', handleBlur)
+      window.removeEventListener('beforeunload', handleBeforeUnload)
+      if (screenshotTimeout) {
+        clearTimeout(screenshotTimeout)
+      }
+    }
+  }, [])
 
   const funcsSubItems: { path: string; label: string; icon: LucideIcon }[] = [
     { path: '/call', label: 'HUB', icon: Zap },
@@ -254,6 +386,38 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <div className="app-shell">
+      {/* Screenshot watermark */}
+      <div className="screenshot-watermark" />
+
+      {/* Screenshot protection overlay */}
+      <div className={`screenshot-protection ${isScreenshotDetected ? 'show' : ''}`}>
+        <div className="flex items-center justify-center h-full">
+          <div className="text-center">
+            <div className="text-6xl mb-4">🚫</div>
+            <h2 className="text-2xl font-bold text-white mb-2">Скриншоты запрещены</h2>
+            <p className="text-gray-300">Этот контент защищен от копирования</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Screenshot warning banner */}
+      {showScreenshotWarning && (
+        <div className={`screenshot-warning ${theme === 'dark' ? 'dark' : ''}`}>
+          ⚠️ Скриншоты и видеозапись запрещены на этом сайте
+        </div>
+      )}
+
+      {/* Permanent protection notice */}
+      <div className="fixed bottom-2 right-2 z-50">
+        <div className={`px-3 py-1 rounded-full text-xs font-medium backdrop-blur-sm border ${
+          theme === 'dark'
+            ? 'bg-black/50 border-white/20 text-white/70'
+            : 'bg-white/50 border-gray-300 text-gray-600'
+        }`}>
+          🔒 Защищено от скриншотов
+        </div>
+      </div>
+
       <div className="absolute inset-0 pointer-events-none -z-10 overflow-hidden">
         <div className="absolute -top-24 -left-12 w-80 h-80 bg-gradient-to-br from-[#4E6E49]/25 via-transparent to-transparent blur-3xl" />
         <div className="absolute top-8 right-0 w-[520px] h-[520px] bg-gradient-to-bl from-blue-500/12 via-purple-500/10 to-transparent blur-3xl" />
@@ -464,12 +628,12 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
       <nav className="lg:hidden fixed bottom-4 left-0 right-0 px-3 z-50">
         <div className="max-w-5xl mx-auto">
           <div className="glass-panel rounded-2xl shadow-2xl border border-white/60 dark:border-white/10">
-            <div className={`grid ${!isAdmin ? 'grid-cols-5' : 'grid-cols-4'} divide-x divide-white/40 dark:divide-white/5`}>
+            <div className={`grid ${!isAdmin ? 'grid-cols-5' : 'grid-cols-4'} divide-x divide-white/40 dark:divide-white/5 w-full`}>
               <button
                 onClick={() => {
                   setShowToolsMenu(!showToolsMenu)
                 }}
-                className={`w-full flex flex-col items-center justify-center gap-1 py-3 ${isToolsActive ? 'text-[#4E6E49]' : theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}
+                className={`w-full h-full flex flex-col items-center justify-center gap-1 py-3 ${isToolsActive ? 'text-[#4E6E49]' : theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}
               >
                 <Settings className="w-5 h-5" />
                 <div className="flex items-center gap-1">
@@ -481,7 +645,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                 onClick={() => {
                   setShowFuncsMenu(!showFuncsMenu)
                 }}
-                className={`w-full flex flex-col items-center justify-center gap-1 py-3 ${isFuncsActive ? 'text-[#4E6E49]' : theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}
+                className={`w-full h-full flex flex-col items-center justify-center gap-1 py-3 ${isFuncsActive ? 'text-[#4E6E49]' : theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}
               >
                 <Settings className="w-5 h-5" />
                 <div className="flex items-center gap-1">
@@ -492,7 +656,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
               {!isAdmin && (
                 <Link
                   to="/about"
-                  className={`w-full flex flex-col items-center justify-center gap-1 py-3 ${location.pathname === '/about' ? 'text-[#4E6E49]' : theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}
+                  className={`w-full h-full flex flex-col items-center justify-center gap-1 py-3 ${location.pathname === '/about' ? 'text-[#4E6E49]' : theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}
                 >
                   <Info className="w-5 h-5" />
                   <div className="flex items-center gap-1">
@@ -503,7 +667,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
               )}
               <Link
                 to="/profile"
-                className={`w-full flex flex-col items-center justify-center gap-1 py-3 ${location.pathname === '/profile' ? 'text-[#4E6E49]' : theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}
+                className={`w-full h-full flex flex-col items-center justify-center gap-1 py-3 ${location.pathname === '/profile' ? 'text-[#4E6E49]' : theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}
               >
                 <User className="w-5 h-5" />
                 <div className="flex items-center gap-1">

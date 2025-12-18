@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { Layout } from '@/components/Layout'
 import { useThemeStore } from '@/store/themeStore'
+import { TrendingUp, Target, ShieldCheck, AlertTriangle, Rocket, DollarSign, Home, Clock, CheckCircle, Search } from 'lucide-react'
 
 export const MemeEvaluation = () => {
   const { theme } = useThemeStore()
@@ -582,7 +583,7 @@ export const MemeEvaluation = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className={`meme-item flex items-start gap-3 p-4 rounded-xl ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-gray-50'}`}>
-                <div className="text-2xl">📈</div>
+                <TrendingUp className={`w-6 h-6 ${theme === 'dark' ? 'text-[#4E6E49]' : 'text-[#4E6E49]'}`} />
                 <div>
                   <strong className={`font-semibold block mb-1 ${headingColor}`}>Уровни Фибоначчи</strong>
                   <p className={`text-sm ${subTextColor}`}>Заходим только когда уровни поддержки совпадают с зоной проторговки и на прошлом уровне были высокие объёмы.</p>
@@ -590,7 +591,7 @@ export const MemeEvaluation = () => {
               </div>
 
               <div className={`meme-item flex items-start gap-3 p-4 rounded-xl ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-gray-50'}`}>
-                <div className="text-2xl">🎯</div>
+                <Target className={`w-6 h-6 ${theme === 'dark' ? 'text-[#4E6E49]' : 'text-[#4E6E49]'}`} />
                 <div>
                   <strong className={`font-semibold block mb-1 ${headingColor}`}>Зона входа</strong>
                   <p className={`text-sm ${subTextColor}`}>Преимущественно заходим в канале 0.7, в идеале — строго от линии 0.7.</p>
@@ -598,7 +599,7 @@ export const MemeEvaluation = () => {
               </div>
 
               <div className={`meme-item flex items-start gap-3 p-4 rounded-xl ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-gray-50'}`}>
-                <div className="text-2xl">🛡️</div>
+                <ShieldCheck className={`w-6 h-6 ${theme === 'dark' ? 'text-[#4E6E49]' : 'text-[#4E6E49]'}`} />
                 <div>
                   <strong className={`font-semibold block mb-1 ${headingColor}`}>Stop Loss</strong>
                   <p className={`text-sm ${subTextColor}`}>Устанавливаем от линии 0.7 до 50% от позиции в зависимости от волатильности.</p>
@@ -606,7 +607,7 @@ export const MemeEvaluation = () => {
               </div>
 
               <div className={`meme-item flex items-start gap-3 p-4 rounded-xl ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-gray-50'}`}>
-                <div className="text-2xl">⚠️</div>
+                <AlertTriangle className={`w-6 h-6 ${theme === 'dark' ? 'text-[#4E6E49]' : 'text-[#4E6E49]'}`} />
                 <div>
                   <strong className={`font-semibold block mb-1 ${headingColor}`}>Альтернативный вход</strong>
                   <p className={`text-sm ${subTextColor}`}>Допустимо заходить по уровню 0.6, но только при наличии активного роста холдеров.</p>
@@ -614,7 +615,7 @@ export const MemeEvaluation = () => {
               </div>
 
               <div className={`meme-item flex items-start gap-3 p-4 rounded-xl ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-gray-50'}`}>
-                <div className="text-2xl">🚀</div>
+                <Rocket className={`w-6 h-6 ${theme === 'dark' ? 'text-[#4E6E49]' : 'text-[#4E6E49]'}`} />
                 <div>
                   <strong className={`font-semibold block mb-1 ${headingColor}`}>Сигнал роста</strong>
                   <p className={`text-sm ${subTextColor}`}>Рост холдеров при сильной поддержке = высокая вероятность скачка вверх.</p>
@@ -622,7 +623,7 @@ export const MemeEvaluation = () => {
               </div>
 
               <div className={`meme-item flex items-start gap-3 p-4 rounded-xl ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-gray-50'}`}>
-                <div className="text-2xl">💰</div>
+                <DollarSign className={`w-6 h-6 ${theme === 'dark' ? 'text-[#4E6E49]' : 'text-[#4E6E49]'}`} />
                 <div>
                   <strong className={`font-semibold block mb-1 ${headingColor}`}>Take Profit</strong>
                   <p className={`text-sm ${subTextColor}`}>Целевые зоны 30-45% от входа, шаг фиксации прибыли — 12%.</p>
@@ -630,7 +631,7 @@ export const MemeEvaluation = () => {
               </div>
 
               <div className={`meme-item flex items-start gap-3 p-4 rounded-xl ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-gray-50'}`}>
-                <div className="text-2xl">🏠</div>
+                <Home className={`w-6 h-6 ${theme === 'dark' ? 'text-[#4E6E49]' : 'text-[#4E6E49]'}`} />
                 <div>
                   <strong className={`font-semibold block mb-1 ${headingColor}`}>Правило выхода</strong>
                   <p className={`text-sm ${subTextColor}`}>По общему правилу фиксируем максимум на 70-80% позиции, если токен продолжает движение — выходим в оранжевой зоне Фибоначчи.</p>
@@ -638,7 +639,7 @@ export const MemeEvaluation = () => {
               </div>
 
               <div className={`meme-item flex items-start gap-3 p-4 rounded-xl ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-gray-50'}`}>
-                <div className="text-2xl">⏰</div>
+                <Clock className={`w-6 h-6 ${theme === 'dark' ? 'text-[#4E6E49]' : 'text-[#4E6E49]'}`} />
                 <div>
                   <strong className={`font-semibold block mb-1 ${headingColor}`}>Тайминг входа</strong>
                   <p className={`text-sm ${subTextColor}`}>Помните, что в токен лучше заходить спустя 10-15 минут от миграции, чтобы избежать ранних рисков.</p>
@@ -646,7 +647,7 @@ export const MemeEvaluation = () => {
               </div>
 
               <div className={`meme-item flex items-start gap-3 p-4 rounded-xl ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-gray-50'}`}>
-                <div className="text-2xl">✅</div>
+                <CheckCircle className={`w-6 h-6 ${theme === 'dark' ? 'text-[#4E6E49]' : 'text-[#4E6E49]'}`} />
                 <div>
                   <strong className={`font-semibold block mb-1 ${headingColor}`}>Минимальные суммы</strong>
                   <p className={`text-sm ${subTextColor}`}>Старайтесь проверять токен минимальными суммами, если не уверены — достаточно 10-15 секунд анализа.</p>
@@ -654,7 +655,7 @@ export const MemeEvaluation = () => {
               </div>
 
               <div className={`meme-item flex items-start gap-3 p-4 rounded-xl ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-gray-50'}`}>
-                <div className="text-2xl">🔍</div>
+                <Search className={`w-6 h-6 ${theme === 'dark' ? 'text-[#4E6E49]' : 'text-[#4E6E49]'}`} />
                 <div>
                   <strong className={`font-semibold block mb-1 ${headingColor}`}>Сервисы проверки</strong>
                   <p className={`text-sm ${subTextColor}`}>Используйте для анализа: <a href="https://rugcheck.xyz" className={`underline ${theme === 'dark' ? 'text-[#4E6E49]' : 'text-[#4E6E49]'}`} target="_blank">rugcheck.xyz</a> и <a href="https://gmgn.ai/?chain=sol" className={`underline ${theme === 'dark' ? 'text-[#4E6E49]' : 'text-[#4E6E49]'}`} target="_blank">gmgn.ai</a></p>
