@@ -202,54 +202,6 @@ export const MemeEvaluation = () => {
           </div>
         </div>
 
-        {/* Progress Section */}
-        <div className={`rounded-2xl p-6 sm:p-7 ${cardBg} ${cardShadow} border ${calmBorder}`}>
-          <div className="flex flex-col gap-2 mb-4">
-            <p className={`text-xs uppercase tracking-[0.12em] ${subTextColor}`}>Прогресс</p>
-            <h3 className={`text-2xl font-bold ${headingColor}`}>Состояние проверки</h3>
-            <p className={`text-sm ${subTextColor}`}>Отмечайте выполненные пункты для отслеживания прогресса анализа.</p>
-          </div>
-
-          <div className="space-y-6">
-            <div className="text-center">
-              <div id="meme-progress-percentage" className="text-6xl font-bold text-[#4E6E49] mb-2">0%</div>
-              <p className={`text-sm ${subTextColor}`}>завершено</p>
-            </div>
-
-            <div className="w-full h-8 bg-white/5 rounded-full overflow-hidden border border-white/10">
-              <div
-                id="meme-progress-fill"
-                className="h-full bg-gradient-to-r from-[#4E6E49] to-[#6b8f5f] transition-all duration-800 ease-out relative"
-              >
-                <div className="absolute right-3 top-1/2 -translate-y-1/2 text-white text-sm opacity-0 animate-pulse">
-                  🐊
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between text-center">
-              <div className="flex-1">
-                <div className={`text-2xl font-bold ${headingColor}`}>
-                  <span id="meme-checked-count">0</span>
-                  <span className={`text-sm ${subTextColor} ml-1`}>из</span>
-                  <span id="meme-total-count" className={`text-sm ${subTextColor} ml-1`}>0</span>
-                </div>
-                <p className={`text-xs ${subTextColor} mt-1`}>пунктов выполнено</p>
-              </div>
-            </div>
-
-            <div className="flex justify-center">
-              <button
-                id="meme-reset-button"
-                className="px-6 py-3 rounded-xl transition-all duration-200 border border-rose-300/60 bg-rose-500/20 text-rose-50 hover:bg-rose-500/30 font-semibold flex items-center gap-2"
-              >
-                <span>🗑️</span>
-                <span>Сбросить прогресс</span>
-              </button>
-            </div>
-          </div>
-        </div>
-
         {/* Checklist Stages */}
         <div className="space-y-6">
           {/* Stage 1 */}
@@ -382,12 +334,370 @@ export const MemeEvaluation = () => {
             </div>
           </div>
 
-          {/* Completion Note */}
-          <div className="text-center py-8">
-            <div className={`rounded-xl p-6 ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'} border ${calmBorder}`}>
-              <p className={`text-sm ${subTextColor}`}>
-                Полная версия чек-листа включает ещё этапы анализа разработчика, контракта и финального принятия решения.
-              </p>
+          {/* Stage 4 */}
+          <div className={`meme-stage rounded-2xl p-6 sm:p-7 ${cardBg} ${cardShadow} border ${calmBorder}`}>
+            <div className="flex flex-col gap-2 mb-6">
+              <p className={`text-xs uppercase tracking-[0.12em] ${subTextColor}`}>Этап 4</p>
+              <h3 className={`text-2xl font-bold ${headingColor}`}>DEV и контракт</h3>
+              <p className={`text-sm ${subTextColor}`}>Исключение манипуляций, контроль и потенциальный скам.</p>
+            </div>
+
+            <div className="space-y-4">
+              <div className="meme-item flex items-start gap-4 p-4 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition-all duration-200">
+                <input type="checkbox" id="meme-4-1" className="meme-checkbox w-5 h-5 mt-1 accent-[#4E6E49] rounded flex-shrink-0" />
+                <label htmlFor="meme-4-1" className="flex-1 cursor-pointer">
+                  <strong className={`font-semibold block mb-2 ${headingColor}`}>Активность DEV</strong>
+                  <ul className={`space-y-1 text-sm ${subTextColor}`}>
+                    <li>• Продал ли DEV: если да, то как много и в какой фазе.</li>
+                    <li>• Что делает DEV сейчас: покупки, сливы, пополнение ликвы?</li>
+                  </ul>
+                </label>
+              </div>
+
+              <div className="meme-item flex items-start gap-4 p-4 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition-all duration-200">
+                <input type="checkbox" id="meme-4-2" className="meme-checkbox w-5 h-5 mt-1 accent-[#4E6E49] rounded flex-shrink-0" />
+                <label htmlFor="meme-4-2" className="flex-1 cursor-pointer">
+                  <strong className={`font-semibold block mb-2 ${headingColor}`}>История монет DEV</strong>
+                  <ul className={`space-y-1 text-sm ${subTextColor}`}>
+                    <li>• Создавал ли ранее токены.</li>
+                    <li>• Как они себя вели (пампы/дампы, длительность жизни).</li>
+                  </ul>
+                </label>
+              </div>
+
+              <div className="meme-item flex items-start gap-4 p-4 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition-all duration-200">
+                <input type="checkbox" id="meme-4-3" className="meme-checkbox w-5 h-5 mt-1 accent-[#4E6E49] rounded flex-shrink-0" />
+                <label htmlFor="meme-4-3" className="flex-1 cursor-pointer">
+                  <strong className={`font-semibold block mb-2 ${headingColor}`}>Токены DEV</strong>
+                  <ul className={`space-y-1 text-sm ${subTextColor}`}>
+                    <li>• Если перевёл более 15% — высокий риск.</li>
+                  </ul>
+                </label>
+              </div>
+
+              <div className="meme-item flex items-start gap-4 p-4 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition-all duration-200">
+                <input type="checkbox" id="meme-4-4" className="meme-checkbox w-5 h-5 mt-1 accent-[#4E6E49] rounded flex-shrink-0" />
+                <label htmlFor="meme-4-4" className="flex-1 cursor-pointer">
+                  <strong className={`font-semibold block mb-2 ${headingColor}`}>Безопасность контракта</strong>
+                  <ul className={`space-y-1 text-sm ${subTextColor}`}>
+                    <li>• Mint отключён.</li>
+                    <li>• Freeze отключён.</li>
+                    <li>• Trading limits отключены.</li>
+                    <li>• Владелец LP — сожжён или передан в отказ (renounce).</li>
+                  </ul>
+                </label>
+              </div>
+
+              <div className="meme-item flex items-start gap-4 p-4 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition-all duration-200">
+                <input type="checkbox" id="meme-4-5" className="meme-checkbox w-5 h-5 mt-1 accent-[#4E6E49] rounded flex-shrink-0" />
+                <label htmlFor="meme-4-5" className="flex-1 cursor-pointer">
+                  <strong className={`font-semibold block mb-2 ${headingColor}`}>Curve-Manipulation Check</strong>
+                  <ul className={`space-y-1 text-sm ${subTextColor}`}>
+                    <li>• Нет скрытых функций, влияющих на цену.</li>
+                    <li>• Проверить контракт на сторонних аудит-ботах.</li>
+                  </ul>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          {/* Stage 5 */}
+          <div className={`meme-stage rounded-2xl p-6 sm:p-7 ${cardBg} ${cardShadow} border ${calmBorder}`}>
+            <div className="flex flex-col gap-2 mb-6">
+              <p className={`text-xs uppercase tracking-[0.12em] ${subTextColor}`}>Этап 5</p>
+              <h3 className={`text-2xl font-bold ${headingColor}`}>Распределение холдеров</h3>
+              <p className={`text-sm ${subTextColor}`}>Убедиться, что флоат распределён и нет доминирующих кластеров.</p>
+            </div>
+
+            <div className="space-y-4">
+              <div className="meme-item flex items-start gap-4 p-4 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition-all duration-200">
+                <input type="checkbox" id="meme-5-1" className="meme-checkbox w-5 h-5 mt-1 accent-[#4E6E49] rounded flex-shrink-0" />
+                <label htmlFor="meme-5-1" className="flex-1 cursor-pointer">
+                  <strong className={`font-semibold block mb-2 ${headingColor}`}>Топ-кошельки</strong>
+                  <ul className={`space-y-1 text-sm ${subTextColor}`}>
+                    <li>• Топ-держатели ≤ 5–7%.</li>
+                    <li>• Оптимально: ранний лидер имеет не более 3–4%.</li>
+                  </ul>
+                </label>
+              </div>
+
+              <div className="meme-item flex items-start gap-4 p-4 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition-all duration-200">
+                <input type="checkbox" id="meme-5-2" className="meme-checkbox w-5 h-5 mt-1 accent-[#4E6E49] rounded flex-shrink-0" />
+                <label htmlFor="meme-5-2" className="flex-1 cursor-pointer">
+                  <strong className={`font-semibold block mb-2 ${headingColor}`}>Кластеры</strong>
+                  <ul className={`space-y-1 text-sm ${subTextColor}`}>
+                    <li>• Нет крупных связанных кошельков.</li>
+                    <li>• Нет "пачек" кошельков, созданных в одну минуту.</li>
+                  </ul>
+                </label>
+              </div>
+
+              <div className="meme-item flex items-start gap-4 p-4 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition-all duration-200">
+                <input type="checkbox" id="meme-5-3" className="meme-checkbox w-5 h-5 mt-1 accent-[#4E6E49] rounded flex-shrink-0" />
+                <label htmlFor="meme-5-3" className="flex-1 cursor-pointer">
+                  <strong className={`font-semibold block mb-2 ${headingColor}`}>Фермы</strong>
+                  <ul className={`space-y-1 text-sm ${subTextColor}`}>
+                    <li>• Фермы не перегружены.</li>
+                    <li>• Нет пачки фармеров с одинаковой стратегией.</li>
+                  </ul>
+                </label>
+              </div>
+
+              <div className="meme-item flex items-start gap-4 p-4 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition-all duration-200">
+                <input type="checkbox" id="meme-5-4" className="meme-checkbox w-5 h-5 mt-1 accent-[#4E6E49] rounded flex-shrink-0" />
+                <label htmlFor="meme-5-4" className="flex-1 cursor-pointer">
+                  <strong className={`font-semibold block mb-2 ${headingColor}`}>PNL/RPL-анализ</strong>
+                  <ul className={`space-y-1 text-sm ${subTextColor}`}>
+                    <li>• Холдеры не сидят в прибыли 4–5х (сливы неизбежны).</li>
+                  </ul>
+                </label>
+              </div>
+
+              <div className="meme-item flex items-start gap-4 p-4 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition-all duration-200">
+                <input type="checkbox" id="meme-5-5" className="meme-checkbox w-5 h-5 mt-1 accent-[#4E6E49] rounded flex-shrink-0" />
+                <label htmlFor="meme-5-5" className="flex-1 cursor-pointer">
+                  <strong className={`font-semibold block mb-2 ${headingColor}`}>Активность торговли</strong>
+                  <ul className={`space-y-1 text-sm ${subTextColor}`}>
+                    <li>• Нет торговли только команды.</li>
+                    <li>• Есть новые кошельки.</li>
+                    <li>• Нет явного копитрейдинга.</li>
+                  </ul>
+                </label>
+              </div>
+
+              <div className="meme-item flex items-start gap-4 p-4 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition-all duration-200">
+                <input type="checkbox" id="meme-5-6" className="meme-checkbox w-5 h-5 mt-1 accent-[#4E6E49] rounded flex-shrink-0" />
+                <label htmlFor="meme-5-6" className="flex-1 cursor-pointer">
+                  <strong className={`font-semibold block mb-2 ${headingColor}`}>Время удержания токена</strong>
+                  <ul className={`space-y-1 text-sm ${subTextColor}`}>
+                    <li>• Если все держат ≤3 минут — чистый скальпинг, можно словить дамп.</li>
+                  </ul>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          {/* Stage 6 */}
+          <div className={`meme-stage rounded-2xl p-6 sm:p-7 ${cardBg} ${cardShadow} border ${calmBorder}`}>
+            <div className="flex flex-col gap-2 mb-6">
+              <p className={`text-xs uppercase tracking-[0.12em] ${subTextColor}`}>Этап 6</p>
+              <h3 className={`text-2xl font-bold ${headingColor}`}>Технический вход</h3>
+              <p className={`text-sm ${subTextColor}`}>Войти по адекватной цене после фильтрации ончейн-данных.</p>
+            </div>
+
+            <div className="space-y-4">
+              <div className="meme-item flex items-start gap-4 p-4 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition-all duration-200">
+                <input type="checkbox" id="meme-6-1" className="meme-checkbox w-5 h-5 mt-1 accent-[#4E6E49] rounded flex-shrink-0" />
+                <label htmlFor="meme-6-1" className="flex-1 cursor-pointer">
+                  <strong className={`font-semibold block mb-2 ${headingColor}`}>Фибо</strong>
+                  <ul className={`space-y-1 text-sm ${subTextColor}`}>
+                    <li>• Строим сетку по ключевому импульсу.</li>
+                  </ul>
+                </label>
+              </div>
+
+              <div className="meme-item flex items-start gap-4 p-4 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition-all duration-200">
+                <input type="checkbox" id="meme-6-2" className="meme-checkbox w-5 h-5 mt-1 accent-[#4E6E49] rounded flex-shrink-0" />
+                <label htmlFor="meme-6-2" className="flex-1 cursor-pointer">
+                  <strong className={`font-semibold block mb-2 ${headingColor}`}>Уровни</strong>
+                  <ul className={`space-y-1 text-sm ${subTextColor}`}>
+                    <li>• Совпадение 0.5/0.618/0.702 с зонами проторговки.</li>
+                  </ul>
+                </label>
+              </div>
+
+              <div className="meme-item flex items-start gap-4 p-4 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition-all duration-200">
+                <input type="checkbox" id="meme-6-3" className="meme-checkbox w-5 h-5 mt-1 accent-[#4E6E49] rounded flex-shrink-0" />
+                <label htmlFor="meme-6-3" className="flex-1 cursor-pointer">
+                  <strong className={`font-semibold block mb-2 ${headingColor}`}>Вход</strong>
+                  <ul className={`space-y-1 text-sm ${subTextColor}`}>
+                    <li>• 50–70% откат от локального хая.</li>
+                  </ul>
+                </label>
+              </div>
+
+              <div className="meme-item flex items-start gap-4 p-4 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition-all duration-200">
+                <input type="checkbox" id="meme-6-4" className="meme-checkbox w-5 h-5 mt-1 accent-[#4E6E49] rounded flex-shrink-0" />
+                <label htmlFor="meme-6-4" className="flex-1 cursor-pointer">
+                  <strong className={`font-semibold block mb-2 ${headingColor}`}>Дополнительно</strong>
+                  <ul className={`space-y-1 text-sm ${subTextColor}`}>
+                    <li>• Проверить, есть ли ликвидность на уровнях покупок.</li>
+                    <li>• Проверить объёмы на откате: ослабление продавцов.</li>
+                    <li>• Проверить, не обновляет ли токен лоу (в таком случае вход отменяется).</li>
+                  </ul>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          {/* Stage 7 */}
+          <div className={`meme-stage rounded-2xl p-6 sm:p-7 ${cardBg} ${cardShadow} border ${calmBorder}`}>
+            <div className="flex flex-col gap-2 mb-6">
+              <p className={`text-xs uppercase tracking-[0.12em] ${subTextColor}`}>Этап 7</p>
+              <h3 className={`text-2xl font-bold ${headingColor}`}>Анализ риска</h3>
+              <p className={`text-sm ${subTextColor}`}>Формализовать риск-менеджмент.</p>
+            </div>
+
+            <div className="space-y-4">
+              <div className="meme-item flex items-start gap-4 p-4 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition-all duration-200">
+                <input type="checkbox" id="meme-7-1" className="meme-checkbox w-5 h-5 mt-1 accent-[#4E6E49] rounded flex-shrink-0" />
+                <label htmlFor="meme-7-1" className="flex-1 cursor-pointer">
+                  <strong className={`font-semibold block mb-2 ${headingColor}`}>Стоп-логика</strong>
+                  <ul className={`space-y-1 text-sm ${subTextColor}`}>
+                    <li>• Стоп по структуре (обновление локального лоу).</li>
+                    <li>• Стоп по ончейн-сигналу (DEV слил, появились новые бандлы, появились киты).</li>
+                  </ul>
+                </label>
+              </div>
+
+              <div className="meme-item flex items-start gap-4 p-4 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition-all duration-200">
+                <input type="checkbox" id="meme-7-2" className="meme-checkbox w-5 h-5 mt-1 accent-[#4E6E49] rounded flex-shrink-0" />
+                <label htmlFor="meme-7-2" className="flex-1 cursor-pointer">
+                  <strong className={`font-semibold block mb-2 ${headingColor}`}>Целевые зоны</strong>
+                  <ul className={`space-y-1 text-sm ${subTextColor}`}>
+                    <li>• Минимум 2 стратегии выхода: частичный выход на 1.5–2х, остальное — трейл.</li>
+                  </ul>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          {/* Trading Rules Reminder */}
+          <div className={`meme-stage rounded-2xl p-6 sm:p-7 ${cardBg} ${cardShadow} border ${calmBorder}`}>
+            <div className="flex flex-col gap-2 mb-6">
+              <p className={`text-xs uppercase tracking-[0.12em] ${subTextColor}`}>Напоминание</p>
+              <h3 className={`text-2xl font-bold ${headingColor}`}>Ключевые правила входа в сделки</h3>
+              <p className={`text-sm ${subTextColor}`}>Трейдинг-дисциплина превыше всего.</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="meme-item flex items-start gap-3 p-4 rounded-xl border border-white/10 bg-white/5">
+                <div className="text-2xl">📈</div>
+                <div>
+                  <strong className={`font-semibold block mb-1 ${headingColor}`}>Уровни Фибоначчи</strong>
+                  <p className={`text-sm ${subTextColor}`}>Заходим только когда уровни поддержки совпадают с зоной проторговки и на прошлом уровне были высокие объёмы.</p>
+                </div>
+              </div>
+
+              <div className="meme-item flex items-start gap-3 p-4 rounded-xl border border-white/10 bg-white/5">
+                <div className="text-2xl">🎯</div>
+                <div>
+                  <strong className={`font-semibold block mb-1 ${headingColor}`}>Зона входа</strong>
+                  <p className={`text-sm ${subTextColor}`}>Преимущественно заходим в канале 0.7, в идеале — строго от линии 0.7.</p>
+                </div>
+              </div>
+
+              <div className="meme-item flex items-start gap-3 p-4 rounded-xl border border-white/10 bg-white/5">
+                <div className="text-2xl">🛡️</div>
+                <div>
+                  <strong className={`font-semibold block mb-1 ${headingColor}`}>Stop Loss</strong>
+                  <p className={`text-sm ${subTextColor}`}>Устанавливаем от линии 0.7 до 50% от позиции в зависимости от волатильности.</p>
+                </div>
+              </div>
+
+              <div className="meme-item flex items-start gap-3 p-4 rounded-xl border border-white/10 bg-white/5">
+                <div className="text-2xl">⚠️</div>
+                <div>
+                  <strong className={`font-semibold block mb-1 ${headingColor}`}>Альтернативный вход</strong>
+                  <p className={`text-sm ${subTextColor}`}>Допустимо заходить по уровню 0.6, но только при наличии активного роста холдеров.</p>
+                </div>
+              </div>
+
+              <div className="meme-item flex items-start gap-3 p-4 rounded-xl border border-white/10 bg-white/5">
+                <div className="text-2xl">🚀</div>
+                <div>
+                  <strong className={`font-semibold block mb-1 ${headingColor}`}>Сигнал роста</strong>
+                  <p className={`text-sm ${subTextColor}`}>Рост холдеров при сильной поддержке = высокая вероятность скачка вверх.</p>
+                </div>
+              </div>
+
+              <div className="meme-item flex items-start gap-3 p-4 rounded-xl border border-white/10 bg-white/5">
+                <div className="text-2xl">💰</div>
+                <div>
+                  <strong className={`font-semibold block mb-1 ${headingColor}`}>Take Profit</strong>
+                  <p className={`text-sm ${subTextColor}`}>Целевые зоны 30-45% от входа, шаг фиксации прибыли — 12%.</p>
+                </div>
+              </div>
+
+              <div className="meme-item flex items-start gap-3 p-4 rounded-xl border border-white/10 bg-white/5">
+                <div className="text-2xl">🏠</div>
+                <div>
+                  <strong className={`font-semibold block mb-1 ${headingColor}`}>Правило выхода</strong>
+                  <p className={`text-sm ${subTextColor}`}>По общему правилу фиксируем максимум на 70-80% позиции, если токен продолжает движение — выходим в оранжевой зоне Фибоначчи.</p>
+                </div>
+              </div>
+
+              <div className="meme-item flex items-start gap-3 p-4 rounded-xl border border-white/10 bg-white/5">
+                <div className="text-2xl">⏰</div>
+                <div>
+                  <strong className={`font-semibold block mb-1 ${headingColor}`}>Тайминг входа</strong>
+                  <p className={`text-sm ${subTextColor}`}>Помните, что в токен лучше заходить спустя 10-15 минут от миграции, чтобы избежать ранних рисков.</p>
+                </div>
+              </div>
+
+              <div className="meme-item flex items-start gap-3 p-4 rounded-xl border border-white/10 bg-white/5">
+                <div className="text-2xl">✅</div>
+                <div>
+                  <strong className={`font-semibold block mb-1 ${headingColor}`}>Минимальные суммы</strong>
+                  <p className={`text-sm ${subTextColor}`}>Старайтесь проверять токен минимальными суммами, если не уверены — достаточно 10-15 секунд анализа.</p>
+                </div>
+              </div>
+
+              <div className="meme-item flex items-start gap-3 p-4 rounded-xl border border-white/10 bg-white/5">
+                <div className="text-2xl">🔍</div>
+                <div>
+                  <strong className={`font-semibold block mb-1 ${headingColor}`}>Сервисы проверки</strong>
+                  <p className={`text-sm ${subTextColor}`}>Используйте для анализа: <a href="https://rugcheck.xyz" className="text-[#4E6E49] underline" target="_blank">rugcheck.xyz</a> и <a href="https://gmgn.ai/?chain=sol" className="text-[#4E6E49] underline" target="_blank">gmgn.ai</a></p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Progress Section */}
+          <div className={`rounded-2xl p-6 sm:p-7 ${cardBg} ${cardShadow} border ${calmBorder}`}>
+            <div className="flex flex-col gap-2 mb-4">
+              <p className={`text-xs uppercase tracking-[0.12em] ${subTextColor}`}>Прогресс</p>
+              <h3 className={`text-2xl font-bold ${headingColor}`}>Состояние проверки</h3>
+              <p className={`text-sm ${subTextColor}`}>Отмечайте выполненные пункты для отслеживания прогресса анализа.</p>
+            </div>
+
+            <div className="space-y-6">
+              <div className="text-center">
+                <div id="meme-progress-percentage" className="text-6xl font-bold text-[#4E6E49] mb-2">0%</div>
+                <p className={`text-sm ${subTextColor}`}>завершено</p>
+              </div>
+
+              <div className="w-full h-8 bg-white/5 rounded-full overflow-hidden border border-white/10">
+                <div
+                  id="meme-progress-fill"
+                  className="h-full bg-gradient-to-r from-[#4E6E49] to-[#6b8f5f] transition-all duration-800 ease-out relative"
+                >
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 text-white text-sm opacity-0 animate-pulse">
+                    🐊
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between text-center">
+                <div className="flex-1">
+                  <div className={`text-2xl font-bold ${headingColor}`}>
+                    <span id="meme-checked-count">0</span>
+                    <span className={`text-sm ${subTextColor} ml-1`}>из</span>
+                    <span id="meme-total-count" className={`text-sm ${subTextColor} ml-1`}>0</span>
+                  </div>
+                  <p className={`text-xs ${subTextColor} mt-1`}>пунктов выполнено</p>
+                </div>
+              </div>
+
+              <div className="flex justify-center">
+                <button
+                  id="meme-reset-button"
+                  className="px-6 py-3 rounded-xl transition-all duration-200 border border-rose-300/60 bg-rose-500/20 text-rose-50 hover:bg-rose-500/30 font-semibold flex items-center gap-2"
+                >
+                  <span>🗑️</span>
+                  <span>Сбросить прогресс</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>

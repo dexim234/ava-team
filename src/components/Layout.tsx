@@ -283,16 +283,16 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
               <div className="relative">
                 <button
                   onClick={() => {
-                    setShowFuncsMenu(!showFuncsMenu)
+                    setShowToolsMenu(!showToolsMenu)
                   }}
-                  data-active={isFuncsActive}
+                  data-active={isToolsActive}
                   className="nav-chip"
                 >
                   <Settings className="w-4 h-4" />
-                  <span>Funcs</span>
-                  <ChevronDown className={`w-4 h-4 transition-transform ${showFuncsMenu ? 'rotate-180' : ''}`} />
+                  <span>Tools</span>
+                  <ChevronDown className={`w-4 h-4 transition-transform ${showToolsMenu ? 'rotate-180' : ''}`} />
                 </button>
-                {showFuncsMenu && (
+                {showToolsMenu && (
                   <>
                     <div className="fixed inset-0 z-40" onClick={() => setShowFuncsMenu(false)} />
                     <div className="absolute top-[calc(100%+12px)] left-0 min-w-[220px] glass-panel rounded-2xl border border-white/40 dark:border-white/10 shadow-2xl z-50 overflow-hidden">
@@ -325,16 +325,16 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
               <div className="relative">
                 <button
                   onClick={() => {
-                    setShowToolsMenu(!showToolsMenu)
+                    setShowFuncsMenu(!showFuncsMenu)
                   }}
-                  data-active={isToolsActive}
+                  data-active={isFuncsActive}
                   className="nav-chip"
                 >
                   <Settings className="w-4 h-4" />
-                  <span>Tools</span>
-                  <ChevronDown className={`w-4 h-4 transition-transform ${showToolsMenu ? 'rotate-180' : ''}`} />
+                  <span>Funcs</span>
+                  <ChevronDown className={`w-4 h-4 transition-transform ${showFuncsMenu ? 'rotate-180' : ''}`} />
                 </button>
-                {showToolsMenu && (
+                {showFuncsMenu && (
                   <>
                     <div className="fixed inset-0 z-40" onClick={() => setShowToolsMenu(false)} />
                     <div className="absolute top-[calc(100%+12px)] left-0 min-w-[220px] glass-panel rounded-2xl border border-white/40 dark:border-white/10 shadow-2xl z-50 overflow-hidden">
