@@ -572,7 +572,7 @@ export const Management = () => {
               {[
                 { key: 'add-slot', label: 'Добавить слот', desc: 'Разовое или серия', icon: <PlusCircle className="w-5 h-5" />, tone: 'bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-100 dark:border-emerald-800', action: handleAddSlot },
                 { key: 'delete-slots', label: 'Очистить расписание', desc: 'Удалить слоты/статусы', icon: <Trash2 className="w-5 h-5" />, tone: 'bg-rose-100 text-rose-800 border-rose-200 dark:bg-rose-900/30 dark:text-rose-100 dark:border-rose-800', action: handleDeleteSlots },
-                { key: 'absence', label: 'Добавить отсутствие', desc: 'Выходной, больничный, отпуск', icon: <Moon className="w-5 h-5" />, tone: 'bg-teal-100 text-teal-800 border-teal-200 dark:bg-teal-900/30 dark:text-teal-100 dark:border-teal-800', action: handleAddAbsence },
+                { key: 'absence', label: 'Добавить отсутствие', desc: 'Выходной, больничный, отпуск', icon: <Moon className="w-5 h-5" />, tone: 'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/30 dark:text-blue-100 dark:border-blue-800', action: handleAddAbsence },
                 { key: 'restriction', label: 'Управление ограничениями', desc: 'Запретить создание записей', icon: <Shield className="w-5 h-5" />, tone: 'bg-orange-100 text-orange-800 border-orange-200 dark:bg-orange-900/30 dark:text-orange-100 dark:border-orange-800', action: handleManageRestrictions, adminOnly: true },
               ].filter(action => !action.adminOnly || isAdmin).map((action) => (
                 <button
@@ -581,13 +581,11 @@ export const Management = () => {
                     setActionType(action.key as ActionType)
                     action.action()
                   }}
-                  className={`text-left rounded-xl border px-3 py-3 transition-all shadow-sm flex items-start gap-3 h-full ${
-                    actionType === action.key
-                      ? `${action.tone} ring-2 ring-[#4E6E49]/50 shadow-lg`
-                      : `${theme === 'dark' ? 'border-gray-800 bg-gray-950/60 text-gray-100' : 'border-gray-200 bg-white text-gray-900'} hover:-translate-y-0.5 hover:shadow-md`
+                  className={`text-center rounded-xl border px-3 py-3 transition-all shadow-sm flex flex-col items-center gap-2 h-full ${
+                    `${action.tone} ring-2 ring-[#4E6E49]/50 shadow-lg`
                   }`}
                 >
-                  <span className={`p-2 rounded-lg ${actionType === action.key ? 'bg-white/30' : theme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'}`}>
+                  <span className="p-2 rounded-lg bg-white/30">
                     {action.icon}
                   </span>
                   <span className="flex flex-col whitespace-normal leading-snug gap-0.5 w-full">
