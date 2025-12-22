@@ -27,7 +27,6 @@ interface FieldConfig {
   key: string
   label: string
   placeholder?: string
-  helper?: string
   type?: FieldType
   options?: { value: string; label: string }[]
   section?: string
@@ -114,10 +113,10 @@ const CATEGORY_FIELDS: Record<CallCategory, FieldConfig[]> = {
       { value: 'hold', label: 'Hold' },
       { value: 'alert', label: 'Alert' },
     ], section: 'basic', required: true },
-    { key: 'reason', label: 'Причина входа', placeholder: 'Пример: "Крупные покупки в Telegram, листинг на крупной бирже, хайп в Twitter от инфлюенсера с 100k+ подписчиков"', type: 'textarea', section: 'entry', required: true, helper: 'Опишите ключевые факторы, влияющие на рост цены' },
-    { key: 'entryCap', label: 'Зона входа в капитализации', placeholder: '10M-15M', section: 'entry', required: true, helper: 'Диапазон капитализации для входа (FDV)' },
-    { key: 'targets', label: 'Цели (TP1/TP2/TP3)', placeholder: '20M / 30M / 50M или 2x / 3x / 5x', section: 'targets', required: true, helper: 'Уровни для частичной фиксации прибыли' },
-    { key: 'stopLoss', label: 'Стоп-лосс', placeholder: '5M или -25%', section: 'targets', helper: 'Уровень выхода при негативном сценарии' },
+    { key: 'reason', label: 'Причина входа', placeholder: 'Хайп, крупные покупки, листинг...', type: 'textarea', section: 'entry', required: true },
+    { key: 'entryCap', label: 'Зона входа в капитализации', placeholder: '10M-15M', section: 'entry', required: true },
+    { key: 'targets', label: 'Цели (TP1/TP2/TP3)', placeholder: '20M / 30M / 50M', section: 'targets', required: true },
+    { key: 'stopLoss', label: 'Стоп-лосс', placeholder: '5M или -25%', section: 'targets' },
     { key: 'riskLevel', label: 'Риск-уровень', type: 'select', options: [
       { value: 'low', label: 'Низкий' },
       { value: 'medium', label: 'Средний' },
@@ -166,7 +165,7 @@ const CATEGORY_FIELDS: Record<CallCategory, FieldConfig[]> = {
       { value: '1h', label: '1h' },
       { value: '4h', label: '4h' },
     ], section: 'strategy', required: true },
-    { key: 'reason', label: 'Причина входа (анализ)', placeholder: 'Пример: "Breakout уровня сопротивления с объемом 2x от среднего, дивергенция RSI на H1, подтверждение от EMA 50/200"', type: 'textarea', section: 'strategy', required: true, helper: 'Технический анализ и подтверждающие факторы' },
+    { key: 'reason', label: 'Причина входа (анализ)', placeholder: 'Тренд, объемы, дивергенция...', type: 'textarea', section: 'strategy', required: true },
     { key: 'risks', label: 'Риски', placeholder: 'Резкий вброс, низкая волатильность', type: 'textarea', section: 'additional', required: true },
   ],
   nft: [
@@ -175,8 +174,8 @@ const CATEGORY_FIELDS: Record<CallCategory, FieldConfig[]> = {
     { key: 'marketplace', label: 'Маркетплейс', placeholder: 'OpenSea / Magic Eden', section: 'basic', required: true },
     { key: 'network', label: 'Сеть', type: 'select', options: networkOptions, section: 'basic', required: true },
     { key: 'entryPrice', label: 'Рекомендованная цена входа', placeholder: '1.2 ETH', section: 'entry', required: true },
-    { key: 'rarity', label: 'Редкость / атрибуты', placeholder: 'Rank < 5% или редкий фон', section: 'entry', helper: 'Критерии отбора редких NFT' },
-    { key: 'minLiquidity', label: 'Минимальная ликвидность (floor + объём)', placeholder: 'Floor 2 ETH, объём 120 ETH за 24ч', section: 'entry', required: true, helper: 'Текущий floor price + объем торгов' },
+    { key: 'rarity', label: 'Редкость / атрибуты', placeholder: 'Rank < 5%', section: 'entry' },
+    { key: 'minLiquidity', label: 'Минимальная ликвидность', placeholder: 'Floor 2 ETH, объём 120 ETH', section: 'entry', required: true },
     { key: 'signalType', label: 'Тип сигнала', type: 'select', options: [
       { value: 'buy', label: 'Buy' },
       { value: 'sell', label: 'Sell' },
@@ -190,7 +189,7 @@ const CATEGORY_FIELDS: Record<CallCategory, FieldConfig[]> = {
     ], section: 'targets', required: true },
     { key: 'targetPrice', label: 'Цель продажи / Target price', placeholder: '3 ETH', section: 'targets', required: true },
     { key: 'risks', label: 'Риски', placeholder: 'Падение спроса, фальшивый объём', type: 'textarea', section: 'targets', required: true },
-    { key: 'reason', label: 'Причина входа', placeholder: 'Новый минт, хайп, инсайд', type: 'textarea', section: 'additional', required: true },
+    { key: 'reason', label: 'Причина входа', placeholder: 'Минт, хайп, инсайд', type: 'textarea', section: 'additional', required: true },
     { key: 'traderComment', label: 'Комментарий трейдера', type: 'textarea', placeholder: 'Что смотрим, когда фиксируем', section: 'additional' },
   ],
   spot: [
@@ -210,7 +209,7 @@ const CATEGORY_FIELDS: Record<CallCategory, FieldConfig[]> = {
       { value: 'high', label: 'Высокий' },
       { value: 'ultra', label: 'Ультра-высокий' },
     ], section: 'targets', required: true },
-    { key: 'reason', label: 'Причина входа', placeholder: 'Фундаментал, хайп, запуск', type: 'textarea', section: 'additional', required: true },
+    { key: 'reason', label: 'Причина входа', placeholder: 'Фундаментал, хайп', type: 'textarea', section: 'additional', required: true },
     { key: 'risks', label: 'Риски', placeholder: 'Регуляторика, конкуренты', type: 'textarea', section: 'additional', required: true },
     { key: 'traderComment', label: 'Комментарий', type: 'textarea', placeholder: 'Условия фиксации, обновления', section: 'additional' },
   ],
@@ -232,7 +231,7 @@ const CATEGORY_FIELDS: Record<CallCategory, FieldConfig[]> = {
       { value: 'ultra', label: 'Ультра-высокий' },
     ], section: 'targets', required: true },
     { key: 'risks', label: 'Риски', placeholder: 'Неопределённость новостей, низкая ликвидность', type: 'textarea', section: 'targets', required: true },
-    { key: 'reason', label: 'Причина входа', placeholder: 'Аналитика, инсайд, тренд новостей', type: 'textarea', section: 'additional', required: true },
+    { key: 'reason', label: 'Причина входа', placeholder: 'Аналитика, инсайд', type: 'textarea', section: 'additional', required: true },
   ],
   staking: [
     { key: 'coin', label: 'Монета', placeholder: 'SOL', section: 'basic', required: true },
@@ -257,7 +256,7 @@ const CATEGORY_FIELDS: Record<CallCategory, FieldConfig[]> = {
       { value: 'ultra', label: 'Ультра' },
     ], section: 'targets', required: true },
     { key: 'risks', label: 'Риски', placeholder: 'Смарт-контракт, ликвидность', type: 'textarea', section: 'targets', required: true },
-    { key: 'reason', label: 'Причина', placeholder: 'Рост доходности, снижение рисков...', type: 'textarea', section: 'additional', required: true },
+    { key: 'reason', label: 'Причина', placeholder: 'Рост доходности', type: 'textarea', section: 'additional', required: true },
     { key: 'traderComment', label: 'Комментарий трейдера', type: 'textarea', placeholder: 'Тактика выхода, дополнительные условия', section: 'additional' },
   ],
 }
@@ -822,43 +821,38 @@ export const CallForm = ({ onSuccess, onCancel, callToEdit, initialCategory }: C
       {/* Signal Details */}
       <div className={`rounded-2xl border ${borderColor} ${theme === 'dark' ? 'bg-gray-800/60' : 'bg-white'} p-4 sm:p-6 space-y-4`}>
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-lg" style={{ background: 'linear-gradient(135deg, #4E6E49, #3b8d5a)' }}>
-              <Sparkles className="w-5 h-5" />
+          <div className="flex items-center gap-3">
+            <div className={`hidden sm:flex w-10 h-10 rounded-xl items-center justify-center text-white shadow-lg`} style={{ background: 'linear-gradient(135deg, #4E6E49, #3b8d5a)' }}>
+              <div className="w-5 h-5">
+                {CATEGORY_META[category].icon}
+              </div>
             </div>
-            <div>
+            <div className="hidden sm:block">
               <p className={`text-lg font-bold ${textColor}`}>{CATEGORY_META[category].label} - Детали сигнала</p>
-              <p className={`text-xs ${subtle}`}>Заполните все необходимые поля для создания качественного сигнала</p>
+              <p className={`text-xs ${subtle}`}>Заполните все необходимые поля</p>
+            </div>
+            <div className="sm:hidden">
+              <p className={`text-sm font-bold ${textColor}`}>{CATEGORY_META[category].label}</p>
             </div>
           </div>
-          <div className="text-right">
-            <p className={`text-sm font-semibold ${textColor}`}>{progress.filled}/{progress.total} обязательных полей</p>
-            <p className={`text-xs ${subtle}`}>{progress.percentage}% заполнено</p>
-          </div>
-        </div>
-
-        {/* Progress Bar */}
-        <div className="space-y-2">
-          <div className={`w-full h-3 rounded-full overflow-hidden ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-200'} shadow-inner`}>
-            <div
-              className="h-full rounded-full transition-all duration-1000 ease-out bg-gradient-to-r from-[#4E6E49] via-emerald-500 to-teal-500 shadow-sm"
-              style={{ width: `${progress.percentage}%` }}
-            />
-          </div>
-          <div className="flex justify-between text-xs">
-            <span className={`${subtle} transition-colors duration-300`}>Прогресс заполнения</span>
-            <span className={`transition-all duration-300 ${
-              progress.percentage === 100
-                ? 'text-emerald-500 font-semibold animate-pulse'
-                : progress.percentage >= 75
-                  ? 'text-blue-500 font-medium'
-                  : progress.percentage >= 50
-                    ? 'text-amber-500 font-medium'
-                    : subtle
-            }`}>
-              {progress.percentage === 100 ? '✨ Готово к созданию!' : `${progress.percentage}%`}
-            </span>
-          </div>
+          {progress.percentage < 100 && (
+            <div className="text-right">
+              <div className={`w-16 h-2 rounded-full overflow-hidden ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-200'} shadow-inner`}>
+                <div
+                  className="h-full rounded-full transition-all duration-500 ease-out bg-gradient-to-r from-[#4E6E49] to-emerald-600"
+                  style={{ width: `${progress.percentage}%` }}
+                />
+              </div>
+              <p className={`text-xs ${subtle} mt-1`}>{progress.filled}/{progress.total}</p>
+            </div>
+          )}
+          {progress.percentage === 100 && (
+            <div className="text-right">
+              <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center">
+                <Check className="w-4 h-4 text-white" />
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="space-y-6">
@@ -887,13 +881,10 @@ export const CallForm = ({ onSuccess, onCancel, callToEdit, initialCategory }: C
                   {sectionFields.map((field) => (
                     <div key={field.key} className="space-y-2">
                       {field.type !== 'checkbox' && (
-                        <div className="flex items-center justify-between gap-2">
-                          <label className={`text-sm font-semibold ${textColor} flex items-center gap-2`}>
-                            {field.label}
-                            {field.required && <span className="text-red-500 text-xs">*</span>}
-                          </label>
-                          {field.helper && <span className={`text-[11px] ${subtle}`}>{field.helper}</span>}
-                        </div>
+                        <label className={`text-sm font-semibold ${textColor} flex items-center gap-2`}>
+                          {field.label}
+                          {field.required && <span className="text-red-500 text-xs">*</span>}
+                        </label>
                       )}
                       {renderField(field)}
                     </div>
