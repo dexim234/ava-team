@@ -524,10 +524,10 @@ export const CallPage = () => {
               {metric.copyValue && (
                 <button
                   onClick={() => copyValue(metric.copyValue!)}
-                  className={`px-3 py-2 rounded-lg border ${borderColor} ${theme === 'dark' ? 'hover:bg-gray-800 bg-white/5' : 'hover:bg-gray-100 bg-white'} text-xs font-semibold flex items-center gap-2 shrink-0`}
+                  className={`p-2 rounded-lg border ${borderColor} ${theme === 'dark' ? 'hover:bg-gray-800 bg-white/5' : 'hover:bg-gray-100 bg-white'} transition-colors`}
+                  title="Копировать"
                 >
                   {copiedValue === metric.copyValue ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
-                  {copiedValue === metric.copyValue ? 'Скопировано' : 'Копировать'}
                 </button>
               )}
             </div>
@@ -880,10 +880,10 @@ export const CallPage = () => {
                             <div className="flex flex-wrap gap-2 justify-end">
                               <button
                                 onClick={() => copyValue(keyCopyValue)}
-                                className={`px-3 py-2 rounded-xl border ${borderColor} ${theme === 'dark' ? 'hover:bg-gray-800 bg-white/5' : 'hover:bg-gray-100 bg-white'} text-sm font-semibold flex items-center gap-2`}
+                                className={`p-2 rounded-xl border ${borderColor} ${theme === 'dark' ? 'hover:bg-gray-800 bg-white/5' : 'hover:bg-gray-100 bg-white'} transition-colors`}
+                                title="Копировать"
                               >
                                 {copiedValue === keyCopyValue ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
-                                {copiedValue === keyCopyValue ? 'Скопировано' : 'Скопировать'}
                               </button>
                             </div>
                           </div>
