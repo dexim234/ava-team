@@ -12,7 +12,7 @@ import {
   orderBy,
 } from 'firebase/firestore'
 import { db } from '@/firebase/config'
-import { WorkSlot, DayStatus, Earnings, RatingData, Referral, Call, Task, TaskStatus, Note, TaskPriority, StageAssignee, ApprovalRequest, ApprovalStatus, UserActivity, UserNickname, Restriction, RestrictionType } from '@/types'
+import { WorkSlot, DayStatus, Earnings, RatingData, Referral, Call, Task, TaskStatus, Note, TaskPriority, StageAssignee, ApprovalRequest, ApprovalStatus, UserActivity, UserNickname, Restriction, RestrictionType, UserConflict, AccessBlock } from '@/types'
 import { clearNicknameCache, getUserNicknameAsync } from '@/utils/userUtils'
 import { formatDate } from '@/utils/dateUtils'
 
@@ -1448,5 +1448,136 @@ export const getUserActivitiesLast24Hours = async (): Promise<UserActivity[]> =>
     const loginTime = new Date(activity.loginAt)
     return loginTime >= last24Hours
   })
+}
+
+// User Conflicts
+export const getUserConflicts = async (userId?: string, isActive?: boolean) => {
+  const conflictsRef = collection(db, 'userConflicts')
+  let q: ReturnType<typeof query>
+
+  if (userId && isActive !== undefined) {
+    q = query(conflictsRef, where('isActive', '==', isActive), where('userId', '==', userId))
+  } else if (userId) {
+    q = query(conflictsRef, where('userId', '==', userId))
+  } else if (isActive !== undefined) {
+    q = query(conflictsRef, where('isActive', '==', isActive))
+  } else {
+    q = query(conflictsRef)
+  }
+
+  const snapshot = await getDocs(q)
+  return snapshot.docs.map((doc) => {
+    const data = doc.data() as any
+    return {
+      id: doc.id,
+      userId: data?.userId || '',
+      restrictedUserId: data?.restrictedUserId || '',
+      reason: data?.reason || '',
+      createdBy: data?.createdBy || '',
+      createdAt: data?.createdAt || '',
+      isActive: data?.isActive ?? true
+    } as UserConflict
+  })
+}
+
+export const addUserConflict = async (conflict: Omit<UserConflict, 'id'>) => {
+  const conflictsRef = collection(db, 'userConflicts')
+  const result = await addDoc(conflictsRef, conflict)
+  return result
+}
+
+export const updateUserConflict = async (id: string, updates: Partial<UserConflict>) => {
+  const conflictRef = doc(db, 'userConflicts', id)
+  await updateDoc(conflictRef, updates)
+}
+
+export const deleteUserConflict = async (id: string) => {
+  const conflictRef = doc(db, 'userConflicts', id)
+  await deleteDoc(conflictRef)
+}
+
+// Access Blocks
+export const getAccessBlocks = async (userId?: string, isActive?: boolean) => {
+  const blocksRef = collection(db, 'accessBlocks')
+  let q: ReturnType<typeof query>
+
+  if (userId && isActive !== undefined) {
+    q = query(blocksRef, where('isActive', '==', isActive), where('userId', '==', userId))
+  } else if (userId) {
+    q = query(blocksRef, where('userId', '==', userId))
+  } else if (isActive !== undefined) {
+    q = query(blocksRef, where('isActive', '==', isActive))
+  } else {
+    q = query(blocksRef)
+  }
+
+  const snapshot = await getDocs(q)
+  return snapshot.docs.map((doc) => {
+    const data = doc.data() as any
+    return {
+      id: doc.id,
+      userId: data?.userId,
+      reason: data?.reason || '',
+      createdBy: data?.createdBy || '',
+      createdAt: data?.createdAt || '',
+      expiresAt: data?.expiresAt,
+      isActive: data?.isActive ?? true,
+      blockFeatures: data?.blockFeatures || []
+    } as AccessBlock
+  })
+}
+
+export const addAccessBlock = async (block: Omit<AccessBlock, 'id'>) => {
+  const blocksRef = collection(db, 'accessBlocks')
+  const result = await addDoc(blocksRef, block)
+  return result
+}
+
+export const updateAccessBlock = async (id: string, updates: Partial<AccessBlock>) => {
+  const blockRef = doc(db, 'accessBlocks', id)
+  await updateDoc(blockRef, updates)
+}
+
+export const deleteAccessBlock = async (id: string) => {
+  const blockRef = doc(db, 'accessBlocks', id)
+  await deleteDoc(blockRef)
+}
+
+// Check if user has access to a specific feature
+export const checkUserAccess = async (userId: string, feature: string): Promise<{ hasAccess: boolean; reason?: string }> => {
+  try {
+    // Check for general blocks (userId is null)
+    const generalBlocks = await getAccessBlocks(undefined, true)
+    for (const block of generalBlocks) {
+      if (!block.userId && block.blockFeatures.includes('all' as any) || block.blockFeatures.includes(feature as any)) {
+        // Check if block is expired
+        if (block.expiresAt && new Date(block.expiresAt) < new Date()) {
+          // Block is expired, mark as inactive
+          await updateAccessBlock(block.id, { isActive: false })
+          continue
+        }
+        return { hasAccess: false, reason: block.reason }
+      }
+    }
+
+    // Check for user-specific blocks
+    const userBlocks = await getAccessBlocks(userId, true)
+    for (const block of userBlocks) {
+      if (block.blockFeatures.includes('all' as any) || block.blockFeatures.includes(feature as any)) {
+        // Check if block is expired
+        if (block.expiresAt && new Date(block.expiresAt) < new Date()) {
+          // Block is expired, mark as inactive
+          await updateAccessBlock(block.id, { isActive: false })
+          continue
+        }
+        return { hasAccess: false, reason: block.reason }
+      }
+    }
+
+    return { hasAccess: true }
+  } catch (error) {
+    console.error('Error checking user access:', error)
+    return { hasAccess: true } // Default to allow access on error
+  }
 }
 

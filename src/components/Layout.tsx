@@ -4,7 +4,7 @@ import { useThemeStore } from '@/store/themeStore'
 import { useAdminStore } from '@/store/adminStore'
 import { useAuthStore } from '@/store/authStore'
 import { useUserActivity } from '@/hooks/useUserActivity'
-import { getApprovalRequests, getTasks, getWorkSlots } from '@/services/firestoreService'
+import { getApprovalRequests, getTasks, getWorkSlots, checkUserAccess } from '@/services/firestoreService'
 import { formatDate } from '@/utils/dateUtils'
 import {
   Moon,
@@ -34,25 +34,61 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
   const [showToolsMenu, setShowToolsMenu] = useState(false)
   const [showNotifications, setShowNotifications] = useState(false)
   const [notifications, setNotifications] = useState<{ id: string; text: string; time: string; status: string; timestamp?: number }[]>([])
+  const [accessibleFeatures, setAccessibleFeatures] = useState<Set<string>>(new Set())
 
   // Track user activity
   useUserActivity()
 
+  // Check user access to features
+  useEffect(() => {
+    const checkFeaturesAccess = async () => {
+      if (!user || isAdmin) {
+        // Admin has access to everything
+        setAccessibleFeatures(new Set(['slots', 'earnings', 'tasks', 'rating', 'profile', 'admin']))
+        return
+      }
 
-  const funcsSubItems: { path: string; label: string; icon: LucideIcon }[] = [
-    { path: '/call', label: 'HUB', icon: Calendar },
-    { path: '/management', label: 'Schedule', icon: Calendar },
-    { path: '/tasks', label: 'Task', icon: CheckSquare },
-    { path: '/earnings', label: 'Profit', icon: DollarSign },
-    { path: '/rating', label: 'Score', icon: TrendingUp },
-    ...(isAdmin ? [{ path: '/approvals', label: 'Согласования', icon: CheckCircle2 }] : []),
+      const features = ['slots', 'earnings', 'tasks', 'rating', 'profile']
+      const accessible = new Set<string>()
+
+      for (const feature of features) {
+        try {
+          const accessResult = await checkUserAccess(user.id, feature)
+          if (accessResult.hasAccess) {
+            accessible.add(feature)
+          }
+        } catch (error) {
+          console.error(`Error checking access to ${feature}:`, error)
+          // Default to allow on error
+          accessible.add(feature)
+        }
+      }
+
+      setAccessibleFeatures(accessible)
+    }
+
+    checkFeaturesAccess()
+  }, [user, isAdmin])
+
+  const funcsSubItems: { path: string; label: string; icon: LucideIcon; feature?: string }[] = [
+    { path: '/call', label: 'HUB', icon: Calendar, feature: 'slots' },
+    { path: '/management', label: 'Schedule', icon: Calendar, feature: 'slots' },
+    { path: '/tasks', label: 'Task', icon: CheckSquare, feature: 'tasks' },
+    { path: '/earnings', label: 'Profit', icon: DollarSign, feature: 'earnings' },
+    { path: '/rating', label: 'Score', icon: TrendingUp, feature: 'rating' },
+    ...(isAdmin ? [{ path: '/approvals', label: 'Согласования', icon: CheckCircle2, feature: 'admin' }] : []),
   ]
+
+  // Filter accessible items
+  const accessibleFuncsSubItems = funcsSubItems.filter(item =>
+    !item.feature || accessibleFeatures.has(item.feature) || isAdmin
+  )
 
   const toolsSubItems: { path: string; label: string; icon: LucideIcon }[] = [
     { path: '/meme-evaluation', label: 'Оценка мема', icon: TrendingUp },
   ]
 
-  const isFuncsActive = funcsSubItems.some(item => location.pathname === item.path)
+  const isFuncsActive = accessibleFuncsSubItems.some(item => location.pathname === item.path)
   const isFuncsSubItemActive = (path: string) => location.pathname === path
 
   const isToolsActive = toolsSubItems.some(item => location.pathname === item.path)
@@ -341,7 +377,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                     <div className="absolute top-[calc(100%+12px)] left-0 min-w-[220px] glass-panel rounded-2xl border border-white/40 dark:border-white/10 shadow-2xl z-50 overflow-hidden">
                       <div className="accent-dots" />
                       <div className="relative z-10 divide-y divide-gray-100/60 dark:divide-white/5">
-                        {funcsSubItems.map((item) => (
+                        {accessibleFuncsSubItems.map((item) => (
                           <Link
                             key={item.path}
                             to={item.path}
@@ -533,7 +569,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
           <div className="absolute bottom-24 left-1/2 -translate-x-1/2 w-[88%] max-w-sm glass-panel rounded-2xl shadow-2xl border border-white/50 dark:border-white/10 overflow-hidden">
             <div className="accent-dots" />
             <div className="relative z-10 divide-y divide-gray-100/60 dark:divide-white/5">
-              {funcsSubItems.map((item) => (
+              {accessibleFuncsSubItems.map((item) => (
                 <Link
                   key={item.path}
                   to={item.path}

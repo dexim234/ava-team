@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import { useAuthStore } from '@/store/authStore'
 import { useThemeStore } from '@/store/themeStore'
 import { useAdminStore } from '@/store/adminStore'
-import { addApprovalRequest, getWorkSlots, addWorkSlot, updateWorkSlot, checkRestriction } from '@/services/firestoreService'
+import { addApprovalRequest, getWorkSlots, addWorkSlot, updateWorkSlot, checkRestriction, getUserConflicts } from '@/services/firestoreService'
 import { calculateHours, timeOverlaps, formatDate, getDatesInRange, normalizeDatesList, parseTime } from '@/utils/dateUtils'
 import { UserNickname } from '@/components/UserNickname'
 import { getUserNicknameSync } from '@/utils/userUtils'
@@ -434,7 +434,33 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
     return getUserNicknameSync(userId)
   }
 
-  const validateSlot = async (slotDate: string, timeSlots: TimeSlot[]): Promise<string | null> => {
+  const validateSlot = async (slotDate: string, timeSlots: TimeSlot[], targetUserId?: string): Promise<string | null> => {
+    // Check user conflicts - users cannot create slots that overlap with their restricted users
+    if (targetUserId) {
+      const userConflicts = await getUserConflicts(targetUserId, true)
+      for (const conflict of userConflicts) {
+        const restrictedUserSlots = await getWorkSlots(conflict.restrictedUserId, slotDate)
+        for (const timeSlot of timeSlots) {
+          for (const restrictedSlot of restrictedUserSlots) {
+            if (timeOverlaps(timeSlot, restrictedSlot.slots[0])) {
+              const restrictedUserName = getMemberName(conflict.restrictedUserId)
+              return `Ваше время пересекается со слотом ${restrictedUserName} (${restrictedSlot.slots[0].start}-${restrictedSlot.slots[0].end}). ${conflict.reason || 'Выберите другое время.'}`
+            }
+          }
+          // Also check next day if slot crosses midnight
+          if (timeSlot.endDate) {
+            const restrictedNextDaySlots = await getWorkSlots(conflict.restrictedUserId, timeSlot.endDate)
+            for (const restrictedSlot of restrictedNextDaySlots) {
+              if (timeOverlaps(timeSlot, restrictedSlot.slots[0])) {
+                const restrictedUserName = getMemberName(conflict.restrictedUserId)
+                return `Ваше время пересекается со слотом ${restrictedUserName} (${restrictedSlot.slots[0].start}-${restrictedSlot.slots[0].end}). ${conflict.reason || 'Выберите другое время.'}`
+              }
+            }
+          }
+        }
+      }
+    }
+
     // Get all existing slots on this date (excluding the current slot if editing)
     const allExistingSlotsOnDate = await getWorkSlots(undefined, slotDate)
     const existingSlotsOnDate = allExistingSlotsOnDate.filter((s: any) => s.id !== slot?.id)
@@ -556,7 +582,7 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
       }
 
       if (!isAdmin) {
-        const validationError = await validateSlot(dateStr, adjustedSlots)
+        const validationError = await validateSlot(dateStr, adjustedSlots, targetUserId)
         if (validationError) {
           throw new Error(`[${getMemberName(targetUserId)} • ${formatDate(new Date(dateStr), 'dd.MM.yyyy')}] ${validationError}`)
         }
@@ -1248,7 +1274,7 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
                   disabled={loading || slots.length === 0}
                   className="flex-1 px-4 py-2.5 sm:py-2 bg-[#4E6E49] hover:bg-[#4E6E49] disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg sm:rounded-xl transition-colors text-sm sm:text-base font-medium touch-manipulation active:scale-95 disabled:active:scale-100"
                 >
-                  {loading ? 'Отправка...' : 'Отправить на согласование'}
+                  {loading ? 'Ошибка добавления слота' : 'Отправить на согласование'}
                 </button>
                 <button
                   onClick={onClose}

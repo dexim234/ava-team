@@ -397,3 +397,36 @@ export interface UserNickname {
   updatedAt: string
 }
 
+// Conflict restrictions types
+export interface UserConflict {
+  id: string
+  userId: string // user who cannot work with restrictedUserId
+  restrictedUserId: string // user they cannot work with
+  reason?: string
+  createdBy: string
+  createdAt: string
+  isActive: boolean
+}
+
+// Access block types
+export interface AccessBlock {
+  id: string
+  userId?: string // specific user ID, if null - blocks all users
+  reason: string
+  createdBy: string
+  createdAt: string
+  expiresAt?: string // optional expiration date
+  isActive: boolean
+  blockFeatures: AccessFeature[] // which features to block
+}
+
+export type AccessFeature =
+  | 'all' // block everything
+  | 'slots' // block slot management
+  | 'earnings' // block earnings
+  | 'tasks' // block tasks
+  | 'profile' // block profile access
+  | 'rating' // block rating
+  | 'admin' // block admin panel
+  | 'login' // block login entirely
+
