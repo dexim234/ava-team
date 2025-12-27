@@ -11,7 +11,6 @@ import {
   where,
   orderBy,
   DocumentData,
-  QuerySnapshot,
   DocumentSnapshot,
 } from 'firebase/firestore'
 import { db } from '@/firebase/config' // Keep original path for db
@@ -102,11 +101,11 @@ export const getWorkSlots = async (userId?: string, date?: string) => {
 
   // Filter by date in memory if both userId and date provided
   if (userId && date) {
-    results = results.filter((s: DayStatus) => s.date === date)
+    results = results.filter((s: WorkSlot) => s.date === date)
   }
 
   // Sort by date in memory to avoid index requirement
-  results.sort((a: DayStatus, b: DayStatus) => a.date.localeCompare(b.date))
+  results.sort((a: WorkSlot, b: WorkSlot) => a.date.localeCompare(b.date))
 
   return results
 }
