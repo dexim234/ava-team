@@ -20,6 +20,7 @@ import {
   Info,
   ArrowUpRight,
   Bell,
+  AlertTriangle,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import logo from '@/assets/logo.png'
@@ -86,6 +87,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
 
   const toolsSubItems: { path: string; label: string; icon: LucideIcon }[] = [
     { path: '/meme-evaluation', label: 'Оценка мема', icon: TrendingUp },
+    { path: '/ai-ao-alerts', label: 'ИИ - АО Alerts', icon: AlertTriangle },
   ]
 
   const isFuncsActive = accessibleFuncsSubItems.some(item => location.pathname === item.path)

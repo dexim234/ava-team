@@ -430,3 +430,17 @@ export type AccessFeature =
   | 'admin' // block admin panel
   | 'login' // block login entirely
 
+// AI - AO Alerts types
+export interface AiAlert {
+  id: string
+  signalDate: string // YYYY-MM-DD
+  signalTime: string // HH:mm
+  marketCap?: string // string to allow "300,77" format
+  address: string
+  maxDrop?: string // e.g. "-16"
+  maxProfit?: string // e.g. "+28" or "X3"
+  comment?: string // "Постепенное снижение" etc.
+  createdAt: string
+  createdBy: string
+}
+

@@ -12,7 +12,7 @@ import {
   orderBy,
 } from 'firebase/firestore'
 import { db } from '@/firebase/config'
-import { WorkSlot, DayStatus, Earnings, RatingData, Referral, Call, Task, TaskStatus, Note, TaskPriority, StageAssignee, ApprovalRequest, ApprovalStatus, UserActivity, UserNickname, Restriction, RestrictionType, UserConflict, AccessBlock } from '@/types'
+import { WorkSlot, DayStatus, Earnings, RatingData, Referral, Call, Task, TaskStatus, Note, TaskPriority, StageAssignee, ApprovalRequest, ApprovalStatus, UserActivity, UserNickname, Restriction, RestrictionType, UserConflict, AccessBlock, AiAlert } from '@/types'
 import { clearNicknameCache, getUserNicknameAsync } from '@/utils/userUtils'
 import { formatDate } from '@/utils/dateUtils'
 
@@ -86,7 +86,7 @@ export const getWorkSlots = async (userId?: string, date?: string) => {
       }
       return slot
     })
-    
+
     return {
       id: doc.id,
       userId: data?.userId || '',
@@ -96,15 +96,15 @@ export const getWorkSlots = async (userId?: string, date?: string) => {
       ...(data?.comment && { comment: data.comment }),
     } as WorkSlot
   })
-  
+
   // Filter by date in memory if both userId and date provided
   if (userId && date) {
     results = results.filter((s) => s.date === date)
   }
-  
+
   // Sort by date in memory to avoid index requirement
   results.sort((a, b) => a.date.localeCompare(b.date))
-  
+
   return results
 }
 
@@ -121,7 +121,7 @@ export const addWorkSlot = async (slot: Omit<WorkSlot, 'id'>) => {
     console.log('addWorkSlot: Calling addDoc...')
     const result = await addDoc(slotsRef, cleanSlot)
     console.log('addWorkSlot: Work slot added successfully:', result.id)
-    
+
     return result
   } catch (error: any) {
     console.error('addWorkSlot: Error caught:', error)
@@ -134,7 +134,7 @@ export const addWorkSlot = async (slot: Omit<WorkSlot, 'id'>) => {
 
 export const updateWorkSlot = async (id: string, updates: Partial<WorkSlot>) => {
   const slotRef = doc(db, 'workSlots', id)
-  
+
   // Remove undefined values before updating
   const cleanUpdates = Object.fromEntries(
     Object.entries(updates).filter(([_, value]) => value !== undefined)
@@ -180,15 +180,15 @@ export const getDayStatuses = async (userId?: string, date?: string) => {
       ...(data?.endDate && { endDate: data.endDate }),
     } as DayStatus
   })
-  
+
   // Filter by date in memory if both userId and date provided
   if (userId && date) {
     results = results.filter((s) => s.date === date)
   }
-  
+
   // Sort by date in memory to avoid index requirement
   results.sort((a, b) => a.date.localeCompare(b.date))
-  
+
   return results
 }
 
@@ -202,7 +202,7 @@ export const addDayStatus = async (status: Omit<DayStatus, 'id'>) => {
     console.log('Adding day status:', cleanStatus)
     const result = await addDoc(statusesRef, cleanStatus)
     console.log('Day status added successfully:', result.id)
-    
+
     return result
   } catch (error) {
     console.error('Error in addDayStatus:', error)
@@ -212,7 +212,7 @@ export const addDayStatus = async (status: Omit<DayStatus, 'id'>) => {
 
 export const updateDayStatus = async (id: string, updates: Partial<DayStatus>) => {
   const statusRef = doc(db, 'dayStatuses', id)
-  
+
   // Remove undefined values before updating
   const cleanUpdates = Object.fromEntries(
     Object.entries(updates).filter(([_, value]) => value !== undefined)
@@ -701,17 +701,17 @@ export const getEarnings = async (userId?: string, startDate?: string, endDate?:
       participants: data?.participants || [],
     } as Earnings
   })
-  
+
   // Filter by userId in memory (check both userId field and participants array)
   if (userId) {
     results = results.filter((e) => {
-      const allParticipants = e.participants && e.participants.length > 0 
-        ? [...e.participants, e.userId] 
+      const allParticipants = e.participants && e.participants.length > 0
+        ? [...e.participants, e.userId]
         : [e.userId]
       return allParticipants.includes(userId)
     })
   }
-  
+
   // Filter by date range in memory if userId is also provided
   if (userId && startDate && endDate) {
     results = results.filter((e) => e.date >= startDate && e.date <= endDate)
@@ -719,10 +719,10 @@ export const getEarnings = async (userId?: string, startDate?: string, endDate?:
     // Already filtered by query, but ensure consistency
     results = results.filter((e) => e.date >= startDate && e.date <= endDate)
   }
-  
+
   // Sort by date descending in memory to avoid index requirement
   results.sort((a, b) => b.date.localeCompare(a.date))
-  
+
   return results
 }
 
@@ -736,7 +736,7 @@ export const addEarnings = async (earning: Omit<Earnings, 'id'>) => {
     console.log('Adding earnings:', cleanEarning)
     const result = await addDoc(earningsRef, cleanEarning)
     console.log('Earnings added successfully:', result.id)
-    
+
     return result
   } catch (error) {
     console.error('Error in addEarnings:', error)
@@ -746,7 +746,7 @@ export const addEarnings = async (earning: Omit<Earnings, 'id'>) => {
 
 export const updateEarnings = async (id: string, updates: Partial<Earnings>) => {
   const earningRef = doc(db, 'earnings', id)
-  
+
   // Remove undefined values before updating
   const cleanUpdates = Object.fromEntries(
     Object.entries(updates).filter(([_, value]) => value !== undefined)
@@ -797,14 +797,14 @@ export const getWeeklyMessages = async (userId: string, weekStart: string, weekE
     // Filter by userId first, then filter by date in memory to avoid composite index requirement
     const q = query(messagesRef, where('userId', '==', userId))
     const snapshot = await getDocs(q)
-    
+
     // Filter by date range in memory
     const weeklyMessages = snapshot.docs.filter(doc => {
       const data = doc.data()
       const date = data.date || ''
       return date >= weekStart && date <= weekEnd
     })
-    
+
     return weeklyMessages.length
   } catch (error) {
     console.error('Error getting weekly messages:', error)
@@ -821,7 +821,7 @@ export const getWeeklyMessages = async (userId: string, weekStart: string, weekE
 export const updateRatingData = async (userId: string, data: Partial<RatingData>) => {
   const ratingRef = doc(db, 'ratings', userId)
   const ratingDoc = await getDoc(ratingRef)
-  
+
   if (ratingDoc.exists()) {
     return await updateDoc(ratingRef, data)
   } else {
@@ -839,7 +839,7 @@ export const addReferral = async (referral: Omit<Referral, 'id'>) => {
     console.log('Adding referral:', cleanReferral)
     const result = await addDoc(referralsRef, cleanReferral)
     console.log('Referral added successfully:', result.id)
-    
+
     return result
   } catch (error) {
     console.error('Error in addReferral:', error)
@@ -880,7 +880,7 @@ export const getReferrals = async (ownerId?: string, startDate?: string, endDate
 
 export const updateReferral = async (id: string, updates: Partial<Referral>) => {
   const referralRef = doc(db, 'referrals', id)
-  
+
   const cleanUpdates = Object.fromEntries(
     Object.entries(updates).filter(([_, value]) => value !== undefined)
   )
@@ -900,18 +900,18 @@ export const addCall = async (callData: Omit<Call, 'id'>): Promise<string> => {
     status: callData.status,
     createdAt: callData.createdAt
   })
-  
+
   if (!db) {
     console.error('❌ Service site: Firestore db is not initialized')
     throw new Error('Firestore database is not initialized')
   }
-  
+
   const callsRef = collection(db, 'calls')
   const docRef = await addDoc(callsRef, callData)
-  
+
   console.log('✅ Service site: Call created successfully with ID:', docRef.id)
   console.log('📊 Service site: Call data saved to Firestore:', callData)
-  
+
   return docRef.id
 }
 
@@ -923,15 +923,15 @@ export const getCalls = async (filters?: {
   activeOnly?: boolean
 }): Promise<Call[]> => {
   const callsRef = collection(db, 'calls')
-  
+
   // Build query constraints
   const constraints: any[] = []
-  
+
   // Add userId filter if provided
   if (filters?.userId) {
     constraints.push(where('userId', '==', filters.userId))
   }
-  
+
   // Add status filter if provided (don't combine with activeOnly status)
   if (filters?.status && !filters?.activeOnly) {
     constraints.push(where('status', '==', filters.status))
@@ -940,7 +940,7 @@ export const getCalls = async (filters?: {
   if (filters?.category) {
     constraints.push(where('category', '==', filters.category))
   }
-  
+
   // Add activeOnly filters
   if (filters?.activeOnly) {
     constraints.push(where('status', '==', 'active'))
@@ -948,10 +948,10 @@ export const getCalls = async (filters?: {
     yesterday.setHours(yesterday.getHours() - 24)
     constraints.push(where('createdAt', '>=', yesterday.toISOString()))
   }
-  
+
   // Always add orderBy
   constraints.push(orderBy('createdAt', 'desc'))
-  
+
   // Build query
   let q: ReturnType<typeof query>
   if (constraints.length > 0) {
@@ -1064,30 +1064,30 @@ export const getTasks = async (filters?: {
   createdBy?: string
 }): Promise<Task[]> => {
   const tasksRef = collection(db, 'tasks')
-  
+
   const constraints: any[] = []
-  
+
   if (filters?.status) {
     constraints.push(where('status', '==', filters.status))
   }
-  
+
   if (filters?.category) {
     constraints.push(where('category', '==', filters.category))
   }
-  
+
   if (filters?.createdBy) {
     constraints.push(where('createdBy', '==', filters.createdBy))
   }
-  
+
   constraints.push(orderBy('createdAt', 'desc'))
-  
+
   let q: ReturnType<typeof query>
   if (constraints.length > 0) {
     q = query(tasksRef, ...constraints) as ReturnType<typeof query>
   } else {
     q = query(tasksRef, orderBy('createdAt', 'desc'))
   }
-  
+
   const snapshot = await getDocs(q)
   const normalizePriority = (value: any): TaskPriority => {
     return value === 'high' || value === 'low' || value === 'urgent' ? value : 'medium'
@@ -1176,7 +1176,7 @@ export const getTasks = async (filters?: {
   // Auto-delete tasks that have been closed for more than 12 hours
   const now = new Date()
   const twelveHoursAgo = new Date(now.getTime() - 12 * 60 * 60 * 1000)
-  
+
   const tasksToDelete = tasks.filter(task => {
     if (task.status === 'closed' && task.closedAt) {
       const closedDate = new Date(task.closedAt)
@@ -1191,7 +1191,7 @@ export const getTasks = async (filters?: {
     // Remove deleted tasks from the list
     tasks = tasks.filter(task => !tasksToDelete.find(t => t.id === task.id))
   }
-  
+
   // Apply assignedTo filter in memory (array-contains doesn't work well with multiple users)
   if (filters?.assignedTo) {
     if (Array.isArray(filters.assignedTo)) {
@@ -1203,7 +1203,7 @@ export const getTasks = async (filters?: {
       tasks = tasks.filter((t) => t.assignedTo.includes(filters.assignedTo as string))
     }
   }
-  
+
   return tasks
 }
 
@@ -1316,7 +1316,7 @@ export const getLatestUserActivities = async (): Promise<UserActivity[]> => {
   // Get all activities, then group by userId and get latest for each
   const q = query(activitiesRef, orderBy('loginAt', 'desc'))
   const snapshot = await getDocs(q)
-  
+
   const allActivities = snapshot.docs.map((docSnap) => {
     const data = docSnap.data() as any
     return {
@@ -1371,9 +1371,9 @@ export const getUserNickname = async (userId: string): Promise<UserNickname | nu
   const nicknamesRef = collection(db, 'userNicknames')
   const q = query(nicknamesRef, where('userId', '==', userId))
   const snapshot = await getDocs(q)
-  
+
   if (snapshot.empty) return null
-  
+
   const data = snapshot.docs[0].data() as any
   return {
     id: snapshot.docs[0].id,
@@ -1393,7 +1393,7 @@ export const setUserNickname = async (userId: string, nickname: string): Promise
   const nicknamesRef = collection(db, 'userNicknames')
   const existing = await getUserNickname(userId)
   const now = new Date().toISOString()
-  
+
   if (existing) {
     const ref = doc(db, 'userNicknames', existing.id)
     await updateDoc(ref, {
@@ -1423,11 +1423,11 @@ export const getUserActivitiesLast24Hours = async (): Promise<UserActivity[]> =>
   const activitiesRef = collection(db, 'userActivities')
   const now = new Date()
   const last24Hours = new Date(now.getTime() - 24 * 60 * 60 * 1000)
-  
+
   // Get all activities from last 24 hours
   const q = query(activitiesRef, orderBy('loginAt', 'desc'))
   const snapshot = await getDocs(q)
-  
+
   const allActivities = snapshot.docs.map((docSnap) => {
     const data = docSnap.data() as any
     return {
@@ -1442,7 +1442,7 @@ export const getUserActivitiesLast24Hours = async (): Promise<UserActivity[]> =>
       pageViews: data.pageViews || [],
     } as UserActivity
   })
-  
+
   // Filter activities from last 24 hours
   return allActivities.filter((activity) => {
     const loginTime = new Date(activity.loginAt)
@@ -1581,3 +1581,36 @@ export const checkUserAccess = async (userId: string, feature: string): Promise<
   }
 }
 
+
+// AI - AO Alerts
+export const getAiAlerts = async () => {
+  const alertsRef = collection(db, 'aiAlerts')
+  const q = query(alertsRef, orderBy('createdAt', 'desc'))
+  const snapshot = await getDocs(q)
+  return snapshot.docs.map((doc) => ({
+    id: doc.id,
+    ...doc.data(),
+  } as AiAlert))
+}
+
+export const addAiAlert = async (alert: Omit<AiAlert, 'id'>) => {
+  const alertsRef = collection(db, 'aiAlerts')
+  const cleanAlert = Object.fromEntries(
+    Object.entries(alert).filter(([_, value]) => value !== undefined)
+  )
+  const result = await addDoc(alertsRef, cleanAlert)
+  return result
+}
+
+export const updateAiAlert = async (id: string, updates: Partial<AiAlert>) => {
+  const alertRef = doc(db, 'aiAlerts', id)
+  const cleanUpdates = Object.fromEntries(
+    Object.entries(updates).filter(([_, value]) => value !== undefined)
+  )
+  await updateDoc(alertRef, cleanUpdates)
+}
+
+export const deleteAiAlert = async (id: string) => {
+  const alertRef = doc(db, 'aiAlerts', id)
+  await deleteDoc(alertRef)
+}

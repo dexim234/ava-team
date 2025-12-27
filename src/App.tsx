@@ -16,6 +16,7 @@ import { About } from './pages/About'
 import { Rules } from './pages/Rules'
 import { Approvals } from './pages/Approvals'
 import { MemeEvaluation } from './pages/MemeEvaluation'
+import { AiAoAlerts } from './pages/AiAoAlerts'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { AccessBlockScreen } from './components/AccessBlockScreen'
 import { cleanupOldData } from './services/firestoreService'
@@ -38,15 +39,15 @@ function App() {
     <BrowserRouter>
       <AccessBlockScreen />
       <Routes>
-        <Route 
-          path="/login" 
+        <Route
+          path="/login"
           element={
             (!isAuthenticated && !isAdmin) ? (
               <Login />
             ) : (
               <Navigate to="/management" replace />
             )
-          } 
+          }
         />
         <Route
           path="/call"
@@ -126,6 +127,14 @@ function App() {
           element={
             <ProtectedRoute>
               <MemeEvaluation />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/ai-ao-alerts"
+          element={
+            <ProtectedRoute>
+              <AiAoAlerts />
             </ProtectedRoute>
           }
         />
