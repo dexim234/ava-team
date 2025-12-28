@@ -15,7 +15,6 @@ import {
   DollarSign,
   CheckSquare,
   TrendingUp,
-  User,
   ChevronDown,
   Info,
   ArrowUpRight,
@@ -273,18 +272,6 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
     return () => clearInterval(id)
   }, [user, isAdmin])
 
-  const handleCloseNotifications = () => {
-    // При закрытии сохраняем ID всех текущих уведомлений как просмотренные
-    if (notifications.length > 0) {
-      const viewedKey = `viewedNotifications_${user?.id || 'admin'}`
-      const existing = JSON.parse(localStorage.getItem(viewedKey) || '[]')
-      const newIds = notifications.map(n => n.id)
-      const updated = [...new Set([...existing, ...newIds])]
-      localStorage.setItem(viewedKey, JSON.stringify(updated))
-      setNotifications([])
-    }
-    setShowNotifications(false)
-  }
 
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2)
