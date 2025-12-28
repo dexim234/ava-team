@@ -58,6 +58,22 @@ export const Login = () => {
     document.body.classList.toggle('dark', theme === 'dark')
   }, [theme])
 
+  // Load remembered credentials
+  useEffect(() => {
+    const saved = localStorage.getItem('apevault_remembered')
+    if (saved) {
+      try {
+        const { login: l, password: p, type } = JSON.parse(saved)
+        setLogin(l)
+        setPassword(p)
+        setUserType(type || 'member')
+        setRememberMe(true)
+      } catch (err) {
+        console.error('Error loading remembered credentials:', err)
+      }
+    }
+  }, [])
+
   // Check for Telegram Mini App authentication
   useEffect(() => {
     if (isAuthenticated && user) {
@@ -133,6 +149,11 @@ export const Login = () => {
     if (userType === 'admin') {
       const adminSuccess = activateAdmin(password)
       if (adminSuccess) {
+        if (rememberMe) {
+          localStorage.setItem('apevault_remembered', JSON.stringify({ login: '', password, type: 'admin' }))
+        } else {
+          localStorage.removeItem('apevault_remembered')
+        }
         navigate('/management')
       } else {
         setError('Неверный пароль администратора')
@@ -144,6 +165,11 @@ export const Login = () => {
       }
       const success = loginUser(login, password)
       if (success) {
+        if (rememberMe) {
+          localStorage.setItem('apevault_remembered', JSON.stringify({ login, password, type: 'member' }))
+        } else {
+          localStorage.removeItem('apevault_remembered')
+        }
         navigate('/management')
       } else {
         setError('Неверный логин или пароль')
@@ -176,8 +202,7 @@ export const Login = () => {
           </p>
 
           <div className="mt-20 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            System Secure
+            {/* System Secure indicator removed per user request */}
           </div>
         </div>
       </div>
@@ -188,7 +213,7 @@ export const Login = () => {
         <div className="xl:hidden flex items-center justify-between mb-12">
           <div className="flex items-center gap-3">
             <img src={logo} alt="Logo" className="w-10 h-10 object-contain" />
-            <span className={`font-black tracking-tight ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>ApeVault</span>
+            <span className={`font-black tracking-tight ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>ApeVault Frontier</span>
           </div>
           <button onClick={toggleTheme} className="p-2 rounded-xl bg-gray-100 dark:bg-white/5 text-gray-700 dark:text-amber-300">
             {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
@@ -209,7 +234,7 @@ export const Login = () => {
         </div>
 
         <div className="flex-1 flex flex-col justify-center max-w-md mx-auto w-full">
-          <div className="mb-10 text-center xl:text-left">
+          <div className="mb-10 text-center">
             <h2 className={`text-4xl font-extrabold mb-3 tracking-tight ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
               Добро пожаловать
             </h2>
@@ -312,9 +337,14 @@ export const Login = () => {
                 </div>
                 <span className={`text-sm font-bold ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Запомнить меня</span>
               </label>
-              <button type="button" className="text-sm font-bold text-emerald-500 hover:text-emerald-600">
+              <a
+                href="https://t.me/artyommedoed"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm font-bold text-emerald-500 hover:text-emerald-600"
+              >
                 Забыли пароль?
-              </button>
+              </a>
             </div>
 
             {error && (
@@ -359,13 +389,7 @@ export const Login = () => {
             </div>
           </div>
 
-          <div className="mt-12 text-center text-[10px] font-bold text-gray-500 dark:text-gray-600 uppercase tracking-widest">
-            <p>© 2023 ApeVault Frontier. Protected Area.</p>
-            <p className="mt-2 flex items-center justify-center gap-2">
-              <Shield className="w-3 h-3" />
-              Access Logged: <span className="text-emerald-500/60 font-mono">IP 192.168.x.x</span>
-            </p>
-          </div>
+          {/* Copyright footnote removed per user request */}
         </div>
       </div>
     </div>

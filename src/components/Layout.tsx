@@ -397,7 +397,12 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
 
             <div className="flex gap-2">
               <button
-                onClick={logout}
+                onClick={() => {
+                  logout()
+                  deactivateAdmin()
+                  // Using window.location.href to ensure a clean state and fix the "blank screen" issue
+                  window.location.href = '/login'
+                }}
                 className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border border-red-500/20 bg-red-500/5 text-red-500 hover:bg-red-500/10 transition-colors text-xs font-bold"
               >
                 <LogOut className="w-3.5 h-3.5" />
