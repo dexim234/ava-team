@@ -9,7 +9,7 @@ import { getUserNicknameSync } from '@/utils/userUtils'
 import { UserNickname } from '@/components/UserNickname'
 import { WorkSlot, DayStatus } from '@/types'
 import { TEAM_MEMBERS } from '@/types'
-import { Edit, Trash2, Calendar as CalendarIcon, ChevronDown } from 'lucide-react'
+import { Edit, Trash2, Clock, Calendar as CalendarIcon, ChevronDown, ChevronUp } from 'lucide-react'
 
 type SlotFilter = 'all' | 'upcoming' | 'completed'
 
@@ -29,7 +29,7 @@ export const ManagementTable = ({ selectedUserId, slotFilter, onEditSlot, onEdit
   const [statuses, setStatuses] = useState<DayStatus[]>([])
   const [selectedWeek, setSelectedWeek] = useState(new Date())
   const [loading, setLoading] = useState(true)
-
+  const [breaksExpanded, setBreaksExpanded] = useState<Record<string, boolean>>({})
   const todayStr = formatDate(new Date(), 'yyyy-MM-dd')
 
   const legacyIdMap: Record<string, string> = {
@@ -402,6 +402,13 @@ export const ManagementTable = ({ selectedUserId, slotFilter, onEditSlot, onEdit
     setSelectedWeek(newDate)
   }
 
+  const toggleBreaksVisibility = (slotId: string) => {
+    setBreaksExpanded(prev => ({
+      ...prev,
+      [slotId]: !prev[slotId]
+    }))
+  }
+
 
 
   if (loading) {
@@ -541,67 +548,102 @@ export const ManagementTable = ({ selectedUserId, slotFilter, onEditSlot, onEdit
                       return (
                         <td key={dateStr} className="p-2 align-top">
                           {slot ? (
-                            <div className="flex flex-col gap-1">
-                              {(() => {
-                                const isUpcoming = isSlotUpcoming(slot)
-                                const slotStyle = isUpcoming
-                                  ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20'
-                                  : 'bg-slate-700 text-slate-200 opacity-60'
+                            <div className="flex flex-col items-center gap-2">
+                              {slot.slots.map((s: any, slotIdx: number) => {
+                                const slotId = `${slot.id}-${slotIdx}`
+                                const isExpanded = breaksExpanded[slotId]
 
-                                return slot.slots.map((s, slotIdx) => (
-                                  <div key={slotIdx} className={`rounded-lg p-2 text-xs font-bold transition-transform hover:scale-105 cursor-default relative overflow-hidden group/slot ${slotStyle}`}>
-                                    <div className="flex items-center justify-center gap-1">
-                                      <span className="whitespace-nowrap">{s.start}-{s.end}</span>
-                                    </div>
-                                    {/* Edit/Delete overlay */}
-                                    {(isAdmin || user?.id === slot.userId) && (
-                                      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm opacity-0 group-hover/slot:opacity-100 transition-opacity flex items-center justify-center gap-1">
-                                        <button onClick={() => onEditSlot(slot)} className="p-1 hover:text-emerald-300"><Edit className="w-3 h-3" /></button>
-                                        <button onClick={() => handleDeleteSlot(slot)} className="p-1 hover:text-rose-300"><Trash2 className="w-3 h-3" /></button>
+                                return (
+                                  <div key={slotIdx} className="w-full flex flex-col items-center gap-2">
+                                    <div className={`w-full max-w-[140px] rounded-2xl p-3 text-xs font-bold transition-all relative overflow-hidden group/slot shadow-lg ${theme === 'dark' ? 'bg-[#1a1f26] border border-white/5 text-gray-200' : 'bg-gray-100 text-gray-700'
+                                      }`}>
+                                      <div className="flex flex-col items-center gap-2">
+                                        <div className="flex items-center gap-1.5 opacity-80">
+                                          <Clock className="w-3.5 h-3.5" />
+                                          <span className="whitespace-nowrap tracking-tight">{s.start} - {s.end}</span>
+                                        </div>
+                                        <button
+                                          onClick={() => toggleBreaksVisibility(slotId)}
+                                          className="p-1 hover:bg-white/10 rounded-lg transition-colors"
+                                        >
+                                          {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                                        </button>
                                       </div>
-                                    )}
+
+                                      {/* Breaks details if expanded */}
+                                      {isExpanded && s.breaks && s.breaks.length > 0 && (
+                                        <div className="mt-2 pt-2 border-t border-white/10 space-y-1 w-full">
+                                          {s.breaks.map((br: any, bIdx: number) => (
+                                            <div key={bIdx} className="flex justify-between text-[10px] opacity-70">
+                                              <span>Перерыв:</span>
+                                              <span>{br.start}-{br.end}</span>
+                                            </div>
+                                          ))}
+                                        </div>
+                                      )}
+                                    </div>
+
+                                    {/* Action buttons below the pill */}
+                                    <div className="flex items-center gap-3">
+                                      <button
+                                        onClick={() => onEditSlot(slot)}
+                                        className={`transition-all hover:scale-110 ${theme === 'dark' ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-500'}`}
+                                      >
+                                        <Edit className="w-4 h-4" />
+                                      </button>
+                                      <button
+                                        onClick={() => handleDeleteSlot(slot)}
+                                        className={`transition-all hover:scale-110 ${theme === 'dark' ? 'text-rose-500 hover:text-rose-400' : 'text-rose-600 hover:text-rose-500'}`}
+                                      >
+                                        <Trash2 className="w-4 h-4" />
+                                      </button>
+                                    </div>
                                   </div>
-                                ))
-                              })()}
+                                )
+                              })}
                             </div>
                           ) : status ? (
-                            <div className={`rounded-lg p-2 text-[10px] font-bold text-center border ${statusTone[status.type]} relative group/status`}>
-                              {status.type === 'dayoff' ? 'ВЫХ' : status.type === 'sick' ? 'БОЛН' : status.type === 'vacation' ? 'ОТП' : 'Н/Б'}
-                              {/* Edit/Delete overlay */}
-                              {(isAdmin || (status.type !== 'absence' && user?.id === status.userId)) && (
-                                <div className="absolute inset-0 bg-black/50 backdrop-blur-sm opacity-0 group-hover/status:opacity-100 transition-opacity flex items-center justify-center gap-1 rounded-lg">
-                                  <button onClick={() => onEditStatus(status)} className="p-1 text-white hover:text-blue-300"><Edit className="w-3 h-3" /></button>
-                                  <button onClick={() => handleDeleteStatus(status, dateStr)} className="p-1 text-white hover:text-rose-300"><Trash2 className="w-3 h-3" /></button>
-                                </div>
-                              )}
+                            <div className="flex flex-col items-center gap-2">
+                              <div className={`w-full max-w-[140px] rounded-xl p-2.5 text-[11px] font-black text-center border shadow-md ${theme === 'dark' ? 'bg-[#2A3441]/40' : 'bg-white'} ${statusTone[status.type as keyof typeof statusTone]}`}>
+                                {status.type === 'dayoff' ? 'Выходной' : status.type === 'sick' ? 'Больничный' : status.type === 'vacation' ? 'Отпуск' : 'Прогул'}
+                              </div>
+                              <div className="flex items-center gap-3">
+                                <button
+                                  onClick={() => onEditStatus(status)}
+                                  className={`transition-all hover:scale-110 ${theme === 'dark' ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-500'}`}
+                                >
+                                  <Edit className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteStatus(status, dateStr)}
+                                  className={`transition-all hover:scale-110 ${theme === 'dark' ? 'text-rose-500 hover:text-rose-400' : 'text-rose-600 hover:text-rose-500'}`}
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
                             </div>
                           ) : (
-                            <div className="h-8 w-full rounded-lg border border-dashed border-gray-700/20 dark:border-white/5 opacity-50"></div>
+                            <div className="h-10 w-full max-w-[140px] mx-auto rounded-xl border border-dashed border-gray-700/20 dark:border-white/5 opacity-30"></div>
                           )}
                         </td>
                       )
                     })}
                     <td className="p-4 align-top">
-                      <div className={`rounded-xl p-3 border ${theme === 'dark' ? 'bg-[#151a21] border-white/5' : 'bg-gray-50 border-gray-100'}`}>
-                        <div className="flex justify-between items-center mb-2">
-                          <span className={`text-[10px] uppercase font-bold ${subTextColor}`}>Total</span>
-                          <span className={`text-sm font-black ${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}>
-                            {stats.totalHours.toFixed(0)}ч
-                          </span>
+                      <div className="space-y-1.5 py-4 min-w-[140px]">
+                        <div className={`text-sm font-medium ${headingColor}`}>
+                          Часов: {stats.totalHours.toFixed(1)}
                         </div>
-                        <div className="space-y-1">
-                          {stats.daysOff > 0 && (
-                            <div className="flex justify-between text-[10px]">
-                              <span className="text-amber-500">Выходных</span>
-                              <span className={`font-bold ${headingColor}`}>{stats.daysOff}</span>
-                            </div>
-                          )}
-                          {stats.absenceDays > 0 && (
-                            <div className="flex justify-between text-[10px]">
-                              <span className="text-rose-500">Прогулов</span>
-                              <span className={`font-bold ${headingColor}`}>{stats.absenceDays}</span>
-                            </div>
-                          )}
+                        <div className={`text-sm font-medium ${headingColor}`}>
+                          Выходных: {stats.daysOff}
+                        </div>
+                        <div className={`text-sm font-medium ${headingColor}`}>
+                          Больничных: {stats.sickDays}
+                        </div>
+                        <div className={`text-sm font-medium ${headingColor}`}>
+                          Отпусков: {stats.vacationDays}
+                        </div>
+                        <div className={`text-sm font-medium ${headingColor}`}>
+                          Прогулов: {stats.absenceDays}
                         </div>
                       </div>
                     </td>
@@ -612,7 +654,7 @@ export const ManagementTable = ({ selectedUserId, slotFilter, onEditSlot, onEdit
           </table>
         </div>
       </div>
-    </div>
+    </div >
   )
 }
 
