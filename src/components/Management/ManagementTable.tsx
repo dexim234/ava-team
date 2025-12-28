@@ -1,5 +1,5 @@
 // Table view for management
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { useThemeStore } from '@/store/themeStore'
 import { useAuthStore } from '@/store/authStore'
 import { useAdminStore } from '@/store/adminStore'
@@ -9,7 +9,7 @@ import { getUserNicknameSync } from '@/utils/userUtils'
 import { UserNickname } from '@/components/UserNickname'
 import { WorkSlot, DayStatus } from '@/types'
 import { TEAM_MEMBERS } from '@/types'
-import { Edit, Trash2, CheckCircle2, Calendar as CalendarIcon, ChevronDown, ChevronUp } from 'lucide-react'
+import { Edit, Trash2, Calendar as CalendarIcon, ChevronDown } from 'lucide-react'
 
 type SlotFilter = 'all' | 'upcoming' | 'completed'
 
@@ -29,7 +29,7 @@ export const ManagementTable = ({ selectedUserId, slotFilter, onEditSlot, onEdit
   const [statuses, setStatuses] = useState<DayStatus[]>([])
   const [selectedWeek, setSelectedWeek] = useState(new Date())
   const [loading, setLoading] = useState(true)
-  const [breaksExpanded, setBreaksExpanded] = useState<Record<string, boolean>>({})
+
   const todayStr = formatDate(new Date(), 'yyyy-MM-dd')
 
   const legacyIdMap: Record<string, string> = {
@@ -402,12 +402,7 @@ export const ManagementTable = ({ selectedUserId, slotFilter, onEditSlot, onEdit
     setSelectedWeek(newDate)
   }
 
-  const toggleBreaksVisibility = (slotId: string) => {
-    setBreaksExpanded(prev => ({
-      ...prev,
-      [slotId]: !prev[slotId]
-    }))
-  }
+
 
   if (loading) {
     return (
@@ -476,8 +471,8 @@ export const ManagementTable = ({ selectedUserId, slotFilter, onEditSlot, onEdit
                   return (
                     <th key={day.toISOString()} className="p-2 min-w-[120px]">
                       <div className={`mx-auto w-full p-2 rounded-xl border transition-colors ${isToday
-                          ? 'bg-emerald-500/10 border-emerald-500/50 text-emerald-500'
-                          : theme === 'dark' ? 'bg-[#151a21] border-white/5 text-gray-400' : 'bg-gray-50 border-gray-100 text-gray-500'
+                        ? 'bg-emerald-500/10 border-emerald-500/50 text-emerald-500'
+                        : theme === 'dark' ? 'bg-[#151a21] border-white/5 text-gray-400' : 'bg-gray-50 border-gray-100 text-gray-500'
                         }`}>
                         <div className="text-[10px] uppercase font-bold opacity-70 mb-0.5">{formatDate(day, 'EEE')}</div>
                         <div className="text-sm font-black">{formatDate(day, 'dd.MM')}</div>
@@ -519,8 +514,8 @@ export const ManagementTable = ({ selectedUserId, slotFilter, onEditSlot, onEdit
                           ) : null}
                           <div
                             className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm ${theme === 'dark'
-                                ? 'bg-[#1f2937] text-gray-300'
-                                : 'bg-gray-200 text-gray-600'
+                              ? 'bg-[#1f2937] text-gray-300'
+                              : 'bg-gray-200 text-gray-600'
                               } ${user.avatar ? 'absolute inset-0 hidden' : ''}`}
                           >
                             <UserNickname userId={user.id} formatter={(n: string) => n.charAt(0).toUpperCase()} />

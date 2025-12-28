@@ -13,7 +13,6 @@ import {
   CalendarCheck,
   PlusCircle,
   Trash2,
-  Moon,
   Users,
   Timer,
   Hourglass,
@@ -39,7 +38,7 @@ export const Management = () => {
   const { theme } = useThemeStore()
   const { isAdmin } = useAdminStore()
   const [viewMode, setViewMode] = useState<ViewMode>('week')
-  const [slotFilter, setSlotFilter] = useState<SlotFilter>('all')
+  const [slotFilter] = useState<SlotFilter>('all')
   const [showSlotForm, setShowSlotForm] = useState(false)
   const [showDeleteSlotsForm, setShowDeleteSlotsForm] = useState(false)
   const [showStatusForm, setShowStatusForm] = useState(false)
@@ -336,14 +335,7 @@ export const Management = () => {
   }
 
   const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
-  const labelColor = theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
-  const cardBg = theme === 'dark'
-    ? 'border-[#4E6E49]/30 bg-gradient-to-br from-[#1a1a1a] via-[#1a1a1a] to-[#0A0A0A]'
-    : 'border-green-200 bg-gradient-to-br from-white via-green-50/30 to-white'
-  const sectionCardClass = `rounded-2xl p-4 sm:p-6 md:p-8 border-2 ${cardBg}`
-  const surfaceCardClass = `rounded-2xl border ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-white'}`
   const softTextColor = theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-  const contentCardClass = `rounded-2xl p-4 sm:p-5 border-2 ${cardBg}`
   const statToneMap: Record<string, { bg: string; text: string; border: string }> = {
     emerald: {
       bg: theme === 'dark' ? 'bg-emerald-500/10' : 'bg-emerald-50',
@@ -589,6 +581,7 @@ export const Management = () => {
               <div className="flex gap-1">
                 {[
                   { icon: <Shield className="w-4 h-4" />, action: handleManageRestrictions, title: "Ограничения" },
+                  { icon: <Shield className="w-4 h-4" />, action: handleManageConflicts, title: "Конфликты" },
                   { icon: <ShieldX className="w-4 h-4" />, action: handleManageAccessBlocks, title: "Блокировки" }
                 ].map((btn, i) => (
                   <button
