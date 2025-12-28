@@ -1,6 +1,6 @@
 // Earnings statistics table
 import { useThemeStore } from '@/store/themeStore'
-import { formatDate, getWeekRange } from '@/utils/dateUtils'
+import { formatDate } from '@/utils/dateUtils'
 import { getUserNicknameSync } from '@/utils/userUtils'
 import { Earnings, TEAM_MEMBERS } from '@/types'
 
