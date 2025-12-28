@@ -31,7 +31,6 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
   const { isAdmin } = useAdminStore()
   const { user } = useAuthStore()
   const location = useLocation()
-  const [showFuncsMenu, setShowFuncsMenu] = useState(false)
   const [showToolsMenu, setShowToolsMenu] = useState(false)
   const [showNotifications, setShowNotifications] = useState(false)
   const [notifications, setNotifications] = useState<{ id: string; text: string; time: string; status: string; timestamp?: number }[]>([])
@@ -72,12 +71,13 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
   }, [user, isAdmin])
 
   const funcsSubItems: { path: string; label: string; icon: LucideIcon; feature?: string }[] = [
-    { path: '/call', label: 'HUB', icon: Calendar, feature: 'slots' },
-    { path: '/management', label: 'Schedule', icon: Calendar, feature: 'slots' },
-    { path: '/tasks', label: 'Task', icon: CheckSquare, feature: 'tasks' },
-    { path: '/earnings', label: 'Profit', icon: DollarSign, feature: 'earnings' },
-    { path: '/rating', label: 'Score', icon: TrendingUp, feature: 'rating' },
-    ...(isAdmin ? [{ path: '/approvals', label: 'Согласования', icon: CheckCircle2, feature: 'admin' }] : []),
+    { path: '/call', label: 'AVF HUB', icon: Calendar, feature: 'slots' },
+    { path: '/management', label: 'AVF Schedule', icon: Calendar, feature: 'slots' },
+    { path: '/tasks', label: 'AVF Tasks', icon: CheckSquare, feature: 'tasks' },
+    { path: '/earnings', label: 'AVF Profit', icon: DollarSign, feature: 'earnings' },
+    { path: '/rating', label: 'AVF Score', icon: TrendingUp, feature: 'rating' },
+    { path: '/about', label: 'AVF NFO', icon: Info, feature: 'profile' },
+    ...(isAdmin ? [{ path: '/approvals', label: 'AVF Check', icon: CheckCircle2, feature: 'admin' }] : []),
   ]
 
   // Filter accessible items
@@ -90,14 +90,10 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
     { path: '/ai-ao-alerts', label: 'ИИ - АО Alerts', icon: AlertTriangle },
   ]
 
-  const isFuncsActive = accessibleFuncsSubItems.some(item => location.pathname === item.path)
-  const isFuncsSubItemActive = (path: string) => location.pathname === path
 
   const isToolsActive = toolsSubItems.some(item => location.pathname === item.path)
-  const isToolsSubItemActive = (path: string) => location.pathname === path
 
   useEffect(() => {
-    setShowFuncsMenu(false)
     setShowToolsMenu(false)
   }, [location.pathname])
 
@@ -290,10 +286,12 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
     setShowNotifications(false)
   }
 
+  const getInitials = (name: string) => {
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2)
+  }
+
   return (
-    <div className="app-shell">
-
-
+    <div className={`min-h-screen ${theme === 'dark' ? 'dark bg-[#0b0f17]' : 'bg-[#f8fafc]'}`}>
       <div className="absolute inset-0 pointer-events-none -z-10 overflow-hidden">
         <div className="absolute -top-24 -left-12 w-80 h-80 bg-gradient-to-br from-[#4E6E49]/25 via-transparent to-transparent blur-3xl" />
         <div className="absolute top-8 right-0 w-[520px] h-[520px] bg-gradient-to-bl from-blue-500/12 via-purple-500/10 to-transparent blur-3xl" />
@@ -301,324 +299,179 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
         <div className="floating-grid" />
       </div>
 
-      <header className="sticky top-0 z-50 backdrop-blur-md">
-        <div className="max-w-7xl mx-auto px-4 lg:px-6 pt-4 pb-2">
-          <div className="glass-panel rounded-2xl px-4 lg:px-6 py-3 flex items-center gap-4 shadow-2xl">
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="relative w-12 h-12 rounded-2xl bg-white/80 dark:bg-white/5 border border-white/50 dark:border-white/10 shadow-lg overflow-hidden flex items-center justify-center">
-                <img src={logo} alt="ApeVault Logo" className="w-10 h-10 object-contain" />
-                <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent dark:from-white/5" />
-              </div>
-              <div className="leading-tight">
-                <p className={`text-xs uppercase tracking-[0.16em] ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                  ApeVault Black Ops
-                </p>
-                <p className={`text-xl font-extrabold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                  Панель команды
-                </p>
-              </div>
+      <div className="flex flex-col lg:flex-row-reverse min-h-screen">
+        {/* Desktop Sidebar (Right) */}
+        <aside className="hidden lg:flex w-72 h-screen fixed right-0 top-0 flex-col glass-panel border-l border-white/40 dark:border-white/10 z-50 overflow-hidden">
+          <div className="accent-dots" />
+
+          {/* Logo & Branding */}
+          <div className="relative z-10 p-6 flex items-center gap-3">
+            <div className="relative w-10 h-10 rounded-xl bg-white/80 dark:bg-white/5 border border-white/50 dark:border-white/10 shadow-lg overflow-hidden flex items-center justify-center">
+              <img src={logo} alt="Logo" className="w-8 h-8 object-contain" />
+            </div>
+            <div>
+              <p className={`text-[10px] uppercase tracking-[0.2em] font-bold ${theme === 'dark' ? 'text-[#4E6E49]' : 'text-[#4E6E49]'}`}>ApeVault</p>
+              <p className={`text-sm font-black tracking-tight ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>FRONTIER</p>
+            </div>
+          </div>
+
+          <div className="h-px w-full bg-gradient-to-r from-transparent via-gray-200/50 dark:via-white/10 to-transparent my-2" />
+
+          {/* Navigation */}
+          <nav className="relative z-10 flex-1 px-4 py-4 space-y-1 overflow-y-auto">
+            {/* Tools Dropdown */}
+            <div className="space-y-1">
+              <button
+                onClick={() => setShowToolsMenu(!showToolsMenu)}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${isToolsActive ? 'bg-[#4E6E49]/15 text-[#4E6E49]' : 'text-gray-500 hover:bg-gray-100/50 dark:hover:bg-white/5'}`}
+              >
+                <Settings className="w-4 h-4" />
+                <span className="font-bold flex-1 text-left">Tools</span>
+                <ChevronDown className={`w-4 h-4 transition-transform ${showToolsMenu ? 'rotate-180' : ''}`} />
+              </button>
+
+              {showToolsMenu && (
+                <div className="pl-11 pr-4 py-1 space-y-1">
+                  {toolsSubItems.map((item) => (
+                    <Link
+                      key={item.path}
+                      to={item.path}
+                      className={`block py-2 text-sm font-medium transition-colors ${location.pathname === item.path ? 'text-[#4E6E49]' : 'text-gray-400 hover:text-[#4E6E49]'}`}
+                    >
+                      {item.label}
+                    </Link>
+                  ))}
+                </div>
+              )}
             </div>
 
-            <nav className="hidden lg:flex items-center gap-2 flex-1 justify-center">
-              <div className="relative">
-                <button
-                  onClick={() => {
-                    setShowToolsMenu(!showToolsMenu)
-                  }}
-                  data-active={isToolsActive}
-                  className="nav-chip"
-                >
-                  <Settings className="w-4 h-4" />
-                  <span>Tools</span>
-                  <ChevronDown className={`w-4 h-4 transition-transform ${showToolsMenu ? 'rotate-180' : ''}`} />
-                </button>
-                {showToolsMenu && (
-                  <>
-                    <div className="fixed inset-0 z-40" onClick={() => setShowToolsMenu(false)} />
-                    <div className="absolute top-[calc(100%+12px)] left-0 min-w-[220px] glass-panel rounded-2xl border border-white/40 dark:border-white/10 shadow-2xl z-50 overflow-hidden">
-                      <div className="accent-dots" />
-                      <div className="relative z-10 divide-y divide-gray-100/60 dark:divide-white/5">
-                        {toolsSubItems.map((item) => (
-                          <Link
-                            key={item.path}
-                            to={item.path}
-                            onClick={() => setShowToolsMenu(false)}
-                            className={`flex items-center gap-3 px-4 py-3 transition-colors ${isToolsSubItemActive(item.path)
-                              ? 'bg-gradient-to-r from-[#4E6E49]/15 to-[#4E6E49]/5 text-[#4E6E49] dark:from-[#4E6E49]/20 dark:text-[#4E6E49]'
-                              : theme === 'dark'
-                                ? 'hover:bg-white/5 text-gray-200'
-                                : 'hover:bg-gray-50 text-gray-800'
-                              }`}
-                          >
-                            <item.icon className="w-4 h-4 flex-shrink-0" />
-                            <span className="font-semibold flex-1">{item.label}</span>
-                            <ArrowUpRight className="w-4 h-4 opacity-70" />
-                          </Link>
-                        ))}
-                      </div>
-                    </div>
-                  </>
-                )}
-              </div>
-
-              <div className="relative">
-                <button
-                  onClick={() => {
-                    setShowFuncsMenu(!showFuncsMenu)
-                  }}
-                  data-active={isFuncsActive}
-                  className="nav-chip"
-                >
-                  <Settings className="w-4 h-4" />
-                  <span>Funcs</span>
-                  <ChevronDown className={`w-4 h-4 transition-transform ${showFuncsMenu ? 'rotate-180' : ''}`} />
-                </button>
-                {showFuncsMenu && (
-                  <>
-                    <div className="fixed inset-0 z-40" onClick={() => setShowFuncsMenu(false)} />
-                    <div className="absolute top-[calc(100%+12px)] left-0 min-w-[220px] glass-panel rounded-2xl border border-white/40 dark:border-white/10 shadow-2xl z-50 overflow-hidden">
-                      <div className="accent-dots" />
-                      <div className="relative z-10 divide-y divide-gray-100/60 dark:divide-white/5">
-                        {accessibleFuncsSubItems.map((item) => (
-                          <Link
-                            key={item.path}
-                            to={item.path}
-                            onClick={() => setShowFuncsMenu(false)}
-                            className={`flex items-center gap-3 px-4 py-3 transition-colors ${isFuncsSubItemActive(item.path)
-                              ? 'bg-gradient-to-r from-[#4E6E49]/15 to-[#4E6E49]/5 text-[#4E6E49] dark:from-[#4E6E49]/20 dark:text-[#4E6E49]'
-                              : theme === 'dark'
-                                ? 'hover:bg-white/5 text-gray-200'
-                                : 'hover:bg-gray-50 text-gray-800'
-                              }`}
-                          >
-                            <item.icon className="w-4 h-4 flex-shrink-0" />
-                            <span className="font-semibold flex-1">{item.label}</span>
-                            <ArrowUpRight className="w-4 h-4 opacity-70" />
-                          </Link>
-                        ))}
-                      </div>
-                    </div>
-                  </>
-                )}
-              </div>
-
-              {!isAdmin && (
-                <Link
-                  to="/about"
-                  data-active={location.pathname === '/about'}
-                  className="nav-chip"
-                >
-                  <Info className="w-4 h-4" />
-                  <span>Info</span>
-                  <ArrowUpRight className="w-4 h-4 opacity-70" />
-                </Link>
-              )}
-
+            {/* Flat Nav Items */}
+            {accessibleFuncsSubItems.map((item) => (
               <Link
-                to="/profile"
-                data-active={location.pathname === '/profile'}
-                className="nav-chip"
+                key={item.path}
+                to={item.path}
+                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${location.pathname === item.path ? 'bg-[#4E6E49] text-white shadow-lg shadow-[#4E6E49]/30' : 'text-gray-500 hover:bg-gray-100/50 dark:hover:bg-white/5 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'}`}
               >
-                <User className="w-4 h-4" />
-                <span>ACCT</span>
-                <ArrowUpRight className="w-4 h-4 opacity-70" />
+                <item.icon className="w-4 h-4" />
+                <span className="font-bold text-sm tracking-tight">{item.label}</span>
               </Link>
-              {isAdmin && (
-                <Link
-                  to="/approvals"
-                  data-active={location.pathname === '/approvals'}
-                  className="nav-chip"
-                >
-                  <CheckCircle2 className="w-4 h-4" />
-                  <span>Согласования</span>
-                  <ArrowUpRight className="w-4 h-4 opacity-70" />
-                </Link>
-              )}
-            </nav>
+            ))}
 
-            <div className="flex items-center gap-3 ml-auto relative">
-              <div className="relative">
+            <div className="pt-4 space-y-4">
+              <div className="flex items-center justify-between px-4">
+                <button onClick={toggleTheme} className="p-2 rounded-xl border border-gray-200 dark:border-white/10 hover:bg-gray-100 dark:hover:bg-white/5 transition-colors">
+                  {theme === 'dark' ? <Sun className="w-4 h-4 text-amber-300" /> : <Moon className="w-4 h-4 text-gray-700" />}
+                </button>
                 <button
-                  onClick={() => {
-                    if (showNotifications) {
-                      handleCloseNotifications()
-                    } else {
-                      setShowNotifications(true)
-                    }
-                  }}
-                  className="nav-chip px-3 py-2"
-                  data-active={showNotifications}
-                  aria-label="Notifications"
+                  onClick={() => setShowNotifications(!showNotifications)}
+                  className={`relative p-2 rounded-xl border border-gray-200 dark:border-white/10 hover:bg-gray-100 dark:hover:bg-white/5 transition-colors ${showNotifications ? 'bg-amber-500/10' : ''}`}
                 >
-                  <Bell className="w-5 h-5" />
-                  {notifications.length > 0 && (
-                    <span className="absolute -top-1 -right-1 inline-flex items-center justify-center px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-red-500 text-white">
-                      {notifications.length}
-                    </span>
+                  <Bell className="w-4 h-4" />
+                  {notifications.length > 0 && <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full" />}
+                </button>
+              </div>
+
+              {showNotifications && (
+                <div className="mx-2 p-3 glass-panel rounded-xl border border-white/20 shadow-xl max-h-60 overflow-y-auto space-y-2">
+                  {notifications.length === 0 ? (
+                    <p className="text-[10px] text-gray-500">Нет уведомлений</p>
+                  ) : (
+                    notifications.map(n => (
+                      <div key={n.id} className="text-[10px] p-2 rounded-lg bg-black/5 dark:bg-white/5">
+                        <p className="font-bold">{n.text}</p>
+                        <p className="opacity-60">{n.time}</p>
+                      </div>
+                    ))
                   )}
+                </div>
+              )}
+            </div>
+          </nav>
+
+          {/* User Profile */}
+          <Link
+            to="/profile"
+            className={`relative z-10 m-4 p-4 rounded-2xl flex items-center gap-3 transition-all ${location.pathname === '/profile' ? 'bg-[#4E6E49]/10 border border-[#4E6E49]/30' : 'border border-gray-200/50 dark:border-white/5 hover:bg-gray-100/50 dark:hover:bg-white/5'}`}
+          >
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm shadow-inner ${theme === 'dark' ? 'bg-emerald-500/20 text-[#4E6E49]' : 'bg-[#4E6E49]/10 text-[#4E6E49]'}`}>
+              {user?.avatar ? <img src={user.avatar} className="w-full h-full rounded-full object-cover" /> : getInitials(user?.name || 'User')}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-bold truncate dark:text-white">{user?.name || 'Administrator'}</p>
+              <p className="text-[10px] text-gray-500 font-medium truncate">{user?.login || 'admin@apevault.io'}</p>
+            </div>
+          </Link>
+        </aside>
+
+        {/* Main Content */}
+        <div className="flex-1 lg:pr-72 min-h-screen">
+          <main className="page-shell">
+            {children}
+          </main>
+        </div>
+
+        {/* Mobile Navbar */}
+        <nav className="lg:hidden fixed bottom-4 left-0 right-0 px-3 z-50">
+          <div className="max-w-5xl mx-auto">
+            <div className="glass-panel rounded-2xl shadow-2xl border border-white/60 dark:border-white/10 overflow-hidden">
+              <div className="flex divide-x divide-white/40 dark:divide-white/5 w-full overflow-x-auto no-scrollbar">
+                <button
+                  onClick={() => setShowToolsMenu(!showToolsMenu)}
+                  className={`flex-none w-20 flex flex-col items-center justify-center gap-1 py-3 ${isToolsActive ? 'text-[#4E6E49]' : 'text-gray-400'}`}
+                >
+                  <Settings className="w-5 h-5" />
+                  <span className="text-[10px] font-bold">Tools</span>
                 </button>
-                {showNotifications && (
-                  <>
-                    <div className="fixed inset-0 z-40" onClick={handleCloseNotifications} />
-                    <div className={`absolute right-0 mt-2 w-80 max-w-[88vw] glass-panel rounded-2xl border border-white/60 dark:border-white/10 shadow-2xl z-50 overflow-hidden`}>
-                      <div className="p-4 space-y-2 max-h-[360px] overflow-y-auto">
-                        {notifications.length === 0 ? (
-                          <p className="text-sm text-gray-600 dark:text-gray-300">Новых уведомлений нет (храним до 6 часов).</p>
-                        ) : (
-                          notifications.map((n) => (
-                            <div key={n.id} className="rounded-xl border border-white/40 dark:border-white/10 bg-white/80 dark:bg-white/5 p-3 space-y-1">
-                              <div className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">{n.time}</div>
-                              <div className="text-sm font-semibold text-gray-900 dark:text-white">{n.text}</div>
-                            </div>
-                          ))
-                        )}
-                      </div>
-                    </div>
-                  </>
-                )}
+
+                {accessibleFuncsSubItems.map((item) => (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    className={`flex-none w-20 flex flex-col items-center justify-center gap-1 py-3 ${location.pathname === item.path ? 'text-[#4E6E49]' : 'text-gray-400'}`}
+                  >
+                    <item.icon className="w-5 h-5" />
+                    <span className="text-[10px] font-bold">{item.label.replace('AVF ', '')}</span>
+                  </Link>
+                ))}
+
+                <Link
+                  to="/profile"
+                  className={`flex-none min-w-[120px] flex items-center gap-2 px-3 py-2 ${location.pathname === '/profile' ? 'text-[#4E6E49]' : 'text-gray-400'}`}
+                >
+                  <div className="w-8 h-8 rounded-full bg-[#4E6E49]/10 flex items-center justify-center text-[10px] font-bold flex-shrink-0">
+                    {getInitials(user?.name || 'AU')}
+                  </div>
+                  <div className="min-w-0 flex flex-col items-start px-1">
+                    <span className="text-[10px] font-bold truncate w-full text-left">{user?.name || 'User'}</span>
+                    <span className="text-[8px] opacity-60 truncate w-full text-left">{user?.login || 'id'}</span>
+                  </div>
+                </Link>
               </div>
-
-              <button
-                onClick={toggleTheme}
-                className="nav-chip px-3 py-2"
-                data-active="false"
-                aria-label="Toggle theme"
-              >
-                {theme === 'dark' ? (
-                  <Sun className="w-5 h-5 text-amber-300" />
-                ) : (
-                  <Moon className="w-5 h-5 text-gray-700" />
-                )}
-              </button>
             </div>
           </div>
-        </div>
-      </header>
 
-      <main className="page-shell">
-        {children}
-      </main>
-
-      <nav className="lg:hidden fixed bottom-4 left-0 right-0 px-3 z-50">
-        <div className="max-w-5xl mx-auto">
-          <div className="glass-panel rounded-2xl shadow-2xl border border-white/60 dark:border-white/10 overflow-hidden">
-            <div className="flex divide-x divide-white/40 dark:divide-white/5 w-full">
-              <button
-                onClick={() => {
-                  setShowToolsMenu(!showToolsMenu)
-                }}
-                className={`flex-1 h-full flex flex-col items-center justify-center gap-1 py-3 ${isToolsActive ? 'text-[#4E6E49]' : theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}
-              >
-                <Settings className="w-5 h-5" />
-                <div className="flex items-center gap-1">
-                  <span className="text-[11px] font-semibold">Tools</span>
-                  <ChevronDown className="w-3 h-3 opacity-70" />
-                </div>
-              </button>
-              <button
-                onClick={() => {
-                  setShowFuncsMenu(!showFuncsMenu)
-                }}
-                className={`flex-1 h-full flex flex-col items-center justify-center gap-1 py-3 ${isFuncsActive ? 'text-[#4E6E49]' : theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}
-              >
-                <Settings className="w-5 h-5" />
-                <div className="flex items-center gap-1">
-                  <span className="text-[11px] font-semibold">Funcs</span>
-                  <ChevronDown className="w-3 h-3 opacity-70" />
-                </div>
-              </button>
-              {!isAdmin && (
-                <Link
-                  to="/about"
-                  className={`flex-1 h-full flex flex-col items-center justify-center gap-1 py-3 ${location.pathname === '/about' ? 'text-[#4E6E49]' : theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}
-                >
-                  <Info className="w-5 h-5" />
-                  <div className="flex items-center gap-1">
-                    <span className="text-[11px] font-semibold">Info</span>
-                    <ArrowUpRight className="w-3 h-3 opacity-70" />
-                  </div>
-                </Link>
-              )}
-              <Link
-                to="/profile"
-                className={`flex-1 h-full flex flex-col items-center justify-center gap-1 py-3 ${location.pathname === '/profile' ? 'text-[#4E6E49]' : theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}
-              >
-                <User className="w-5 h-5" />
-                <div className="flex items-center gap-1">
-                  <span className="text-[11px] font-semibold">ACCT</span>
-                  <ArrowUpRight className="w-3 h-3 opacity-70" />
-                </div>
-              </Link>
-              {isAdmin && (
-                <Link
-                  to="/approvals"
-                  className={`flex-1 h-full flex flex-col items-center justify-center gap-1 py-3 ${location.pathname === '/approvals' ? 'text-[#4E6E49]' : theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}
-                >
-                  <CheckCircle2 className="w-5 h-5" />
-                  <div className="flex items-center gap-1">
-                    <span className="text-[11px] font-semibold whitespace-nowrap">Check</span>
-                    <ArrowUpRight className="w-3 h-3 opacity-70" />
-                  </div>
-                </Link>
-              )}
-            </div>
-          </div>
-        </div>
-      </nav>
-
-      {showFuncsMenu && (
-        <div className="lg:hidden fixed inset-0 z-40 bg-black/40 backdrop-blur-sm" onClick={() => setShowFuncsMenu(false)}>
-          <div className="absolute bottom-24 left-1/2 -translate-x-1/2 w-[88%] max-w-sm glass-panel rounded-2xl shadow-2xl border border-white/50 dark:border-white/10 overflow-hidden">
-            <div className="accent-dots" />
-            <div className="relative z-10 divide-y divide-gray-100/60 dark:divide-white/5">
-              {accessibleFuncsSubItems.map((item) => (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  onClick={() => setShowFuncsMenu(false)}
-                  className={`flex items-center gap-3 px-4 py-3 transition-colors ${isFuncsSubItemActive(item.path)
-                    ? 'bg-gradient-to-r from-[#4E6E49]/15 to-[#4E6E49]/5 text-[#4E6E49] dark:from-[#4E6E49]/20 dark:text-[#4E6E49]'
-                    : theme === 'dark'
-                      ? 'hover:bg-white/5 text-gray-200'
-                      : 'hover:bg-gray-50 text-gray-800'
-                    }`}
-                >
-                  <item.icon className="w-4 h-4 flex-shrink-0" />
-                  <span className="font-semibold flex-1">{item.label}</span>
-                  <ArrowUpRight className="w-4 h-4 opacity-70" />
-                </Link>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {showToolsMenu && (
-        <div className="lg:hidden fixed inset-0 z-40 bg-black/40 backdrop-blur-sm" onClick={() => setShowToolsMenu(false)}>
-          <div className="absolute bottom-24 left-1/2 -translate-x-1/2 w-[88%] max-w-sm glass-panel rounded-2xl shadow-2xl border border-white/50 dark:border-white/10 overflow-hidden">
-            <div className="accent-dots" />
-            <div className="relative z-10 divide-y divide-gray-100/60 dark:divide-white/5">
-              {toolsSubItems.map((item) => (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  onClick={() => setShowToolsMenu(false)}
-                  className={`flex items-center gap-3 px-4 py-3 transition-colors ${isToolsSubItemActive(item.path)
-                    ? 'bg-gradient-to-r from-[#4E6E49]/15 to-[#4E6E49]/5 text-[#4E6E49] dark:from-[#4E6E49]/20 dark:text-[#4E6E49]'
-                    : theme === 'dark'
-                      ? 'hover:bg-white/5 text-gray-200'
-                      : 'hover:bg-gray-50 text-gray-800'
-                    }`}
-                >
-                  <item.icon className="w-4 h-4 flex-shrink-0" />
-                  <span className="font-semibold flex-1">{item.label}</span>
-                  <ArrowUpRight className="w-4 h-4 opacity-70" />
-                </Link>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
+          {/* Mobile Tools Overlay */}
+          {showToolsMenu && (
+            <>
+              <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[-1]" onClick={() => setShowToolsMenu(false)} />
+              <div className="absolute bottom-20 left-4 right-4 glass-panel rounded-2xl border border-white/40 overflow-hidden animate-fade-in">
+                {toolsSubItems.map(item => (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    onClick={() => setShowToolsMenu(false)}
+                    className="flex items-center gap-3 p-4 border-b border-white/10 last:border-0"
+                  >
+                    <item.icon className="w-4 h-4 text-[#4E6E49]" />
+                    <span className="font-bold text-sm flex-1">{item.label}</span>
+                    <ArrowUpRight className="w-4 h-4 opacity-40" />
+                  </Link>
+                ))}
+              </div>
+            </>
+          )}
+        </nav>
+      </div>
     </div>
   )
 }
