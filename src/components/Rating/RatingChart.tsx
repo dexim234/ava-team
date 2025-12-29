@@ -90,7 +90,7 @@ export const RatingChart: React.FC<RatingChartProps> = ({ history, theme }) => {
         },
         ticks: {
           color: theme === 'dark' ? '#cbd5e1' : '#4b5563',
-          callback: function (value) {
+          callback: function (value: string | number) {
             return `${value}%`
           }
         }
