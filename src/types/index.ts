@@ -1,4 +1,3 @@
-// User types
 export interface User {
   id: string
   name: string
@@ -53,6 +52,7 @@ export interface Restriction {
   isActive: boolean
 }
 
+// Approval types
 export type ApprovalEntity = 'slot' | 'status' | 'earning' | 'referral' | 'login'
 export type ApprovalAction = 'create' | 'update' | 'delete'
 export type ApprovalStatus = 'pending' | 'approved' | 'rejected'
@@ -452,3 +452,29 @@ export interface ActivityLog {
   createdAt: string
 }
 
+// TeamPoolHistory interface
+export interface TeamPoolHistory {
+  id: string
+  date: string // YYYY-MM-DD
+  poolAmount: number
+}
+
+// TeamRatingHistory interface
+export interface TeamRatingHistory {
+  id: string
+  date: string // YYYY-MM-DD
+  averageRating: number
+}
+
+// DayInfo interface
+export interface DayInfo {
+  id: string
+  date: string
+  teamKPD: number
+  teamMembersOnline: number
+  totalChats: number
+  totalTasks: number
+  tasksCompleted: number
+  totalSignals: number
+  signalsProfitable: number
+}
