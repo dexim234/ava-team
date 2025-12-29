@@ -1,0 +1,902 @@
+// Signals HUB page redesigned for multi-domain signals
+import { useState, useEffect, useMemo, type JSX } from 'react'
+import { useThemeStore } from '@/store/themeStore'
+import { CallForm } from '@/components/Call/CallForm'
+import { getCalls, deleteCall, updateCall } from '@/services/firestoreService'
+import type { Call, CallCategory, CallRiskLevel } from '@/types'
+import { TEAM_MEMBERS } from '@/types'
+import {
+  X,
+  Edit,
+  Trash2,
+  Copy,
+  Check,
+  Search,
+  Sparkles,
+  Filter,
+  Shield,
+  Rocket,
+  LineChart,
+  Image,
+  Coins,
+  Target,
+  AlertTriangle,
+  Hash,
+  Globe2,
+  FileCode,
+  MapPin,
+  ShieldAlert,
+  CalendarCheck,
+  Activity,
+  TrendingUp,
+  Octagon,
+  Wand2,
+  Clock3,
+  Link2,
+  Network,
+  CalendarClock,
+  Percent,
+  Building2,
+  ScrollText,
+  Gauge,
+  Timer,
+  MessageSquare,
+} from 'lucide-react'
+import { useScrollLock } from '@/hooks/useScrollLock'
+
+type StatusFilter = 'all' | 'active' | 'completed' | 'cancelled' | 'reviewed'
+type RiskFilter = 'all' | CallRiskLevel
+
+const CATEGORY_META: Record<CallCategory, { label: string; gradient: string; chip: string; icon: JSX.Element }> = {
+  memecoins: { label: 'Мемкоины', gradient: 'from-emerald-400 to-teal-500', chip: 'bg-emerald-500/10 text-emerald-600', icon: <Rocket className="w-4 h-4" /> },
+  futures: { label: 'Фьючерсы', gradient: 'from-blue-400 to-indigo-500', chip: 'bg-blue-500/10 text-blue-600', icon: <LineChart className="w-4 h-4" /> },
+  nft: { label: 'NFT', gradient: 'from-purple-400 to-pink-500', chip: 'bg-purple-500/10 text-purple-600', icon: <Image className="w-4 h-4" /> },
+  spot: { label: 'Спот', gradient: 'from-amber-400 to-orange-500', chip: 'bg-amber-500/10 text-amber-600', icon: <Coins className="w-4 h-4" /> },
+  polymarket: { label: 'Polymarket', gradient: 'from-rose-400 to-red-500', chip: 'bg-rose-500/10 text-rose-600', icon: <Target className="w-4 h-4" /> },
+  staking: { label: 'Стейкинг', gradient: 'from-cyan-400 to-blue-500', chip: 'bg-cyan-500/10 text-cyan-600', icon: <Shield className="w-4 h-4" /> },
+}
+
+const statusLabels: Record<StatusFilter, { label: string; className: string }> = {
+  all: { label: 'Все', className: '' },
+  active: { label: 'Активен', className: 'bg-emerald-500/15 text-emerald-500 border border-emerald-500/20' },
+  completed: { label: 'Завершен', className: 'bg-blue-500/15 text-blue-500 border border-blue-500/20' },
+  cancelled: { label: 'Отменен', className: 'bg-red-500/15 text-red-500 border border-red-500/20' },
+  reviewed: { label: 'На рассмотрении', className: 'bg-gray-500/15 text-gray-500 border border-gray-500/20' },
+}
+
+const riskBadges: Record<CallRiskLevel, string> = {
+  low: 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20',
+  medium: 'bg-blue-500/10 text-blue-600 border border-blue-500/20',
+  high: 'bg-amber-500/10 text-amber-600 border border-amber-500/20',
+  ultra: 'bg-red-500/10 text-red-600 border border-red-500/20',
+}
+
+export const CallPage = () => {
+  const { theme } = useThemeStore()
+  const [calls, setCalls] = useState<Call[]>([])
+  const [loading, setLoading] = useState(true)
+  const [showForm, setShowForm] = useState(false)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [deleteCallId, setDeleteCallId] = useState<string | null>(null)
+  const [cancelCallId, setCancelCallId] = useState<string | null>(null)
+  const [editingCall, setEditingCall] = useState<Call | null>(null)
+  const [formCategory, setFormCategory] = useState<CallCategory>('memecoins')
+  const [copiedValue, setCopiedValue] = useState<string | null>(null)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
+  const [categoryFilter, setCategoryFilter] = useState<'all' | CallCategory>('all')
+  const [riskFilter, setRiskFilter] = useState<RiskFilter>('all')
+  const [traderFilter, setTraderFilter] = useState<'all' | string>('all')
+
+  useScrollLock(showForm || showDeleteModal || !!cancelCallId)
+
+  useEffect(() => {
+    loadCalls()
+  }, [])
+
+  const loadCalls = async () => {
+    setLoading(true)
+    try {
+      const fetchedCalls = await getCalls()
+      setCalls(fetchedCalls)
+    } catch (error) {
+      console.error('Error loading calls:', error)
+      setCalls([])
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const bgColor = theme === 'dark' ? 'bg-[#121212]' : 'bg-white'
+  const textColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
+  const subtleColor = theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+  const borderColor = theme === 'dark' ? 'border-gray-800' : 'border-gray-200'
+  const cardBg = theme === 'dark'
+    ? 'border-[#4E6E49]/30 bg-gradient-to-br from-[#1a1a1a] via-[#1a1a1a] to-[#0A0A0A]'
+    : 'border-green-200 bg-gradient-to-br from-white via-green-50/30 to-white'
+  const sectionCardClass = `rounded-2xl p-4 sm:p-6 md:p-8 border-2 ${cardBg}`
+  const surfaceCardClass = `rounded-2xl border ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-white'}`
+
+  const categoryTone: Record<CallCategory, { bg: string; text: string; border: string; chipBg: string }> = {
+    memecoins: {
+      bg: theme === 'dark' ? 'bg-emerald-500/10' : 'bg-emerald-50',
+      text: theme === 'dark' ? 'text-emerald-100' : 'text-emerald-800',
+      border: theme === 'dark' ? 'border-emerald-500/30' : 'border-emerald-200',
+      chipBg: theme === 'dark' ? 'bg-emerald-500/20' : 'bg-emerald-500/10',
+    },
+    futures: {
+      bg: theme === 'dark' ? 'bg-sky-500/10' : 'bg-sky-50',
+      text: theme === 'dark' ? 'text-sky-100' : 'text-sky-800',
+      border: theme === 'dark' ? 'border-sky-500/30' : 'border-sky-200',
+      chipBg: theme === 'dark' ? 'bg-sky-500/20' : 'bg-sky-500/10',
+    },
+    nft: {
+      bg: theme === 'dark' ? 'bg-purple-500/10' : 'bg-purple-50',
+      text: theme === 'dark' ? 'text-purple-100' : 'text-purple-800',
+      border: theme === 'dark' ? 'border-purple-500/30' : 'border-purple-200',
+      chipBg: theme === 'dark' ? 'bg-purple-500/20' : 'bg-purple-500/10',
+    },
+    spot: {
+      bg: theme === 'dark' ? 'bg-amber-500/10' : 'bg-amber-50',
+      text: theme === 'dark' ? 'text-amber-100' : 'text-amber-800',
+      border: theme === 'dark' ? 'border-amber-500/30' : 'border-amber-200',
+      chipBg: theme === 'dark' ? 'bg-amber-500/20' : 'bg-amber-500/10',
+    },
+    polymarket: {
+      bg: theme === 'dark' ? 'bg-rose-500/10' : 'bg-rose-50',
+      text: theme === 'dark' ? 'text-rose-100' : 'text-rose-800',
+      border: theme === 'dark' ? 'border-rose-500/30' : 'border-rose-200',
+      chipBg: theme === 'dark' ? 'bg-rose-500/20' : 'bg-rose-500/10',
+    },
+    staking: {
+      bg: theme === 'dark' ? 'bg-cyan-500/10' : 'bg-cyan-50',
+      text: theme === 'dark' ? 'text-cyan-100' : 'text-cyan-800',
+      border: theme === 'dark' ? 'border-cyan-500/30' : 'border-cyan-200',
+      chipBg: theme === 'dark' ? 'bg-cyan-500/20' : 'bg-cyan-500/10',
+    },
+  }
+
+  const handleSuccess = () => {
+    setShowForm(false)
+    setEditingCall(null)
+    loadCalls()
+  }
+
+  const handleCancel = () => {
+    setShowForm(false)
+    setEditingCall(null)
+  }
+
+  const handleEdit = (call: Call) => {
+    setEditingCall(call)
+    setFormCategory(call.category)
+    setShowForm(true)
+  }
+
+  const handleDeleteClick = (callId: string) => {
+    setDeleteCallId(callId)
+    setShowDeleteModal(true)
+  }
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteCallId) return
+    try {
+      await deleteCall(deleteCallId)
+      setShowDeleteModal(false)
+      setDeleteCallId(null)
+      loadCalls()
+    } catch (error) {
+      console.error('Error deleting call:', error)
+      alert('Ошибка при удалении сигнала')
+    }
+  }
+
+  const handleCancelConfirm = async () => {
+    if (!cancelCallId) return
+    try {
+      await updateCall(cancelCallId, { status: 'cancelled' })
+      setCancelCallId(null)
+      loadCalls()
+    } catch (error) {
+      console.error('Error cancelling call:', error)
+      alert('Ошибка при отмене сигнала')
+    }
+  }
+
+  const copyValue = async (value: string) => {
+    try {
+      await navigator.clipboard.writeText(value)
+      setCopiedValue(value)
+      setTimeout(() => setCopiedValue(null), 1800)
+    } catch (error) {
+      console.error('Failed to copy:', error)
+    }
+  }
+
+  const getDetails = (call: Call) => (call.details as any)?.[call.category] || {}
+
+  const getPrimaryTitle = (call: Call) => {
+    const d = getDetails(call)
+    switch (call.category) {
+      case 'memecoins':
+        return d.coinName || d.ticker || 'Мемкоин'
+      case 'futures':
+        return d.pair || 'Фьючерс'
+      case 'nft':
+        return d.collectionLink || 'NFT коллекция'
+      case 'spot':
+        return d.coin || 'Спот'
+      case 'polymarket':
+        return d.event || 'Polymarket событие'
+      case 'staking':
+        return d.coin || 'Стейкинг'
+      default:
+        return 'Сигнал'
+    }
+  }
+
+  const getSecondary = (call: Call) => {
+    const d = getDetails(call)
+    switch (call.category) {
+      case 'memecoins':
+        return `${d.ticker || ''} ${d.network ? `• ${String(d.network).toUpperCase()}` : ''}`.trim()
+      case 'futures':
+        return `${d.direction === 'long' ? 'Long' : 'Short'} • ${d.timeframe || ''}`
+      case 'nft':
+        return `${d.marketplace || ''}${d.network ? ` • ${String(d.network).toUpperCase()}` : ''}`
+      case 'spot':
+        return d.holdingHorizon ? `Горизонт: ${d.holdingHorizon}` : ''
+      case 'polymarket':
+        return `${d.positionType === 'yes' ? 'YES' : 'NO'} • ${d.entryPrice || ''}`
+      case 'staking':
+        return `${d.platform || ''}${d.term ? ` • ${d.term}` : ''}`
+      default:
+        return ''
+    }
+  }
+
+  const getRiskLevel = (call: Call): CallRiskLevel => call.riskLevel || getDetails(call).riskLevel || getDetails(call).protocolRisk || 'medium'
+
+  const composeSearchString = (call: Call) => {
+    const d = getDetails(call)
+    const base = [
+      call.category,
+      call.status,
+      call.comment,
+      d.coinName,
+      d.ticker,
+      d.pair,
+      d.reason,
+      d.targets,
+      d.event,
+      d.marketplace,
+      d.platform,
+      d.entryCap,
+      d.entryZone,
+      d.network,
+    ]
+    return base.filter(Boolean).join(' ').toLowerCase()
+  }
+
+  const filteredCalls = calls
+    .filter((call) => {
+      if (statusFilter !== 'all' && call.status !== statusFilter) return false
+      if (categoryFilter !== 'all' && call.category !== categoryFilter) return false
+      if (riskFilter !== 'all' && getRiskLevel(call) !== riskFilter) return false
+      if (traderFilter !== 'all' && call.userId !== traderFilter) return false
+      if (searchQuery.trim()) {
+        return composeSearchString(call).includes(searchQuery.toLowerCase())
+      }
+      return true
+    })
+
+  const categoryStats = useMemo(() => {
+    return calls.reduce<Record<CallCategory, { total: number; active: number }>>((acc, call) => {
+      if (!acc[call.category]) acc[call.category] = { total: 0, active: 0 }
+      acc[call.category].total += 1
+      if (call.status === 'active') acc[call.category].active += 1
+      return acc
+    }, {
+      memecoins: { total: 0, active: 0 },
+      futures: { total: 0, active: 0 },
+      nft: { total: 0, active: 0 },
+      spot: { total: 0, active: 0 },
+      polymarket: { total: 0, active: 0 },
+      staking: { total: 0, active: 0 },
+    })
+  }, [calls])
+
+  const totals = useMemo(() => ({
+    total: calls.length,
+    active: calls.filter((c) => c.status === 'active').length,
+    completed: calls.filter((c) => c.status === 'completed').length,
+    highRisk: calls.filter((c) => getRiskLevel(c) === 'high' || getRiskLevel(c) === 'ultra').length,
+  }), [calls])
+
+  const pillInactive = theme === 'dark' ? 'bg-gray-800 text-gray-200 border border-gray-700' : 'bg-white text-gray-700 border border-gray-200'
+  const pillActive = 'bg-gradient-to-r from-emerald-400 to-teal-500 text-white shadow-md shadow-emerald-300/30'
+
+  const renderQuickStat = (label: string, value: string | number, accent: string) => (
+    <div className={`p-4 rounded-xl border ${borderColor} ${theme === 'dark' ? 'bg-gray-800/70' : 'bg-gray-50'}`}>
+      <p className={`text-xs uppercase tracking-wider ${subtleColor}`}>{label}</p>
+      <p className={`text-2xl font-bold ${accent}`}>{value}</p>
+    </div>
+  )
+
+  const riskLabels: Record<CallRiskLevel, string> = {
+    low: 'Низкий',
+    medium: 'Средний',
+    high: 'Высокий',
+    ultra: 'Ультра',
+  }
+
+  const horizonLabels: Record<string, string> = {
+    flip: 'Flip',
+    short: 'Короткий',
+    medium: 'Средний',
+    long: 'Длинный',
+  }
+
+  const termLabels: Record<string, string> = {
+    flexible: 'Гибкий',
+    '30d': '30 дней',
+    '90d': '90 дней',
+    fixed: 'Фикс.',
+  }
+
+  const actionLabels: Record<string, string> = {
+    enter: 'Вход',
+    exit: 'Выход',
+    rebalance: 'Ребаланс',
+  }
+
+  const positionLabels: Record<'yes' | 'no', string> = {
+    yes: 'YES',
+    no: 'NO',
+  }
+
+  const shortenValue = (value?: string, max = 28) => {
+    if (!value) return ''
+    if (value.length <= max) return value
+    const head = value.slice(0, Math.floor(max / 2))
+    const tail = value.slice(-6)
+    return `${head}...${tail}`
+  }
+
+  const formatPercent = (value?: string) => {
+    if (!value) return ''
+    return value.includes('%') ? value : `${value}%`
+  }
+
+  const formatDeadlineLabel = (deadline?: string) => {
+    if (!deadline) return ''
+    const parsed = new Date(deadline)
+    if (Number.isNaN(parsed.getTime())) return deadline
+
+    const now = new Date()
+    const diffMs = parsed.getTime() - now.getTime()
+    const base = parsed.toLocaleString('ru-RU', {
+      day: '2-digit',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit',
+    })
+
+    if (diffMs <= 0) return `${base} (истек)`
+
+    const totalMinutes = Math.max(0, Math.floor(diffMs / (1000 * 60)))
+    const days = Math.floor(totalMinutes / (60 * 24))
+    const hours = Math.floor((totalMinutes % (60 * 24)) / 60)
+    const minutes = totalMinutes % 60
+    const parts = [
+      days > 0 ? `${days}д` : null,
+      hours > 0 ? `${hours}ч` : null,
+      minutes > 0 ? `${minutes}м` : null,
+    ].filter(Boolean).slice(0, 2).join(' ')
+
+    return `${base} (через ${parts || 'минуты'})`
+  }
+
+  type MetricLine = { label: string; value?: string; icon: JSX.Element; copyValue?: string }
+
+  const renderCategoryMetrics = (call: Call) => {
+    const d = getDetails(call)
+    const risk = getRiskLevel(call) as CallRiskLevel
+    const tone = categoryTone[call.category]
+    const metrics: MetricLine[] = []
+
+    const addMetric = (label: string, value: string | undefined, icon: JSX.Element, copyValue?: string) => {
+      if (!value) return
+      metrics.push({ label, value, icon, copyValue: copyValue ?? value })
+    }
+
+    switch (call.category) {
+      case 'memecoins':
+        addMetric('Монета', d.coinName, <Coins className="w-4 h-4" />)
+        addMetric('Тикер', shortenValue(d.ticker, 8), <Hash className="w-4 h-4" />, d.ticker)
+        addMetric('Сеть', d.network ? String(d.network).toUpperCase() : '', <Globe2 className="w-4 h-4" />)
+        addMetric('Контракт', shortenValue(d.contract, 12), <FileCode className="w-4 h-4" />, d.contract)
+        addMetric('Тип сигнала', d.signalType ? d.signalType.toUpperCase() : '', <Wand2 className="w-4 h-4" />)
+        addMetric('Зона входа', d.entryCap, <MapPin className="w-4 h-4" />)
+        addMetric('Цели', d.targets, <Target className="w-4 h-4" />)
+        addMetric('SL', d.stopLoss, <Octagon className="w-4 h-4" />)
+        addMetric('План', horizonLabels[d.holdPlan] || d.holdPlan, <Clock3 className="w-4 h-4" />)
+        addMetric('Ликвидность', d.liquidityLocked ? 'Залочена' : '', <Shield className="w-4 h-4" />)
+        addMetric('Риск', riskLabels[risk] || risk, <ShieldAlert className="w-4 h-4" />)
+        addMetric('Риски', d.risks, <AlertTriangle className="w-4 h-4" />)
+        addMetric('Комментарий', d.traderComment, <MessageSquare className="w-4 h-4" />)
+        addMetric('Причина входа', d.reason, <ScrollText className="w-4 h-4" />)
+        break
+      case 'futures':
+        addMetric('Пара', d.pair, <Activity className="w-4 h-4" />, d.pair)
+        addMetric('Направление', d.direction ? d.direction.toUpperCase() : '', <TrendingUp className="w-4 h-4" />)
+        addMetric('Плечо', d.leverage, <Gauge className="w-4 h-4" />)
+        addMetric('Зона входа', d.entryZone || d.entryPrice, <MapPin className="w-4 h-4" />)
+        addMetric('Цели', d.targets, <Target className="w-4 h-4" />)
+        addMetric('SL', d.stopLoss, <Octagon className="w-4 h-4" />)
+        addMetric('Стиль', d.signalStyle, <Wand2 className="w-4 h-4" />)
+        addMetric('Размер позиции', d.positionSize, <Percent className="w-4 h-4" />)
+        addMetric('Таймфрейм', d.timeframe, <Timer className="w-4 h-4" />)
+        addMetric('Риск', riskLabels[risk] || risk, <ShieldAlert className="w-4 h-4" />)
+        addMetric('Риски', d.risks, <AlertTriangle className="w-4 h-4" />)
+        addMetric('Причина входа', d.reason, <ScrollText className="w-4 h-4" />)
+        break
+      case 'nft':
+        addMetric('Коллекция', shortenValue((d as any).collectionLink), <Link2 className="w-4 h-4" />, (d as any).collectionLink)
+        addMetric('NFT', shortenValue(d.nftLink), <Link2 className="w-4 h-4" />, d.nftLink)
+        addMetric('Маркетплейс', d.marketplace, <Building2 className="w-4 h-4" />)
+        addMetric('Сеть', d.network ? String(d.network).toUpperCase() : '', <Network className="w-4 h-4" />)
+        addMetric('Вход', d.entryPrice, <MapPin className="w-4 h-4" />)
+        addMetric('Редкость', d.rarity, <Sparkles className="w-4 h-4" />)
+        addMetric('Тип сигнала', d.signalType ? d.signalType.toUpperCase() : '', <Wand2 className="w-4 h-4" />)
+        addMetric('Срок удержания', horizonLabels[d.holdingHorizon] || d.holdingHorizon, <Clock3 className="w-4 h-4" />)
+        addMetric('Мин. ликвидность', d.minLiquidity, <Gauge className="w-4 h-4" />)
+        addMetric('Target', d.targetPrice, <Target className="w-4 h-4" />)
+        addMetric('Риски', d.risks, <AlertTriangle className="w-4 h-4" />)
+        addMetric('Комментарий', d.traderComment, <MessageSquare className="w-4 h-4" />)
+        addMetric('Причина входа', d.reason, <ScrollText className="w-4 h-4" />)
+        break
+      case 'spot':
+        addMetric('Монета', d.coin, <Coins className="w-4 h-4" />)
+        addMetric('Зона входа', d.entryCap, <MapPin className="w-4 h-4" />)
+        addMetric('Цели', d.targets, <Target className="w-4 h-4" />)
+        addMetric('SL', d.stopLoss, <Octagon className="w-4 h-4" />)
+        addMetric('Горизонт', horizonLabels[d.holdingHorizon] || d.holdingHorizon, <Clock3 className="w-4 h-4" />)
+        addMetric('Размер', d.positionSize, <Percent className="w-4 h-4" />)
+        addMetric('Риск', d.riskLevel ? riskLabels[d.riskLevel as CallRiskLevel] : undefined, <ShieldAlert className="w-4 h-4" />)
+        addMetric('Риски', d.risks, <AlertTriangle className="w-4 h-4" />)
+        addMetric('Комментарий', d.traderComment, <MessageSquare className="w-4 h-4" />)
+        addMetric('Причина входа', d.reason, <ScrollText className="w-4 h-4" />)
+        break
+      case 'polymarket':
+        const positionType = d.positionType as 'yes' | 'no' | undefined
+        addMetric('Событие', d.event, <ScrollText className="w-4 h-4" />)
+        addMetric('Тип', positionType ? positionLabels[positionType] : '', <Shield className="w-4 h-4" />)
+        addMetric('Вход %', formatPercent(d.entryPrice), <Percent className="w-4 h-4" />)
+        addMetric('Ожидание %', formatPercent(d.expectedProbability), <Gauge className="w-4 h-4" />)
+        addMetric('Цель', d.targetPlan, <Target className="w-4 h-4" />)
+        addMetric('Макс ставка', d.maxStake, <Coins className="w-4 h-4" />)
+        addMetric('Срок исхода', formatDeadlineLabel(d.eventDeadline), <CalendarClock className="w-4 h-4" />)
+        addMetric('Риск', riskLabels[risk] || risk, <ShieldAlert className="w-4 h-4" />)
+        addMetric('Риски', d.risks, <AlertTriangle className="w-4 h-4" />)
+        addMetric('Комментарий', d.traderComment, <MessageSquare className="w-4 h-4" />)
+        addMetric('Причина входа', d.reason, <ScrollText className="w-4 h-4" />)
+        break
+      case 'staking':
+        addMetric('Монета', d.coin, <Coins className="w-4 h-4" />)
+        addMetric('Платформа', d.platform, <Building2 className="w-4 h-4" />)
+        addMetric('Срок', termLabels[d.term] || d.term, <CalendarClock className="w-4 h-4" />)
+        addMetric('APY', formatPercent(d.apy), <Percent className="w-4 h-4" />)
+        addMetric('Мин. депозит', d.minDeposit, <Coins className="w-4 h-4" />)
+        addMetric('Тип сигнала', actionLabels[d.action] || d.action, <Shield className="w-4 h-4" />)
+        addMetric('Риск протокола', d.protocolRisk ? riskLabels[d.protocolRisk as CallRiskLevel] : undefined, <ShieldAlert className="w-4 h-4" />)
+        addMetric('Риски', d.risks, <AlertTriangle className="w-4 h-4" />)
+        addMetric('Комментарий', d.traderComment, <MessageSquare className="w-4 h-4" />)
+        addMetric('Причина входа', d.reason, <ScrollText className="w-4 h-4" />)
+        break
+    }
+
+    const visibleMetrics = metrics.filter((m) => m.value)
+    if (!visibleMetrics.length) return null
+
+    return (
+      <div className={`rounded-2xl border ${borderColor} ${theme === 'dark' ? 'bg-gray-900/60' : 'bg-white'}`}>
+        <div className={`flex items-center gap-2 px-4 py-3 border-b ${borderColor} ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'}`}>
+          <Sparkles className="w-4 h-4 text-amber-500" />
+          <p className={`text-sm font-semibold ${textColor}`}>Ключевые метрики</p>
+          <span className={`ml-auto text-[11px] font-semibold px-3 py-1 rounded-full ${riskBadges[risk]}`}>
+            Риск: {riskLabels[risk] || risk}
+          </span>
+        </div>
+        <div className="divide-y divide-gray-200/70 dark:divide-white/10">
+          {visibleMetrics.map((metric) => (
+            <div key={metric.label} className="flex items-center justify-between gap-3 px-4 py-3">
+              <div className="flex items-start gap-3">
+                <div className={`p-2 rounded-xl border ${tone.border} ${tone.bg} ${tone.text}`}>
+                  {metric.icon}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className={`text-xs uppercase tracking-wide ${subtleColor}`}>{metric.label}</p>
+                  <p className={`${textColor} font-semibold whitespace-pre-wrap break-words`}>{metric.value}</p>
+                </div>
+              </div>
+              {metric.copyValue && (
+                <button
+                  onClick={() => copyValue(metric.copyValue!)}
+                  className={`p-2 rounded-lg border ${borderColor} ${theme === 'dark' ? 'hover:bg-gray-800 bg-white/5' : 'hover:bg-gray-100 bg-white'} transition-colors`}
+                  title="Копировать"
+                >
+                  {copiedValue === metric.copyValue ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+
+  return (
+    <div className="space-y-10 pb-20">
+      {/* Hero */}
+      <div
+        className={`relative overflow-hidden ${sectionCardClass} p-5 sm:p-6 md:p-8 ${theme === 'dark'
+          ? 'bg-gradient-to-br from-[#0e1b2c] via-[#0c1827] to-[#0a1420]'
+          : 'bg-gradient-to-br from-white via-emerald-50/40 to-sky-50'
+          }`}
+      >
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute -top-32 -left-16 w-80 h-80 bg-gradient-to-br from-[#4E6E49]/18 via-sky-500/8 to-transparent blur-3xl" />
+          <div className="absolute top-0 right-0 w-[26rem] h-[26rem] bg-gradient-to-bl from-sky-400/14 via-emerald-400/12 to-transparent blur-3xl" />
+          <div className="absolute bottom-[-140px] left-14 w-80 h-80 bg-gradient-to-tr from-sky-300/12 via-[#4E6E49]/12 to-transparent blur-3xl" />
+        </div>
+        <div className="relative z-10 grid grid-cols-1 gap-5">
+          <div className={`${surfaceCardClass} backdrop-blur p-4 sm:p-5 space-y-4`}>
+            <div className="flex flex-col gap-4 sm:gap-5 lg:flex-row lg:items-center lg:justify-between">
+              <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+                <div className="hidden sm:block p-3 rounded-2xl bg-white/80 dark:bg-white/5 border border-white/40 dark:border-white/10 shadow-lg">
+                  <CalendarCheck className="w-6 h-6 text-[#4E6E49]" />
+                </div>
+                <div className="flex items-center text-center sm:text-left w-full sm:w-auto justify-center sm:justify-start">
+                  <h1 className={`text-xl sm:text-3xl font-extrabold leading-tight ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                    Signals HUB
+                  </h1>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Category mini-cards (坐在灰色背景上) */}
+      <div className={`${sectionCardClass} shadow-2xl relative overflow-hidden p-6 sm:p-8`}>
+        <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
+        <div className="relative z-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          {(Object.keys(CATEGORY_META) as CallCategory[]).map((cat) => {
+            const meta = CATEGORY_META[cat]
+            const stats = categoryStats[cat]
+            const tone = categoryTone[cat]
+            return (
+              <button
+                key={cat}
+                onClick={() => { setFormCategory(cat); setEditingCall(null); setShowForm(true) }}
+                className={`p-5 rounded-[1.5rem] border-2 ${tone.border} ${tone.bg} text-left shadow-lg hover:shadow-xl transition-all hover:-translate-y-1 space-y-3 group/card relative overflow-hidden`}
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity" />
+                <div className="flex items-start justify-between gap-3 relative z-10">
+                  <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-[11px] font-bold ${tone.text} bg-white/10 border border-white/10 backdrop-blur-md`}>
+                    {meta.icon}
+                    <span>{meta.label}</span>
+                  </div>
+                  <span className={`px-2.5 py-1 rounded-lg text-[10px] font-bold border ${tone.border} ${tone.text} ${theme === 'dark' ? 'bg-black/20' : 'bg-white/50'} group-hover/card:bg-[#4E6E49] group-hover/card:text-white group-hover/card:border-transparent transition-all`}>
+                    Добавить
+                  </span>
+                </div>
+                <div className="pl-1 relative z-10">
+                  <p className={`text-3xl font-black ${textColor} leading-none mb-1 group-hover/card:scale-105 transition-transform origin-left`}>{stats?.total || 0}</p>
+                  <p className={`text-[10px] uppercase tracking-wider font-bold ${subtleColor} opacity-80`}>Всего сигналов • Активных {stats?.active || 0}</p>
+                </div>
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* Filters + analytics */}
+      <div className={`${sectionCardClass} !p-0 shadow-2xl`}>
+        <div className="p-6 sm:p-8 space-y-8">
+          <div className="flex flex-col gap-3">
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="flex items-center gap-2 text-sm font-semibold">
+                <Filter className={`w-4 h-4 ${subtleColor}`} />
+                <span className={textColor}>Фильтры</span>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {(Object.keys(statusLabels) as StatusFilter[]).map((status) => (
+                  <button
+                    key={status}
+                    onClick={() => setStatusFilter(status)}
+                    className={`px-3 py-1.5 rounded-xl text-sm font-semibold transition-all ${statusFilter === status ? pillActive : pillInactive
+                      }`}
+                  >
+                    {statusLabels[status].label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <label className={`text-xs uppercase tracking-wider ${subtleColor} flex items-center gap-2`}>
+                <Search className="w-4 h-4" />
+                Поиск по всем сферам <span className="text-[11px] text-gray-500 dark:text-gray-400">{filteredCalls.length}/{calls.length}</span>
+              </label>
+              <input
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="тикер, событие, сеть, причина..."
+                className={`w-full px-3 py-2 rounded-xl border ${borderColor} ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-50'} ${textColor} focus:outline-none focus:ring-2 focus:ring-[#4E6E49]/60`}
+              />
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <span className={`text-xs ${subtleColor} uppercase tracking-wider`}>Сфера:</span>
+              <button
+                onClick={() => setCategoryFilter('all')}
+                className={`px-3 py-1.5 rounded-full text-sm font-semibold border ${categoryFilter === 'all' ? pillActive : pillInactive}`}
+              >
+                Все
+              </button>
+              {(Object.keys(CATEGORY_META) as CallCategory[]).map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => setCategoryFilter(categoryFilter === cat ? 'all' : cat)}
+                  className={`px-3 py-1.5 rounded-full text-sm font-semibold border ${categoryFilter === cat ? pillActive : pillInactive}`}
+                >
+                  {CATEGORY_META[cat].label}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <span className={`text-xs ${subtleColor} uppercase tracking-wider`}>Риск:</span>
+              {(['all', 'low', 'medium', 'high', 'ultra'] as RiskFilter[]).map((risk) => (
+                <button
+                  key={risk}
+                  onClick={() => setRiskFilter(risk)}
+                  className={`px-3 py-1.5 rounded-full text-sm font-semibold border ${riskFilter === risk ? pillActive : pillInactive}`}
+                >
+                  {risk === 'all' ? 'Все' : risk}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3">
+              <span className={`text-xs ${subtleColor} uppercase tracking-wider`}>Трейдер:</span>
+              <select
+                value={traderFilter}
+                onChange={(e) => setTraderFilter(e.target.value)}
+                className={`px-3 py-2 rounded-lg border ${borderColor} ${theme === 'dark' ? 'bg-gray-800 text-white' : 'bg-gray-50 text-gray-900'} text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50`}
+              >
+                <option value="all">Все трейдеры</option>
+                {TEAM_MEMBERS.map((t) => (
+                  <option key={t.id} value={t.id}>{t.name}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {renderQuickStat('Всего сигналов', totals.total, textColor)}
+              {renderQuickStat('Активных', totals.active, 'text-emerald-500')}
+              {renderQuickStat('Завершено', totals.completed, 'text-blue-500')}
+              {renderQuickStat('High risk', totals.highRisk, 'text-amber-500')}
+            </div>
+          </div>
+        </div>
+
+        {/* Form Modal */}
+        {showForm && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[70] flex items-start sm:items-center justify-center p-4 overflow-y-auto">
+            <div className={`${bgColor} rounded-2xl shadow-2xl border ${borderColor} max-w-3xl w-full max-h-[90vh] overflow-hidden`}>
+              <div className="flex flex-col h-full">
+                <div className={`p-6 flex items-center justify-between sticky top-0 z-20 ${bgColor} border-b ${borderColor} shadow-sm`}>
+                  <h2 className={`text-2xl font-bold ${textColor}`}>{editingCall ? 'Редактировать сигнал' : 'Создать сигнал'}</h2>
+                  <button
+                    onClick={handleCancel}
+                    className={`p-2 rounded-xl ${theme === 'dark' ? 'hover:bg-gray-800' : 'hover:bg-gray-100'}`}
+                  >
+                    <X className={`w-5 h-5 ${subtleColor}`} />
+                  </button>
+                </div>
+                <div className="px-6 pb-6 pt-2 overflow-y-auto flex-1 max-h-[75vh]">
+                  <CallForm
+                    callToEdit={editingCall}
+                    onSuccess={handleSuccess}
+                    onCancel={handleCancel}
+                    initialCategory={formCategory}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Delete Confirmation Modal */}
+        {showDeleteModal && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[70] flex items-start sm:items-center justify-center p-4 overflow-y-auto overscroll-contain">
+            <div className={`${bgColor} rounded-2xl shadow-2xl border ${borderColor} max-w-md w-full`}>
+              <div className="p-6 space-y-4">
+                <div className="flex items-center gap-3">
+                  <AlertTriangle className="w-6 h-6 text-red-500" />
+                  <div>
+                    <h3 className={`text-xl font-bold ${textColor}`}>Удалить сигнал?</h3>
+                    <p className={subtleColor}>Это действие нельзя отменить</p>
+                  </div>
+                </div>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => { setShowDeleteModal(false); setDeleteCallId(null) }}
+                    className={`flex-1 px-4 py-3 rounded-xl border ${borderColor} ${theme === 'dark' ? 'text-white' : 'text-gray-800'}`}
+                  >
+                    Отмена
+                  </button>
+                  <button
+                    onClick={handleDeleteConfirm}
+                    className="flex-1 px-4 py-3 rounded-xl bg-red-600 text-white font-semibold hover:bg-red-700"
+                  >
+                    Удалить
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Cancel Confirmation Modal */}
+        {cancelCallId && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[70] flex items-start sm:items-center justify-center p-4 overflow-y-auto overscroll-contain">
+            <div className={`${bgColor} rounded-2xl shadow-2xl border ${borderColor} max-w-md w-full`}>
+              <div className="p-6 space-y-4">
+                <div className="flex items-center gap-3">
+                  <AlertTriangle className="w-6 h-6 text-amber-500" />
+                  <div>
+                    <h3 className={`text-xl font-bold ${textColor}`}>Отменить сигнал?</h3>
+                    <p className={subtleColor}>Статус станет «Отменен», запись останется в списке.</p>
+                  </div>
+                </div>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setCancelCallId(null)}
+                    className={`flex-1 px-4 py-3 rounded-xl border ${borderColor} ${theme === 'dark' ? 'text-white' : 'text-gray-800'}`}
+                  >
+                    Отмена
+                  </button>
+                  <button
+                    onClick={handleCancelConfirm}
+                    className="flex-1 px-4 py-3 rounded-xl bg-amber-500 text-white font-semibold hover:bg-amber-600"
+                  >
+                    Отменить
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Calls List */}
+        {!showForm && (
+          <>
+            {loading ? (
+              <div className={`${bgColor} rounded-2xl p-12 text-center ${borderColor} border shadow-xl`}>
+                <div className="animate-spin rounded-full h-14 w-14 border-4 border-[#4E6E49] border-t-transparent mx-auto mb-4"></div>
+                <p className={`${subtleColor} text-lg`}>Загрузка сигналов...</p>
+              </div>
+            ) : calls.length === 0 ? (
+              <div className={`${bgColor} rounded-[2rem] p-16 text-center ${borderColor} border-2 shadow-2xl backdrop-blur-sm relative overflow-hidden group`}>
+                <div className="absolute inset-0 bg-gradient-to-br from-[#4E6E49]/5 via-transparent to-emerald-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <Sparkles className={`w-20 h-20 mx-auto mb-6 ${subtleColor} animate-pulse`} />
+                <p className={`text-2xl font-black ${textColor} mb-2`}>Пока пусто</p>
+                <p className={`${subtleColor} text-lg`}>Создайте первый сигнал в новой структуре</p>
+              </div>
+            ) : filteredCalls.length === 0 ? (
+              <div className={`${bgColor} rounded-2xl p-12 text-center ${borderColor} border shadow-xl`}>
+                <Sparkles className={`w-16 h-16 mx-auto mb-4 ${subtleColor}`} />
+                <p className={`text-xl font-bold ${textColor}`}>Нет совпадений</p>
+                <p className={subtleColor}>Сигналы есть ({calls.length}), но фильтр ничего не нашел.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5 px-4 py-2">
+                {filteredCalls.map((call) => {
+                  const meta = CATEGORY_META[call.category]
+                  const statusMeta = statusLabels[call.status as StatusFilter] || statusLabels.active
+                  const riskLevel = getRiskLevel(call)
+                  const details = getDetails(call)
+                  const trader = TEAM_MEMBERS.find(t => t.id === call.userId)
+                  const keyCopyValue = details.ticker || details.pair || details.coin || getPrimaryTitle(call)
+                  const createdDate = new Date(call.createdAt).toLocaleDateString('ru-RU', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+                  const tone = categoryTone[call.category]
+
+                  return (
+                    <div
+                      key={call.id}
+                      className={`rounded-3xl border-2 shadow-xl overflow-hidden transition-all hover:-translate-y-1 ${tone.border} ${tone.bg}`}
+                    >
+                      <div className={`px-5 py-4 flex flex-wrap items-center justify-between gap-3 border-b ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-white/70 bg-white/70'
+                        }`}>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-semibold border ${tone.border} ${tone.chipBg || ''} ${tone.text}`}>
+                            {meta.icon}
+                            {meta.label}
+                          </span>
+                          <span className={`px-3 py-1.5 rounded-full text-xs font-semibold ${statusMeta.className}`}>{statusMeta.label}</span>
+                          <span className={`px-3 py-1.5 rounded-full text-xs font-semibold ${riskBadges[riskLevel]}`}>Риск: {riskLevel}</span>
+                        </div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <div className={`px-3 py-1.5 rounded-xl text-xs font-semibold border ${theme === 'dark' ? 'bg-gray-800/70 text-gray-200 border-white/10' : 'bg-white text-gray-700 border-gray-200'
+                            }`}>
+                            <span className="opacity-70">Создано </span>{createdDate}
+                          </div>
+                          {trader && (
+                            <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-white/10 bg-black/5 dark:bg-white/5">
+                              <div className="w-8 h-8 rounded-full bg-gradient-to-r from-[#4E6E49] to-emerald-600 text-white flex items-center justify-center text-sm font-bold">
+                                {trader.name[0]}
+                              </div>
+                              <span className={`text-xs ${subtleColor}`}>{trader.name}</span>
+                            </div>
+                          )}
+                          <div className="flex items-center gap-1">
+                            <button
+                              onClick={() => handleEdit(call)}
+                              className={`p-2 rounded-lg ${theme === 'dark' ? 'hover:bg-gray-800' : 'hover:bg-gray-100'}`}
+                            >
+                              <Edit className="w-4 h-4" />
+                            </button>
+                            {call.status !== 'cancelled' && (
+                              <button
+                                onClick={() => setCancelCallId(call.id)}
+                                className={`p-2 rounded-lg ${theme === 'dark' ? 'hover:bg-gray-800' : 'hover:bg-gray-100'}`}
+                              >
+                                <X className="w-4 h-4 text-amber-500" />
+                              </button>
+                            )}
+                            <button
+                              onClick={() => handleDeleteClick(call.id)}
+                              className={`p-2 rounded-lg ${theme === 'dark' ? 'hover:bg-gray-800' : 'hover:bg-gray-100'}`}
+                            >
+                              <Trash2 className="w-4 h-4 text-red-500" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="p-5 space-y-5">
+                        <div className="grid md:grid-cols-[1.15fr_auto] gap-4 items-start">
+                          <div className="space-y-1">
+                            <p className={`text-2xl font-bold ${textColor}`}>{getPrimaryTitle(call)}</p>
+                            <p className={`text-sm ${subtleColor}`}>{getSecondary(call)}</p>
+                          </div>
+                          <div className="flex flex-wrap gap-2 justify-end">
+                            <button
+                              onClick={() => copyValue(keyCopyValue)}
+                              className={`p-2 rounded-xl border ${borderColor} ${theme === 'dark' ? 'hover:bg-gray-800 bg-white/5' : 'hover:bg-gray-100 bg-white'} transition-colors`}
+                              title="Копировать"
+                            >
+                              {copiedValue === keyCopyValue ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
+                            </button>
+                          </div>
+                        </div>
+
+                        {renderCategoryMetrics(call)}
+
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
