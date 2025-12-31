@@ -1,3 +1,4 @@
+// User types
 export interface User {
   id: string
   name: string
@@ -17,6 +18,18 @@ export interface TimeSlot {
   }[]
 }
 
+export type SlotCategory = 'memecoins' | 'futures' | 'nft' | 'spot' | 'airdrop' | 'polymarket' | 'staking'
+
+export const SLOT_CATEGORY_META: Record<SlotCategory, { label: string; accent: string; icon: string }> = {
+  memecoins: { label: 'Мемкоины', accent: 'emerald', icon: 'rocket' },
+  futures: { label: 'Фьючерсы', accent: 'blue', icon: 'trending' },
+  nft: { label: 'NFT', accent: 'purple', icon: 'image' },
+  spot: { label: 'Спот', accent: 'amber', icon: 'coins' },
+  airdrop: { label: 'AirDrop', accent: 'cyan', icon: 'gift' },
+  polymarket: { label: 'Polymarket', accent: 'pink', icon: 'barchart' },
+  staking: { label: 'Стейкинг', accent: 'indigo', icon: 'shield' },
+}
+
 export interface WorkSlot {
   id: string
   userId: string
@@ -24,6 +37,7 @@ export interface WorkSlot {
   slots: TimeSlot[]
   comment?: string
   participants: string[] // user IDs
+  category?: SlotCategory // optional for backward compatibility with old slots
 }
 
 // Day status types
@@ -52,7 +66,6 @@ export interface Restriction {
   isActive: boolean
 }
 
-// Approval types
 export type ApprovalEntity = 'slot' | 'status' | 'earning' | 'referral' | 'login'
 export type ApprovalAction = 'create' | 'update' | 'delete'
 export type ApprovalStatus = 'pending' | 'approved' | 'rejected'
@@ -452,29 +465,3 @@ export interface ActivityLog {
   createdAt: string
 }
 
-// TeamPoolHistory interface
-export interface TeamPoolHistory {
-  id: string
-  date: string // YYYY-MM-DD
-  poolAmount: number
-}
-
-// TeamRatingHistory interface
-export interface TeamRatingHistory {
-  id: string
-  date: string // YYYY-MM-DD
-  averageRating: number
-}
-
-// DayInfo interface
-export interface DayInfo {
-  id: string
-  date: string
-  teamKPD: number
-  teamMembersOnline: number
-  totalChats: number
-  totalTasks: number
-  tasksCompleted: number
-  totalSignals: number
-  signalsProfitable: number
-}

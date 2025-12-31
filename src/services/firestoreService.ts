@@ -14,7 +14,7 @@ import {
   DocumentSnapshot,
 } from 'firebase/firestore'
 import { db } from '@/firebase/config' // Keep original path for db
-import { WorkSlot, DayStatus, Earnings, RatingData, Referral, Call, Task, TaskStatus, Note, TaskPriority, StageAssignee, ApprovalRequest, ApprovalStatus, UserActivity, UserNickname, Restriction, RestrictionType, UserConflict, AccessBlock, AiAlert, User, TeamRatingHistory } from '@/types' // Add User to existing types
+import { WorkSlot, DayStatus, Earnings, RatingData, Referral, Call, Task, TaskStatus, Note, TaskPriority, StageAssignee, ApprovalRequest, ApprovalStatus, UserActivity, UserNickname, Restriction, RestrictionType, UserConflict, AccessBlock, AiAlert, User } from '@/types' // Add User to existing types
 import { clearNicknameCache, getUserNicknameAsync } from '@/utils/userUtils'
 import { formatDate } from '@/utils/dateUtils'
 
@@ -831,17 +831,6 @@ export const updateRatingData = async (userId: string, data: Partial<RatingData>
   }
 }
 
-export const getTeamRatingHistory = async (): Promise<TeamRatingHistory[]> => {
-  const q = query(collection(db, 'teamRatingHistory'), orderBy('date', 'asc'))
-  const querySnapshot = await getDocs(q)
-  return querySnapshot.docs.map(doc => ({
-    id: doc.id,
-    date: doc.data().date,
-    averageRating: doc.data().averageRating,
-  })) as TeamRatingHistory[]
-}
-// Referrals
-
 // Referrals
 export const addReferral = async (referral: Omit<Referral, 'id'>) => {
   try {
@@ -1603,7 +1592,7 @@ export const getAiAlerts = async (): Promise<AiAlert[]> => {
   return querySnapshot.docs.map((docSnap: any) => ({
     id: docSnap.id,
     ...docSnap.data(),
-  }) as AiAlert) // Corrected type to AiAlert
+  } as AiAlert)) // Corrected type to AiAlert
 }
 
 export const getUserById = async (userId: string): Promise<User | null> => {

@@ -8,7 +8,7 @@ import { calculateHours, timeOverlaps, formatDate, getDatesInRange, normalizeDat
 import { UserNickname } from '@/components/UserNickname'
 import { getUserNicknameSync } from '@/utils/userUtils'
 import { X, Plus, Trash2, Edit, CalendarDays, Calendar } from 'lucide-react'
-import { WorkSlot, TimeSlot, TEAM_MEMBERS } from '@/types'
+import { WorkSlot, TimeSlot, TEAM_MEMBERS, SLOT_CATEGORY_META, SlotCategory } from '@/types'
 import { useScrollLock } from '@/hooks/useScrollLock'
 
 interface SlotFormProps {
@@ -58,6 +58,7 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
   const [multipleDates, setMultipleDates] = useState<string[]>([])
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [category, setCategory] = useState<SlotCategory | ''>(slot?.category || '')
   useScrollLock()
 
   const weekDays = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']
@@ -529,6 +530,12 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
       return
     }
 
+    // Validate category for new slots
+    if (!slot && !category) {
+      setError('Выберите сферу деятельности')
+      return
+    }
+
     const today = new Date()
     today.setHours(0, 0, 0, 0)
     const todayStr = formatDate(today, 'yyyy-MM-dd')
@@ -594,6 +601,7 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
         slots: adjustedSlots,
         ...(comment && { comment }),
         participants,
+        category: category as SlotCategory,
       }
 
       if (isAdmin) {
@@ -732,6 +740,7 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
                   },
                   { label: 'Даты', detail: targetDatesPreview.slice(0, 2).map((d: string) => formatDate(d, 'dd.MM')).join(', ') || 'Выберите дату', done: targetDatesPreview.length > 0 },
                   { label: 'Время', detail: timeSummary.slice(0, 2).join(' · ') || 'Добавьте интервал', done: slots.length > 0 },
+                  { label: 'Сфера', detail: category ? SLOT_CATEGORY_META[category as SlotCategory]?.label || category : 'Выберите сферу', done: !!category },
                   { label: 'Комментарий', detail: comment ? 'Заполнен' : 'Необязателен', done: !!comment },
                 ].map((step, index: number) => (
                   <div
@@ -1146,6 +1155,31 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
                 )}
               </div>
 
+              {/* Category selection */}
+              <div>
+                <label className={`block text-xs sm:text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                  Сфера деятельности <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={category}
+                  onChange={(e) => {
+                    setCategory(e.target.value as SlotCategory | '')
+                    setError('')
+                  }}
+                  className={`w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base rounded-lg border touch-manipulation ${theme === 'dark'
+                    ? 'bg-gray-700 border-gray-800 text-white'
+                    : 'bg-white border-gray-300 text-gray-900'
+                    } focus:outline-none focus:ring-2 focus:ring-[#4E6E49]`}
+                >
+                  <option value="">Выберите сферу...</option>
+                  {(Object.keys(SLOT_CATEGORY_META) as SlotCategory[]).map((cat) => (
+                    <option key={cat} value={cat}>
+                      {SLOT_CATEGORY_META[cat].label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
               {/* Repeat options */}
               {(!adminBulkMode || dateMode === 'single') && (
                 <div>
@@ -1270,7 +1304,7 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
                     e.preventDefault()
                     handleSave()
                   }}
-                  disabled={loading || slots.length === 0}
+                  disabled={loading || slots.length === 0 || (!slot && !category)}
                   className="flex-1 px-4 py-2.5 sm:py-2 bg-[#4E6E49] hover:bg-[#4E6E49] disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg sm:rounded-xl transition-colors text-sm sm:text-base font-medium touch-manipulation active:scale-95 disabled:active:scale-100"
                 >
                   {loading ? 'Ошибка добавления слота' : 'Отправить на согласование'}

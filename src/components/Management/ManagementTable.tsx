@@ -7,7 +7,7 @@ import { getWorkSlots, getDayStatuses, addApprovalRequest, deleteWorkSlot, updat
 import { formatDate, calculateHours, getWeekDays, getMoscowTime, countDaysInPeriod, getWeekRange } from '@/utils/dateUtils'
 import { getUserNicknameSync } from '@/utils/userUtils'
 import { UserNickname } from '@/components/UserNickname'
-import { WorkSlot, DayStatus } from '@/types'
+import { WorkSlot, DayStatus, SLOT_CATEGORY_META, SlotCategory } from '@/types'
 import { TEAM_MEMBERS } from '@/types'
 import { Edit, Trash2, Clock, Calendar as CalendarIcon, ChevronDown, ChevronUp } from 'lucide-react'
 
@@ -446,6 +446,16 @@ export const ManagementTable = ({ selectedUserId, slotFilter, onEditSlot, onEdit
     absence: 'bg-rose-500/10 text-rose-500 border border-rose-500/20',
   } as const
 
+const SLOT_CATEGORY_COLORS: Record<SlotCategory, { bg: string; text: string; border: string }> = {
+  memecoins: { bg: 'bg-emerald-100 dark:bg-emerald-900/40', text: 'text-emerald-700 dark:text-emerald-300', border: 'border-emerald-300 dark:border-emerald-700' },
+  futures: { bg: 'bg-blue-100 dark:bg-blue-900/40', text: 'text-blue-700 dark:text-blue-300', border: 'border-blue-300 dark:border-blue-700' },
+  nft: { bg: 'bg-purple-100 dark:bg-purple-900/40', text: 'text-purple-700 dark:text-purple-300', border: 'border-purple-300 dark:border-purple-700' },
+  spot: { bg: 'bg-amber-100 dark:bg-amber-900/40', text: 'text-amber-700 dark:text-amber-300', border: 'border-amber-300 dark:border-amber-700' },
+  airdrop: { bg: 'bg-cyan-100 dark:bg-cyan-900/40', text: 'text-cyan-700 dark:text-cyan-300', border: 'border-cyan-300 dark:border-cyan-700' },
+  polymarket: { bg: 'bg-pink-100 dark:bg-pink-900/40', text: 'text-pink-700 dark:text-pink-300', border: 'border-pink-300 dark:border-pink-700' },
+  staking: { bg: 'bg-indigo-100 dark:bg-indigo-900/40', text: 'text-indigo-700 dark:text-indigo-300', border: 'border-indigo-300 dark:border-indigo-700' },
+}
+
   return (
     <div className={`rounded-2xl ${theme === 'dark' ? 'bg-[#0b1015]' : 'bg-white'} overflow-visible`}>
       {/* Week navigation */}
@@ -578,6 +588,15 @@ export const ManagementTable = ({ selectedUserId, slotFilter, onEditSlot, onEdit
                                           <Clock className="w-3 h-3" />
                                           <span className="whitespace-nowrap tracking-tight">{s.start} - {s.end}</span>
                                         </div>
+                                        {slot.category && (
+                                          <span className={`text-[9px] px-1.5 py-0.5 rounded-full border font-medium ${
+                                            SLOT_CATEGORY_COLORS[slot.category as SlotCategory]?.bg || 'bg-gray-100 dark:bg-gray-800'
+                                          } ${SLOT_CATEGORY_COLORS[slot.category as SlotCategory]?.text || 'text-gray-700 dark:text-gray-300'} ${
+                                            SLOT_CATEGORY_COLORS[slot.category as SlotCategory]?.border || 'border-gray-300 dark:border-gray-600'
+                                          }`}>
+                                            {SLOT_CATEGORY_META[slot.category as SlotCategory]?.label || slot.category}
+                                          </span>
+                                        )}
                                         {s.breaks && s.breaks.length > 0 && (
                                           <button
                                             onClick={() => toggleBreaksVisibility(slotId)}

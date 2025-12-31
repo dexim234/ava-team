@@ -5,52 +5,11 @@ import { useAuthStore } from '@/store/authStore'
 import { useAdminStore } from '@/store/adminStore'
 import { RatingCard } from '@/components/Rating/RatingCard'
 import { ReferralForm } from '@/components/Rating/ReferralForm'
-import {
-  getRatingData,
-  getEarnings,
-  getDayStatuses,
-  getReferrals,
-  getWorkSlots,
-  deleteReferral,
-  addApprovalRequest,
-  getLatestUserActivities,
-  getUserActivitiesLast24Hours,
-  getTeamRatingHistory,
-} from '@/services/firestoreService'
-import {
-  getLastNDaysRange,
-  getWeekRange,
-  formatDate,
-  calculateHours,
-  countDaysInPeriod,
-} from '@/utils/dateUtils'
+import { getRatingData, getEarnings, getDayStatuses, getReferrals, getWorkSlots, deleteReferral, addApprovalRequest, getLatestUserActivities, getUserActivitiesLast24Hours } from '@/services/firestoreService'
+import { getLastNDaysRange, getWeekRange, formatDate, calculateHours, countDaysInPeriod } from '@/utils/dateUtils'
 import { calculateRating, getRatingBreakdown } from '@/utils/ratingUtils'
-import {
-  getUserNicknameAsync,
-  clearAllNicknameCache,
-  getUserNicknameSync,
-} from '@/utils/userUtils'
-import {
-  RatingData,
-  Referral,
-  TEAM_MEMBERS,
-  UserActivity,
-  TeamRatingHistory,
-} from '@/types'
-import {
-  ChevronLeft,
-  ChevronRight,
-  Filter,
-  Users,
-  LayoutList,
-  TrendingUp,
-  Sparkles,
-  Trophy,
-  UserPlus,
-  Info,
-} from 'lucide-react'
-import { RatingChart } from '@/components/Rating/RatingChart'
-import { Link } from 'react-router-dom'
+import { getUserNicknameAsync, clearAllNicknameCache, getUserNicknameSync } from '@/utils/userUtils'
+import { RatingData, Referral, TEAM_MEMBERS, UserActivity } from '@/types'
 
 export const Rating = () => {
   const { theme } = useThemeStore()
@@ -64,51 +23,43 @@ export const Rating = () => {
   const [activeReferral, setActiveReferral] = useState<Referral | null>(null)
   const [userActivities, setUserActivities] = useState<UserActivity[]>([])
   const [activities24h, setActivities24h] = useState<UserActivity[]>([])
-  const [teamRatingHistory, setTeamRatingHistory] = useState<TeamRatingHistory[]>([])
-  const [currentPeriodStart, setCurrentPeriodStart] = useState<Date>(getWeekRange().start)
-  const [selectedMember, setSelectedMember] = useState<string | null>(null)
-  const [periodType, setPeriodType] = useState<'week' | 'month'>('week') // 'week', 'month', '3month'
 
   useEffect(() => {
     loadRatings()
-    loadTeamRatingHistory()
-  }, [currentPeriodStart, periodType, selectedMember])
+  }, [])
 
   const loadRatings = async () => {
     setLoading(true)
     try {
-      let mainRange
-      if (periodType === 'week') {
-        mainRange = getWeekRange()
-      } else if (periodType === 'month') {
-        mainRange = getLastNDaysRange(30) // Use a common function for this
-      } else {
-        mainRange = getLastNDaysRange(90)
-      }
+      // Для рейтинга считаем за неделю и за месяц
+      const weekRange = getWeekRange()
+      const weekStart = formatDate(weekRange.start, 'yyyy-MM-dd')
+      const weekEnd = formatDate(weekRange.end, 'yyyy-MM-dd')
 
-      const periodStart = formatDate(mainRange.start, 'yyyy-MM-dd')
-      const periodEnd = formatDate(mainRange.end, 'yyyy-MM-dd')
-      const periodIsoStart = mainRange.start.toISOString()
-      const periodIsoEnd = mainRange.end.toISOString()
+      const monthRange = getLastNDaysRange(30)
+      const monthStart = formatDate(monthRange.start, 'yyyy-MM-dd')
+      const monthEnd = formatDate(monthRange.end, 'yyyy-MM-dd')
+      const monthIsoStart = monthRange.start.toISOString()
+      const monthIsoEnd = monthRange.end.toISOString()
 
       const ninetyDayRange = getLastNDaysRange(90)
       const ninetyDayStart = formatDate(ninetyDayRange.start, 'yyyy-MM-dd')
       const ninetyDayEnd = formatDate(ninetyDayRange.end, 'yyyy-MM-dd')
 
-      const currentReferrals = await getReferrals(undefined, periodIsoStart, periodIsoEnd)
+      const currentReferrals = await getReferrals(undefined, monthIsoStart, monthIsoEnd)
       setReferrals(currentReferrals)
       const allRatings: (RatingData & { breakdown?: ReturnType<typeof getRatingBreakdown> })[] = []
 
       for (const member of TEAM_MEMBERS) {
         // Данные для рейтинга
-        const weekEarnings = await getEarnings(member.id, periodStart, periodEnd)
+        const weekEarnings = await getEarnings(member.id, weekStart, weekEnd)
         // Если у записи несколько участников, сумма делится поровну между ними
         const weeklyEarnings = weekEarnings.reduce((sum, e) => {
           const participantCount = e.participants && e.participants.length > 0 ? e.participants.length : 1
           return sum + (e.amount / participantCount)
         }, 0)
 
-        const monthEarnings = await getEarnings(member.id, periodStart, periodEnd)
+        const monthEarnings = await getEarnings(member.id, monthStart, monthEnd)
         // Если у записи несколько участников, сумма делится поровну между ними
         const totalEarnings = monthEarnings.reduce((sum, e) => {
           const participantCount = e.participants && e.participants.length > 0 ? e.participants.length : 1
@@ -124,35 +75,35 @@ export const Rating = () => {
         const monthStatuses = statuses.filter(s => {
           const statusStart = s.date
           const statusEnd = s.endDate || s.date
-          return statusStart <= periodEnd && statusEnd >= periodStart
+          return statusStart <= monthEnd && statusEnd >= monthStart
         })
         // Count days, not just status count (for multi-day statuses)
         const daysOff = monthStatuses
           .filter(s => s.type === 'dayoff')
-          .reduce((sum, s) => sum + countDaysInPeriod(s.date, s.endDate, periodStart, periodEnd), 0)
+          .reduce((sum, s) => sum + countDaysInPeriod(s.date, s.endDate, monthStart, monthEnd), 0)
         const sickDays = monthStatuses
           .filter(s => s.type === 'sick')
-          .reduce((sum, s) => sum + countDaysInPeriod(s.date, s.endDate, periodStart, periodEnd), 0)
+          .reduce((sum, s) => sum + countDaysInPeriod(s.date, s.endDate, monthStart, monthEnd), 0)
         const vacationDays = monthStatuses
           .filter(s => s.type === 'vacation')
-          .reduce((sum, s) => sum + countDaysInPeriod(s.date, s.endDate, periodStart, periodEnd), 0)
+          .reduce((sum, s) => sum + countDaysInPeriod(s.date, s.endDate, monthStart, monthEnd), 0)
         const absenceDays = monthStatuses
           .filter(s => s.type === 'absence')
-          .reduce((sum, s) => sum + countDaysInPeriod(s.date, s.endDate, periodStart, periodEnd), 0)
+          .reduce((sum, s) => sum + countDaysInPeriod(s.date, s.endDate, monthStart, monthEnd), 0)
 
         // Недельные выходные и больничные
         const weekStatuses = statuses.filter(s => {
           const statusStart = s.date
           const statusEnd = s.endDate || s.date
-          return statusStart <= periodEnd && statusEnd >= periodStart
+          return statusStart <= weekEnd && statusEnd >= weekStart
         })
 
         const weeklyDaysOff = weekStatuses
           .filter(s => s.type === 'dayoff')
-          .reduce((sum, s) => sum + countDaysInPeriod(s.date, s.endDate, periodStart, periodEnd), 0)
+          .reduce((sum, s) => sum + countDaysInPeriod(s.date, s.endDate, weekStart, weekEnd), 0)
         const weeklySickDays = weekStatuses
           .filter(s => s.type === 'sick')
-          .reduce((sum, s) => sum + countDaysInPeriod(s.date, s.endDate, periodStart, periodEnd), 0)
+          .reduce((sum, s) => sum + countDaysInPeriod(s.date, s.endDate, weekStart, weekEnd), 0)
 
         // Отпуск за 90 дней
         const ninetyDayStatuses = statuses.filter(s => {
@@ -166,7 +117,7 @@ export const Rating = () => {
           .reduce((sum, s) => sum + countDaysInPeriod(s.date, s.endDate, ninetyDayStart, ninetyDayEnd), 0)
 
         const slots = await getWorkSlots(member.id)
-        const weekSlots = slots.filter(s => s.date >= periodStart && s.date <= periodEnd)
+        const weekSlots = slots.filter(s => s.date >= weekStart && s.date <= weekEnd)
         const weeklyHours = weekSlots.reduce((sum, slot) => sum + calculateHours(slot.slots), 0)
 
         // Для статистики используем общее количество из ratings
@@ -216,6 +167,7 @@ export const Rating = () => {
         })
       }
 
+      // Sort by rating
       allRatings.sort((a, b) => b.rating - a.rating)
       setRatings(allRatings)
 
@@ -233,39 +185,6 @@ export const Rating = () => {
     }
   }
 
-  const loadTeamRatingHistory = async () => {
-    try {
-      const history = await getTeamRatingHistory()
-      setTeamRatingHistory(history)
-    } catch (error) {
-      console.error('Error loading team rating history:', error)
-    }
-  }
-
-  const handlePreviousPeriod = () => {
-    const newDate = new Date(currentPeriodStart)
-    if (periodType === 'week') {
-      newDate.setDate(newDate.getDate() - 7)
-    } else if (periodType === 'month') {
-      newDate.setMonth(newDate.getMonth() - 1)
-    } else { // 3 months
-      newDate.setMonth(newDate.getMonth() - 3)
-    }
-    setCurrentPeriodStart(newDate)
-  }
-
-  const handleNextPeriod = () => {
-    const newDate = new Date(currentPeriodStart)
-    if (periodType === 'week') {
-      newDate.setDate(newDate.getDate() + 7)
-    } else if (periodType === 'month') {
-      newDate.setMonth(newDate.getMonth() + 1)
-    } else { // 3 months
-      newDate.setMonth(newDate.getMonth() + 3)
-    }
-    setCurrentPeriodStart(newDate)
-  }
-
   const teamKPD = ratings.reduce((sum, r) => sum + r.rating, 0) / (ratings.length || 1)
   const subTextColor = theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
   const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
@@ -276,34 +195,10 @@ export const Rating = () => {
   const heroValueColor = theme === 'dark' ? 'text-white' : 'text-slate-900'
 
   const ratingBands = [
-    {
-      label: '80-100%',
-      title: 'Эталон',
-      desc: 'Стабильный вклад, примеры для команды',
-      tone: 'text-emerald-700 dark:text-emerald-100',
-      bg: 'bg-emerald-50 dark:bg-emerald-900/40 border-emerald-200/60 dark:border-emerald-700/60',
-    },
-    {
-      label: '60-79%',
-      title: 'Уверенно',
-      desc: 'Держат темп, есть потенциал роста',
-      tone: 'text-blue-700 dark:text-blue-100',
-      bg: 'bg-blue-50 dark:bg-blue-900/40 border-blue-200/60 dark:border-blue-700/60',
-    },
-    {
-      label: '40-59%',
-      title: 'В пути',
-      desc: 'Нужна точечная поддержка и фокус',
-      tone: 'text-amber-700 dark:text-amber-100',
-      bg: 'bg-amber-50 dark:bg-amber-900/40 border-amber-200/60 dark:border-amber-700/60',
-    },
-    {
-      label: '0-39%',
-      title: 'Зона роста',
-      desc: 'Запускаем план восстановления',
-      tone: 'text-rose-700 dark:text-rose-100',
-      bg: 'bg-rose-50 dark:bg-rose-900/40 border-rose-200/60 dark:border-rose-700/60',
-    },
+    { label: '80-100%', title: 'Эталон', desc: 'Стабильный вклад, примеры для команды', tone: 'text-emerald-700 dark:text-emerald-100', bg: 'bg-emerald-50 dark:bg-emerald-900/40 border-emerald-200/60 dark:border-emerald-700/60' },
+    { label: '60-79%', title: 'Уверенно', desc: 'Держат темп, есть потенциал роста', tone: 'text-blue-700 dark:text-blue-100', bg: 'bg-blue-50 dark:bg-blue-900/40 border-blue-200/60 dark:border-blue-700/60' },
+    { label: '40-59%', title: 'В пути', desc: 'Нужна точечная поддержка и фокус', tone: 'text-amber-700 dark:text-amber-100', bg: 'bg-amber-50 dark:bg-amber-900/40 border-amber-200/60 dark:border-amber-700/60' },
+    { label: '0-39%', title: 'Зона роста', desc: 'Запускаем план восстановления', tone: 'text-rose-700 dark:text-rose-100', bg: 'bg-rose-50 dark:bg-rose-900/40 border-rose-200/60 dark:border-rose-700/60' },
   ]
 
   const getRecommendations = (r: typeof sortedRatings[number]) => {
@@ -319,12 +214,8 @@ export const Rating = () => {
   }
 
   const sortedRatings = useMemo<RatingWithBreakdown[]>(() => {
-    let filtered = [...ratings]
-    if (selectedMember) {
-      filtered = filtered.filter(r => r.userId === selectedMember)
-    }
-    return filtered.sort((a, b) => b.rating - a.rating)
-  }, [ratings, selectedMember])
+    return [...ratings].sort((a, b) => b.rating - a.rating)
+  }, [ratings])
 
   const ratingOverview = useMemo(() => {
     if (!ratings.length) {
@@ -343,71 +234,15 @@ export const Rating = () => {
 
   type HeroTone = 'emerald' | 'amber' | 'blue' | 'slate' | 'purple' | 'pink' | 'indigo'
 
-  const heroCards: {
-    label: string
-    value: string
-    meta: string
-    tone: HeroTone
-    icon: React.ElementType
-  }[] = [
-    {
-      label: 'Средний рейтинг',
-      value: `${teamKPD.toFixed(1)}%`,
-      meta: 'по команде за период',
-      tone: 'emerald',
-      icon: TrendingUp,
-    },
-    {
-      label: 'Лидер периода',
-      value: topMemberName,
-      meta: topMember ? `${topMember.rating.toFixed(1)}%` : '—',
-      tone: 'amber',
-      icon: Trophy,
-    },
-    {
-      label: '80%+ участников',
-      value: `${ratingOverview.high}`,
-      meta: 'стабильно высоко',
-      tone: 'blue',
-      icon: Sparkles,
-    },
-    {
-      label: 'Всего участников',
-      value: `${ratings.length}`,
-      meta: 'в рейтинге',
-      tone: 'slate',
-      icon: Users,
-    },
-  ]
-  const heroCardsSecondary: {
-    label: string
-    value: string
-    meta: string
-    tone: HeroTone
-    icon: React.ElementType
-  }[] = [
-    {
-      label: 'Медиана',
-      value: `${ratingOverview.median.toFixed(1)}%`,
-      meta: 'ровный темп',
-      tone: 'purple',
-      icon: LayoutList,
-    },
-    {
-      label: 'Рефералы за 30д',
-      value: `${referrals.length}`,
-      meta: 'активность команды',
-      tone: 'pink',
-      icon: UserPlus,
-    },
-    {
-      label: 'Обновление',
-      value: todayLabel,
-      meta: 'автообновление данных',
-      tone: 'indigo',
-      icon: Info,
-    },
-    // { label: 'КПД недели', value: `${teamKPD.toFixed(1)}%`, meta: 'ключевой ориентир', tone: 'emerald', icon: ShieldCheck },
+  const heroCards: { label: string; value: string; meta: string; tone: HeroTone }[] = [
+    { label: 'Средний рейтинг', value: `${teamKPD.toFixed(1)}%`, meta: 'по команде за неделю', tone: 'emerald' },
+    { label: 'Лидер недели', value: topMemberName, meta: topMember ? `${topMember.rating.toFixed(1)}%` : '—', tone: 'amber' },
+    { label: '80%+ участников', value: `${ratingOverview.high}`, meta: 'стабильно высоко', tone: 'blue' },
+    { label: 'Всего участников', value: `${ratings.length}`, meta: 'в рейтинге', tone: 'slate' },
+    { label: 'Медиана', value: `${ratingOverview.median.toFixed(1)}%`, meta: 'ровный темп', tone: 'purple' },
+    { label: 'Рефералы 30д', value: `${referrals.length}`, meta: 'активность команды', tone: 'pink' },
+    { label: 'Обновление', value: todayLabel, meta: 'автообновление данных', tone: 'indigo' },
+    { label: 'КПД недели', value: `${teamKPD.toFixed(1)}%`, meta: 'ключевой ориентир', tone: 'emerald' },
   ]
 
   const heroToneClass = (tone: HeroTone) => {
@@ -516,39 +351,10 @@ export const Rating = () => {
     await loadRatings()
   }
 
-  const getPeriodLabel = () => {
-    const start = new Date(currentPeriodStart)
-    let end = new Date(currentPeriodStart)
-
-    if (periodType === 'week') {
-      end.setDate(start.getDate() + 6)
-      return `${formatDate(start, 'dd MMM')} — ${formatDate(end, 'dd MMM')}`
-    } else if (periodType === 'month') {
-      end = getLastNDaysRange(30).end
-      return `${formatDate(start, 'dd MMM')} — ${formatDate(end, 'dd MMM')}`
-    } else { // 3 months
-      end.setMonth(start.getMonth() + 3)
-      end.setDate(start.getDate() - 1) // Adjust to end of the 3rd month
-      return `${formatDate(start, 'dd MMM')} — ${formatDate(end, 'dd MMM')}`
-    }
-  }
-
-  const themeClasses = {
-    text: theme === 'dark' ? 'text-white' : 'text-gray-900',
-    subtext: theme === 'dark' ? 'text-gray-400' : 'text-gray-600',
-    cardBg: theme === 'dark' ? 'bg-[#10141c]' : 'bg-white',
-    cardBorder: theme === 'dark' ? 'border-[#48a35e]/60' : 'border-gray-200',
-    tableHeaderBg: theme === 'dark' ? 'bg-white/5' : 'bg-gray-50',
-    tableBorder: theme === 'dark' ? 'border-white/10' : 'border-gray-200',
-    hoverBg: theme === 'dark' ? 'hover:bg-white/5' : 'hover:bg-gray-50',
-    buttonPrimary: theme === 'dark' ? 'bg-emerald-600 border-emerald-500/70 text-white hover:bg-emerald-700' : 'border-emerald-300 bg-emerald-500 text-white hover:bg-emerald-600',
-    buttonSecondary: theme === 'dark' ? 'bg-white/5 border-white/10 text-white hover:bg-white/10' : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100',
-  }
-
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className={`relative overflow-hidden rounded-3xl border ${calmBorder} shadow-[0_24px_80px_rgba(0,0,0,0.45)] ${cardBg}`}>
+      <div className="relative overflow-hidden rounded-3xl border border-[#48a35e]/60 shadow-[0_24px_80px_rgba(0,0,0,0.45)] bg-[#10141c]">
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute -left-16 -bottom-10 w-80 h-80 bg-emerald-500/18 blur-3xl"></div>
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.08),transparent_45%)]"></div>
@@ -559,15 +365,20 @@ export const Rating = () => {
             <div className="space-y-3 max-w-3xl">
               <div className="flex items-start gap-3">
                 <div className="p-3 rounded-2xl bg-white/10 border border-white/20 text-white shadow-inner">
-                  <TrendingUp className="w-6 h-6 text-emerald-300" />
+                  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" className="text-emerald-300">
+                    <path d="M4 13.5V20h4v-6.5H4Z" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d="M10 10v10h4V10h-4Z" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d="M16 4v16h4V4h-4Z" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d="M4 16.5 9.5 11l3 3 7-7" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
                 </div>
                 <div className="space-y-2">
                   <h1 className="text-3xl sm:text-4xl font-black text-white leading-tight">Рейтинг команды</h1>
                   <p className="text-sm text-white/70">
-                    Данные за {periodType === 'week' ? 'текущую неделю' : periodType === 'month' ? 'последние 30 дней' : 'последние 90 дней'}. В фокусе KPI команды, динамика и реферальная активность.
+                    Данные за текущую неделю + последние 30 дней. В фокусе KPI команды, динамика и реферальная активность — как на дашборде задач.
                   </p>
                   <div className="flex flex-wrap gap-2">
-                    {['Обзор', 'Динамика', 'Рефералы', 'Активность'].map((chip, idx) => (
+                    {['КПД недели', 'Рейтинг 30д', 'Рефералы', 'Сообщения'].map((chip, idx) => (
                       <span
                         key={chip}
                         className={`px-4 py-1.5 rounded-full text-xs font-semibold border ${idx === 0
@@ -583,254 +394,24 @@ export const Rating = () => {
               </div>
             </div>
 
-            <div className="flex flex-col items-start lg:items-end gap-3 text-white">
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={handlePreviousPeriod}
-                  className="p-2 rounded-full bg-white/10 border border-white/20 hover:bg-white/20 transition-colors"
-                >
-                  <ChevronLeft className="w-5 h-5 text-white/70" />
-                </button>
-                <span className="text-sm font-semibold text-white">
-                  {getPeriodLabel()}
-                </span>
-                <button
-                  onClick={handleNextPeriod}
-                  className="p-2 rounded-full bg-white/10 border border-white/20 hover:bg-white/20 transition-colors"
-                >
-                  <ChevronRight className="w-5 h-5 text-white/70" />
-                </button>
-              </div>
-              <div className="flex items-center gap-2 flex-wrap">
-                <div className="relative">
-                  <Filter className={`w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 ${subTextColor}`} />
-                  <select
-                    value={selectedMember || ''}
-                    onChange={(e) => setSelectedMember(e.target.value || null)}
-                    className={`pl-9 pr-4 py-2 rounded-xl text-sm font-semibold border ${themeClasses.cardBorder} ${themeClasses.cardBg} ${theme === 'dark' ? 'text-white' : 'text-gray-700'} appearance-none focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all duration-200`}
-                  >
-                    <option value="">Все участники</option>
-                    {TEAM_MEMBERS.map(member => (
-                      <option key={member.id} value={member.id}>{member.name}</option>
-                    ))}
-                  </select>
-                  <ChevronRight className={`w-4 h-4 rotate-90 absolute right-3 top-1/2 -translate-y-1/2 ${subTextColor} pointer-events-none`} />
-                </div>
-                <div className="relative">
-                  <LayoutList className={`w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 ${subTextColor}`} />
-                  <select
-                    value={periodType}
-                    onChange={(e) => setPeriodType(e.target.value as 'week' | 'month')}
-                    className={`pl-9 pr-4 py-2 rounded-xl text-sm font-semibold border ${themeClasses.cardBorder} ${themeClasses.cardBg} ${theme === 'dark' ? 'text-white' : 'text-gray-700'} appearance-none focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all duration-200`}
-                  >
-                    <option value="week">По неделям</option>
-                    <option value="month">По месяцам</option>
-                    {/* <option value="3month">За 3 месяца</option> */}
-                  </select>
-                  <ChevronRight className={`w-4 h-4 rotate-90 absolute right-3 top-1/2 -translate-y-1/2 ${subTextColor} pointer-events-none`} />
-                </div>
-              </div>
-            </div>
+            <div className="flex flex-col items-start lg:items-end gap-2 text-white"></div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
-            {heroCards.map((card) => {
-              const Icon = card.icon
-              return (
-                <div
-                  key={card.label}
-                  className={`relative overflow-hidden rounded-2xl border ${heroToneClass(card.tone)} p-4 backdrop-blur-sm`}
-                >
-                  <div className="absolute right-3 top-3 opacity-20"><Icon className="w-6 h-6" /></div>
-                  <div className={`text-xs uppercase tracking-[0.1em] font-semibold ${heroLabelColor}`}>{card.label}</div>
-                  <div className={`mt-2 text-2xl font-bold ${heroValueColor}`}>{card.value}</div>
-                  <div className={`text-sm ${heroLabelColor}`}>{card.meta}</div>
-                </div>
-              )
-            })}
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
-            {heroCardsSecondary.map((card) => {
-              const Icon = card.icon
-              return (
-                <div
-                  key={card.label}
-                  className={`relative overflow-hidden rounded-2xl border ${heroToneClass(card.tone)} p-4 backdrop-blur-sm`}
-                >
-                  <div className="absolute right-3 top-3 opacity-20"><Icon className="w-6 h-6" /></div>
-                  <div className={`text-xs uppercase tracking-[0.1em] font-semibold ${heroLabelColor}`}>{card.label}</div>
-                  <div className={`mt-2 text-2xl font-bold ${heroValueColor}`}>{card.value}</div>
-                  <div className={`text-sm ${heroLabelColor}`}>{card.meta}</div>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      </div>
-
-      {/* Team Rating History Chart */}
-      <div
-        className={`rounded-3xl p-6 ${cardBg} ${calmBorder} border shadow-lg`}
-      >
-        <div className="flex items-center justify-between mb-4">
-          <h2 className={`text-xl font-bold ${headingColor}`}>Динамика среднего рейтинга команды</h2>
-          <div>
-            <Link to="/faq#rating">
-              <button className={`px-3 py-1.5 rounded-lg text-xs font-semibold ${themeClasses.buttonSecondary}`}>
-                Как считается рейтинг?
-              </button>
-            </Link>
-          </div>
-        </div>
-        <div className="h-64 sm:h-80 md:h-96 w-full">
-          {teamRatingHistory.length > 0 ? (
-            <RatingChart history={teamRatingHistory} theme={theme} />
-          ) : (
-            <div className={`flex items-center justify-center h-full text-center ${subTextColor}`}>
-              Нет данных для отображения графика рейтинга.
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Referral stats */}
-      <div
-        id="rating-ref"
-        className={`rounded-2xl p-6 sm:p-7 ${cardBg} ${cardShadow} border ${calmBorder}`}
-      >
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
-          <div className="space-y-1">
-            <p className={`text-xs uppercase tracking-[0.12em] ${subTextColor}`}>Рефералы · 30 дней</p>
-            <h3 className={`text-2xl font-bold ${headingColor}`}>Привлеченные участники</h3>
-            <p className={`text-sm ${subTextColor}`}>Всего добавлено: <span className="font-semibold">{referrals.length}</span></p>
-          </div>
-          <button
-            onClick={handleAddReferral}
-            className="px-4 py-3 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 font-semibold shadow-md w-full sm:w-auto border border-indigo-200/70 bg-indigo-50 text-indigo-900 hover:bg-indigo-100 dark:bg-indigo-500/15 dark:border-indigo-400/30 dark:text-indigo-50"
-          >
-            <span className="text-xl">➕</span>
-            <span>Добавить реферала</span>
-          </button>
-        </div>
-
-        {referrals.length ? (
-          <div className="overflow-auto rounded-xl border border-white/10 bg-white/5">
-            <table className="min-w-[820px] w-full text-sm text-white/90">
-              <thead className="bg-white/5 text-white/70 text-left">
-                <tr>
-                  <th className="py-3 px-4 font-semibold">Кто привел</th>
-                  <th className="py-3 px-4 font-semibold">Код</th>
-                  <th className="py-3 px-4 font-semibold">Имя</th>
-                  <th className="py-3 px-4 font-semibold">Комментарий</th>
-                  <th className="py-3 px-4 font-semibold text-right">Действия</th>
-                </tr>
-              </thead>
-              <tbody>
-                {referrals.map((referral) => {
-                  const ownerName = getMemberNameById(referral.ownerId)
-                  const canManage = isAdmin || referral.ownerId === user?.id
-                  return (
-                    <tr
-                      key={referral.id}
-                      className="border-t border-white/10 hover:bg-white/5 transition-colors"
-                    >
-                      <td className="py-3 px-4 font-semibold text-white whitespace-nowrap">{ownerName}</td>
-                      <td className="py-3 px-4 text-white/80 whitespace-nowrap">{referral.referralId}</td>
-                      <td className="py-3 px-4 text-white/80">{referral.name}</td>
-                      <td className="py-3 px-4 text-white/70">{referral.comment || '—'}</td>
-                      <td className="py-3 px-4 text-right whitespace-nowrap flex items-center justify-end gap-2">
-                        <button
-                          onClick={() => canManage && handleEditReferral(referral)}
-                          className={`px-3 py-1.5 rounded-lg text-xs font-semibold border border-white/20 bg-white/10 text-white transition ${!canManage ? 'opacity-40 cursor-not-allowed' : 'hover:bg-white/20'}`}
-                          disabled={!canManage}
-                        >
-                          Редактировать
-                        </button>
-                        <button
-                          onClick={() => canManage && handleDeleteReferral(referral)}
-                          className={`px-3 py-1.5 rounded-lg text-xs font-semibold border border-rose-300/60 bg-rose-500/20 text-rose-50 transition ${!canManage ? 'opacity-40 cursor-not-allowed' : 'hover:bg-rose-500/30'}`}
-                          disabled={!canManage}
-                        >
-                          Удалить
-                        </button>
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <div className="rounded-xl border border-white/10 bg-white/5 p-4 text-white/70">
-            Пока нет рефералов.
-          </div>
-        )}
-      </div>
-
-      {/* Rating cards section */}
-      <div
-        id="rating-method"
-        className={`rounded-2xl p-6 sm:p-7 ${cardBg} ${cardShadow} border ${calmBorder}`}
-      >
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
-          <div className="space-y-1">
-            <p className={`text-xs uppercase tracking-[0.12em] ${subTextColor}`}>Карточки участников</p>
-            <h3 className={`text-2xl font-bold ${headingColor}`}>Детальная статистика</h3>
-
+            {heroCards.map((card) => (
+              <div
+                key={card.label}
+                className={`relative overflow-hidden rounded-2xl border ${heroToneClass(card.tone)} p-4 backdrop-blur-sm`}
+              >
+                <div className="absolute right-3 top-3 text-xl opacity-20">•</div>
+                <div className={`text-xs uppercase tracking-[0.1em] font-semibold ${heroLabelColor}`}>{card.label}</div>
+                <div className={`mt-2 text-2xl font-bold ${heroValueColor}`}>{card.value}</div>
+                <div className={`text-sm ${heroLabelColor}`}>{card.meta}</div>
+              </div>
+            ))}
           </div>
 
         </div>
-
-        {loading ? (
-          <div className={`rounded-xl p-12 text-center ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'} border ${calmBorder}`}>
-            <div className="animate-spin rounded-full h-12 w-12 border-4 border-emerald-500 border-t-transparent mx-auto mb-4"></div>
-            <p className={`text-lg font-semibold ${headingColor}`}>Загрузка рейтинга...</p>
-            <p className={`text-sm ${subTextColor} mt-2`}>Подождите, собираем статистику</p>
-          </div>
-        ) : (
-          <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-              {[
-                {
-                  label: 'Топ-1',
-                  value: sortedRatings[0]?.rating ? `${sortedRatings[0].rating.toFixed(1)}%` : '—',
-                },
-                {
-                  label: 'Средний рейтинг',
-                  value: `${teamKPD.toFixed(1)}%`,
-                },
-                {
-                  label: 'Медиана',
-                  value: `${ratingOverview.median.toFixed(1)}%`,
-                },
-                {
-                  label: 'Участников',
-                  value: sortedRatings.length,
-                },
-              ].map((item) => (
-                <div
-                  key={item.label}
-                  className={`rounded-xl border ${calmBorder} ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'} px-4 py-3`}
-                >
-                  <p className={`text-[11px] uppercase tracking-wide ${subTextColor}`}>{item.label}</p>
-                  <p className={`text-2xl font-extrabold ${headingColor}`}>{item.value}</p>
-                </div>
-              ))}
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-2 gap-6">
-              {sortedRatings.map((rating, index) => {
-                if (selectedMember && rating.userId !== selectedMember) return null;
-                return (
-                  <div key={rating.userId}>
-                    <RatingCard rating={rating} place={{ rank: index + 1 }} />
-                  </div>
-                )
-              })}
-            </div>
-          </>
-        )}
       </div>
 
       {/* Как строим эффективность */}
@@ -899,7 +480,7 @@ export const Rating = () => {
                 <ul className="space-y-1 text-sm text-white/80">
                   {recs.map((tip, idx) => (
                     <li key={idx} className="flex items-start gap-2">
-                      <span className="text-xs mt-0.5"></span>
+                      <span className="text-xs mt-0.5">•</span>
                       <span>{tip}</span>
                     </li>
                   ))}
@@ -1089,6 +670,132 @@ export const Rating = () => {
 
       </div>
 
+      {/* Referral stats */}
+      <div
+        id="rating-ref"
+        className={`rounded-2xl p-6 sm:p-7 ${cardBg} ${cardShadow} border ${calmBorder}`}
+      >
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
+          <div className="space-y-1">
+            <p className={`text-xs uppercase tracking-[0.12em] ${subTextColor}`}>Рефералы · 30 дней</p>
+            <h3 className={`text-2xl font-bold ${headingColor}`}>Привлеченные участники</h3>
+            <p className={`text-sm ${subTextColor}`}>Всего добавлено: <span className="font-semibold">{referrals.length}</span></p>
+          </div>
+          <button
+            onClick={handleAddReferral}
+            className="px-4 py-3 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 font-semibold shadow-md w-full sm:w-auto border border-indigo-200/70 bg-indigo-50 text-indigo-900 hover:bg-indigo-100 dark:bg-indigo-500/15 dark:border-indigo-400/30 dark:text-indigo-50"
+          >
+            <span className="text-xl">➕</span>
+            <span>Добавить реферала</span>
+          </button>
+        </div>
+
+        {referrals.length ? (
+          <div className="overflow-auto rounded-xl border border-white/10 bg-white/5">
+            <table className="min-w-[820px] w-full text-sm text-white/90">
+              <thead className="bg-white/5 text-white/70 text-left">
+                <tr>
+                  <th className="py-3 px-4 font-semibold">Кто привел</th>
+                  <th className="py-3 px-4 font-semibold">Код</th>
+                  <th className="py-3 px-4 font-semibold">Имя</th>
+                  <th className="py-3 px-4 font-semibold">Комментарий</th>
+                  <th className="py-3 px-4 font-semibold text-right">Действия</th>
+                </tr>
+              </thead>
+              <tbody>
+                {referrals.map((referral) => {
+                  const ownerName = getMemberNameById(referral.ownerId)
+                  const canManage = isAdmin || referral.ownerId === user?.id
+                  return (
+                    <tr
+                      key={referral.id}
+                      className="border-t border-white/10 hover:bg-white/5 transition-colors"
+                    >
+                      <td className="py-3 px-4 font-semibold text-white whitespace-nowrap">{ownerName}</td>
+                      <td className="py-3 px-4 text-white/80 whitespace-nowrap">{referral.referralId}</td>
+                      <td className="py-3 px-4 text-white/80">{referral.name}</td>
+                      <td className="py-3 px-4 text-white/70">{referral.comment || '—'}</td>
+                      <td className="py-3 px-4 text-right whitespace-nowrap flex items-center justify-end gap-2">
+                        <button
+                          onClick={() => canManage && handleEditReferral(referral)}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-semibold border border-white/20 bg-white/10 text-white transition ${!canManage ? 'opacity-40 cursor-not-allowed' : 'hover:bg-white/20'}`}
+                          disabled={!canManage}
+                        >
+                          Редактировать
+                        </button>
+                        <button
+                          onClick={() => canManage && handleDeleteReferral(referral)}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-semibold border border-rose-300/60 bg-rose-500/20 text-rose-50 transition ${!canManage ? 'opacity-40 cursor-not-allowed' : 'hover:bg-rose-500/30'}`}
+                          disabled={!canManage}
+                        >
+                          Удалить
+                        </button>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className="rounded-xl border border-white/10 bg-white/5 p-4 text-white/70">
+            Пока нет рефералов.
+          </div>
+        )}
+      </div>
+
+      {/* Rating cards section */}
+      <div
+        id="rating-method"
+        className={`rounded-2xl p-6 sm:p-7 ${cardBg} ${cardShadow} border ${calmBorder}`}
+      >
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
+          <div className="space-y-1">
+            <p className={`text-xs uppercase tracking-[0.12em] ${subTextColor}`}>Карточки участников</p>
+            <h3 className={`text-2xl font-bold ${headingColor}`}>Детальная статистика</h3>
+
+          </div>
+
+        </div>
+
+        {loading ? (
+          <div className={`rounded-xl p-12 text-center ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'} border ${calmBorder}`}>
+            <div className="animate-spin rounded-full h-12 w-12 border-4 border-emerald-500 border-t-transparent mx-auto mb-4"></div>
+            <p className={`text-lg font-semibold ${headingColor}`}>Загрузка рейтинга...</p>
+            <p className={`text-sm ${subTextColor} mt-2`}>Подождите, собираем статистику</p>
+          </div>
+        ) : (
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+              {[
+                { label: 'Топ-1', value: sortedRatings[0]?.rating ? `${sortedRatings[0].rating.toFixed(1)}%` : '—' },
+                { label: 'Средний рейтинг', value: `${teamKPD.toFixed(1)}%` },
+                { label: 'Медиана', value: `${ratingOverview.median.toFixed(1)}%` },
+                { label: 'Участников', value: sortedRatings.length },
+              ].map((item) => (
+                <div
+                  key={item.label}
+                  className={`rounded-xl border ${calmBorder} ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'} px-4 py-3`}
+                >
+                  <p className={`text-[11px] uppercase tracking-wide ${subTextColor}`}>{item.label}</p>
+                  <p className={`text-2xl font-extrabold ${headingColor}`}>{item.value}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-2 gap-6">
+              {sortedRatings.map((rating, index) => {
+                return (
+                  <div key={rating.userId}>
+                    <RatingCard rating={rating} place={{ rank: index + 1 }} />
+                  </div>
+                )
+              })}
+            </div>
+          </>
+        )}
+      </div>
+
       {showReferralForm && (
         <ReferralForm
           referral={activeReferral}
@@ -1106,3 +813,4 @@ export const Rating = () => {
     </div>
   )
 }
+

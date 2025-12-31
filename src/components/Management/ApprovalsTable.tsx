@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { CheckCircle2, Clock, ThumbsDown, CheckSquare, Square } from 'lucide-react'
 import { getApprovalRequests, approveApprovalRequest, rejectApprovalRequest } from '@/services/firestoreService'
-import { ApprovalRequest, DayStatus, WorkSlot } from '@/types'
+import { ApprovalRequest, DayStatus, WorkSlot, SLOT_CATEGORY_META, SlotCategory } from '@/types'
 import { formatDate } from '@/utils/dateUtils'
 import { clearNicknameCache, getUserNicknameAsync } from '@/utils/userUtils'
 import { UserNickname } from '@/components/UserNickname'
@@ -62,7 +62,8 @@ const formatSlotPreview = (slot?: WorkSlot | null) => {
   const times = slot.slots
     ?.map((s) => `${s.start}-${s.end}${s.endDate ? ` (до ${safeFormatDate(s.endDate)})` : ''}`)
     ?.join(', ')
-  return `${safeFormatDate(slot.date)}${times ? ` · ${times}` : ''}`
+  const categoryLabel = slot.category ? ` [${SLOT_CATEGORY_META[slot.category as SlotCategory]?.label || slot.category}]` : ''
+  return `${safeFormatDate(slot.date)}${times ? ` · ${times}` : ''}${categoryLabel}`
 }
 
 const formatStatusPreview = (status?: DayStatus | null) => {
