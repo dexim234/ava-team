@@ -57,7 +57,7 @@ export const AiAoAlerts = () => {
 
     const handleCopyAllData = () => {
         const text = alerts.map((a: AiAlert) =>
-            `${a.signalDate}\t${a.signalTime}\t${a.marketCap || '-'}\t${a.address}\t${a.maxDrop || '-'}\t${a.maxProfit || '-'}\t${a.comment || ''}`
+            `${formatDateForDisplay(a.signalDate)}\t${a.signalTime}\t${a.marketCap || '-'}\t${a.address}\t${a.maxDrop || '-'}\t${a.maxProfit || '-'}\t${a.comment || ''}`
         ).join('\n')
         const header = "Дата\tВремя\tMarket Cap\tАдрес\tМакс. Падение\tМакс. Профит\tКомментарий\n"
         navigator.clipboard.writeText(header + text)
@@ -83,7 +83,7 @@ export const AiAoAlerts = () => {
         <tbody>
           ${alerts.map((a: AiAlert) => `
             <tr>
-              <td>${a.signalDate}</td>
+              <td>${formatDateForDisplay(a.signalDate)}</td>
               <td>${a.signalTime}</td>
               <td>${a.marketCap || '-'}</td>
               <td>${a.address}</td>
@@ -101,6 +101,22 @@ export const AiAoAlerts = () => {
         navigator.clipboard.write(data)
         setIsCopyingTable(true)
         setTimeout(() => setIsCopyingTable(false), 2000)
+    }
+
+    // Format date from YYYY-MM-DD to DD.MM.GG
+    const formatDateForDisplay = (dateStr: string) => {
+        if (!dateStr) return '-'
+        const parts = dateStr.split('-')
+        if (parts.length !== 3) return dateStr
+        const year = parts[0].slice(-2) // последние 2 цифры года
+        return `${parts[2]}.${parts[1]}.${year}`
+    }
+
+    // Truncate address for display: 5 chars + ... + 3 chars
+    const truncateAddress = (address: string) => {
+        if (!address) return '-'
+        if (address.length <= 9) return address
+        return `${address.slice(0, 5)}...${address.slice(-3)}`
     }
 
     const handleDelete = async (id: string) => {
@@ -230,37 +246,44 @@ export const AiAoAlerts = () => {
                         <table className="w-full text-left border-collapse">
                             <thead>
                                 <tr className={`border-b ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-gray-50'}`}>
-                                    <th className={`p-4 text-xs uppercase tracking-wider font-semibold ${subTextColor}`}>Дата/Время</th>
-                                    <th className={`p-4 text-xs uppercase tracking-wider font-semibold ${subTextColor}`}>Капитализация</th>
+                                    <th className={`p-4 text-xs uppercase tracking-wider font-semibold ${subTextColor}`}>Дата</th>
+                                    <th className={`p-4 text-xs uppercase tracking-wider font-semibold ${subTextColor}`}>Время</th>
+                                    <th className={`p-4 text-xs uppercase tracking-wider font-semibold ${subTextColor}`}>Market Cap</th>
                                     <th className={`p-4 text-xs uppercase tracking-wider font-semibold ${subTextColor}`}>Адрес</th>
                                     <th className={`p-4 text-xs uppercase tracking-wider font-semibold ${subTextColor}`}>Макс. Падение</th>
                                     <th className={`p-4 text-xs uppercase tracking-wider font-semibold ${subTextColor}`}>Макс. Профит</th>
+                                    <th className={`p-4 text-xs uppercase tracking-wider font-semibold ${subTextColor}`}>Комментарий</th>
                                     <th className={`p-4 text-xs uppercase tracking-wider font-semibold ${subTextColor}`}>Действия</th>
                                 </tr>
                             </thead>
                             <tbody className={`divide-y ${theme === 'dark' ? 'divide-white/5' : 'divide-gray-100'}`}>
                                 {loading ? (
                                     <tr>
-                                        <td colSpan={6} className="p-8 text-center text-gray-500">Загрузка...</td>
+                                        <td colSpan={8} className="p-8 text-center text-gray-500">Загрузка...</td>
                                     </tr>
                                 ) : alerts.length === 0 ? (
                                     <tr>
-                                        <td colSpan={6} className="p-8 text-center text-gray-500">Нет сигналов</td>
+                                        <td colSpan={8} className="p-8 text-center text-gray-500">Нет сигналов</td>
                                     </tr>
                                 ) : (
                                     alerts.map((alert: AiAlert) => (
                                         <tr key={alert.id} className={`${theme === 'dark' ? 'hover:bg-white/5' : 'hover:bg-gray-50'} transition-colors`}>
                                             <td className="p-4 whitespace-nowrap">
-                                                <div className={`font-mono font-medium ${headingColor}`}>{alert.signalDate}</div>
-                                                <div className={`text-xs ${subTextColor}`}>{alert.signalTime}</div>
+                                                <div className={`font-mono font-medium ${headingColor}`}>{formatDateForDisplay(alert.signalDate)}</div>
+                                            </td>
+                                            <td className="p-4 whitespace-nowrap">
+                                                <div className={`font-mono ${headingColor}`}>{alert.signalTime}</div>
                                             </td>
                                             <td className="p-4 whitespace-nowrap">
                                                 <div className={`font-mono ${headingColor}`}>{alert.marketCap || '-'}</div>
                                             </td>
                                             <td className="p-4">
-                                                <div className="flex items-center gap-2 max-w-[200px]">
-                                                    <div className={`truncate font-mono text-sm ${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'}`}>
-                                                        {alert.address}
+                                                <div className="flex items-center gap-2">
+                                                    <div 
+                                                        className={`font-mono text-sm ${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'}`}
+                                                        title={alert.address}
+                                                    >
+                                                        {truncateAddress(alert.address)}
                                                     </div>
                                                     <button
                                                         onClick={() => handleCopy(alert.address, alert.id)}
@@ -274,12 +297,16 @@ export const AiAoAlerts = () => {
                                                 <span className={`font-mono ${alert.maxDrop && alert.maxDrop.startsWith('-') ? 'text-red-500' : headingColor}`}>
                                                     {alert.maxDrop || '-'}
                                                 </span>
-                                                {alert.comment && <div className={`text-xs ${subTextColor} mt-1`}>{alert.comment}</div>}
                                             </td>
                                             <td className="p-4 whitespace-nowrap">
                                                 <span className="font-mono text-green-500 font-bold">
                                                     {alert.maxProfit || '-'}
                                                 </span>
+                                            </td>
+                                            <td className="p-4 max-w-[250px]">
+                                                <div className={`text-sm ${headingColor} break-words whitespace-pre-wrap`}>
+                                                    {alert.comment || '-'}
+                                                </div>
                                             </td>
                                             <td className="p-4 whitespace-nowrap">
                                                 <div className="flex items-center gap-1">
