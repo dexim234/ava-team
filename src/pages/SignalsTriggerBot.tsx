@@ -751,7 +751,7 @@ export const SignalsTriggerBot = () => {
                                                             {value.includes(strategy) && (
                                                                 <Check size={16} className={`ml-auto ${theme === 'dark' ? 'text-amber-400' : 'text-amber-500'}`} />
                                                             )}
-                                                        </button>
+                                                        </span>
                                                     ))}
                                                 </div>
                                             </td>
