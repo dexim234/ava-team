@@ -602,7 +602,7 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
         slots: adjustedSlots,
         ...(comment && { comment }),
         participants,
-        category: category as SlotCategory,
+        ...(category ? { category: category as SlotCategory } : (slot?.category ? { category: slot.category } : {})),
       }
 
       if (isAdmin) {
@@ -1298,7 +1298,7 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
                   disabled={loading || slots.length === 0 || (!slot && !category)}
                   className="flex-1 px-4 py-2.5 sm:py-2 bg-[#4E6E49] hover:bg-[#4E6E49] disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg sm:rounded-xl transition-colors text-sm sm:text-base font-medium touch-manipulation active:scale-95 disabled:active:scale-100"
                 >
-                  {loading ? 'Ошибка добавления слота' : 'Отправить на согласование'}
+                  {loading ? 'Сохранение...' : slot ? 'Обновить слот' : 'Отправить на согласование'}
                 </button>
                 <button
                   onClick={onClose}

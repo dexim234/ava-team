@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useе требует Effect, useMemo } from 'react'
 import { useThemeStore } from '@/store/themeStore'
 import { useAuthStore } from '@/store/authStore'
 import { getTriggerAlerts, addTriggerAlert, updateTriggerAlert, deleteTriggerAlert } from '@/services/firestoreService'
@@ -23,7 +23,6 @@ export const SignalsTriggerBot = () => {
     const [isCopyingTable, setIsCopyingTable] = useState(false)
     const [showSuccess, setShowSuccess] = useState(false)
     const [successCount, setSuccessCount] = useState(0)
-    const [showConfirmSave, setShowConfirmSave] = useState(false)
 
     // Filter states
     const [showFilters, setShowFilters] = useState(false)
@@ -452,7 +451,8 @@ export const SignalsTriggerBot = () => {
                                         strategies: [],
                                         maxDrop: '',
                                         maxProfit: '',
-                                        comment: ''
+                                        comment: '',
+                                        isScam: false
                                     })
                                     setShowModal(true)
                                 }}
@@ -661,7 +661,7 @@ export const SignalsTriggerBot = () => {
 
                                             dateAlerts.forEach((alert: TriggerAlert) => {
                                                 rows.push(
-                                                    <tr key={alert.id} className={`${theme === 'dark' ? 'hover:bg-white/5' : 'hover:bg-gray-50'} transition-colors ${alert.isScam ? 'bg-red-500/10' : ''}`}>
+                                                    <tr key={alert.id} className={`${theme === 'dark' ? 'hover:bg-white/5' : 'hover:bg-gray-50'} transition-colors`}>
                                                         <td className="p-4 whitespace-nowrap">
                                                             <div className={`font-mono font-medium ${headingColor}`}>{formatDateForDisplay(alert.signalDate)}</div>
                                                         </td>
@@ -669,20 +669,14 @@ export const SignalsTriggerBot = () => {
                                                             <div className={`font-mono ${headingColor}`}>{alert.signalTime}</div>
                                                         </td>
                                                         <td className="p-4 whitespace-nowrap">
-                                                            {alert.isScam ? (
-                                                                <div className="flex flex-col gap-0.5">
-                                                                    <span className="text-red-500 font-bold text-sm">СКАМ-МОНЕТА</span>
-                                                                </div>
-                                                            ) : (
-                                                                <div className="flex flex-wrap gap-1">
-                                                                    {alert.strategies?.map((strategy) => (
-                                                                        <span key={strategy} className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold ${getStrategyColor(strategy)}`}>
-                                                                            <TrendingUp className="w-3 h-3" />
-                                                                            {strategy}
-                                                                        </span>
-                                                                    )) || '-'}
-                                                                </div>
-                                                            )}
+                                                            <div className="flex flex-wrap gap-1">
+                                                                {alert.strategies?.map((strategy) => (
+                                                                    <span key={strategy} className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold ${getStrategyColor(strategy)}`}>
+                                                                        <TrendingUp className="w-3 h-3" />
+                                                                        {strategy}
+                                                                    </span>
+                                                                )) || '-'}
+                                                            </div>
                                                         </td>
                                                         <td className="p-4 whitespace-nowrap">
                                                             <div className={`font-mono ${headingColor}`}>{alert.marketCap || '-'}</div>
@@ -743,7 +737,7 @@ export const SignalsTriggerBot = () => {
                                     })()
                                 ) : (
                                     filteredAlerts.map((alert: TriggerAlert) => (
-                                        <tr key={alert.id} className={`${theme === 'dark' ? 'hover:bg-white/5' : 'hover:bg-gray-50'} transition-colors ${alert.isScam ? 'bg-red-500/10' : ''}`}>
+                                        <tr key={alert.id} className={`${theme === 'dark' ? 'hover:bg-white/5' : 'hover:bg-gray-50'} transition-colors`}>
                                             <td className="p-4 whitespace-nowrap">
                                                 <div className={`font-mono font-medium ${headingColor}`}>{formatDateForDisplay(alert.signalDate)}</div>
                                             </td>
@@ -751,20 +745,14 @@ export const SignalsTriggerBot = () => {
                                                 <div className={`font-mono ${headingColor}`}>{alert.signalTime}</div>
                                             </td>
                                             <td className="p-4 whitespace-nowrap">
-                                                {alert.isScam ? (
-                                                    <div className="flex flex-col gap-0.5">
-                                                        <span className="text-red-500 font-bold text-sm">СКАМ-МОНЕТА</span>
-                                                    </div>
-                                                ) : (
-                                                    <div className="flex flex-wrap gap-1">
-                                                        {alert.strategies?.map((strategy) => (
-                                                            <span key={strategy} className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold ${getStrategyColor(strategy)}`}>
-                                                                <TrendingUp className="w-3 h-3" />
-                                                                {strategy}
-                                                            </span>
-                                                        )) || '-'}
-                                                    </div>
-                                                )}
+                                                <div className="flex flex-wrap gap-1">
+                                                    {alert.strategies?.map((strategy) => (
+                                                        <span key={strategy} className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold ${getStrategyColor(strategy)}`}>
+                                                            <TrendingUp className="w-3 h-3" />
+                                                            {strategy}
+                                                        </span>
+                                                    )) || '-'}
+                                                </div>
                                             </td>
                                             <td className="p-4 whitespace-nowrap">
                                                 <div className={`font-mono ${headingColor}`}>{alert.marketCap || '-'}</div>

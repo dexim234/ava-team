@@ -45,8 +45,8 @@ export const AiAoAlerts = () => {
     })
 
     // Common date for all alerts in batch mode
-    const [commonDate, setCommonDate] = useState<string>(new Date().toISOString().split('T')[0])
-    
+    const [commonDate, setCommonDate] = useState<string>(formData.signalDate || '')
+
     // List of alerts to add (batch mode)
     const [alertsToAdd, setAlertsToAdd] = useState<Partial<AiAlert>[]>([])
 
@@ -350,6 +350,7 @@ export const AiAoAlerts = () => {
     const handleEdit = (alert: AiAlert) => {
         setEditingAlert(alert)
         setFormData(alert)
+        setCommonDate(alert.signalDate || '')
         setShowModal(true)
     }
 
@@ -395,7 +396,7 @@ export const AiAoAlerts = () => {
 
                             <button
                                 onClick={() => setShowFilters(!showFilters)}
-                                className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all flex items-center gap-2 border ${showFilters ? 'bg-[#4E6E49] border-[#4E6E49] text-white' : theme === 'dark' ? 'bg-white/5 border-white/10 hover:bg-white/10 text-gray-300' : 'bg-gray-100 border-gray-200 hover:bg-gray-200 text-gray-700'}`}
+                                className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all flex items-center gap-2 border ${showFilters ? 'bg-[#4E6E49] border-[#4E6E49] text-white' : theme === 'dark' ? 'bg-white/5 border-white/10 hover:bg-white/10 text-gray-300' : 'bg-gray-100 border-gray-200 hover:bg-gray-100 text-gray-700'}`}
                             >
                                 <Filter className="w-4 h-4" />
                                 <span>Фильтры</span>
@@ -541,7 +542,7 @@ export const AiAoAlerts = () => {
                                     <select
                                         value={sortBy}
                                         onChange={(e) => setSortBy(e.target.value as SortField)}
-                                        className={`w-full p-2 rounded-lg border text-sm outline-none ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'}`}
+                                        className={`w-full p-2 rounded-lg border text-sm outline-none ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white focus:border-[#4E6E49]' : 'bg-white border-gray-200 text-gray-900 focus:border-[#4E6E49]'}`}
                                     >
                                         <option value="date">По дате</option>
                                         <option value="drop">По падению</option>
@@ -739,7 +740,7 @@ export const AiAoAlerts = () => {
                                             </td>
                                             <td className="p-4 max-w-[250px]">
                                                 <div className={`text-sm ${headingColor} break-words whitespace-pre-wrap`}>
-                                                    {alert.comment || '-'}
+                                                    {alert.comment || ''}
                                                 </div>
                                             </td>
                                             <td className="p-4 whitespace-nowrap">
@@ -805,7 +806,7 @@ export const AiAoAlerts = () => {
                                     <input
                                         type="date"
                                         disabled={!!editingAlert}
-                                        value={commonDate}
+                                        value={commonDate || formData.signalDate || ''}
                                         onChange={(e) => setCommonDate(e.target.value)}
                                         className={`w-full p-3 rounded-xl border outline-none transition-all ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white focus:border-[#4E6E49]' : 'bg-white border-gray-200 text-gray-900 focus:border-[#4E6E49]'} ${editingAlert ? 'opacity-50' : ''}`}
                                     />
@@ -816,7 +817,7 @@ export const AiAoAlerts = () => {
                                     <form onSubmit={handleSubmit} className="space-y-4">
                                         <div className="grid grid-cols-2 gap-4">
                                             <div className="space-y-1">
-                                                <label className={`text-xs font-semibold uppercase ${subTextColor}`}>Время</label>
+                                                <label className={`text-xs ${subTextColor}`}>Время</label>
                                                 <input
                                                     type="time"
                                                     required
@@ -828,7 +829,7 @@ export const AiAoAlerts = () => {
                                         </div>
 
                                         <div className="space-y-1">
-                                            <label className={`text-xs font-semibold uppercase ${subTextColor}`}>Адрес токена</label>
+                                            <label className={`text-xs ${subTextColor}`}>Адрес токена</label>
                                             <input
                                                 type="text"
                                                 required
@@ -841,7 +842,7 @@ export const AiAoAlerts = () => {
 
                                         <div className="grid grid-cols-3 gap-4">
                                             <div className="space-y-1">
-                                                <label className={`text-xs font-semibold uppercase ${subTextColor}`}>Market Cap</label>
+                                                <label className={`text-xs ${subTextColor}`}>Market Cap</label>
                                                 <input
                                                     type="text"
                                                     placeholder="e.g. 300,77"
@@ -851,7 +852,7 @@ export const AiAoAlerts = () => {
                                                 />
                                             </div>
                                             <div className="space-y-1">
-                                                <label className={`text-xs font-semibold uppercase ${subTextColor}`}>Макс. Падение</label>
+                                                <label className={`text-xs ${subTextColor}`}>Макс. Падение</label>
                                                 <input
                                                     type="text"
                                                     placeholder="e.g. -16"
@@ -861,19 +862,19 @@ export const AiAoAlerts = () => {
                                                 />
                                             </div>
                                             <div className="space-y-1">
-                                                <label className={`text-xs font-semibold uppercase ${subTextColor}`}>Макс. Профит</label>
+                                                <label className={`text-xs ${subTextColor}`}>Макс. Профит</label>
                                                 <input
                                                     type="text"
                                                     placeholder="e.g. +28"
                                                     value={formData.maxProfit || ''}
                                                     onChange={(e) => setFormData({ ...formData, maxProfit: e.target.value })}
-                                                    className={`w-full p-3 rounded-xl border outline-none transition-all ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white focus:border-[#4E6E49]' : 'bg-white border-gray-200 text-gray-900 focus:border-[#4E6E49]'}`}
+                                                    className={`w-full p-2 rounded-xl border outline-none transition-all ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white focus:border-[#4E6E49]' : 'bg-white border-gray-200 text-gray-900 focus:border-[#4E6E49]'}`}
                                                 />
                                             </div>
                                         </div>
 
                                         <div className="space-y-1">
-                                            <label className={`text-xs font-semibold uppercase ${subTextColor}`}>Комментарий</label>
+                                            <label className={`text-xs ${subTextColor}`}>Комментарий</label>
                                             <input
                                                 type="text"
                                                 placeholder="Дополнительная информация..."
@@ -912,7 +913,7 @@ export const AiAoAlerts = () => {
                                             
                                             <div className="grid grid-cols-2 gap-4">
                                                 <div className="space-y-1">
-                                                    <label className={`text-xs font-semibold uppercase ${subTextColor}`}>Время</label>
+                                                    <label className={`text-xs ${subTextColor}`}>Время</label>
                                                     <input
                                                         type="time"
                                                         value={formData.signalTime}
@@ -923,7 +924,7 @@ export const AiAoAlerts = () => {
                                             </div>
 
                                             <div className="space-y-1">
-                                                <label className={`text-xs font-semibold uppercase ${subTextColor}`}>Адрес токена</label>
+                                                <label className={`text-xs ${subTextColor}`}>Адрес токена</label>
                                                 <input
                                                     type="text"
                                                     placeholder="Адрес контракта..."
@@ -935,7 +936,7 @@ export const AiAoAlerts = () => {
 
                                             <div className="grid grid-cols-3 gap-4">
                                                 <div className="space-y-1">
-                                                    <label className={`text-xs font-semibold uppercase ${subTextColor}`}>Market Cap</label>
+                                                    <label className={`text-xs ${subTextColor}`}>Market Cap</label>
                                                     <input
                                                         type="text"
                                                         placeholder="e.g. 300,77"
@@ -945,7 +946,7 @@ export const AiAoAlerts = () => {
                                                     />
                                                 </div>
                                                 <div className="space-y-1">
-                                                    <label className={`text-xs font-semibold uppercase ${subTextColor}`}>Макс. Падение</label>
+                                                    <label className={`text-xs ${subTextColor}`}>Макс. Падение</label>
                                                     <input
                                                         type="text"
                                                         placeholder="e.g. -16"
@@ -955,7 +956,7 @@ export const AiAoAlerts = () => {
                                                     />
                                                 </div>
                                                 <div className="space-y-1">
-                                                    <label className={`text-xs font-semibold uppercase ${subTextColor}`}>Макс. Профит</label>
+                                                    <label className={`text-xs ${subTextColor}`}>Макс. Профит</label>
                                                     <input
                                                         type="text"
                                                         placeholder="e.g. +28"
@@ -967,7 +968,7 @@ export const AiAoAlerts = () => {
                                             </div>
 
                                             <div className="space-y-1">
-                                                <label className={`text-xs font-semibold uppercase ${subTextColor}`}>Комментарий</label>
+                                                <label className={`text-xs ${subTextColor}`}>Комментарий</label>
                                                 <input
                                                     type="text"
                                                     placeholder="Дополнительная информация..."
