@@ -24,6 +24,7 @@ export const SignalsTriggerBot = () => {
     const [showSuccess, setShowSuccess] = useState(false)
     const [successCount, setSuccessCount] = useState(0)
     const [showConfirmSave, setShowConfirmSave] = useState(false)
+    const [pendingAlertsCount, setPendingAlertsCount] = useState(0)
 
     // Filter states
     const [showFilters, setShowFilters] = useState(false)
@@ -122,6 +123,15 @@ export const SignalsTriggerBot = () => {
             return
         }
 
+        // Показываем окно подтверждения
+        setPendingAlertsCount(alertsToAdd.length)
+        setShowConfirmSave(true)
+    }
+
+    // Подтверждение сохранения
+    const confirmSave = async () => {
+        setShowConfirmSave(false)
+        
         try {
             const promises = alertsToAdd.map(alert =>
                 addTriggerAlert({
@@ -133,7 +143,7 @@ export const SignalsTriggerBot = () => {
             await Promise.all(promises)
 
             // Show success animation
-            setSuccessCount(alertsToAdd.length)
+            setSuccessCount(pendingAlertsCount)
             setShowSuccess(true)
             setTimeout(() => {
                 setShowSuccess(false)
@@ -1139,6 +1149,40 @@ export const SignalsTriggerBot = () => {
                                     )}
                                 </>
                             )}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Confirm Save Modal */}
+            {showConfirmSave && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className={`w-full max-w-sm rounded-3xl ${cardBg} ${cardBorder} border shadow-2xl p-6 animate-in zoom-in-95 duration-300`}>
+                        <div className="flex flex-col items-center text-center">
+                            <div className="w-14 h-14 rounded-full bg-amber-500/20 flex items-center justify-center mb-4">
+                                <Save className="w-7 h-7 text-amber-500" />
+                            </div>
+                            <h3 className={`text-xl font-bold ${headingColor} mb-2`}>
+                                Сохранить сигналы?
+                            </h3>
+                            <p className={`${subTextColor} mb-6`}>
+                                Вы собираетесь добавить <span className="font-semibold text-amber-500">{pendingAlertsCount}</span> сигнал{pendingAlertsCount === 1 ? '' : pendingAlertsCount >= 2 && pendingAlertsCount <= 4 ? 'а' : 'ов'} в базу данных
+                            </p>
+                            <div className="flex gap-3 w-full">
+                                <button
+                                    onClick={() => setShowConfirmSave(false)}
+                                    className={`flex-1 py-3 rounded-xl font-semibold transition-colors ${theme === 'dark' ? 'bg-white/5 hover:bg-white/10 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-800'}`}
+                                >
+                                    Отмена
+                                </button>
+                                <button
+                                    onClick={confirmSave}
+                                    className="flex-1 py-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-semibold transition-colors flex items-center justify-center gap-2"
+                                >
+                                    <Check className="w-4 h-4" />
+                                    <span>Сохранить</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
