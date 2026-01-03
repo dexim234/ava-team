@@ -1,4 +1,4 @@
-+// Main layout component with navigation and theme toggle
+// Main layout component with navigation and theme toggle
 import { Link, useLocation } from 'react-router-dom'
 import { useThemeStore } from '@/store/themeStore'
 import { useAdminStore, ADMIN_PASSWORD } from '@/store/adminStore'
@@ -26,11 +26,12 @@ import {
   ZapOff,
   Radio,
   Zap,
+  PanelLeftClose,
+  PanelLeftOpen,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import logo from '@/assets/logo.png'
 import { useState, useEffect } from 'react'
-import { PanelLeftClose, PanelLeftOpen } from 'lucide-react'
 
 export const Layout = ({ children }: { children: React.ReactNode }) => {
   const { theme, toggleTheme } = useThemeStore()
@@ -44,7 +45,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
     const saved = localStorage.getItem('sidebarCollapsed')
     return saved === 'true'
   })
-  const [notifications, setNotifications] = useState<{ id: string; text: string; time: string; status: string; timestamp?: number }[]>([])
+  const [notifications, setNotifications] = useState<{ id: string; text: string; time: string; status: string }[]>([])
   const [accessibleFeatures, setAccessibleFeatures] = useState<Set<string>>(new Set())
 
   // Track user activity
@@ -54,7 +55,6 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     const checkFeaturesAccess = async () => {
       if (!user || isAdmin) {
-        // Admin has access to everything
         setAccessibleFeatures(new Set(['slots', 'earnings', 'tasks', 'rating', 'profile', 'admin']))
         return
       }
@@ -69,8 +69,6 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
             accessible.add(feature)
           }
         } catch (error) {
-          console.error(`Error checking access to ${feature}:`, error)
-          // Default to allow on error
           accessible.add(feature)
         }
       }
@@ -91,12 +89,10 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
     ...(isAdmin ? [{ path: '/approvals', label: 'AVF Check', icon: CheckCircle2, feature: 'admin' }] : []),
   ]
 
-  // Mobile Function submenu (without AVF INFO)
   const mobileFuncSubItems = funcsSubItems.filter(item => 
     item.path !== '/about' && item.path !== '/approvals'
   )
 
-  // Filter accessible items for desktop sidebar
   const accessibleFuncsSubItems = funcsSubItems.filter(item =>
     !item.feature || accessibleFeatures.has(item.feature) || isAdmin
   )
@@ -107,7 +103,6 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
     { path: '/signals-trigger-bot', label: 'Signals Trigger Bot', icon: Zap },
   ]
 
-
   const isToolsActive = toolsSubItems.some(item => location.pathname === item.path)
 
   useEffect(() => {
@@ -117,180 +112,165 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     const loadNotifications = async () => {
-      try {
-        // Убираем уведомления для админа
-        if (isAdmin || !user) {
-          setNotifications([])
-          return
-        }
+      if (isAdmin || !user) {
+        setNotifications([])
+        return
+      }
 
-        type NotificationItem = { id: string; text: string; time: string; status: string; timestamp: number }
-        const notificationsList: NotificationItem[] = []
-        const cutoff = Date.now() - 6 * 60 * 60 * 1000 // 6 hours
-        const now = Date.now()
-        const oneHourMs = 60 * 60 * 1000
+      type NotificationItem = { id: string; text: string; time: string; status: string; timestamp: number }
+      const notificationsList: NotificationItem[] = []
+      const cutoff = Date.now() - 6 * 60 * 60 * 1000
+      const now = Date.now()
+      const oneHourMs = 60 * 60 * 1000
 
-        // Получаем просмотренные уведомления из localStorage
-        const viewedKey = `viewedNotifications_${user.id}`
-        const viewedIds = JSON.parse(localStorage.getItem(viewedKey) || '[]')
+      const viewedKey = `viewedNotifications_${user.id}`
+      const viewedIds = JSON.parse(localStorage.getItem(viewedKey) || '[]')
 
-        // 1. Согласования
-        const approvals = await getApprovalRequests()
-        const approvalNotifications = approvals
-          .filter((a) => {
-            if (a.authorId !== user.id && a.targetUserId !== user.id) return false
-            const ts = Date.parse(a.updatedAt || a.createdAt)
-            if (Number.isNaN(ts) || ts < cutoff) return false
-            if (viewedIds.includes(`approval_${a.id}`)) return false
-            return true
-          })
-          .map((a) => {
-            const timestamp = Date.parse(a.updatedAt || a.createdAt || new Date().toISOString())
+      // Approvals
+      const approvals = await getApprovalRequests()
+      const approvalNotifications = approvals
+        .filter((a) => {
+          if (a.authorId !== user.id && a.targetUserId !== user.id) return false
+          const ts = Date.parse(a.updatedAt || a.createdAt)
+          if (Number.isNaN(ts) || ts < cutoff) return false
+          if (viewedIds.includes(`approval_${a.id}`)) return false
+          return true
+        })
+        .map((a) => {
+          const timestamp = Date.parse(a.updatedAt || a.createdAt || new Date().toISOString())
+          return {
+            id: `approval_${a.id}`,
+            status: a.status,
+            text: `${a.entity === 'slot' ? 'Слот' : a.entity === 'status' ? 'Статус' : a.entity === 'login' ? 'Ник' : a.entity === 'earning' ? 'Заработок' : a.entity === 'referral' ? 'Реферал' : 'Изменение'} • ${a.status === 'approved' ? 'Подтверждено' : a.status === 'rejected' ? 'Отклонено' : 'На согласовании'}${a.adminComment ? `: ${a.adminComment}` : ''}`,
+            time: formatDate(a.updatedAt || a.createdAt || new Date().toISOString(), 'dd.MM HH:mm'),
+            timestamp: Number.isNaN(timestamp) ? now : timestamp,
+          }
+        })
+      notificationsList.push(...approvalNotifications)
+
+      // Tasks
+      const tasks = await getTasks({ assignedTo: user.id })
+      const taskNotifications = tasks
+        .filter((task) => {
+          const createdAt = Date.parse(task.createdAt)
+          const isNew = !Number.isNaN(createdAt) && createdAt >= cutoff && !viewedIds.includes(`task_new_${task.id}`)
+
+          if (!task.dueDate || !task.dueTime) return isNew
+
+          const deadline = new Date(`${task.dueDate}T${task.dueTime}`)
+          const deadlineMs = deadline.getTime()
+          if (Number.isNaN(deadlineMs)) return isNew
+
+          const diffMs = deadlineMs - now
+          const isDueInHour = diffMs > 0 && diffMs <= oneHourMs && !viewedIds.includes(`task_due_${task.id}`)
+          const isOverdue = diffMs < 0 && diffMs >= -cutoff && !viewedIds.includes(`task_overdue_${task.id}`)
+
+          return isNew || isDueInHour || isOverdue
+        })
+        .map((task) => {
+          const createdAt = Date.parse(task.createdAt)
+          const isNew = !Number.isNaN(createdAt) && createdAt >= cutoff && !viewedIds.includes(`task_new_${task.id}`)
+
+          if (isNew) {
+            const timestamp = Date.parse(task.createdAt)
             return {
-              id: `approval_${a.id}`,
-              status: a.status,
-              text: `${a.entity === 'slot' ? 'Слот' : a.entity === 'status' ? 'Статус' : a.entity === 'login' ? 'Ник' : a.entity === 'earning' ? 'Заработок' : a.entity === 'referral' ? 'Реферал' : 'Изменение'} • ${a.status === 'approved' ? 'Подтверждено' : a.status === 'rejected' ? 'Отклонено' : 'На согласовании'}${a.adminComment ? `: ${a.adminComment}` : ''}`,
-              time: formatDate(a.updatedAt || a.createdAt || new Date().toISOString(), 'dd.MM HH:mm'),
+              id: `task_new_${task.id}`,
+              status: 'new',
+              text: `Новая задача: ${task.title}`,
+              time: formatDate(task.createdAt, 'dd.MM HH:mm'),
               timestamp: Number.isNaN(timestamp) ? now : timestamp,
             }
-          })
-        notificationsList.push(...approvalNotifications)
+          }
 
-        // 2. Задачи
-        const tasks = await getTasks({ assignedTo: user.id })
-        const taskNotifications = tasks
-          .filter((task) => {
-            // Новые задачи (созданы за последние 6 часов)
-            const createdAt = Date.parse(task.createdAt)
-            const isNew = !Number.isNaN(createdAt) && createdAt >= cutoff && !viewedIds.includes(`task_new_${task.id}`)
+          if (!task.dueDate || !task.dueTime) return null
 
-            // Дедлайн за час или прошел
-            if (!task.dueDate || !task.dueTime) return isNew
+          const deadline = new Date(`${task.dueDate}T${task.dueTime}`)
+          const deadlineMs = deadline.getTime()
+          if (Number.isNaN(deadlineMs)) return null
 
-            const deadline = new Date(`${task.dueDate}T${task.dueTime}`)
-            const deadlineMs = deadline.getTime()
-            if (Number.isNaN(deadlineMs)) return isNew
-
-            const diffMs = deadlineMs - now
-            const isDueInHour = diffMs > 0 && diffMs <= oneHourMs && !viewedIds.includes(`task_due_${task.id}`)
-            // Просроченные задачи показываем только если дедлайн прошел не более 6 часов назад
-            const isOverdue = diffMs < 0 && diffMs >= -cutoff && !viewedIds.includes(`task_overdue_${task.id}`)
-
-            return isNew || isDueInHour || isOverdue
-          })
-          .map((task) => {
-            const createdAt = Date.parse(task.createdAt)
-            const isNew = !Number.isNaN(createdAt) && createdAt >= cutoff && !viewedIds.includes(`task_new_${task.id}`)
-
-            if (isNew) {
-              const timestamp = Date.parse(task.createdAt)
-              return {
-                id: `task_new_${task.id}`,
-                status: 'new',
-                text: `Новая задача: ${task.title}`,
-                time: formatDate(task.createdAt, 'dd.MM HH:mm'),
-                timestamp: Number.isNaN(timestamp) ? now : timestamp,
-              }
-            }
-
-            if (!task.dueDate || !task.dueTime) return null
-
-            const deadline = new Date(`${task.dueDate}T${task.dueTime}`)
-            const deadlineMs = deadline.getTime()
-            if (Number.isNaN(deadlineMs)) return null
-
-            const diffMs = deadlineMs - now
-            if (diffMs > 0 && diffMs <= oneHourMs && !viewedIds.includes(`task_due_${task.id}`)) {
-              return {
-                id: `task_due_${task.id}`,
-                status: 'due',
-                text: `Дедлайн через час: ${task.title}`,
-                time: formatDate(deadline.toISOString(), 'dd.MM HH:mm'),
-                timestamp: deadlineMs,
-              }
-            }
-
-            if (diffMs < 0 && diffMs >= -cutoff && !viewedIds.includes(`task_overdue_${task.id}`)) {
-              return {
-                id: `task_overdue_${task.id}`,
-                status: 'overdue',
-                text: `Просрочен дедлайн: ${task.title}`,
-                time: formatDate(deadline.toISOString(), 'dd.MM HH:mm'),
-                timestamp: deadlineMs,
-              }
-            }
-
-            return null
-          })
-          .filter((n): n is { id: string; text: string; time: string; status: string; timestamp: number } => n !== null)
-        notificationsList.push(...taskNotifications)
-
-        // 3. Завершившиеся слоты
-        const slots = await getWorkSlots(user.id)
-        const slotNotifications = slots
-          .filter((slot) => {
-            if (viewedIds.includes(`slot_ended_${slot.id}`)) return false
-            if (!slot.slots || slot.slots.length === 0) return false
-
-            const lastSlot = slot.slots[slot.slots.length - 1]
-            if (!lastSlot) return false
-
-            // Вычисляем время окончания слота
-            let slotEnd: Date
-            if (lastSlot.endDate) {
-              slotEnd = new Date(lastSlot.endDate)
-              const [hours, minutes] = lastSlot.end.split(':').map(Number)
-              slotEnd.setHours(hours, minutes, 0, 0)
-            } else {
-              slotEnd = new Date(slot.date)
-              const [hours, minutes] = lastSlot.end.split(':').map(Number)
-              slotEnd.setHours(hours, minutes, 0, 0)
-            }
-
-            const slotEndMs = slotEnd.getTime()
-            if (Number.isNaN(slotEndMs)) return false
-
-            // Слот завершился и это было за последние 6 часов
-            return slotEndMs < now && slotEndMs >= (now - cutoff)
-          })
-          .map((slot) => {
-            const lastSlot = slot.slots[slot.slots.length - 1]
-            let slotEnd: Date
-            if (lastSlot.endDate) {
-              slotEnd = new Date(lastSlot.endDate)
-              const [hours, minutes] = lastSlot.end.split(':').map(Number)
-              slotEnd.setHours(hours, minutes, 0, 0)
-            } else {
-              slotEnd = new Date(slot.date)
-              const [hours, minutes] = lastSlot.end.split(':').map(Number)
-              slotEnd.setHours(hours, minutes, 0, 0)
-            }
-
+          const diffMs = deadlineMs - now
+          if (diffMs > 0 && diffMs <= oneHourMs && !viewedIds.includes(`task_due_${task.id}`)) {
             return {
-              id: `slot_ended_${slot.id}`,
-              status: 'ended',
-              text: `Слот завершился: ${formatDate(slot.date, 'dd.MM.yyyy')}`,
-              time: formatDate(slotEnd.toISOString(), 'dd.MM HH:mm'),
-              timestamp: slotEnd.getTime(),
+              id: `task_due_${task.id}`,
+              status: 'due',
+              text: `Дедлайн через час: ${task.title}`,
+              time: formatDate(deadline.toISOString(), 'dd.MM HH:mm'),
+              timestamp: deadlineMs,
             }
-          })
-        notificationsList.push(...slotNotifications)
+          }
 
-        // Сортируем по времени (новые сверху)
-        notificationsList.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0))
+          if (diffMs < 0 && diffMs >= -cutoff && !viewedIds.includes(`task_overdue_${task.id}`)) {
+            return {
+              id: `task_overdue_${task.id}`,
+              status: 'overdue',
+              text: `Просрочен дедлайн: ${task.title}`,
+              time: formatDate(deadline.toISOString(), 'dd.MM HH:mm'),
+              timestamp: deadlineMs,
+            }
+          }
 
-        // Убираем timestamp перед сохранением
-        setNotifications(notificationsList.map(({ timestamp, ...rest }) => rest))
-      } catch (err) {
-        console.error('Failed to load notifications', err)
-      }
+          return null
+        })
+        .filter((n): n is { id: string; text: string; time: string; status: string; timestamp: number } => n !== null)
+      notificationsList.push(...taskNotifications)
+
+      // Slots
+      const slots = await getWorkSlots(user.id)
+      const slotNotifications = slots
+        .filter((slot) => {
+          if (viewedIds.includes(`slot_ended_${slot.id}`)) return false
+          if (!slot.slots || slot.slots.length === 0) return false
+
+          const lastSlot = slot.slots[slot.slots.length - 1]
+          if (!lastSlot) return false
+
+          let slotEnd: Date
+          if (lastSlot.endDate) {
+            slotEnd = new Date(lastSlot.endDate)
+            const [hours, minutes] = lastSlot.end.split(':').map(Number)
+            slotEnd.setHours(hours, minutes, 0, 0)
+          } else {
+            slotEnd = new Date(slot.date)
+            const [hours, minutes] = lastSlot.end.split(':').map(Number)
+            slotEnd.setHours(hours, minutes, 0, 0)
+          }
+
+          const slotEndMs = slotEnd.getTime()
+          if (Number.isNaN(slotEndMs)) return false
+
+          return slotEndMs < now && slotEndMs >= (now - cutoff)
+        })
+        .map((slot) => {
+          const lastSlot = slot.slots[slot.slots.length - 1]
+          let slotEnd: Date
+          if (lastSlot.endDate) {
+            slotEnd = new Date(lastSlot.endDate)
+            const [hours, minutes] = lastSlot.end.split(':').map(Number)
+            slotEnd.setHours(hours, minutes, 0, 0)
+          } else {
+            slotEnd = new Date(slot.date)
+            const [hours, minutes] = lastSlot.end.split(':').map(Number)
+            slotEnd.setHours(hours, minutes, 0, 0)
+          }
+
+          return {
+            id: `slot_ended_${slot.id}`,
+            status: 'ended',
+            text: `Слот завершился: ${formatDate(slot.date, 'dd.MM.yyyy')}`,
+            time: formatDate(slotEnd.toISOString(), 'dd.MM HH:mm'),
+            timestamp: slotEnd.getTime(),
+          }
+        })
+      notificationsList.push(...slotNotifications)
+
+      notificationsList.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0))
+      setNotifications(notificationsList.map(({ timestamp, ...rest }) => rest))
     }
 
     loadNotifications()
     const id = setInterval(loadNotifications, 2 * 60 * 1000)
     return () => clearInterval(id)
   }, [user, isAdmin])
-
 
   const toggleCollapsed = () => {
     const newState = !isCollapsed
@@ -312,11 +292,10 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
       </div>
 
       <div className="flex flex-col lg:flex-row min-h-screen">
-        {/* Desktop Sidebar (Left) */}
+        {/* Desktop Sidebar */}
         <aside className={`hidden xl:flex ${isCollapsed ? 'w-20' : 'w-72'} h-screen fixed left-0 top-0 flex-col glass-panel border-r border-white/40 dark:border-white/10 z-50 transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]`}>
           <div className="accent-dots" />
 
-          {/* Toggle Button */}
           <button
             onClick={toggleCollapsed}
             className={`absolute top-6 -right-0 transition-all duration-500 z-50 ${isCollapsed ? 'right-1/2 translate-x-1/2' : 'right-4'
@@ -329,7 +308,6 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
             )}
           </button>
 
-          {/* Logo & Branding */}
           <div className={`p-6 pb-2 transition-all duration-500 origin-left overflow-hidden ${isCollapsed ? 'opacity-0 scale-90 w-0 px-0 translate-x-[-100%]' : 'opacity-100 scale-100'}`}>
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 flex items-center justify-center">
@@ -346,8 +324,6 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
             </div>
           </div>
 
-
-          {/* Utility Buttons */}
           <div className={`relative z-10 px-6 pb-4 flex items-center gap-2 transition-all duration-500 ${isCollapsed ? 'flex-col px-4 items-center' : ''}`}>
             <button onClick={toggleTheme} className="flex-1 flex items-center justify-center p-2 rounded-xl border border-gray-200 dark:border-white/10 hover:bg-gray-100 dark:hover:bg-white/5 transition-colors w-full">
               {theme === 'dark' ? <Sun className="w-4 h-4 text-amber-300" /> : <Moon className="w-4 h-4 text-gray-700" />}
@@ -380,9 +356,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
 
           <div className={`h-px w-full bg-gradient-to-r from-transparent via-gray-200/50 dark:via-white/10 to-transparent my-2 transition-opacity duration-500 ${isCollapsed ? 'opacity-0' : 'opacity-100'}`} />
 
-          {/* Navigation */}
           <nav className="relative z-10 flex-1 px-4 py-4 space-y-1 overflow-y-auto no-scrollbar">
-            {/* Tools Dropdown */}
             <div className="space-y-1 relative group/tools">
               <button
                 onClick={() => !isCollapsed && setShowToolsMenu(!showToolsMenu)}
@@ -398,7 +372,6 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                 )}
               </button>
 
-              {/* Collapsed Hover Menu */}
               {isCollapsed && (
                 <div className="absolute left-full top-0 invisible group-hover/tools:visible opacity-0 group-hover/tools:opacity-100 transition-all duration-300 translate-x-3 group-hover/tools:translate-x-1 z-[100]">
                   <div className="ml-2 glass-panel border border-white/40 dark:border-white/10 rounded-2xl p-2 min-w-[200px] shadow-2xl backdrop-blur-2xl">
@@ -434,7 +407,6 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
               )}
             </div>
 
-            {/* Flat Nav Items */}
             {accessibleFuncsSubItems.map((item) => (
               <Link
                 key={item.path}
@@ -446,10 +418,8 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                 {!isCollapsed && <span className="font-bold text-sm tracking-tight">{item.label}</span>}
               </Link>
             ))}
-
           </nav>
 
-          {/* User Profile & Actions */}
           <div className={`relative z-10 m-4 space-y-2 transition-all duration-500 ${isCollapsed ? 'm-2 space-y-4' : ''}`}>
             <Link
               to="/profile"
@@ -506,7 +476,6 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
           </div>
         </aside>
 
-        {/* Main Content */}
         <div className={`flex-1 ${isCollapsed ? 'xl:pl-20' : 'xl:pl-72'} min-h-screen transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]`}>
           <main className="page-shell">
             {children}
@@ -518,7 +487,6 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
           <div className="max-w-5xl mx-auto">
             <div className="glass-panel rounded-2xl shadow-2xl border border-white/60 dark:border-white/10 overflow-hidden">
               <div className="flex divide-x divide-white/40 dark:divide-white/5 w-full">
-                {/* Tools Button with submenu */}
                 <button
                   onClick={() => setShowToolsMenu(!showToolsMenu)}
                   className={`flex-1 min-w-0 flex flex-col items-center justify-center gap-1 py-3 ${isToolsActive ? 'text-[#4E6E49]' : 'text-gray-400'}`}
@@ -527,7 +495,6 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                   <span className="text-[10px] font-bold truncate px-1">Tools</span>
                 </button>
 
-                {/* Function Button with submenu */}
                 <button
                   onClick={() => setShowFuncsMenu(true)}
                   className={`flex-1 min-w-0 flex flex-col items-center justify-center gap-1 py-3 ${location.pathname.startsWith('/call') || location.pathname.startsWith('/management') || location.pathname.startsWith('/tasks') || location.pathname.startsWith('/earnings') || location.pathname.startsWith('/rating') ? 'text-[#4E6E49]' : 'text-gray-400'}`}
@@ -536,7 +503,6 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                   <span className="text-[10px] font-bold truncate px-1">Function</span>
                 </button>
 
-                {/* AVF INFO */}
                 <Link
                   to="/about"
                   className={`flex-1 min-w-0 flex flex-col items-center justify-center gap-1 py-3 ${location.pathname === '/about' ? 'text-[#4E6E49]' : 'text-gray-400'}`}
@@ -545,7 +511,6 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                   <span className="text-[10px] font-bold truncate px-1">AVF INFO</span>
                 </Link>
 
-                {/* Profile */}
                 <Link
                   to="/profile"
                   className={`flex-1 min-w-0 flex flex-col items-center justify-center gap-1 py-3 ${location.pathname === '/profile' ? 'text-[#4E6E49]' : 'text-gray-400'}`}
@@ -559,7 +524,6 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
             </div>
           </div>
 
-          {/* Mobile Tools Overlay */}
           {showToolsMenu && (
             <>
               <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[-1]" onClick={() => setShowToolsMenu(false)} />
@@ -580,7 +544,6 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
             </>
           )}
 
-          {/* Mobile Function Overlay */}
           {showFuncsMenu && (
             <>
               <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[-1]" onClick={() => setShowFuncsMenu(false)} />
