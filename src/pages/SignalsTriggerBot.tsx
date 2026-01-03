@@ -358,11 +358,10 @@ export const SignalsTriggerBot = () => {
     }
 
     // Получение цвета для стратегии (только для таблицы)
-    const getStrategyColor = (strategy?: TriggerStrategy) => {
+    const getStrategyColor = (strategy: TriggerStrategy) => {
         switch (strategy) {
             case 'Фиба': return 'bg-purple-500/20 text-purple-400'
             case 'Market Entry': return 'bg-green-500/20 text-green-400'
-            default: return 'bg-gray-500/20 text-gray-400'
         }
     }
 
@@ -426,7 +425,7 @@ export const SignalsTriggerBot = () => {
                             {hasActiveFilters && (
                                 <button
                                     onClick={resetFilters}
-                                    className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all flex items-center gap-2 border ${theme === 'dark' ? 'bg-white/5 border-white/10 hover:bg-white/10 text-gray-300' : 'bg-gray-100 border-gray-200 hover:bg-gray-100 text-gray-700'}`}
+                                    className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all flex items-center gap-2 border ${theme === 'dark' ? 'bg-white/5 border-white/10 text-white' : 'bg-gray-100 border-gray-200 text-gray-900'}`}
                                 >
                                     <RotateCcw className="w-4 h-4" />
                                     <span>Сброс</span>
@@ -717,7 +716,7 @@ export const SignalsTriggerBot = () => {
                                                                     onClick={() => handleDelete(alert.id)}
                                                                     className="p-2 rounded-lg hover:bg-red-500/10 text-red-500 transition-colors"
                                                                 >
-                                                                    <Trash2 className="w-4 h-4" />
+                                                                    <Trash2 size={16} className="w-4 h-4" />
                                                                 </button>
                                                             </div>
                                                         </td>
@@ -740,11 +739,20 @@ export const SignalsTriggerBot = () => {
                                             <td className="p-4 whitespace-nowrap">
                                                 <div className="flex flex-wrap gap-1">
                                                     {alert.strategies?.map((strategy) => (
-                                                        <span key={strategy} className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold ${getStrategyColor(strategy)}`}>
-                                                            <TrendingUp className="w-3 h-3" />
-                                                            {strategy}
-                                                        </span>
-                                                    )) || '-'}
+                                                        <span key={strategy} className={`inline-flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all text-left ${value.includes(strategy)
+                                                                ? theme === 'dark' ? 'bg-amber-500/10 text-amber-400' : 'bg-amber-50 text-amber-600'
+                                                                : theme === 'dark' ? 'hover:bg-white/5 text-gray-300' : 'hover:bg-gray-50 text-gray-700'
+                                                            }`}
+                                                        >
+                                                            <span className="text-lg">{getStrategyIcon(strategy)}</span>
+                                                            <span className={`text-sm font-medium ${value === strategy ? '' : getStrategyColor(strategy)}`}>
+                                                                {strategy}
+                                                            </span>
+                                                            {value.includes(strategy) && (
+                                                                <Check size={16} className={`ml-auto ${theme === 'dark' ? 'text-amber-400' : 'text-amber-500'}`} />
+                                                            )}
+                                                        </button>
+                                                    ))}
                                                 </div>
                                             </td>
                                             <td className="p-4 whitespace-nowrap">
@@ -778,7 +786,7 @@ export const SignalsTriggerBot = () => {
                                             </td>
                                             <td className="p-4 max-w-[250px]">
                                                 <div className={`text-sm ${headingColor} break-words whitespace-pre-wrap`}>
-                                                    {alert.comment || '-'}
+                                                    {alert.comment || ''}
                                                 </div>
                                             </td>
                                             <td className="p-4 whitespace-nowrap">
@@ -793,7 +801,7 @@ export const SignalsTriggerBot = () => {
                                                         onClick={() => handleDelete(alert.id)}
                                                         className="p-2 rounded-lg hover:bg-red-500/10 text-red-500 transition-colors"
                                                     >
-                                                        <Trash2 className="w-4 h-4" />
+                                                        <Trash2 size={16} className="w-4 h-4" />
                                                     </button>
                                                 </div>
                                             </td>
@@ -890,7 +898,7 @@ export const SignalsTriggerBot = () => {
                                                 placeholder="e.g. 300,77"
                                                 value={formData.marketCap || ''}
                                                 onChange={(e) => setFormData({ ...formData, marketCap: e.target.value })}
-                                                className={`w-full p-3 rounded-xl border outline-none transition-all ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white focus-border-amber-500' : 'bg-white border-gray-200 text-gray-900 focus-border-amber-500'}`}
+                                                className={`w-full p-2 rounded-lg border text-sm outline-none mt-1 ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'}`}
                                             />
                                         </div>
                                         <div className="space-y-1">
@@ -900,7 +908,7 @@ export const SignalsTriggerBot = () => {
                                                 placeholder="e.g. -16"
                                                 value={formData.maxDrop || ''}
                                                 onChange={(e) => setFormData({ ...formData, maxDrop: e.target.value })}
-                                                className={`w-full p-3 rounded-xl border outline-none transition-all ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white focus-border-amber-500' : 'bg-white border-gray-200 text-gray-900 focus-border-amber-500'}`}
+                                                className={`w-full p-2 rounded-lg border text-sm outline-none mt-1 ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'}`}
                                             />
                                         </div>
                                         <div className="space-y-1">
@@ -910,7 +918,7 @@ export const SignalsTriggerBot = () => {
                                                 placeholder="e.g. +28"
                                                 value={formData.maxProfit || ''}
                                                 onChange={(e) => setFormData({ ...formData, maxProfit: e.target.value })}
-                                                className={`w-full p-3 rounded-xl border outline-none transition-all ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white focus-border-amber-500' : 'bg-white border-gray-200 text-gray-900 focus-border-amber-500'}`}
+                                                className={`w-full p-2 rounded-lg border text-sm outline-none mt-1 ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'}`}
                                             />
                                         </div>
                                     </div>
@@ -988,7 +996,7 @@ export const SignalsTriggerBot = () => {
                                                     placeholder="e.g. 300,77"
                                                     value={formData.marketCap || ''}
                                                     onChange={(e) => setFormData({ ...formData, marketCap: e.target.value })}
-                                                    className={`w-full p-2 rounded-lg border outline-none transition-all ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'}`}
+                                                    className={`w-full p-2 rounded-lg border text-sm outline-none mt-1 ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'}`}
                                                 />
                                             </div>
                                             <div className="space-y-1">
@@ -998,7 +1006,7 @@ export const SignalsTriggerBot = () => {
                                                     placeholder="e.g. -16"
                                                     value={formData.maxDrop || ''}
                                                     onChange={(e) => setFormData({ ...formData, maxDrop: e.target.value })}
-                                                    className={`w-full p-2 rounded-lg border outline-none transition-all ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'}`}
+                                                    className={`w-full p-2 rounded-lg border text-sm outline-none mt-1 ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'}`}
                                                 />
                                             </div>
                                             <div className="space-y-1">
@@ -1008,7 +1016,7 @@ export const SignalsTriggerBot = () => {
                                                     placeholder="e.g. +28"
                                                     value={formData.maxProfit || ''}
                                                     onChange={(e) => setFormData({ ...formData, maxProfit: e.target.value })}
-                                                    className={`w-full p-2 rounded-lg border outline-none transition-all ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'}`}
+                                                    className={`w-full p-2 rounded-lg border text-sm outline-none mt-1 ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'}`}
                                                 />
                                             </div>
                                         </div>
@@ -1160,8 +1168,7 @@ const MultiStrategySelector: React.FC<MultiStrategySelectorProps> = ({ value, on
                                         : theme === 'dark' ? 'hover:bg-white/5 text-gray-300' : 'hover:bg-gray-50 text-gray-700'
                                     }`}
                             >
-                                <span className="text-lg">{getStrategyIcon(strategy)}</span>
-                                <span className={`text-sm font-medium ${value === strategy ? '' : getStrategyColor(strategy)}`}>
+                                <span className="text-sm font-medium">
                                     {strategy}
                                 </span>
                                 {value.includes(strategy) && (
