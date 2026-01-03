@@ -1625,3 +1625,36 @@ export const deleteAiAlert = async (id: string) => {
   const alertRef = doc(db, 'aiAlerts', id)
   await deleteDoc(alertRef)
 }
+
+// Signals Trigger Bot (independent collection)
+export const getTriggerAlerts = async (): Promise<TriggerAlert[]> => {
+  const alertsRef = collection(db, 'triggerAlerts')
+  const q = query(alertsRef, orderBy('createdAt', 'desc'))
+  const querySnapshot = await getDocs(q)
+  return querySnapshot.docs.map((docSnap) => ({
+    id: docSnap.id,
+    ...docSnap.data(),
+  } as TriggerAlert))
+}
+
+export const addTriggerAlert = async (alert: Omit<TriggerAlert, 'id'>) => {
+  const alertsRef = collection(db, 'triggerAlerts')
+  const cleanAlert = Object.fromEntries(
+    Object.entries(alert).filter(([_, value]: [string, any]) => value !== undefined)
+  )
+  const result = await addDoc(alertsRef, cleanAlert)
+  return result
+}
+
+export const updateTriggerAlert = async (id: string, updates: Partial<TriggerAlert>) => {
+  const alertRef = doc(db, 'triggerAlerts', id)
+  const cleanUpdates = Object.fromEntries(
+    Object.entries(updates).filter(([_, value]: [string, any]) => value !== undefined)
+  )
+  await updateDoc(alertRef, cleanUpdates)
+}
+
+export const deleteTriggerAlert = async (id: string) => {
+  const alertRef = doc(db, 'triggerAlerts', id)
+  await deleteDoc(alertRef)
+}

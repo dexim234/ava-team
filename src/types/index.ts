@@ -469,6 +469,23 @@ export interface AiAlert {
   createdBy: string
 }
 
+// Signals Trigger Bot types (independent from AiAlert)
+export type TriggerStrategy = 'Фиба' | 'Флип' | 'Market Entry'
+
+export interface TriggerAlert {
+  id: string
+  signalDate: string // YYYY-MM-DD
+  signalTime: string // HH:mm
+  marketCap?: string
+  address: string
+  strategy?: TriggerStrategy
+  maxDrop?: string // e.g. "-16"
+  maxProfit?: string // e.g. "+28" or "X3"
+  comment?: string
+  createdAt: string
+  createdBy: string
+}
+
 export interface ActivityLog {
   id: string
   userId: string

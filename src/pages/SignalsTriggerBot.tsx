@@ -1,24 +1,24 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import { useThemeStore } from '@/store/themeStore'
 import { useAuthStore } from '@/store/authStore'
-import { getAiAlerts, addAiAlert, updateAiAlert, deleteAiAlert } from '@/services/firestoreService'
-import { AiAlert } from '@/types'
-import { Plus, Edit, Trash2, Save, X, Copy, Check, Terminal, Table, Filter, ArrowUp, ArrowDown, RotateCcw } from 'lucide-react'
+import { getTriggerAlerts, addTriggerAlert, updateTriggerAlert, deleteTriggerAlert } from '@/services/firestoreService'
+import { TriggerAlert, TriggerStrategy } from '@/types'
+import { Plus, Edit, Trash2, Save, X, Copy, Check, Terminal, Table, Filter, ArrowUp, ArrowDown, RotateCcw, ChevronDown, TrendingUp } from 'lucide-react'
 
 type SortField = 'date' | 'drop' | 'profit'
 type SortOrder = 'asc' | 'desc'
-type Strategy = 'Фиба' | 'Флип' | 'Market Entry'
 
-const STRATEGIES: Strategy[] = ['Фиба', 'Флип', 'Market Entry']
+// Стратегии для выбора
+const STRATEGIES: TriggerStrategy[] = ['Фиба', 'Флип', 'Market Entry']
 
 export const SignalsTriggerBot = () => {
     const { theme } = useThemeStore()
     const { user } = useAuthStore()
 
-    const [alerts, setAlerts] = useState<AiAlert[]>([])
+    const [alerts, setAlerts] = useState<TriggerAlert[]>([])
     const [loading, setLoading] = useState(true)
     const [showModal, setShowModal] = useState(false)
-    const [editingAlert, setEditingAlert] = useState<AiAlert | null>(null)
+    const [editingAlert, setEditingAlert] = useState<TriggerAlert | null>(null)
     const [copyingId, setCopyingId] = useState<string | null>(null)
     const [isCopyingTable, setIsCopyingTable] = useState(false)
 
@@ -35,22 +35,37 @@ export const SignalsTriggerBot = () => {
     const [sortOrder, setSortOrder] = useState<SortOrder>('desc')
 
     // Form state for single alert
-    const [formData, setFormData] = useState<Partial<AiAlert>>({
+    const [formData, setFormData] = useState<Partial<TriggerAlert>>({
         signalDate: new Date().toISOString().split('T')[0],
         signalTime: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
         marketCap: '',
         address: '',
+        strategy: 'Фиба',
         maxDrop: '',
         maxProfit: '',
-        comment: '',
-        strategy: 'Фиба'
+        comment: ''
     })
 
     // Common date for all alerts in batch mode
     const [commonDate, setCommonDate] = useState<string>(new Date().toISOString().split('T')[0])
     
     // List of alerts to add (batch mode)
-    const [alertsToAdd, setAlertsToAdd] = useState<Partial<AiAlert>[]>([])
+    const [alertsToAdd, setAlertsToAdd] = useState<Partial<TriggerAlert>[]>([])
+
+    useEffect(() => {
+        loadAlerts()
+    }, [])
+
+    const loadAlerts = async () => {
+        try {
+            const data = await getTriggerAlerts()
+            setAlerts(data)
+        } catch (error) {
+            console.error('Error loading alerts:', error)
+        } finally {
+            setLoading(false)
+        }
+    }
 
     // Add current form to the list
     const handleAddToList = () => {
@@ -59,28 +74,28 @@ export const SignalsTriggerBot = () => {
             return
         }
         
-        const newAlert: Partial<AiAlert> = {
+        const newAlert: Partial<TriggerAlert> = {
             signalDate: commonDate,
             signalTime: formData.signalTime,
             marketCap: formData.marketCap,
             address: formData.address,
+            strategy: formData.strategy,
             maxDrop: formData.maxDrop,
             maxProfit: formData.maxProfit,
-            comment: formData.comment,
-            strategy: formData.strategy
+            comment: formData.comment
         }
         
         setAlertsToAdd([...alertsToAdd, newAlert])
         
-        // Reset form fields except date (which is now common)
+        // Reset form fields except date (which is now common) and strategy
         setFormData({
             signalTime: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
             marketCap: '',
             address: '',
+            strategy: formData.strategy,
             maxDrop: '',
             maxProfit: '',
-            comment: '',
-            strategy: 'Фиба'
+            comment: ''
         })
     }
 
@@ -89,7 +104,7 @@ export const SignalsTriggerBot = () => {
         setAlertsToAdd(alertsToAdd.filter((_, i) => i !== index))
     }
 
-    // Save all alerts
+    // Save all alerts to Firestore
     const handleSaveAll = async () => {
         if (alertsToAdd.length === 0) {
             alert('Добавьте хотя бы один сигнал')
@@ -98,8 +113,8 @@ export const SignalsTriggerBot = () => {
 
         try {
             const promises = alertsToAdd.map(alert => 
-                addAiAlert({
-                    ...alert as AiAlert,
+                addTriggerAlert({
+                    ...alert as TriggerAlert,
                     createdAt: new Date().toISOString(),
                     createdBy: user?.id || 'admin'
                 })
@@ -113,10 +128,10 @@ export const SignalsTriggerBot = () => {
                 signalTime: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
                 marketCap: '',
                 address: '',
+                strategy: 'Фиба',
                 maxDrop: '',
                 maxProfit: '',
-                comment: '',
-                strategy: 'Фиба'
+                comment: ''
             })
             setShowModal(false)
             await loadAlerts()
@@ -130,10 +145,10 @@ export const SignalsTriggerBot = () => {
         e.preventDefault()
         try {
             if (editingAlert) {
-                await updateAiAlert(editingAlert.id, { ...formData, signalDate: commonDate } as AiAlert)
+                await updateTriggerAlert(editingAlert.id, { ...formData, signalDate: commonDate } as TriggerAlert)
             } else {
-                await addAiAlert({
-                    ...formData as AiAlert,
+                await addTriggerAlert({
+                    ...formData as TriggerAlert,
                     signalDate: commonDate,
                     createdAt: new Date().toISOString(),
                     createdBy: user?.id || 'admin'
@@ -147,10 +162,10 @@ export const SignalsTriggerBot = () => {
                 signalTime: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
                 marketCap: '',
                 address: '',
+                strategy: 'Фиба',
                 maxDrop: '',
                 maxProfit: '',
-                comment: '',
-                strategy: 'Фиба'
+                comment: ''
             })
             await loadAlerts()
         } catch (error: any) {
@@ -161,23 +176,8 @@ export const SignalsTriggerBot = () => {
     const subTextColor = theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
     const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
     const cardBg = theme === 'dark' ? 'bg-[#10141c]' : 'bg-white'
-    const cardBorder = theme === 'dark' ? 'border-[#48a35e]/30' : 'border-[#48a35e]/20'
+    const cardBorder = theme === 'dark' ? 'border-[#f59e0b]/30' : 'border-[#f59e0b]/20'
     const cardShadow = theme === 'dark' ? 'shadow-[0_24px_80px_rgba(0,0,0,0.45)]' : 'shadow-[0_24px_80px_rgba(0,0,0,0.15)]'
-
-    useEffect(() => {
-        loadAlerts()
-    }, [])
-
-    const loadAlerts = async () => {
-        try {
-            const data = await getAiAlerts()
-            setAlerts(data)
-        } catch (error) {
-            console.error('Error loading alerts:', error)
-        } finally {
-            setLoading(false)
-        }
-    }
 
     const handleCopy = (text: string, id: string) => {
         navigator.clipboard.writeText(text)
@@ -193,22 +193,22 @@ export const SignalsTriggerBot = () => {
           <tr>
             <th>Дата</th>
             <th>Время</th>
+            <th>Стратегия</th>
             <th>Market Cap</th>
             <th>Адрес</th>
-            <th>Стратегия</th>
             <th>Макс. Падение</th>
             <th>Макс. Профит</th>
             <th>Комментарий</th>
           </tr>
         </thead>
         <tbody>
-          ${filteredAlerts.map((a: AiAlert) => `
+          ${filteredAlerts.map((a: TriggerAlert) => `
             <tr>
               <td>${formatDateForDisplay(a.signalDate)}</td>
               <td>${a.signalTime}</td>
+              <td>${a.strategy || '-'}</td>
               <td>${a.marketCap || '-'}</td>
               <td>${a.address}</td>
-              <td>${a.strategy || '-'}</td>
               <td>${a.maxDrop || '-'}</td>
               <td>${a.maxProfit || '-'}</td>
               <td>${a.comment || ''}</td>
@@ -230,7 +230,7 @@ export const SignalsTriggerBot = () => {
         if (!dateStr) return '-'
         const parts = dateStr.split('-')
         if (parts.length !== 3) return dateStr
-        const year = parts[0].slice(-2) // последние 2 цифры года
+        const year = parts[0].slice(-2)
         return `${parts[2]}.${parts[1]}.${year}`
     }
 
@@ -241,20 +241,9 @@ export const SignalsTriggerBot = () => {
         return `${address.slice(0, 5)}...${address.slice(-3)}`
     }
 
-    // Get strategy color
-    const getStrategyColor = (strategy?: string) => {
-        switch (strategy) {
-            case 'Фиба': return theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'
-            case 'Флип': return theme === 'dark' ? 'text-purple-400' : 'text-purple-600'
-            case 'Market Entry': return theme === 'dark' ? 'text-amber-400' : 'text-amber-600'
-            default: return subTextColor
-        }
-    }
-
-    // Parse numeric value from drop/profit string (e.g., "-16" -> -16, "+28" -> 28, "X3" -> 300)
+    // Parse numeric value from drop/profit string
     const parseValue = (value: string | undefined): number => {
         if (!value) return 0
-        // Remove + and % signs, handle X multiplier
         const cleaned = value.replace(/[+%]/g, '').toUpperCase()
         if (cleaned.startsWith('X')) {
             const multiplier = parseFloat(cleaned.slice(1))
@@ -350,17 +339,27 @@ export const SignalsTriggerBot = () => {
     const handleDelete = async (id: string) => {
         if (!confirm('Удалить алерт?')) return
         try {
-            await deleteAiAlert(id)
+            await deleteTriggerAlert(id)
             await loadAlerts()
         } catch (error) {
             console.error('Error deleting alert:', error)
         }
     }
 
-    const handleEdit = (alert: AiAlert) => {
+    const handleEdit = (alert: TriggerAlert) => {
         setEditingAlert(alert)
         setFormData(alert)
         setShowModal(true)
+    }
+
+    // Получение цвета для стратегии
+    const getStrategyColor = (strategy?: TriggerStrategy) => {
+        switch (strategy) {
+            case 'Фиба': return 'bg-purple-500/20 text-purple-400'
+            case 'Флип': return 'bg-blue-500/20 text-blue-400'
+            case 'Market Entry': return 'bg-green-500/20 text-green-400'
+            default: return 'bg-gray-500/20 text-gray-400'
+        }
     }
 
     return (
@@ -369,18 +368,18 @@ export const SignalsTriggerBot = () => {
                 {/* Header */}
                 <div className={`relative overflow-hidden rounded-3xl border ${cardBorder} ${cardShadow} ${cardBg}`}>
                     <div className="absolute inset-0 pointer-events-none">
-                        <div className="absolute -left-16 -bottom-10 w-80 h-80 bg-emerald-500/10 blur-3xl"></div>
-                        <div className={`absolute inset-0 ${theme === 'dark' ? 'bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.05),transparent_45%)]' : 'bg-[radial-gradient(circle_at_50%_0%,rgba(78,110,73,0.05),transparent_45%)]'}`}></div>
+                        <div className="absolute -left-16 -bottom-10 w-80 h-80 bg-amber-500/10 blur-3xl"></div>
+                        <div className={`absolute inset-0 ${theme === 'dark' ? 'bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.05),transparent_45%)]' : 'bg-[radial-gradient(circle_at_50%_0%,rgba(245,158,11,0.05),transparent_45%)]'}`}></div>
                     </div>
 
                     <div className="relative p-6 sm:p-8 flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-6">
                         <div className="flex items-center gap-4">
-                            <div className={`p-3 rounded-2xl ${theme === 'dark' ? 'bg-white/10 border-white/20' : 'bg-[#4E6E49]/10 border-[#4E6E49]/30'} shadow-inner`}>
-                                <Terminal className={`w-8 h-8 ${theme === 'dark' ? 'text-white' : 'text-[#4E6E49]'}`} />
+                            <div className={`p-3 rounded-2xl ${theme === 'dark' ? 'bg-white/10 border-white/20' : 'bg-amber-500/10 border-amber-500/30'} shadow-inner`}>
+                                <Terminal className={`w-8 h-8 ${theme === 'dark' ? 'text-white' : 'text-amber-500'}`} />
                             </div>
                             <div className="flex flex-col">
                                 <h1 className={`text-3xl font-black ${headingColor}`}>Signals Trigger Bot</h1>
-                                <p className={`text-sm ${subTextColor}`}>Trading Signals</p>
+                                <p className={`text-sm ${subTextColor}`}>Trading Signals (Independent)</p>
                             </div>
                         </div>
 
@@ -405,7 +404,7 @@ export const SignalsTriggerBot = () => {
 
                             <button
                                 onClick={() => setShowFilters(!showFilters)}
-                                className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all flex items-center gap-2 border ${showFilters ? 'bg-[#4E6E49] border-[#4E6E49] text-white' : theme === 'dark' ? 'bg-white/5 border-white/10 hover:bg-white/10 text-gray-300' : 'bg-gray-100 border-gray-200 hover:bg-gray-200 text-gray-700'}`}
+                                className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all flex items-center gap-2 border ${showFilters ? 'bg-amber-500 border-amber-500 text-white' : theme === 'dark' ? 'bg-white/5 border-white/10 hover:bg-white/10 text-gray-300' : 'bg-gray-100 border-gray-200 hover:bg-gray-200 text-gray-700'}`}
                             >
                                 <Filter className="w-4 h-4" />
                                 <span>Фильтры</span>
@@ -430,14 +429,14 @@ export const SignalsTriggerBot = () => {
                                         signalTime: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
                                         marketCap: '',
                                         address: '',
+                                        strategy: 'Фиба',
                                         maxDrop: '',
                                         maxProfit: '',
-                                        comment: '',
-                                        strategy: 'Фиба'
+                                        comment: ''
                                     })
                                     setShowModal(true)
                                 }}
-                                className="px-4 py-2 rounded-xl bg-[#4E6E49] hover:bg-[#3d5a39] text-white font-semibold transition-colors flex items-center gap-2 shadow-lg shadow-[#4E6E49]/20"
+                                className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-semibold transition-colors flex items-center gap-2 shadow-lg shadow-amber-500/20"
                             >
                                 <Plus className="w-4 h-4" />
                                 <span>Добавить сигнал</span>
@@ -583,30 +582,30 @@ export const SignalsTriggerBot = () => {
                                 <tr className={`border-b ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-gray-50'}`}>
                                     <th className={`p-4 text-xs uppercase tracking-wider font-semibold ${subTextColor}`}>Дата</th>
                                     <th className={`p-4 text-xs uppercase tracking-wider font-semibold ${subTextColor}`}>Время</th>
+                                    <th className={`p-4 text-xs uppercase tracking-wider font-semibold ${subTextColor}`}>Стратегия</th>
                                     <th className={`p-4 text-xs uppercase tracking-wider font-semibold ${subTextColor}`}>Market Cap</th>
                                     <th className={`p-4 text-xs uppercase tracking-wider font-semibold ${subTextColor}`}>Адрес</th>
-                                    <th className={`p-4 text-xs uppercase tracking-wider font-semibold ${subTextColor}`}>Стратегия</th>
                                     <th className={`p-4 text-xs uppercase tracking-wider font-semibold ${subTextColor}`}>Макс. Падение</th>
                                     <th className={`p-4 text-xs uppercase tracking-wider font-semibold ${subTextColor}`}>Макс. Профит</th>
+                                    <th className={`p-4 text-xs uppercase tracking-wider font-semibold ${subTextColor}`}>Комментарий</th>
                                     <th className={`p-4 text-xs uppercase tracking-wider font-semibold ${subTextColor}`}>Действия</th>
                                 </tr>
                             </thead>
                             <tbody className={`divide-y ${theme === 'dark' ? 'divide-white/5' : 'divide-gray-100'}`}>
                                 {loading ? (
                                     <tr>
-                                        <td colSpan={8} className="p-8 text-center text-gray-500">Загрузка...</td>
+                                        <td colSpan={9} className="p-8 text-center text-gray-500">Загрузка...</td>
                                     </tr>
                                 ) : filteredAlerts.length === 0 ? (
                                     <tr>
-                                        <td colSpan={8} className="p-8 text-center text-gray-500">
+                                        <td colSpan={9} className="p-8 text-center text-gray-500">
                                             {hasActiveFilters ? 'Нет сигналов по выбранным фильтрам' : 'Нет сигналов'}
                                         </td>
                                     </tr>
                                 ) : sortBy === 'date' ? (
-                                    // Group by date when sorting by date
                                     (() => {
-                                        const groupedAlerts: { [key: string]: AiAlert[] } = {}
-                                        filteredAlerts.forEach((alert: AiAlert) => {
+                                        const groupedAlerts: { [key: string]: TriggerAlert[] } = {}
+                                        filteredAlerts.forEach((alert: TriggerAlert) => {
                                             const dateKey = alert.signalDate
                                             if (!groupedAlerts[dateKey]) {
                                                 groupedAlerts[dateKey] = []
@@ -620,21 +619,19 @@ export const SignalsTriggerBot = () => {
                                         dates.forEach((dateKey, dateIndex) => {
                                             const dateAlerts = groupedAlerts[dateKey]
                                             
-                                            // Add date separator row (except for first group)
                                             if (dateIndex > 0) {
                                                 rows.push(
                                                     <tr key={`separator-${dateKey}`}>
-                                                        <td colSpan={8} className="py-2">
+                                                        <td colSpan={9} className="py-2">
                                                             <div className={`h-px ${theme === 'dark' ? 'bg-white/10' : 'bg-gray-200'}`}></div>
                                                         </td>
                                                     </tr>
                                                 )
                                             }
 
-                                            // Add date header row
                                             rows.push(
                                                 <tr key={`header-${dateKey}`} className={`${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'}`}>
-                                                    <td colSpan={8} className="p-3 px-4">
+                                                    <td colSpan={9} className="p-3 px-4">
                                                         <span className={`text-sm font-semibold ${subTextColor}`}>
                                                             {formatDateForDisplay(dateKey)}
                                                         </span>
@@ -642,8 +639,7 @@ export const SignalsTriggerBot = () => {
                                                 </tr>
                                             )
 
-                                            // Add alert rows
-                                            dateAlerts.forEach((alert: AiAlert) => {
+                                            dateAlerts.forEach((alert: TriggerAlert) => {
                                                 rows.push(
                                                     <tr key={alert.id} className={`${theme === 'dark' ? 'hover:bg-white/5' : 'hover:bg-gray-50'} transition-colors`}>
                                                         <td className="p-4 whitespace-nowrap">
@@ -651,6 +647,12 @@ export const SignalsTriggerBot = () => {
                                                         </td>
                                                         <td className="p-4 whitespace-nowrap">
                                                             <div className={`font-mono ${headingColor}`}>{alert.signalTime}</div>
+                                                        </td>
+                                                        <td className="p-4 whitespace-nowrap">
+                                                            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold ${getStrategyColor(alert.strategy)}`}>
+                                                                <TrendingUp className="w-3 h-3" />
+                                                                {alert.strategy || '-'}
+                                                            </span>
                                                         </td>
                                                         <td className="p-4 whitespace-nowrap">
                                                             <div className={`font-mono ${headingColor}`}>{alert.marketCap || '-'}</div>
@@ -672,11 +674,6 @@ export const SignalsTriggerBot = () => {
                                                             </div>
                                                         </td>
                                                         <td className="p-4 whitespace-nowrap">
-                                                            <span className={`font-semibold ${getStrategyColor(alert.strategy)}`}>
-                                                                {alert.strategy || '-'}
-                                                            </span>
-                                                        </td>
-                                                        <td className="p-4 whitespace-nowrap">
                                                             <span className={`font-mono ${alert.maxDrop && alert.maxDrop.startsWith('-') ? 'text-red-500' : headingColor}`}>
                                                                 {alert.maxDrop || '-'}
                                                             </span>
@@ -685,6 +682,11 @@ export const SignalsTriggerBot = () => {
                                                             <span className="font-mono text-green-500 font-bold">
                                                                 {alert.maxProfit || '-'}
                                                             </span>
+                                                        </td>
+                                                        <td className="p-4 max-w-[250px]">
+                                                            <div className={`text-sm ${headingColor} break-words whitespace-pre-wrap`}>
+                                                                {alert.comment || '-'}
+                                                            </div>
                                                         </td>
                                                         <td className="p-4 whitespace-nowrap">
                                                             <div className="flex items-center gap-1">
@@ -710,14 +712,19 @@ export const SignalsTriggerBot = () => {
                                         return rows
                                     })()
                                 ) : (
-                                    // Simple list when sorting by drop or profit
-                                    filteredAlerts.map((alert: AiAlert) => (
+                                    filteredAlerts.map((alert: TriggerAlert) => (
                                         <tr key={alert.id} className={`${theme === 'dark' ? 'hover:bg-white/5' : 'hover:bg-gray-50'} transition-colors`}>
                                             <td className="p-4 whitespace-nowrap">
                                                 <div className={`font-mono font-medium ${headingColor}`}>{formatDateForDisplay(alert.signalDate)}</div>
                                             </td>
                                             <td className="p-4 whitespace-nowrap">
                                                 <div className={`font-mono ${headingColor}`}>{alert.signalTime}</div>
+                                            </td>
+                                            <td className="p-4 whitespace-nowrap">
+                                                <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold ${getStrategyColor(alert.strategy)}`}>
+                                                    <TrendingUp className="w-3 h-3" />
+                                                    {alert.strategy || '-'}
+                                                </span>
                                             </td>
                                             <td className="p-4 whitespace-nowrap">
                                                 <div className={`font-mono ${headingColor}`}>{alert.marketCap || '-'}</div>
@@ -739,11 +746,6 @@ export const SignalsTriggerBot = () => {
                                                 </div>
                                             </td>
                                             <td className="p-4 whitespace-nowrap">
-                                                <span className={`font-semibold ${getStrategyColor(alert.strategy)}`}>
-                                                    {alert.strategy || '-'}
-                                                </span>
-                                            </td>
-                                            <td className="p-4 whitespace-nowrap">
                                                 <span className={`font-mono ${alert.maxDrop && alert.maxDrop.startsWith('-') ? 'text-red-500' : headingColor}`}>
                                                     {alert.maxDrop || '-'}
                                                 </span>
@@ -752,6 +754,11 @@ export const SignalsTriggerBot = () => {
                                                 <span className="font-mono text-green-500 font-bold">
                                                     {alert.maxProfit || '-'}
                                                 </span>
+                                            </td>
+                                            <td className="p-4 max-w-[250px]">
+                                                <div className={`text-sm ${headingColor} break-words whitespace-pre-wrap`}>
+                                                    {alert.comment || '-'}
+                                                </div>
                                             </td>
                                             <td className="p-4 whitespace-nowrap">
                                                 <div className="flex items-center gap-1">
@@ -779,87 +786,165 @@ export const SignalsTriggerBot = () => {
             </div>
 
             {/* Modal */}
-            {
-                showModal && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-                        <div className={`w-full max-w-2xl rounded-3xl ${cardBg} ${cardBorder} border shadow-2xl overflow-hidden max-h-[90vh] flex flex-col`}>
-                            <div className={`p-6 border-b ${theme === 'dark' ? 'border-white/10' : 'border-gray-100'} flex items-center justify-between flex-shrink-0`}>
-                                <div>
-                                    <h3 className={`text-xl font-bold ${headingColor}`}>
-                                        {editingAlert ? 'Редактировать сигнал' : 'Добавить сигналы'}
-                                    </h3>
-                                    {!editingAlert && (
-                                        <p className={`text-sm ${subTextColor}`}>Добавьте один или несколько сигналов за одну дату</p>
-                                    )}
-                                </div>
-                                <button onClick={() => {
-                                    setShowModal(false)
-                                    setAlertsToAdd([])
-                                    setFormData({
-                                        signalDate: new Date().toISOString().split('T')[0],
-                                        signalTime: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
-                                        marketCap: '',
-                                        address: '',
-                                        maxDrop: '',
-                                        maxProfit: '',
-                                        comment: '',
-                                        strategy: 'Фиба'
-                                    })
-                                }} className={`p-2 rounded-lg hover:bg-white/10 ${subTextColor}`}>
-                                    <X className="w-5 h-5" />
-                                </button>
+            {showModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+                    <div className={`w-full max-w-2xl rounded-3xl ${cardBg} ${cardBorder} border shadow-2xl overflow-hidden max-h-[90vh] flex flex-col`}>
+                        <div className={`p-6 border-b ${theme === 'dark' ? 'border-white/10' : 'border-gray-100'} flex items-center justify-between flex-shrink-0`}>
+                            <div>
+                                <h3 className={`text-xl font-bold ${headingColor}`}>
+                                    {editingAlert ? 'Редактировать сигнал' : 'Добавить сигналы'}
+                                </h3>
+                                {!editingAlert && (
+                                    <p className={`text-sm ${subTextColor}`}>Добавьте один или несколько сигналов за одну дату</p>
+                                )}
+                            </div>
+                            <button onClick={() => {
+                                setShowModal(false)
+                                setAlertsToAdd([])
+                                setFormData({
+                                    signalDate: new Date().toISOString().split('T')[0],
+                                    signalTime: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
+                                    marketCap: '',
+                                    address: '',
+                                    strategy: 'Фиба',
+                                    maxDrop: '',
+                                    maxProfit: '',
+                                    comment: ''
+                                })
+                            }} className={`p-2 rounded-lg hover:bg-white/10 ${subTextColor}`}>
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        <div className="flex-1 overflow-y-auto p-6 space-y-6">
+                            {/* Common Date */}
+                            <div className="space-y-1">
+                                <label className={`text-xs font-semibold uppercase ${subTextColor}`}>Дата для всех сигналов</label>
+                                <input
+                                    type="date"
+                                    disabled={!!editingAlert}
+                                    value={commonDate}
+                                    onChange={(e) => setCommonDate(e.target.value)}
+                                    className={`w-full p-3 rounded-xl border outline-none transition-all ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white focus:border-amber-500' : 'bg-white border-gray-200 text-gray-900 focus-border-amber-500'} ${editingAlert ? 'opacity-50' : ''}`}
+                                />
                             </div>
 
-                            <div className="flex-1 overflow-y-auto p-6 space-y-6">
-                                {/* Common Date */}
-                                <div className="space-y-1">
-                                    <label className={`text-xs font-semibold uppercase ${subTextColor}`}>Дата для всех сигналов</label>
-                                    <input
-                                        type="date"
-                                        disabled={!!editingAlert}
-                                        value={commonDate}
-                                        onChange={(e) => setCommonDate(e.target.value)}
-                                        className={`w-full p-3 rounded-xl border outline-none transition-all ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white focus:border-[#4E6E49]' : 'bg-white border-gray-200 text-gray-900 focus:border-[#4E6E49]'} ${editingAlert ? 'opacity-50' : ''}`}
-                                    />
-                                </div>
+                            {editingAlert ? (
+                                <form onSubmit={handleSubmit} className="space-y-4">
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-1">
+                                            <label className={`text-xs font-semibold uppercase ${subTextColor}`}>Время</label>
+                                            <input
+                                                type="time"
+                                                required
+                                                value={formData.signalTime}
+                                                onChange={(e) => setFormData({ ...formData, signalTime: e.target.value })}
+                                                className={`w-full p-3 rounded-xl border outline-none transition-all ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white focus:border-amber-500' : 'bg-white border-gray-200 text-gray-900 focus-border-amber-500'}`}
+                                            />
+                                        </div>
+                                        <StrategySelector
+                                            value={formData.strategy}
+                                            onChange={(strategy) => setFormData({ ...formData, strategy })}
+                                            theme={theme}
+                                        />
+                                    </div>
 
-                                {editingAlert ? (
-                                    // Single edit mode
-                                    <form onSubmit={handleSubmit} className="space-y-4">
+                                    <div className="space-y-1">
+                                        <label className={`text-xs font-semibold uppercase ${subTextColor}`}>Адрес токена</label>
+                                        <input
+                                            type="text"
+                                            required
+                                            placeholder="Адрес контракта..."
+                                            value={formData.address || ''}
+                                            onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                                            className={`w-full p-3 rounded-xl border outline-none transition-all font-mono text-sm ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white focus-border-amber-500' : 'bg-white border-gray-200 text-gray-900 focus-border-amber-500'}`}
+                                        />
+                                    </div>
+
+                                    <div className="grid grid-cols-3 gap-4">
+                                        <div className="space-y-1">
+                                            <label className={`text-xs font-semibold uppercase ${subTextColor}`}>Market Cap</label>
+                                            <input
+                                                type="text"
+                                                placeholder="e.g. 300,77"
+                                                value={formData.marketCap || ''}
+                                                onChange={(e) => setFormData({ ...formData, marketCap: e.target.value })}
+                                                className={`w-full p-3 rounded-xl border outline-none transition-all ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white focus-border-amber-500' : 'bg-white border-gray-200 text-gray-900 focus-border-amber-500'}`}
+                                            />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className={`text-xs font-semibold uppercase ${subTextColor}`}>Макс. Падение</label>
+                                            <input
+                                                type="text"
+                                                placeholder="e.g. -16"
+                                                value={formData.maxDrop || ''}
+                                                onChange={(e) => setFormData({ ...formData, maxDrop: e.target.value })}
+                                                className={`w-full p-3 rounded-xl border outline-none transition-all ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white focus-border-amber-500' : 'bg-white border-gray-200 text-gray-900 focus-border-amber-500'}`}
+                                            />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className={`text-xs font-semibold uppercase ${subTextColor}`}>Макс. Профит</label>
+                                            <input
+                                                type="text"
+                                                placeholder="e.g. +28"
+                                                value={formData.maxProfit || ''}
+                                                onChange={(e) => setFormData({ ...formData, maxProfit: e.target.value })}
+                                                className={`w-full p-3 rounded-xl border outline-none transition-all ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white focus-border-amber-500' : 'bg-white border-gray-200 text-gray-900 focus-border-amber-500'}`}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-1">
+                                        <label className={`text-xs font-semibold uppercase ${subTextColor}`}>Комментарий</label>
+                                        <input
+                                            type="text"
+                                            placeholder="Дополнительная информация..."
+                                            value={formData.comment || ''}
+                                            onChange={(e) => setFormData({ ...formData, comment: e.target.value })}
+                                            className={`w-full p-3 rounded-xl border outline-none transition-all ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white focus-border-amber-500' : 'bg-white border-gray-200 text-gray-900 focus-border-amber-500'}`}
+                                        />
+                                    </div>
+
+                                    <div className="pt-4 flex gap-3">
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setShowModal(false)
+                                                setEditingAlert(null)
+                                            }}
+                                            className={`flex-1 py-3 rounded-xl font-semibold transition-colors ${theme === 'dark' ? 'bg-white/5 hover:bg-white/10 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-800'}`}
+                                        >
+                                            Отмена
+                                        </button>
+                                        <button
+                                            type="submit"
+                                            className="flex-1 py-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-semibold transition-colors flex items-center justify-center gap-2"
+                                        >
+                                            <Save className="w-4 h-4" />
+                                            <span>Сохранить</span>
+                                        </button>
+                                    </div>
+                                </form>
+                            ) : (
+                                <>
+                                    {/* Form for new alert */}
+                                    <div className={`p-4 rounded-2xl ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'} space-y-4`}>
+                                        <h4 className={`text-sm font-semibold ${headingColor}`}>Новый сигнал</h4>
+                                        
                                         <div className="grid grid-cols-2 gap-4">
                                             <div className="space-y-1">
                                                 <label className={`text-xs font-semibold uppercase ${subTextColor}`}>Время</label>
                                                 <input
                                                     type="time"
-                                                    required
                                                     value={formData.signalTime}
                                                     onChange={(e) => setFormData({ ...formData, signalTime: e.target.value })}
-                                                    className={`w-full p-3 rounded-xl border outline-none transition-all ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white focus:border-[#4E6E49]' : 'bg-white border-gray-200 text-gray-900 focus:border-[#4E6E49]'}`}
+                                                    className={`w-full p-2 rounded-lg border outline-none transition-all ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'}`}
                                                 />
                                             </div>
-                                            <div className="space-y-1">
-                                                <label className={`text-xs font-semibold uppercase ${subTextColor}`}>Стратегия</label>
-                                                <select
-                                                    value={formData.strategy || 'Фиба'}
-                                                    onChange={(e) => setFormData({ ...formData, strategy: e.target.value as Strategy })}
-                                                    className={`w-full p-3 rounded-xl border outline-none transition-all ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white focus:border-[#4E6E49]' : 'bg-white border-gray-200 text-gray-900 focus:border-[#4E6E49]'}`}
-                                                >
-                                                    {STRATEGIES.map(strategy => (
-                                                        <option key={strategy} value={strategy}>{strategy}</option>
-                                                    ))}
-                                                </select>
-                                            </div>
-                                        </div>
-
-                                        <div className="space-y-1">
-                                            <label className={`text-xs font-semibold uppercase ${subTextColor}`}>Адрес токена</label>
-                                            <input
-                                                type="text"
-                                                required
-                                                placeholder="Адрес контракта..."
-                                                value={formData.address || ''}
-                                                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                                                className={`w-full p-3 rounded-xl border outline-none transition-all font-mono text-sm ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white focus:border-[#4E6E49]' : 'bg-white border-gray-200 text-gray-900 focus:border-[#4E6E49]'}`}
+                                            <StrategySelector
+                                                value={formData.strategy}
+                                                onChange={(strategy) => setFormData({ ...formData, strategy })}
+                                                theme={theme}
                                             />
                                         </div>
 
@@ -871,7 +956,7 @@ export const SignalsTriggerBot = () => {
                                                     placeholder="e.g. 300,77"
                                                     value={formData.marketCap || ''}
                                                     onChange={(e) => setFormData({ ...formData, marketCap: e.target.value })}
-                                                    className={`w-full p-3 rounded-xl border outline-none transition-all ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white focus:border-[#4E6E49]' : 'bg-white border-gray-200 text-gray-900 focus:border-[#4E6E49]'}`}
+                                                    className={`w-full p-2 rounded-lg border outline-none transition-all ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'}`}
                                                 />
                                             </div>
                                             <div className="space-y-1">
@@ -881,7 +966,7 @@ export const SignalsTriggerBot = () => {
                                                     placeholder="e.g. -16"
                                                     value={formData.maxDrop || ''}
                                                     onChange={(e) => setFormData({ ...formData, maxDrop: e.target.value })}
-                                                    className={`w-full p-3 rounded-xl border outline-none transition-all ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white focus:border-[#4E6E49]' : 'bg-white border-gray-200 text-gray-900 focus:border-[#4E6E49]'}`}
+                                                    className={`w-full p-2 rounded-lg border outline-none transition-all ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'}`}
                                                 />
                                             </div>
                                             <div className="space-y-1">
@@ -891,7 +976,7 @@ export const SignalsTriggerBot = () => {
                                                     placeholder="e.g. +28"
                                                     value={formData.maxProfit || ''}
                                                     onChange={(e) => setFormData({ ...formData, maxProfit: e.target.value })}
-                                                    className={`w-full p-3 rounded-xl border outline-none transition-all ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white focus:border-[#4E6E49]' : 'bg-white border-gray-200 text-gray-900 focus:border-[#4E6E49]'}`}
+                                                    className={`w-full p-2 rounded-lg border outline-none transition-all ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'}`}
                                                 />
                                             </div>
                                         </div>
@@ -903,183 +988,169 @@ export const SignalsTriggerBot = () => {
                                                 placeholder="Дополнительная информация..."
                                                 value={formData.comment || ''}
                                                 onChange={(e) => setFormData({ ...formData, comment: e.target.value })}
-                                                className={`w-full p-3 rounded-xl border outline-none transition-all ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white focus:border-[#4E6E49]' : 'bg-white border-gray-200 text-gray-900 focus:border-[#4E6E49]'}`}
+                                                className={`w-full p-2 rounded-xl border outline-none transition-all font-mono text-sm ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'}`}
                                             />
                                         </div>
 
-                                        <div className="pt-4 flex gap-3">
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    setShowModal(false)
-                                                    setEditingAlert(null)
-                                                }}
-                                                className={`flex-1 py-3 rounded-xl font-semibold transition-colors ${theme === 'dark' ? 'bg-white/5 hover:bg-white/10 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-800'}`}
-                                            >
-                                                Отмена
-                                            </button>
-                                            <button
-                                                type="submit"
-                                                className="flex-1 py-3 rounded-xl bg-[#4E6E49] hover:bg-[#3d5a39] text-white font-semibold transition-colors flex items-center justify-center gap-2"
-                                            >
-                                                <Save className="w-4 h-4" />
-                                                <span>Сохранить</span>
-                                            </button>
-                                        </div>
-                                    </form>
-                                ) : (
-                                    // Batch add mode
-                                    <>
-                                        {/* Form for new alert */}
-                                        <div className={`p-4 rounded-2xl ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'} space-y-4`}>
-                                            <h4 className={`text-sm font-semibold ${headingColor}`}>Новый сигнал</h4>
-                                            
-                                            <div className="grid grid-cols-2 gap-4">
-                                                <div className="space-y-1">
-                                                    <label className={`text-xs font-semibold uppercase ${subTextColor}`}>Время</label>
-                                                    <input
-                                                        type="time"
-                                                        value={formData.signalTime}
-                                                        onChange={(e) => setFormData({ ...formData, signalTime: e.target.value })}
-                                                        className={`w-full p-2 rounded-lg border outline-none transition-all ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white focus:border-[#4E6E49]' : 'bg-white border-gray-200 text-gray-900 focus:border-[#4E6E49]'}`}
-                                                    />
-                                                </div>
-                                                <div className="space-y-1">
-                                                    <label className={`text-xs font-semibold uppercase ${subTextColor}`}>Стратегия</label>
-                                                    <select
-                                                        value={formData.strategy || 'Фиба'}
-                                                        onChange={(e) => setFormData({ ...formData, strategy: e.target.value as Strategy })}
-                                                        className={`w-full p-2 rounded-lg border outline-none transition-all ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white focus:border-[#4E6E49]' : 'bg-white border-gray-200 text-gray-900 focus:border-[#4E6E49]'}`}
-                                                    >
-                                                        {STRATEGIES.map(strategy => (
-                                                            <option key={strategy} value={strategy}>{strategy}</option>
-                                                        ))}
-                                                    </select>
-                                                </div>
-                                            </div>
+                                        <button
+                                            type="button"
+                                            onClick={handleAddToList}
+                                            className="w-full py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-500 font-semibold transition-colors flex items-center justify-center gap-2"
+                                        >
+                                            <Plus className="w-4 h-4" />
+                                            <span>Добавить в список</span>
+                                        </button>
+                                    </div>
 
-                                            <div className="space-y-1">
-                                                <label className={`text-xs font-semibold uppercase ${subTextColor}`}>Адрес токена</label>
-                                                <input
-                                                    type="text"
-                                                    placeholder="Адрес контракта..."
-                                                    value={formData.address || ''}
-                                                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                                                    className={`w-full p-2 rounded-lg border outline-none transition-all font-mono text-sm ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white focus:border-[#4E6E49]' : 'bg-white border-gray-200 text-gray-900 focus:border-[#4E6E49]'}`}
-                                                />
-                                            </div>
-
-                                            <div className="grid grid-cols-3 gap-4">
-                                                <div className="space-y-1">
-                                                    <label className={`text-xs font-semibold uppercase ${subTextColor}`}>Market Cap</label>
-                                                    <input
-                                                        type="text"
-                                                        placeholder="e.g. 300,77"
-                                                        value={formData.marketCap || ''}
-                                                        onChange={(e) => setFormData({ ...formData, marketCap: e.target.value })}
-                                                        className={`w-full p-2 rounded-lg border outline-none transition-all ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white focus:border-[#4E6E49]' : 'bg-white border-gray-200 text-gray-900 focus:border-[#4E6E49]'}`}
-                                                    />
-                                                </div>
-                                                <div className="space-y-1">
-                                                    <label className={`text-xs font-semibold uppercase ${subTextColor}`}>Макс. Падение</label>
-                                                    <input
-                                                        type="text"
-                                                        placeholder="e.g. -16"
-                                                        value={formData.maxDrop || ''}
-                                                        onChange={(e) => setFormData({ ...formData, maxDrop: e.target.value })}
-                                                        className={`w-full p-2 rounded-lg border outline-none transition-all ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white focus:border-[#4E6E49]' : 'bg-white border-gray-200 text-gray-900 focus:border-[#4E6E49]'}`}
-                                                    />
-                                                </div>
-                                                <div className="space-y-1">
-                                                    <label className={`text-xs font-semibold uppercase ${subTextColor}`}>Макс. Профит</label>
-                                                    <input
-                                                        type="text"
-                                                        placeholder="e.g. +28"
-                                                        value={formData.maxProfit || ''}
-                                                        onChange={(e) => setFormData({ ...formData, maxProfit: e.target.value })}
-                                                        className={`w-full p-2 rounded-lg border outline-none transition-all ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white focus:border-[#4E6E49]' : 'bg-white border-gray-200 text-gray-900 focus:border-[#4E6E49]'}`}
-                                                    />
-                                                </div>
-                                            </div>
-
-                                            <div className="space-y-1">
-                                                <label className={`text-xs font-semibold uppercase ${subTextColor}`}>Комментарий</label>
-                                                <input
-                                                    type="text"
-                                                    placeholder="Дополнительная информация..."
-                                                    value={formData.comment || ''}
-                                                    onChange={(e) => setFormData({ ...formData, comment: e.target.value })}
-                                                    className={`w-full p-2 rounded-lg border outline-none transition-all ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white focus:border-[#4E6E49]' : 'bg-white border-gray-200 text-gray-900 focus:border-[#4E6E49]'}`}
-                                                />
-                                            </div>
-
-                                            <button
-                                                type="button"
-                                                onClick={handleAddToList}
-                                                className="w-full py-2 rounded-xl bg-[#4E6E49]/20 hover:bg-[#4E6E49]/30 text-[#4E6E49] font-semibold transition-colors flex items-center justify-center gap-2"
-                                            >
-                                                <Plus className="w-4 h-4" />
-                                                <span>Добавить в список</span>
-                                            </button>
-                                        </div>
-
-                                        {/* List of alerts to add */}
-                                        {alertsToAdd.length > 0 && (
-                                            <div className="space-y-3">
-                                                <div className="flex items-center justify-between">
-                                                    <h4 className={`text-sm font-semibold ${headingColor}`}>
-                                                        Сигналы для добавления ({alertsToAdd.length})
-                                                    </h4>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => setAlertsToAdd([])}
-                                                        className={`text-xs ${subTextColor} hover:text-red-500 transition-colors`}
-                                                    >
-                                                        Очистить всё
-                                                    </button>
-                                                </div>
-                                                
-                                                <div className="space-y-2 max-h-60 overflow-y-auto">
-                                                    {alertsToAdd.map((alert, index) => (
-                                                        <div 
-                                                            key={index}
-                                                            className={`flex items-center justify-between p-3 rounded-xl ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'}`}
-                                                        >
-                                                            <div className="flex-1 min-w-0 grid grid-cols-5 gap-2 text-sm">
-                                                                <span className={`font-mono ${headingColor} truncate`}>{alert.signalTime}</span>
-                                                                <span className={`font-mono text-blue-500 truncate ${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'}`}>{truncateAddress(alert.address || '')}</span>
-                                                                <span className={`font-semibold truncate ${getStrategyColor(alert.strategy)}`}>{alert.strategy || '-'}</span>
-                                                                <span className={`font-mono truncate ${alert.maxDrop && alert.maxDrop.startsWith('-') ? 'text-red-500' : headingColor}`}>{alert.maxDrop || '-'}</span>
-                                                                <span className="font-mono text-green-500 truncate">{alert.maxProfit || '-'}</span>
-                                                            </div>
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => handleRemoveFromList(index)}
-                                                                className="ml-2 p-1.5 rounded-lg hover:bg-red-500/10 text-red-500 transition-colors"
-                                                            >
-                                                                <X className="w-4 h-4" />
-                                                            </button>
-                                                        </div>
-                                                    ))}
-                                                </div>
-
+                                    {/* List of alerts to add */}
+                                    {alertsToAdd.length > 0 && (
+                                        <div className="space-y-3">
+                                            <div className="flex items-center justify-between">
+                                                <h4 className={`text-sm font-semibold ${headingColor}`}>
+                                                    Сигналы для добавления ({alertsToAdd.length})
+                                                </h4>
                                                 <button
                                                     type="button"
-                                                    onClick={handleSaveAll}
-                                                    className="w-full py-3 rounded-xl bg-[#4E6E49] hover:bg-[#3d5a39] text-white font-semibold transition-colors flex items-center justify-center gap-2"
+                                                    onClick={() => setAlertsToAdd([])}
+                                                    className={`text-xs ${subTextColor} hover:text-red-500 transition-colors`}
                                                 >
-                                                    <Save className="w-4 h-4" />
-                                                    <span>Сохранить все ({alertsToAdd.length})</span>
+                                                    Очистить всё
                                                 </button>
                                             </div>
-                                        )}
-                                    </>
-                                )}
-                            </div>
+                                            
+                                            <div className="space-y-2 max-h-60 overflow-y-auto">
+                                                {alertsToAdd.map((alert, index) => (
+                                                    <div 
+                                                        key={index}
+                                                        className={`flex items-center justify-between p-3 rounded-xl ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'}`}
+                                                    >
+                                                        <div className="flex items-center gap-3 overflow-hidden">
+                                                            <div className={`w-2 h-2 rounded-full flex-shrink-0 ${alert.maxDrop?.startsWith('-') ? 'bg-red-500' : 'bg-green-500'}`}></div>
+                                                            <div className="flex flex-col min-w-0">
+                                                                <span className={`text-xs font-medium truncate ${headingColor}`}>
+                                                                    {truncateAddress(alert.address || '')}
+                                                                </span>
+                                                                <span className={`text-[10px] ${subTextColor}`}>
+                                                                    {alert.signalTime} • {alert.strategy} • {alert.maxDrop || '-'} / {alert.maxProfit || '-'}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => handleRemoveFromList(index)}
+                                                            className="p-1.5 rounded-lg hover:bg-red-500/10 text-red-500 transition-colors flex-shrink-0"
+                                                        >
+                                                            <X className="w-4 h-4" />
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                            </div>
+
+                                            <button
+                                                type="button"
+                                                onClick={handleSaveAll}
+                                                className="w-full py-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-semibold transition-colors flex items-center justify-center gap-2"
+                                            >
+                                                <Save className="w-4 h-4" />
+                                                <span>Сохранить все ({alertsToAdd.length})</span>
+                                            </button>
+                                        </div>
+                                    )}
+                                </>
+                            )}
                         </div>
                     </div>
-                )
-            }
+                </div>
+            )}
         </>
+    )
+}
+
+// Компонент выбора стратегии (стиль как MemberSelector)
+interface StrategySelectorProps {
+    value: TriggerStrategy | undefined
+    onChange: (strategy: TriggerStrategy) => void
+    theme: string
+}
+
+const StrategySelector: React.FC<StrategySelectorProps> = ({ value, onChange, theme }) => {
+    const [isOpen, setIsOpen] = React.useState(false)
+    const containerRef = React.useRef<HTMLDivElement>(null)
+
+    const getStrategyColor = (strategy: TriggerStrategy) => {
+        switch (strategy) {
+            case 'Фиба': return 'bg-purple-500/20 text-purple-400'
+            case 'Флип': return 'bg-blue-500/20 text-blue-400'
+            case 'Market Entry': return 'bg-green-500/20 text-green-400'
+        }
+    }
+
+    const getStrategyIcon = (strategy: TriggerStrategy) => {
+        switch (strategy) {
+            case 'Фиба': return '📊'
+            case 'Флип': return '🔄'
+            case 'Market Entry': return '🎯'
+        }
+    }
+
+    React.useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+                setIsOpen(false)
+            }
+        }
+        document.addEventListener('mousedown', handleClickOutside)
+        return () => document.removeEventListener('mousedown', handleClickOutside)
+    }, [])
+
+    const selectedStrategy = value || 'Фиба'
+
+    return (
+        <div className="relative w-full" ref={containerRef}>
+            <label className={`text-xs font-semibold uppercase ${subTextColor}`}>Стратегия</label>
+            <button
+                onClick={() => setIsOpen(!isOpen)}
+                className={`w-full flex items-center justify-between gap-3 px-4 py-2.5 rounded-xl border transition-all mt-1 ${theme === 'dark'
+                        ? 'bg-[#151a21] border-white/5 text-gray-300 hover:border-amber-500/30'
+                        : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'}`}
+            >
+                <div className="flex items-center gap-2.5 overflow-hidden">
+                    <span className="text-lg">{getStrategyIcon(selectedStrategy)}</span>
+                    <span className={`text-sm font-bold ${getStrategyColor(selectedStrategy)}`}>
+                        {selectedStrategy}
+                    </span>
+                </div>
+                <ChevronDown size={16} className={`text-gray-500 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+            </button>
+
+            {isOpen && (
+                <div className={`absolute z-50 top-full mt-2 w-full min-w-[180px] rounded-2xl border shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 ${theme === 'dark' ? 'bg-[#1a1f26] border-white/10' : 'bg-white border-gray-200'
+                    }`}>
+                    <div className="p-1.5">
+                        {STRATEGIES.map((strategy) => (
+                            <button
+                                key={strategy}
+                                onClick={() => {
+                                    onChange(strategy)
+                                    setIsOpen(false)
+                                }}
+                                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all text-left ${value === strategy
+                                        ? theme === 'dark' ? 'bg-amber-500/10 text-amber-400' : 'bg-amber-50 text-amber-600'
+                                        : theme === 'dark' ? 'hover:bg-white/5 text-gray-300' : 'hover:bg-gray-50 text-gray-700'
+                                    }`}
+                            >
+                                <span className="text-lg">{getStrategyIcon(strategy)}</span>
+                                <span className={`text-sm font-bold ${value === strategy ? '' : getStrategyColor(strategy)}`}>
+                                    {strategy}
+                                </span>
+                                {value === strategy && (
+                                    <Check size={16} className={`ml-auto ${theme === 'dark' ? 'text-amber-400' : 'text-amber-500'}`} />
+                                )}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            )}
+        </div>
     )
 }
