@@ -365,15 +365,6 @@ export const SignalsTriggerBot = () => {
         }
     }
 
-    // Форматирование стратегий для отображения в таблице
-    const formatStrategiesForDisplay = (strategies?: TriggerStrategy[]) => {
-        if (!strategies || strategies.length === 0) return '-'
-        return strategies.map(s => {
-            const colorClass = getStrategyColor(s)
-            return `<span class="${colorClass} px-2 py-0.5 rounded text-xs">${s}</span>`
-        }).join(' ')
-    }
-
     return (
         <>
             <div className="space-y-6">
@@ -739,20 +730,11 @@ export const SignalsTriggerBot = () => {
                                             <td className="p-4 whitespace-nowrap">
                                                 <div className="flex flex-wrap gap-1">
                                                     {alert.strategies?.map((strategy) => (
-                                                        <span key={strategy} className={`inline-flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all text-left ${value.includes(strategy)
-                                                                ? theme === 'dark' ? 'bg-amber-500/10 text-amber-400' : 'bg-amber-50 text-amber-600'
-                                                                : theme === 'dark' ? 'hover:bg-white/5 text-gray-300' : 'hover:bg-gray-50 text-gray-700'
-                                                            }`}
-                                                        >
-                                                            <span className="text-lg">{getStrategyIcon(strategy)}</span>
-                                                            <span className={`text-sm font-medium ${value === strategy ? '' : getStrategyColor(strategy)}`}>
-                                                                {strategy}
-                                                            </span>
-                                                            {value.includes(strategy) && (
-                                                                <Check size={16} className={`ml-auto ${theme === 'dark' ? 'text-amber-400' : 'text-amber-500'}`} />
-                                                            )}
+                                                        <span key={strategy} className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold ${getStrategyColor(strategy)}`}>
+                                                            <TrendingUp className="w-3 h-3" />
+                                                            {strategy}
                                                         </span>
-                                                    ))}
+                                                    )) || '-'}
                                                 </div>
                                             </td>
                                             <td className="p-4 whitespace-nowrap">
