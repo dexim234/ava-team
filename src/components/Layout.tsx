@@ -37,6 +37,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
   const { user, logout } = useAuthStore()
   const location = useLocation()
   const [showToolsMenu, setShowToolsMenu] = useState(false)
+  const [showFuncsMenu, setShowFuncsMenu] = useState(false)
   const [showNotifications, setShowNotifications] = useState(false)
   const [isCollapsed, setIsCollapsed] = useState(() => {
     const saved = localStorage.getItem('sidebarCollapsed')
@@ -85,7 +86,10 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
     { path: '/tasks', label: 'AVF Tasks', icon: CheckSquare, feature: 'tasks' },
     { path: '/earnings', label: 'AVF Profit', icon: DollarSign, feature: 'earnings' },
     { path: '/rating', label: 'AVF Score', icon: TrendingUp, feature: 'rating' },
-    { path: '/about', label: 'AVF NFO', icon: Info, feature: 'profile' },
+  ]
+
+  const infoSubItems: { path: string; label: string; icon: LucideIcon; feature?: string }[] = [
+    { path: '/about', label: 'AVF INFO', icon: Info, feature: 'profile' },
     ...(isAdmin ? [{ path: '/approvals', label: 'AVF Check', icon: CheckCircle2, feature: 'admin' }] : []),
   ]
 
@@ -104,6 +108,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     setShowToolsMenu(false)
+    setShowFuncsMenu(false)
   }, [location.pathname])
 
   useEffect(() => {
@@ -509,6 +514,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
           <div className="max-w-5xl mx-auto">
             <div className="glass-panel rounded-2xl shadow-2xl border border-white/60 dark:border-white/10 overflow-hidden">
               <div className="flex divide-x divide-white/40 dark:divide-white/5 w-full overflow-x-auto no-scrollbar">
+                {/* Tools Button with submenu */}
                 <button
                   onClick={() => setShowToolsMenu(!showToolsMenu)}
                   className={`flex-none w-20 flex flex-col items-center justify-center gap-1 py-3 ${isToolsActive ? 'text-[#4E6E49]' : 'text-gray-400'}`}
@@ -517,28 +523,33 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                   <span className="text-[10px] font-bold">Tools</span>
                 </button>
 
-                {accessibleFuncsSubItems.map((item) => (
-                  <Link
-                    key={item.path}
-                    to={item.path}
-                    className={`flex-none w-20 flex flex-col items-center justify-center gap-1 py-3 ${location.pathname === item.path ? 'text-[#4E6E49]' : 'text-gray-400'}`}
-                  >
-                    <item.icon className="w-5 h-5" />
-                    <span className="text-[10px] font-bold">{item.label.replace('AVF ', '')}</span>
-                  </Link>
-                ))}
+                {/* Function Button with submenu */}
+                <button
+                  onClick={() => setShowFuncsMenu(true)}
+                  className={`flex-none w-20 flex flex-col items-center justify-center gap-1 py-3 ${location.pathname.startsWith('/call') || location.pathname.startsWith('/management') || location.pathname.startsWith('/tasks') || location.pathname.startsWith('/earnings') || location.pathname.startsWith('/rating') ? 'text-[#4E6E49]' : 'text-gray-400'}`}
+                >
+                  <Radio className="w-5 h-5" />
+                  <span className="text-[10px] font-bold">Function</span>
+                </button>
 
+                {/* AVF INFO */}
+                <Link
+                  to="/about"
+                  className={`flex-none w-20 flex flex-col items-center justify-center gap-1 py-3 ${location.pathname === '/about' ? 'text-[#4E6E49]' : 'text-gray-400'}`}
+                >
+                  <Info className="w-5 h-5" />
+                  <span className="text-[10px] font-bold">AVF INFO</span>
+                </Link>
+
+                {/* Profile */}
                 <Link
                   to="/profile"
-                  className={`flex-none min-w-[120px] flex items-center gap-2 px-3 py-2 ${location.pathname === '/profile' ? 'text-[#4E6E49]' : 'text-gray-400'}`}
+                  className={`flex-none w-20 flex flex-col items-center justify-center gap-1 py-3 ${location.pathname === '/profile' ? 'text-[#4E6E49]' : 'text-gray-400'}`}
                 >
-                  <div className="w-8 h-8 rounded-full bg-[#4E6E49]/10 flex items-center justify-center text-[10px] font-bold flex-shrink-0">
+                  <div className="w-8 h-8 rounded-full bg-[#4E6E49]/10 flex items-center justify-center text-[10px] font-bold">
                     {getInitials(user?.name || 'AU')}
                   </div>
-                  <div className="min-w-0 flex flex-col items-start px-1">
-                    <span className="text-[10px] font-bold truncate w-full text-left">{user?.name || 'User'}</span>
-                    <span className="text-[8px] opacity-60 truncate w-full text-left">{user?.login || 'id'}</span>
-                  </div>
+                  <span className="text-[10px] font-bold">Profile</span>
                 </Link>
               </div>
             </div>
@@ -548,13 +559,34 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
           {showToolsMenu && (
             <>
               <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[-1]" onClick={() => setShowToolsMenu(false)} />
-              <div className="absolute bottom-20 left-4 right-4 glass-panel rounded-2xl border border-white/40 overflow-hidden animate-fade-in">
+              <div className="absolute bottom-20 left-4 right-4 glass-panel rounded-2xl border border-white/40 dark:border-white/10 overflow-hidden animate-fade-in">
                 {toolsSubItems.map(item => (
                   <Link
                     key={item.path}
                     to={item.path}
                     onClick={() => setShowToolsMenu(false)}
-                    className="flex items-center gap-3 p-4 border-b border-white/10 last:border-0"
+                    className="flex items-center gap-3 p-4 border-b border-white/10 dark:border-white/5 last:border-0"
+                  >
+                    <item.icon className="w-4 h-4 text-[#4E6E49]" />
+                    <span className="font-bold text-sm flex-1">{item.label}</span>
+                    <ArrowUpRight className="w-4 h-4 opacity-40" />
+                  </Link>
+                ))}
+              </div>
+            </>
+          )}
+
+          {/* Mobile Function Overlay */}
+          {showFuncsMenu && (
+            <>
+              <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[-1]" onClick={() => setShowFuncsMenu(false)} />
+              <div className="absolute bottom-20 left-4 right-4 glass-panel rounded-2xl border border-white/40 dark:border-white/10 overflow-hidden animate-fade-in">
+                {accessibleFuncsSubItems.map(item => (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    onClick={() => setShowFuncsMenu(false)}
+                    className="flex items-center gap-3 p-4 border-b border-white/10 dark:border-white/5 last:border-0"
                   >
                     <item.icon className="w-4 h-4 text-[#4E6E49]" />
                     <span className="font-bold text-sm flex-1">{item.label}</span>

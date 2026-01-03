@@ -279,6 +279,10 @@ export const AiAoAlerts = () => {
                             <div className={`p-3 rounded-2xl ${theme === 'dark' ? 'bg-white/10 border-white/20' : 'bg-[#4E6E49]/10 border-[#4E6E49]/30'} shadow-inner`}>
                                 <Terminal className={`w-8 h-8 ${theme === 'dark' ? 'text-white' : 'text-[#4E6E49]'}`} />
                             </div>
+                            <div className="flex flex-col">
+                                <h1 className={`text-3xl font-black ${headingColor}`}>AL Agent AO</h1>
+                                <p className={`text-sm ${subTextColor}`}>AI - AO Alerts</p>
+                            </div>
                         </div>
 
                         <div className="flex flex-wrap items-center gap-3">
