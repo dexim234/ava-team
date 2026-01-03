@@ -35,8 +35,8 @@ export const SignalsTriggerBot = () => {
     const [maxDrop, setMaxDrop] = useState('')
     const [minProfit, setMinProfit] = useState('')
     const [maxProfit, setMaxProfit] = useState('')
-    const [sortBy, setSortBy] = useState<SortField>('date')
-    const [sortOrder, setSortOrder] = useState<SortOrder>('desc')
+    const [sortBy, setSortBy] = useState<SortField>('date' | 'drop' | 'profit')
+    const [sortOrder, setSortOrder] = useState<SortOrder>('asc' | 'desc')
 
     // Form state for single alert
     const [formData, setFormData] = useState<Partial<TriggerAlert>>({
@@ -54,8 +54,6 @@ export const SignalsTriggerBot = () => {
 
     // Screenshot preview state
     const [screenshotPreview, setScreenshotPreview] = useState<string | null>(null)
-    const [isPhotoModalOpen, setIsPhotoModalOpen] = useState(false)
-    const [selectedPhotoUrl, setSelectedPhotoUrl] = useState<string | null>(null)
     const fileInputRef = useRef<HTMLInputElement>(null)
 
     // Multiple profits input state
@@ -446,12 +444,6 @@ export const SignalsTriggerBot = () => {
         }
     }
 
-    // Open photo modal
-    const openPhotoModal = (url: string) => {
-        setSelectedPhotoUrl(url)
-        setIsPhotoModalOpen(true)
-    }
-
     // Add profit entry
     const addProfitEntry = () => {
         if (formData.strategies && formData.strategies.length > 0) {
@@ -554,7 +546,6 @@ export const SignalsTriggerBot = () => {
                                         strategies: [],
                                         maxDropFromSignal: '',
                                         maxDropFromLevel07: '',
-                                        maxProfit: '',
                                         comment: ''
                                     })
                                     setShowModal(true)
@@ -831,13 +822,7 @@ export const SignalsTriggerBot = () => {
                                                         </td>
                                                         <td className="p-4 whitespace-nowrap">
                                                             {alert.screenshot ? (
-                                                                <button
-                                                                    onClick={() => openPhotoModal(alert.screenshot!)}
-                                                                    className="p-2 rounded-lg hover:bg-amber-500/20 text-amber-500 transition-colors"
-                                                                    title="Просмотр фото"
-                                                                >
-                                                                    <Image className="w-4 h-4" />
-                                                                </button>
+                                                                <span className={`text-xs ${subTextColor}`}>📷</span>
                                                             ) : (
                                                                 <span className={`text-xs ${subTextColor}`}>—</span>
                                                             )}
@@ -882,7 +867,7 @@ export const SignalsTriggerBot = () => {
                                                 ) : (
                                                     <div className="flex flex-wrap gap-1">
                                                         {alert.strategies?.map((strategy) => (
-                                                            <span key={strategy} className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold ${getStrategyColor(strategy)}`}>
+                                                            <span key={strategy} className={`inline-flex items-center gap-3 px-2.5 py-1 rounded-lg text-xs font-semibold ${getStrategyColor(strategy)}`}>
                                                                 <TrendingUp className="w-3 h-3" />
                                                                 {strategy}
                                                             </span>
@@ -931,13 +916,7 @@ export const SignalsTriggerBot = () => {
                                             </td>
                                             <td className="p-4 whitespace-nowrap">
                                                 {alert.screenshot ? (
-                                                    <button
-                                                        onClick={() => openPhotoModal(alert.screenshot!)}
-                                                        className="p-2 rounded-lg hover:bg-amber-500/20 text-amber-500 transition-colors"
-                                                        title="Просмотр фото"
-                                                    >
-                                                        <Image className="w-4 h-4" />
-                                                    </button>
+                                                    <span className={`text-xs ${subTextColor}`}>📷</span>
                                                 ) : (
                                                     <span className={`text-xs ${subTextColor}`}>—</span>
                                                 )}
@@ -991,7 +970,6 @@ export const SignalsTriggerBot = () => {
                                     strategies: [],
                                     maxDropFromSignal: '',
                                     maxDropFromLevel07: '',
-                                    maxProfit: '',
                                     comment: ''
                                 })
                             }} className={`p-2 rounded-lg hover:bg-white/10 transition-colors ${subTextColor}`}>
@@ -1130,7 +1108,7 @@ export const SignalsTriggerBot = () => {
                                                     ))}
                                                 </div>
                                             ) : (
-                                                <p className={`text-xs ${subTextColor}`}>Выберите стратегии и добавьте профиты</p>
+                                                <p className={`text-xs ${subTextColor}`}>Выберите стратегии и добавьте профиты для каждой</p>
                                             )}
                                         </div>
                                     )}
@@ -1216,7 +1194,7 @@ export const SignalsTriggerBot = () => {
 
                                         <div className="grid grid-cols-2 gap-4">
                                             <div className="space-y-1">
-                                                <label className={`text-xs font-semibold uppercase ${subTextColor}`}>Время</label>
+                                                <label className={`text-xs ${subTextColor}`}>Время</label>
                                                 <input
                                                     type="time"
                                                     value={formData.signalTime}
@@ -1503,90 +1481,4 @@ export const SignalsTriggerBot = () => {
                             {successCount} сигнал{successCount === 1 ? '' : successCount >= 2 && successCount <= 4 ? 'а' : 'ов'} добавлен{successCount === 1 ? '' : 'о'}
                         </p>
                         <div className={`mt-6 px-4 py-2 rounded-full ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-100'}`}>
-                            <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-amber-400' : 'text-amber-600'}`}>
-                                Signals Trigger Bot
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            )}
-        </>
-    )
-}
-
-// Мультиселект стратегий (без цветовой подсветки в селекторе)
-interface MultiStrategySelectorProps {
-    value: TriggerStrategy[]
-    onChange: (strategies: TriggerStrategy[]) => void
-    theme: string
-}
-
-const MultiStrategySelector: React.FC<MultiStrategySelectorProps> = ({ value, onChange, theme }) => {
-    const [isOpen, setIsOpen] = React.useState(false)
-    const containerRef = React.useRef<HTMLDivElement>(null)
-
-    const subTextColor = theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-    const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
-
-    const toggleStrategy = (strategy: TriggerStrategy) => {
-        if (value.includes(strategy)) {
-            onChange(value.filter(s => s !== strategy))
-        } else {
-            onChange([...value, strategy])
-        }
-    }
-
-    React.useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-                setIsOpen(false)
-            }
-        }
-        document.addEventListener('mousedown', handleClickOutside)
-        return () => document.removeEventListener('mousedown', handleClickOutside)
-    }, [])
-
-    const selectedText = value.length === 0 ? 'Выберите стратегии' : value.join(', ')
-
-    return (
-        <div className="relative w-full" ref={containerRef}>
-            <label className={`text-xs font-semibold uppercase ${subTextColor}`}>Стратегии</label>
-            <button
-                onClick={() => setIsOpen(!isOpen)}
-                className={`w-full flex items-center justify-between gap-3 px-4 py-2.5 rounded-xl border transition-all mt-1 ${theme === 'dark'
-                    ? 'bg-[#151a21] border-white/5 text-gray-300 hover:border-amber-500/30'
-                    : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'}`}
-            >
-                <span className={`text-sm truncate ${value.length === 0 ? subTextColor : headingColor}`}>
-                    {selectedText}
-                </span>
-                <ChevronDown size={16} className={`text-gray-500 transition-transform ${isOpen ? 'rotate-180' : ''} flex-shrink-0`} />
-            </button>
-
-            {isOpen && (
-                <div className={`absolute z-50 top-full mt-2 w-full min-w-[180px] rounded-2xl border shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 ${theme === 'dark' ? 'bg-[#1a1f26] border-white/10' : 'bg-white border-gray-200'
-                    }`}>
-                    <div className="p-1.5">
-                        {STRATEGIES.map((strategy) => (
-                            <button
-                                key={strategy}
-                                onClick={() => toggleStrategy(strategy)}
-                                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all text-left ${value.includes(strategy)
-                                    ? theme === 'dark' ? 'bg-amber-500/10 text-amber-400' : 'bg-amber-50 text-amber-600'
-                                    : theme === 'dark' ? 'hover:bg-white/5 text-gray-300' : 'hover:bg-gray-50 text-gray-700'
-                                    }`}
-                            >
-                                <span className="text-sm font-medium">
-                                    {strategy}
-                                </span>
-                                {value.includes(strategy) && (
-                                    <Check size={16} className={`ml-auto ${theme === 'dark' ? 'text-amber-400' : 'text-amber-500'}`} />
-                                )}
-                            </button>
-                        ))}
-                    </div>
-                </div>
-            )}
-        </div>
-    )
-}
+                            <span className={`text-sm font-semibold ${theme === 'dark' ? '

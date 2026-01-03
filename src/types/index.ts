@@ -486,6 +486,7 @@ export interface TriggerAlert {
   strategies: TriggerStrategy[] // Multiple strategies
   maxDropFromSignal?: string // e.g. "-16"
   maxDropFromLevel07?: string // e.g. "-5"
+  maxProfit?: string // e.g. "+28" or "X3"
   profits?: TriggerProfit[] // Multiple profits (one per strategy)
   comment?: string
   screenshot?: string // URL to screenshot
