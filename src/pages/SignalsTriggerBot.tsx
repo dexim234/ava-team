@@ -1481,4 +1481,24 @@ export const SignalsTriggerBot = () => {
                             {successCount} сигнал{successCount === 1 ? '' : successCount >= 2 && successCount <= 4 ? 'а' : 'ов'} добавлен{successCount === 1 ? '' : 'о'}
                         </p>
                         <div className={`mt-6 px-4 py-2 rounded-full ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-100'}`}>
-                            <span className={`text-sm font-semibold ${theme === 'dark' ? '
+                            <span className={`text-sm font-semibold ${headingColor}`}>{successMessage}</span>
+                        </div>
+                        <button
+                            onClick={() => {
+                                setShowSuccess(false)
+                                setSuccessCount(0)
+                                setSuccessMessage('')
+                                setAlertsToAdd([])
+                            }}
+                            className="mt-6 px-8 py-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-semibold transition-colors"
+                        >
+                            Готово
+                        </button>
+                    </div>
+                </div>
+            )}
+        </>
+    )
+}
+
+export default SignalsTriggerBot
