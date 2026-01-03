@@ -8,6 +8,7 @@ import { calculateHours, timeOverlaps, formatDate, getDatesInRange, normalizeDat
 import { UserNickname } from '@/components/UserNickname'
 import { getUserNicknameSync } from '@/utils/userUtils'
 import { X, Plus, Trash2, Edit, CalendarDays, Calendar } from 'lucide-react'
+import { CategorySelector } from './CategorySelector'
 import { WorkSlot, TimeSlot, TEAM_MEMBERS, SLOT_CATEGORY_META, SlotCategory } from '@/types'
 import { useScrollLock } from '@/hooks/useScrollLock'
 
@@ -1160,24 +1161,14 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
                 <label className={`block text-xs sm:text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
                   Сфера деятельности <span className="text-red-500">*</span>
                 </label>
-                <select
-                  value={category}
-                  onChange={(e) => {
-                    setCategory(e.target.value as SlotCategory | '')
+                <CategorySelector
+                  selectedCategory={category}
+                  onSelect={(cat) => {
+                    setCategory(cat)
                     setError('')
                   }}
-                  className={`w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base rounded-lg border touch-manipulation ${theme === 'dark'
-                    ? 'bg-gray-700 border-gray-800 text-white'
-                    : 'bg-white border-gray-300 text-gray-900'
-                    } focus:outline-none focus:ring-2 focus:ring-[#4E6E49]`}
-                >
-                  <option value="">Выберите сферу...</option>
-                  {(Object.keys(SLOT_CATEGORY_META) as SlotCategory[]).map((cat) => (
-                    <option key={cat} value={cat}>
-                      {SLOT_CATEGORY_META[cat].label}
-                    </option>
-                  ))}
-                </select>
+                  error={!slot && !category && !!error && error.includes('сферу')}
+                />
               </div>
 
               {/* Repeat options */}

@@ -426,15 +426,15 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
     absence: 'bg-rose-500/10 text-rose-500 border border-rose-500/20',
   } as const
 
-const SLOT_CATEGORY_COLORS: Record<SlotCategory, { bg: string; text: string; border: string }> = {
-  memecoins: { bg: 'bg-emerald-100 dark:bg-emerald-900/40', text: 'text-emerald-700 dark:text-emerald-300', border: 'border-emerald-300 dark:border-emerald-700' },
-  futures: { bg: 'bg-blue-100 dark:bg-blue-900/40', text: 'text-blue-700 dark:text-blue-300', border: 'border-blue-300 dark:border-blue-700' },
-  nft: { bg: 'bg-purple-100 dark:bg-purple-900/40', text: 'text-purple-700 dark:text-purple-300', border: 'border-purple-300 dark:border-purple-700' },
-  spot: { bg: 'bg-amber-100 dark:bg-amber-900/40', text: 'text-amber-700 dark:text-amber-300', border: 'border-amber-300 dark:border-amber-700' },
-  airdrop: { bg: 'bg-cyan-100 dark:bg-cyan-900/40', text: 'text-cyan-700 dark:text-cyan-300', border: 'border-cyan-300 dark:border-cyan-700' },
-  polymarket: { bg: 'bg-pink-100 dark:bg-pink-900/40', text: 'text-pink-700 dark:text-pink-300', border: 'border-pink-300 dark:border-pink-700' },
-  staking: { bg: 'bg-indigo-100 dark:bg-indigo-900/40', text: 'text-indigo-700 dark:text-indigo-300', border: 'border-indigo-300 dark:border-indigo-700' },
-}
+  const SLOT_CATEGORY_COLORS: Record<SlotCategory, { bg: string; text: string; border: string }> = {
+    memecoins: { bg: 'bg-emerald-100 dark:bg-emerald-900/40', text: 'text-emerald-700 dark:text-emerald-300', border: 'border-emerald-300 dark:border-emerald-700' },
+    futures: { bg: 'bg-blue-100 dark:bg-blue-900/40', text: 'text-blue-700 dark:text-blue-300', border: 'border-blue-300 dark:border-blue-700' },
+    nft: { bg: 'bg-purple-100 dark:bg-purple-900/40', text: 'text-purple-700 dark:text-purple-300', border: 'border-purple-300 dark:border-purple-700' },
+    spot: { bg: 'bg-amber-100 dark:bg-amber-900/40', text: 'text-amber-700 dark:text-amber-300', border: 'border-amber-300 dark:border-amber-700' },
+    airdrop: { bg: 'bg-cyan-100 dark:bg-cyan-900/40', text: 'text-cyan-700 dark:text-cyan-300', border: 'border-cyan-300 dark:border-cyan-700' },
+    polymarket: { bg: 'bg-pink-100 dark:bg-pink-900/40', text: 'text-pink-700 dark:text-pink-300', border: 'border-pink-300 dark:border-pink-700' },
+    staking: { bg: 'bg-indigo-100 dark:bg-indigo-900/40', text: 'text-indigo-700 dark:text-indigo-300', border: 'border-indigo-300 dark:border-indigo-700' },
+  }
 
   return (
     <div className={`rounded-2xl ${theme === 'dark' ? 'bg-transparent' : 'bg-white'} overflow-visible`}>
@@ -652,11 +652,9 @@ const SLOT_CATEGORY_COLORS: Record<SlotCategory, { bg: string; text: string; bor
                                   </span>
                                 )}
                                 {slot.category && (
-                                  <span className={`text-[10px] px-1.5 py-0.5 rounded-full border font-medium whitespace-nowrap ${
-                                    SLOT_CATEGORY_COLORS[slot.category as SlotCategory]?.bg || 'bg-white/20'
-                                  } ${SLOT_CATEGORY_COLORS[slot.category as SlotCategory]?.text || 'text-white'} ${
-                                    SLOT_CATEGORY_COLORS[slot.category as SlotCategory]?.border || 'border-white/30'
-                                  }`}>
+                                  <span className={`text-[10px] px-1.5 py-0.5 rounded-full border font-medium whitespace-nowrap ${SLOT_CATEGORY_COLORS[slot.category as SlotCategory]?.bg || 'bg-white/20'
+                                    } ${SLOT_CATEGORY_COLORS[slot.category as SlotCategory]?.text || 'text-white'} ${SLOT_CATEGORY_COLORS[slot.category as SlotCategory]?.border || 'border-white/30'
+                                    }`}>
                                     {SLOT_CATEGORY_META[slot.category as SlotCategory]?.label || slot.category}
                                   </span>
                                 )}
@@ -668,8 +666,8 @@ const SLOT_CATEGORY_COLORS: Record<SlotCategory, { bg: string; text: string; bor
                                 <button
                                   onClick={() => toggleBreaksVisibility(slot.id)}
                                   className={`p-1 rounded-md transition-all duration-200 hover:scale-110 ${breaksExpanded[slot.id]
-                                      ? 'text-white hover:text-white/80'
-                                      : 'text-white/70 hover:text-white'
+                                    ? 'text-white hover:text-white/80'
+                                    : 'text-white/70 hover:text-white'
                                     }`}
                                   title={breaksExpanded[slot.id] ? 'Скрыть перерывы' : 'Показать перерывы'}
                                 >

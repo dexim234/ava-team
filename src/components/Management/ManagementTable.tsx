@@ -446,15 +446,15 @@ export const ManagementTable = ({ selectedUserId, slotFilter, onEditSlot, onEdit
     absence: 'bg-rose-500/10 text-rose-500 border border-rose-500/20',
   } as const
 
-const SLOT_CATEGORY_COLORS: Record<SlotCategory, { bg: string; text: string; border: string }> = {
-  memecoins: { bg: 'bg-emerald-100 dark:bg-emerald-900/40', text: 'text-emerald-700 dark:text-emerald-300', border: 'border-emerald-300 dark:border-emerald-700' },
-  futures: { bg: 'bg-blue-100 dark:bg-blue-900/40', text: 'text-blue-700 dark:text-blue-300', border: 'border-blue-300 dark:border-blue-700' },
-  nft: { bg: 'bg-purple-100 dark:bg-purple-900/40', text: 'text-purple-700 dark:text-purple-300', border: 'border-purple-300 dark:border-purple-700' },
-  spot: { bg: 'bg-amber-100 dark:bg-amber-900/40', text: 'text-amber-700 dark:text-amber-300', border: 'border-amber-300 dark:border-amber-700' },
-  airdrop: { bg: 'bg-cyan-100 dark:bg-cyan-900/40', text: 'text-cyan-700 dark:text-cyan-300', border: 'border-cyan-300 dark:border-cyan-700' },
-  polymarket: { bg: 'bg-pink-100 dark:bg-pink-900/40', text: 'text-pink-700 dark:text-pink-300', border: 'border-pink-300 dark:border-pink-700' },
-  staking: { bg: 'bg-indigo-100 dark:bg-indigo-900/40', text: 'text-indigo-700 dark:text-indigo-300', border: 'border-indigo-300 dark:border-indigo-700' },
-}
+  const SLOT_CATEGORY_COLORS: Record<SlotCategory, { bg: string; text: string; border: string }> = {
+    memecoins: { bg: 'bg-emerald-100 dark:bg-emerald-900/40', text: 'text-emerald-700 dark:text-emerald-300', border: 'border-emerald-300 dark:border-emerald-700' },
+    futures: { bg: 'bg-blue-100 dark:bg-blue-900/40', text: 'text-blue-700 dark:text-blue-300', border: 'border-blue-300 dark:border-blue-700' },
+    nft: { bg: 'bg-purple-100 dark:bg-purple-900/40', text: 'text-purple-700 dark:text-purple-300', border: 'border-purple-300 dark:border-purple-700' },
+    spot: { bg: 'bg-amber-100 dark:bg-amber-900/40', text: 'text-amber-700 dark:text-amber-300', border: 'border-amber-300 dark:border-amber-700' },
+    airdrop: { bg: 'bg-cyan-100 dark:bg-cyan-900/40', text: 'text-cyan-700 dark:text-cyan-300', border: 'border-cyan-300 dark:border-cyan-700' },
+    polymarket: { bg: 'bg-pink-100 dark:bg-pink-900/40', text: 'text-pink-700 dark:text-pink-300', border: 'border-pink-300 dark:border-pink-700' },
+    staking: { bg: 'bg-indigo-100 dark:bg-indigo-900/40', text: 'text-indigo-700 dark:text-indigo-300', border: 'border-indigo-300 dark:border-indigo-700' },
+  }
 
   return (
     <div className={`rounded-2xl ${theme === 'dark' ? 'bg-[#0b1015]' : 'bg-white'} overflow-visible`}>
@@ -583,24 +583,22 @@ const SLOT_CATEGORY_COLORS: Record<SlotCategory, { bg: string; text: string; bor
                                   <div key={slotIdx} className="w-full flex flex-col items-center gap-1.5 group/timecard">
                                     <div className={`w-full max-w-[120px] rounded-xl p-2 text-[10px] font-bold transition-all relative overflow-hidden shadow-md ${theme === 'dark' ? 'bg-[#1a1f26] border border-white/5 text-gray-200' : 'bg-gray-100 text-gray-700'
                                       }`}>
-                                      <div className="flex flex-col items-center gap-1.5">
-                                        <div className="flex items-center gap-1 opacity-80">
-                                          <Clock className="w-3 h-3" />
+                                      <div className="flex flex-col items-center gap-1.5 w-full">
+                                        <div className="flex items-center gap-1 opacity-80 justify-center">
+                                          <Clock className="w-3 h-3 flex-shrink-0" />
                                           <span className="whitespace-nowrap tracking-tight">{s.start} - {s.end}</span>
                                         </div>
                                         {slot.category && (
-                                          <span className={`text-[9px] px-1.5 py-0.5 rounded-full border font-medium ${
-                                            SLOT_CATEGORY_COLORS[slot.category as SlotCategory]?.bg || 'bg-gray-100 dark:bg-gray-800'
-                                          } ${SLOT_CATEGORY_COLORS[slot.category as SlotCategory]?.text || 'text-gray-700 dark:text-gray-300'} ${
-                                            SLOT_CATEGORY_COLORS[slot.category as SlotCategory]?.border || 'border-gray-300 dark:border-gray-600'
-                                          }`}>
+                                          <span className={`text-[9px] px-1.5 py-0.5 rounded-full border font-medium w-full text-center truncate ${SLOT_CATEGORY_COLORS[slot.category as SlotCategory]?.bg || 'bg-gray-100 dark:bg-gray-800'
+                                            } ${SLOT_CATEGORY_COLORS[slot.category as SlotCategory]?.text || 'text-gray-700 dark:text-gray-300'} ${SLOT_CATEGORY_COLORS[slot.category as SlotCategory]?.border || 'border-gray-300 dark:border-gray-600'
+                                            }`}>
                                             {SLOT_CATEGORY_META[slot.category as SlotCategory]?.label || slot.category}
                                           </span>
                                         )}
                                         {s.breaks && s.breaks.length > 0 && (
                                           <button
                                             onClick={() => toggleBreaksVisibility(slotId)}
-                                            className="p-0.5 hover:bg-white/10 rounded-md transition-colors"
+                                            className="p-0.5 hover:bg-white/10 rounded-md transition-colors w-full flex justify-center"
                                           >
                                             {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
                                           </button>
