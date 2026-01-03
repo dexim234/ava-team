@@ -43,12 +43,13 @@ export const SignalsTriggerBot = () => {
         strategies: [],
         maxDrop: '',
         maxProfit: '',
-        comment: ''
+        comment: '',
+        isScam: false
     })
 
     // Common date for all alerts in batch mode
     const [commonDate, setCommonDate] = useState<string>(new Date().toISOString().split('T')[0])
-    
+
     // List of alerts to add (batch mode)
     const [alertsToAdd, setAlertsToAdd] = useState<Partial<TriggerAlert>[]>([])
 
@@ -73,7 +74,7 @@ export const SignalsTriggerBot = () => {
             alert('Введите адрес токена')
             return
         }
-        
+
         if (!formData.strategies || formData.strategies.length === 0) {
             alert('Выберите хотя бы одну стратегию')
             return
@@ -87,11 +88,12 @@ export const SignalsTriggerBot = () => {
             strategies: formData.strategies,
             maxDrop: formData.maxDrop,
             maxProfit: formData.maxProfit,
-            comment: formData.comment
+            comment: formData.comment,
+            isScam: formData.isScam
         }
-        
+
         setAlertsToAdd([...alertsToAdd, newAlert])
-        
+
         // Reset form fields except date (which is now common) and strategies
         setFormData({
             signalTime: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
@@ -100,7 +102,8 @@ export const SignalsTriggerBot = () => {
             strategies: [],
             maxDrop: '',
             maxProfit: '',
-            comment: ''
+            comment: '',
+            isScam: false
         })
     }
 
@@ -117,7 +120,7 @@ export const SignalsTriggerBot = () => {
         }
 
         try {
-            const promises = alertsToAdd.map(alert => 
+            const promises = alertsToAdd.map(alert =>
                 addTriggerAlert({
                     ...alert as TriggerAlert,
                     createdAt: new Date().toISOString(),
@@ -125,7 +128,7 @@ export const SignalsTriggerBot = () => {
                 })
             )
             await Promise.all(promises)
-            
+
             // Reset
             setAlertsToAdd([])
             setFormData({
@@ -136,7 +139,8 @@ export const SignalsTriggerBot = () => {
                 strategies: [],
                 maxDrop: '',
                 maxProfit: '',
-                comment: ''
+                comment: '',
+                isScam: false
             })
             setShowModal(false)
             await loadAlerts()
@@ -170,7 +174,8 @@ export const SignalsTriggerBot = () => {
                 strategies: [],
                 maxDrop: '',
                 maxProfit: '',
-                comment: ''
+                comment: '',
+                isScam: false
             })
             await loadAlerts()
         } catch (error: any) {
@@ -435,7 +440,8 @@ export const SignalsTriggerBot = () => {
                                         strategies: [],
                                         maxDrop: '',
                                         maxProfit: '',
-                                        comment: ''
+                                        comment: '',
+                                        isScam: false
                                     })
                                     setShowModal(true)
                                 }}
@@ -621,7 +627,7 @@ export const SignalsTriggerBot = () => {
 
                                         dates.forEach((dateKey, dateIndex) => {
                                             const dateAlerts = groupedAlerts[dateKey]
-                                            
+
                                             if (dateIndex > 0) {
                                                 rows.push(
                                                     <tr key={`separator-${dateKey}`}>
@@ -644,7 +650,7 @@ export const SignalsTriggerBot = () => {
 
                                             dateAlerts.forEach((alert: TriggerAlert) => {
                                                 rows.push(
-                                                    <tr key={alert.id} className={`${theme === 'dark' ? 'hover:bg-white/5' : 'hover:bg-gray-50'} transition-colors`}>
+                                                    <tr key={alert.id} className={`${alert.isScam ? (theme === 'dark' ? 'bg-red-900/20 hover:bg-red-900/30' : 'bg-red-50 hover:bg-red-100') : (theme === 'dark' ? 'hover:bg-white/5' : 'hover:bg-gray-50')} transition-colors`}>
                                                         <td className="p-4 whitespace-nowrap">
                                                             <div className={`font-mono font-medium ${headingColor}`}>{formatDateForDisplay(alert.signalDate)}</div>
                                                         </td>
@@ -666,7 +672,7 @@ export const SignalsTriggerBot = () => {
                                                         </td>
                                                         <td className="p-4">
                                                             <div className="flex items-center gap-2">
-                                                                <div 
+                                                                <div
                                                                     className={`font-mono text-sm ${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'}`}
                                                                     title={alert.address}
                                                                 >
@@ -720,7 +726,7 @@ export const SignalsTriggerBot = () => {
                                     })()
                                 ) : (
                                     filteredAlerts.map((alert: TriggerAlert) => (
-                                        <tr key={alert.id} className={`${theme === 'dark' ? 'hover:bg-white/5' : 'hover:bg-gray-50'} transition-colors`}>
+                                        <tr key={alert.id} className={`${alert.isScam ? (theme === 'dark' ? 'bg-red-900/20 hover:bg-red-900/30' : 'bg-red-50 hover:bg-red-100') : (theme === 'dark' ? 'hover:bg-white/5' : 'hover:bg-gray-50')} transition-colors`}>
                                             <td className="p-4 whitespace-nowrap">
                                                 <div className={`font-mono font-medium ${headingColor}`}>{formatDateForDisplay(alert.signalDate)}</div>
                                             </td>
@@ -742,7 +748,7 @@ export const SignalsTriggerBot = () => {
                                             </td>
                                             <td className="p-4">
                                                 <div className="flex items-center gap-2">
-                                                    <div 
+                                                    <div
                                                         className={`font-mono text-sm ${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'}`}
                                                         title={alert.address}
                                                     >
@@ -820,7 +826,8 @@ export const SignalsTriggerBot = () => {
                                     strategies: [],
                                     maxDrop: '',
                                     maxProfit: '',
-                                    comment: ''
+                                    comment: '',
+                                    isScam: false
                                 })
                             }} className={`p-2 rounded-lg hover:bg-white/10 transition-colors ${subTextColor}`}>
                                 <X className="w-5 h-5" />
@@ -916,6 +923,18 @@ export const SignalsTriggerBot = () => {
                                         />
                                     </div>
 
+                                    <div className="space-y-1">
+                                        <label className={`flex items-center gap-2 cursor-pointer ${subTextColor}`}>
+                                            <input
+                                                type="checkbox"
+                                                checked={formData.isScam || false}
+                                                onChange={(e) => setFormData({ ...formData, isScam: e.target.checked })}
+                                                className="w-4 h-4 rounded border-gray-300 text-red-500 focus:ring-red-500"
+                                            />
+                                            <span className="text-sm">Это СКАМ</span>
+                                        </label>
+                                    </div>
+
                                     <div className="pt-4 flex gap-3">
                                         <button
                                             type="button"
@@ -941,7 +960,7 @@ export const SignalsTriggerBot = () => {
                                     {/* Form for new alert */}
                                     <div className={`p-4 rounded-2xl ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'} space-y-4`}>
                                         <h4 className={`text-sm font-semibold ${headingColor}`}>Новый сигнал</h4>
-                                        
+
                                         <div className="grid grid-cols-2 gap-4">
                                             <div className="space-y-1">
                                                 <label className={`text-xs font-semibold uppercase ${subTextColor}`}>Время</label>
@@ -1014,6 +1033,18 @@ export const SignalsTriggerBot = () => {
                                             />
                                         </div>
 
+                                        <div className="space-y-1">
+                                            <label className={`flex items-center gap-2 cursor-pointer ${subTextColor}`}>
+                                                <input
+                                                    type="checkbox"
+                                                    checked={formData.isScam || false}
+                                                    onChange={(e) => setFormData({ ...formData, isScam: e.target.checked })}
+                                                    className="w-4 h-4 rounded border-gray-300 text-red-500 focus:ring-red-500"
+                                                />
+                                                <span className="text-sm">Это СКАМ</span>
+                                            </label>
+                                        </div>
+
                                         <button
                                             type="button"
                                             onClick={handleAddToList}
@@ -1039,12 +1070,12 @@ export const SignalsTriggerBot = () => {
                                                     Очистить всё
                                                 </button>
                                             </div>
-                                            
+
                                             <div className="space-y-2 max-h-60 overflow-y-auto">
                                                 {alertsToAdd.map((alert, index) => (
-                                                    <div 
+                                                    <div
                                                         key={index}
-                                                        className={`flex items-center justify-between p-3 rounded-xl ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'}`}
+                                                        className={`flex items-center justify-between p-3 rounded-xl ${alert.isScam ? (theme === 'dark' ? 'bg-red-900/20' : 'bg-red-50') : (theme === 'dark' ? 'bg-white/5' : 'bg-gray-50')}`}
                                                     >
                                                         <div className="flex items-center gap-3 overflow-hidden">
                                                             <div className={`w-2 h-2 rounded-full flex-shrink-0 ${alert.maxDrop?.startsWith('-') ? 'bg-red-500' : 'bg-green-500'}`}></div>
@@ -1128,8 +1159,8 @@ const MultiStrategySelector: React.FC<MultiStrategySelectorProps> = ({ value, on
             <button
                 onClick={() => setIsOpen(!isOpen)}
                 className={`w-full flex items-center justify-between gap-3 px-4 py-2.5 rounded-xl border transition-all mt-1 ${theme === 'dark'
-                        ? 'bg-[#151a21] border-white/5 text-gray-300 hover:border-amber-500/30'
-                        : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'}`}
+                    ? 'bg-[#151a21] border-white/5 text-gray-300 hover:border-amber-500/30'
+                    : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'}`}
             >
                 <span className={`text-sm truncate ${value.length === 0 ? subTextColor : headingColor}`}>
                     {selectedText}
@@ -1146,8 +1177,8 @@ const MultiStrategySelector: React.FC<MultiStrategySelectorProps> = ({ value, on
                                 key={strategy}
                                 onClick={() => toggleStrategy(strategy)}
                                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all text-left ${value.includes(strategy)
-                                        ? theme === 'dark' ? 'bg-amber-500/10 text-amber-400' : 'bg-amber-50 text-amber-600'
-                                        : theme === 'dark' ? 'hover:bg-white/5 text-gray-300' : 'hover:bg-gray-50 text-gray-700'
+                                    ? theme === 'dark' ? 'bg-amber-500/10 text-amber-400' : 'bg-amber-50 text-amber-600'
+                                    : theme === 'dark' ? 'hover:bg-white/5 text-gray-300' : 'hover:bg-gray-50 text-gray-700'
                                     }`}
                             >
                                 <span className="text-sm font-medium">

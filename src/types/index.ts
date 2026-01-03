@@ -482,6 +482,7 @@ export interface TriggerAlert {
   maxDrop?: string // e.g. "-16"
   maxProfit?: string // e.g. "+28" or "X3"
   comment?: string
+  isScam?: boolean
   createdAt: string
   createdBy: string
 }
