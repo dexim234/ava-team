@@ -461,6 +461,7 @@ export interface AiAlert {
   signalTime: string // HH:mm
   marketCap?: string // string to allow "300,77" format
   address: string
+  strategy?: 'Фиба' | 'Флип' | 'Market Entry' // Trading strategy
   maxDrop?: string // e.g. "-16"
   maxProfit?: string // e.g. "+28" or "X3"
   comment?: string // "Постепенное снижение" etc.

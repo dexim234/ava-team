@@ -17,6 +17,7 @@ import { Rules } from './pages/Rules'
 import { Approvals } from './pages/Approvals'
 import { MemeEvaluation } from './pages/MemeEvaluation'
 import { AiAoAlerts } from './pages/AiAoAlerts'
+import { SignalsTriggerBot } from './pages/SignalsTriggerBot'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { AccessBlockScreen } from './components/AccessBlockScreen'
 import { cleanupOldData } from './services/firestoreService'
@@ -147,6 +148,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <AiAoAlerts />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/signals-trigger-bot"
+            element={
+              <ProtectedRoute>
+                <SignalsTriggerBot />
               </ProtectedRoute>
             }
           />

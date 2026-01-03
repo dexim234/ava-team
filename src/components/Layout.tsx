@@ -1,4 +1,4 @@
-// Main layout component with navigation and theme toggle
++// Main layout component with navigation and theme toggle
 import { Link, useLocation } from 'react-router-dom'
 import { useThemeStore } from '@/store/themeStore'
 import { useAdminStore, ADMIN_PASSWORD } from '@/store/adminStore'
@@ -25,6 +25,7 @@ import {
   LogOut,
   ZapOff,
   Radio,
+  Zap,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import logo from '@/assets/logo.png'
@@ -103,6 +104,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
   const toolsSubItems: { path: string; label: string; icon: LucideIcon }[] = [
     { path: '/meme-evaluation', label: 'Оценка мема', icon: TrendingUp },
     { path: '/ai-ao-alerts', label: 'ИИ - АО Alerts', icon: AlertTriangle },
+    { path: '/signals-trigger-bot', label: 'Signals Trigger Bot', icon: Zap },
   ]
 
 
