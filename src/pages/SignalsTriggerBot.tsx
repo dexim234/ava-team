@@ -3,13 +3,10 @@ import { useThemeStore } from '@/store/themeStore'
 import { useAuthStore } from '@/store/authStore'
 import { getTriggerAlerts, addTriggerAlert, updateTriggerAlert, deleteTriggerAlert } from '@/services/firestoreService'
 import { TriggerAlert, TriggerStrategy, TriggerProfit } from '@/types'
-import { Plus, Edit, Trash2, Save, X, Copy, Check, Zap, Table, Filter, ArrowUp, ArrowDown, RotateCcw, ChevronDown, TrendingUp, Image, XCircle } from 'lucide-react'
+import { Plus, Edit, Trash2, Save, X, Copy, Check, Zap, Table, Filter, ArrowUp, ArrowDown, RotateCcw, TrendingUp, Image, XCircle, ChevronDown } from 'lucide-react'
 
 type SortField = 'date' | 'drop' | 'profit'
 type SortOrder = 'asc' | 'desc'
-
-// Стратегии для выбора
-const STRATEGIES: TriggerStrategy[] = ['Фиба', 'Market Entry']
 
 export const SignalsTriggerBot = () => {
     const { theme } = useThemeStore()
@@ -25,6 +22,7 @@ export const SignalsTriggerBot = () => {
     const [successCount, setSuccessCount] = useState(0)
     const [showConfirmSave, setShowConfirmSave] = useState(false)
     const [pendingAlertsCount, setPendingAlertsCount] = useState(0)
+    const [successMessage, setSuccessMessage] = useState('')
 
     // Filter states
     const [showFilters, setShowFilters] = useState(false)
@@ -35,8 +33,8 @@ export const SignalsTriggerBot = () => {
     const [maxDrop, setMaxDrop] = useState('')
     const [minProfit, setMinProfit] = useState('')
     const [maxProfit, setMaxProfit] = useState('')
-    const [sortBy, setSortBy] = useState<SortField>('date' | 'drop' | 'profit')
-    const [sortOrder, setSortOrder] = useState<SortOrder>('asc' | 'desc')
+    const [sortBy, setSortBy] = useState<SortField>('date')
+    const [sortOrder, setSortOrder] = useState<SortOrder>('desc')
 
     // Form state for single alert
     const [formData, setFormData] = useState<Partial<TriggerAlert>>({
@@ -1064,7 +1062,7 @@ export const SignalsTriggerBot = () => {
                                             placeholder="Дополнительная информация..."
                                             value={formData.comment || ''}
                                             onChange={(e) => setFormData({ ...formData, comment: e.target.value })}
-                                            className={`w-full p-2 rounded-xl border outline-none transition-all font-mono text-sm ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'}`}
+                                            className={`w-full p-2 rounded-xl border outline-none transition-all font-mono text-sm ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white focus-border-amber-500' : 'bg-white border-gray-200 text-gray-900 focus-border-amber-500'}`}
                                         />
                                     </div>
 
@@ -1498,6 +1496,72 @@ export const SignalsTriggerBot = () => {
                 </div>
             )}
         </>
+    )
+}
+
+// Мультиселект стратегий (без цветовой подсветки в селекторе)
+interface MultiStrategySelectorProps {
+    value: TriggerStrategy[]
+    onChange: (strategies: TriggerStrategy[]) => void
+    theme?: string
+}
+
+const MultiStrategySelector: React.FC<MultiStrategySelectorProps> = ({ value, onChange, theme }) => {
+    const [isOpen, setIsOpen] = useState(false)
+    const containerRef = useRef<HTMLDivElement>(null)
+
+    const strategies: TriggerStrategy[] = ['Фиба', 'Market Entry']
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+                setIsOpen(false)
+            }
+        }
+        document.addEventListener('mousedown', handleClickOutside)
+        return () => document.removeEventListener('mousedown', handleClickOutside)
+    }, [])
+
+    const toggleStrategy = (strategy: TriggerStrategy) => {
+        if (value.includes(strategy)) {
+            onChange(value.filter(s => s !== strategy))
+        } else {
+            onChange([...value, strategy])
+        }
+    }
+
+    return (
+        <div className="space-y-1 relative" ref={containerRef}>
+            <label className={`text-xs font-semibold uppercase ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Стратегии</label>
+            <button
+                type="button"
+                onClick={() => setIsOpen(!isOpen)}
+                className={`w-full p-2.5 rounded-lg border text-sm outline-none transition-all flex items-center justify-between ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white hover:bg-black/50' : 'bg-white border-gray-200 text-gray-900 hover:bg-gray-50'}`}
+            >
+                <span className="truncate">
+                    {value.length > 0 ? value.join(', ') : 'Выберите стратегии...'}
+                </span>
+                <ChevronDown className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+            </button>
+
+            {isOpen && (
+                <div className={`absolute z-50 w-full mt-1 py-1 rounded-lg border shadow-lg ${theme === 'dark' ? 'bg-[#1a1f26] border-white/10' : 'bg-white border-gray-200'}`}>
+                    {strategies.map(strategy => (
+                        <button
+                            key={strategy}
+                            type="button"
+                            onClick={() => toggleStrategy(strategy)}
+                            className={`w-full px-3 py-2 text-sm text-left transition-colors flex items-center gap-2 ${value.includes(strategy) ? (theme === 'dark' ? 'bg-white/10 text-white' : 'bg-gray-100 text-gray-900') : (theme === 'dark' ? 'text-gray-300 hover:bg-white/5' : 'text-gray-700 hover:bg-gray-50')}`}
+                        >
+                            <div className={`w-4 h-4 rounded border flex items-center justify-center ${value.includes(strategy) ? 'bg-amber-500 border-amber-500' : 'border-gray-400'}`}>
+                                {value.includes(strategy) && <Check className="w-3 h-3 text-white" />}
+                            </div>
+                            {strategy}
+                        </button>
+                    ))}
+                </div>
+            )}
+        </div>
     )
 }
 
