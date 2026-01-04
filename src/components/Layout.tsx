@@ -312,8 +312,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
 
           <button
             onClick={toggleCollapsed}
-            className={`absolute top-6 -right-0 transition-all duration-500 z-50 ${isCollapsed ? 'right-1/2 translate-x-1/2' : 'right-4'
-              } p-2 rounded-xl bg-[#4E6E49]/10 hover:bg-[#4E6E49]/20 text-[#4E6E49] dark:text-gray-400 dark:hover:text-white border border-[#4E6E49]/20 dark:border-white/10 group`}
+            className={`absolute top-6 -right-0 transition-all duration-500 z-50 ${isCollapsed ? 'right-1/2 translate-x-1/2' : 'right-4'} p-2 rounded-xl bg-[#4E6E49]/10 hover:bg-[#4E6E49]/20 text-[#4E6E49] dark:text-gray-400 dark:hover:text-white border border-[#4E6E49]/20 dark:border-white/10 group`}
           >
             {isCollapsed ? (
               <PanelLeftOpen className="w-5 h-5 transition-transform group-hover:scale-110" />
