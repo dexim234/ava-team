@@ -307,7 +307,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
 
       <div className="flex flex-col lg:flex-row min-h-screen">
         {/* Desktop Sidebar */}
-        <aside className={`hidden xl:flex ${isCollapsed ? 'w-20' : 'w-72'} h-screen fixed left-0 top-0 flex-col glass-panel border-r border-white/40 dark:border-white/10 z-50 transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]`}>
+        <aside className={`hidden xl:flex ${isCollapsed ? 'w-20' : 'w-72'} h-screen fixed left-0 top-0 flex-col glass-panel border-r border-white/40 dark:border-white/10 z-50 transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] ${isCollapsed ? 'overflow-visible' : ''}`}>
           <div className="accent-dots" />
 
           <button
@@ -370,7 +370,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
 
           <div className={`h-px w-full bg-gradient-to-r from-transparent via-gray-200/50 dark:via-white/10 to-transparent my-2 transition-opacity duration-500 ${isCollapsed ? 'opacity-0' : 'opacity-100'}`} />
 
-          <nav className="relative z-10 flex-1 px-4 py-4 space-y-1 overflow-y-auto no-scrollbar">
+          <nav className="relative z-10 flex-1 px-4 py-4 space-y-1 overflow-visible no-scrollbar">
             <>
               {/* Tools section - show immediately during loading */}
               {(isAdmin || accessibleFeatures.has('tools') || isFeaturesLoading) && (
@@ -410,14 +410,18 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                   )}
 
                   {showToolsMenu && !isCollapsed && (
-                    <div className="pl-11 pr-4 py-1 space-y-1 animate-in fade-in slide-in-from-top-1 duration-300">
+                    <div className="absolute left-0 top-full mt-1 pl-4 pr-2 py-2 glass-panel border border-white/40 dark:border-white/10 rounded-xl shadow-2xl backdrop-blur-2xl z-[100] min-w-[200px] animate-in fade-in slide-in-from-top-2 duration-200">
+                      <div className="px-3 py-2 mb-1 border-b border-white/10">
+                        <p className="text-[10px] font-black uppercase tracking-widest text-[#4E6E49]">Инструменты</p>
+                      </div>
                       {accessibleToolsSubItems.map((item) => (
                         <Link
                           key={item.path}
                           to={item.path}
-                          className={`block py-2 text-sm font-medium transition-colors ${location.pathname === item.path ? 'text-[#4E6E49]' : 'text-gray-400 hover:text-[#4E6E49]'}`}
+                          className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-all ${location.pathname === item.path ? 'bg-[#4E6E49] text-white' : 'text-gray-500 hover:bg-[#4E6E49]/10 hover:text-[#4E6E49]'}`}
                         >
-                          {item.label}
+                          <item.icon className="w-3.5 h-3.5" />
+                          <span>{item.label}</span>
                         </Link>
                       ))}
                     </div>
@@ -469,20 +473,19 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
               )}
             </Link>
 
-            {!isCollapsed && <UserSwitcher />}
-
-            <div className={`flex gap-2 transition-all duration-500 ${isCollapsed ? 'flex-col gap-4 px-2' : ''}`}>
-              <button
-                onClick={() => {
-                  logout()
-                  deactivateAdmin()
-                  window.location.href = '/login'
-                }}
-                className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border border-red-500/20 bg-red-500/5 text-red-500 hover:bg-red-500/10 transition-colors text-xs font-bold ${isCollapsed ? 'w-full px-0 border-0' : ''}`}
-              >
-                <LogOut className="w-3.5 h-3.5" />
-                {!isCollapsed && <span>Выйти</span>}
-              </button>
+            {!isCollapsed && (
+              <div className={`flex gap-2 transition-all duration-500 ${isCollapsed ? 'flex-col gap-4 px-2' : ''}`}>
+                <button
+                  onClick={() => {
+                    logout()
+                    deactivateAdmin()
+                    window.location.href = '/login'
+                  }}
+                  className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border border-red-500/20 bg-red-500/5 text-red-500 hover:bg-red-500/10 transition-colors text-xs font-bold ${isCollapsed ? 'w-full px-0 border-0' : ''}`}
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  {!isCollapsed && <span>Выйти</span>}
+                </button>
 
               {user?.name === 'Артём' && !isAdmin && (
                 <button
