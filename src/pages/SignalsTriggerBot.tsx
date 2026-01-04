@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { useThemeStore } from '@/store/themeStore'
 import { useAuthStore } from '@/store/authStore'
 import { getTriggerAlerts, addTriggerAlert, updateTriggerAlert, deleteTriggerAlert } from '@/services/firestoreService'
 import { TriggerAlert, TriggerStrategy, TriggerProfit } from '@/types'
-import { Plus, Edit, Trash2, Save, X, Copy, Check, Zap, Table, Filter, ArrowUp, ArrowDown, RotateCcw, Activity, Target, Image, XCircle, ChevronDown } from 'lucide-react'
+import { Plus, Edit, Trash2, Save, X, Copy, Check, Table, Filter, ArrowUp, ArrowDown, RotateCcw, Zap, Image, XCircle, Activity, Target } from 'lucide-react'
+import { MultiStrategySelector } from '@/components/Management/MultiStrategySelector'
 
 type SortField = 'date' | 'drop' | 'profit'
 type SortOrder = 'asc' | 'desc'
@@ -34,6 +35,8 @@ export const SignalsTriggerBot = () => {
     const [maxDrop, setMaxDrop] = useState('')
     const [minProfit, setMinProfit] = useState('')
     const [maxProfit, setMaxProfit] = useState('')
+    const [minMc, setMinMc] = useState('')
+    const [maxMc, setMaxMc] = useState('')
     const [strategyFilter, setStrategyFilter] = useState<'all' | 'Фиба' | 'Market Entry'>('all')
     const [showScamOnly, setShowScamOnly] = useState(false)
     const [sortBy, setSortBy] = useState<SortField>('date')
@@ -313,6 +316,18 @@ export const SignalsTriggerBot = () => {
         return isNaN(num) ? 0 : num
     }
 
+    // Parse market cap value (e.g., "300K" -> 300000, "1.5M" -> 1500000)
+    const parseMarketCap = (value: string | undefined): number => {
+        if (!value) return 0
+        const cleaned = value.toUpperCase().replace(/[^0-9.]/g, '')
+        const num = parseFloat(cleaned)
+        if (isNaN(num)) return 0
+        if (value.toUpperCase().includes('K')) return num * 1000
+        if (value.toUpperCase().includes('M')) return num * 1000000
+        if (value.toUpperCase().includes('B')) return num * 1000000000
+        return num
+    }
+
     // Filter and sort alerts
     const filteredAlerts = useMemo(() => {
         let result = [...alerts]
@@ -368,6 +383,20 @@ export const SignalsTriggerBot = () => {
             }
         }
 
+        // Filter by market cap range
+        if (minMc) {
+            const minVal = parseMarketCap(minMc)
+            if (!isNaN(minVal) && minVal > 0) {
+                result = result.filter(a => parseMarketCap(a.marketCap) >= minVal)
+            }
+        }
+        if (maxMc) {
+            const maxVal = parseMarketCap(maxMc)
+            if (!isNaN(maxVal) && maxVal > 0) {
+                result = result.filter(a => parseMarketCap(a.marketCap) <= maxVal)
+            }
+        }
+
         // Sort
         result.sort((a, b) => {
             let comparison = 0
@@ -386,7 +415,7 @@ export const SignalsTriggerBot = () => {
         })
 
         return result
-    }, [alerts, specificDate, dateFrom, dateTo, minDrop, maxDrop, minProfit, maxProfit, strategyFilter, showScamOnly, sortBy, sortOrder])
+    }, [alerts, specificDate, dateFrom, dateTo, minDrop, maxDrop, minProfit, maxProfit, minMc, maxMc, strategyFilter, showScamOnly, sortBy, sortOrder])
 
     // Reset all filters
     const resetFilters = () => {
@@ -397,6 +426,8 @@ export const SignalsTriggerBot = () => {
         setMaxDrop('')
         setMinProfit('')
         setMaxProfit('')
+        setMinMc('')
+        setMaxMc('')
         setStrategyFilter('all')
         setShowScamOnly(false)
         setSortBy('date')
@@ -405,8 +436,8 @@ export const SignalsTriggerBot = () => {
 
     // Check if any filter is active
     const hasActiveFilters = useMemo(() => {
-        return specificDate || dateFrom || dateTo || minDrop || maxDrop || minProfit || maxProfit || strategyFilter !== 'all' || showScamOnly || sortBy !== 'date' || sortOrder !== 'desc'
-    }, [specificDate, dateFrom, dateTo, minDrop, maxDrop, minProfit, maxProfit, strategyFilter, showScamOnly, sortBy, sortOrder])
+        return specificDate || dateFrom || dateTo || minDrop || maxDrop || minProfit || maxProfit || minMc || maxMc || strategyFilter !== 'all' || showScamOnly || sortBy !== 'date' || sortOrder !== 'desc'
+    }, [specificDate, dateFrom, dateTo, minDrop, maxDrop, minProfit, maxProfit, minMc, maxMc, strategyFilter, showScamOnly, sortBy, sortOrder])
 
     const handleDelete = async (id: string) => {
         if (!confirm('Удалить алерт?')) return
@@ -679,7 +710,7 @@ export const SignalsTriggerBot = () => {
                                     <div>
                                         <label className={`text-xs ${subTextColor}`}>Мин.</label>
                                         <input
-                                            type="number"
+                                            type="text"
                                             placeholder="10"
                                             value={minProfit}
                                             onChange={(e) => setMinProfit(e.target.value)}
@@ -689,10 +720,37 @@ export const SignalsTriggerBot = () => {
                                     <div>
                                         <label className={`text-xs ${subTextColor}`}>Макс.</label>
                                         <input
-                                            type="number"
+                                            type="text"
                                             placeholder="500"
                                             value={maxProfit}
                                             onChange={(e) => setMaxProfit(e.target.value)}
+                                            className={`w-full p-2 rounded-lg border text-sm outline-none mt-1 ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'}`}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Market Cap Filters */}
+                            <div className="space-y-3">
+                                <h4 className={`text-xs font-semibold uppercase ${subTextColor}`}>Market Cap</h4>
+                                <div className="grid grid-cols-2 gap-2">
+                                    <div>
+                                        <label className={`text-xs ${subTextColor}`}>Мин.</label>
+                                        <input
+                                            type="text"
+                                            placeholder=" напр. 100K"
+                                            value={minMc}
+                                            onChange={(e) => setMinMc(e.target.value)}
+                                            className={`w-full p-2 rounded-lg border text-sm outline-none mt-1 ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'}`}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className={`text-xs ${subTextColor}`}>Макс.</label>
+                                        <input
+                                            type="text"
+                                            placeholder="напр. 5M"
+                                            value={maxMc}
+                                            onChange={(e) => setMaxMc(e.target.value)}
                                             className={`w-full p-2 rounded-lg border text-sm outline-none mt-1 ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'}`}
                                         />
                                     </div>
@@ -1126,7 +1184,7 @@ export const SignalsTriggerBot = () => {
                                             placeholder="Дополнительная информация..."
                                             value={formData.comment || ''}
                                             onChange={(e) => setFormData({ ...formData, comment: e.target.value })}
-                                            className={`w-full p-2 rounded-xl border outline-none transition-all font-mono text-sm ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white focus-border-amber-500' : 'bg-white border-gray-200 text-gray-900 focus-border-amber-500'}`}
+                                            className={`w-full p-2 rounded-xl border outline-none transition-all font-mono text-sm ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white focus-border-amber-500' : 'bg-white border-gray-200 text-gray-900'}`}
                                         />
                                     </div>
 
@@ -1322,7 +1380,7 @@ export const SignalsTriggerBot = () => {
                                                 placeholder="Дополнительная информация..."
                                                 value={formData.comment || ''}
                                                 onChange={(e) => setFormData({ ...formData, comment: e.target.value })}
-                                                className={`w-full p-2 rounded-xl border outline-none transition-all font-mono text-sm ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'}`}
+                                                className={`w-full p-2 rounded-xl border outline-none transition-all font-mono text-sm ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white focus-border-amber-500' : 'bg-white border-gray-200 text-gray-900'}`}
                                             />
                                         </div>
 
@@ -1404,254 +1462,4 @@ export const SignalsTriggerBot = () => {
                                                     </label>
                                                 )}
                                                 {!screenshotPreview && (
-                                                    <span className={`text-xs ${subTextColor}`}>Макс. 5MB</span>
-                                                )}
-                                            </div>
-                                        </div>
-
-                                        {/* Is Scam checkbox */}
-                                        <div className="flex items-center gap-3 p-3 rounded-xl bg-red-500/10 border border-red-500/20">
-                                            <input
-                                                type="checkbox"
-                                                id="isScam"
-                                                checked={formData.isScam || false}
-                                                onChange={(e) => setFormData({ ...formData, isScam: e.target.checked })}
-                                                className={`w-5 h-5 rounded border-2 ${theme === 'dark' ? 'border-gray-700 bg-gray-800' : 'border-gray-300 bg-white'} cursor-pointer accent-red-500`}
-                                            />
-                                            <label htmlFor="isScam" className="cursor-pointer">
-                                                <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-red-400' : 'text-red-600'}`}>Это скам</span>
-                                                <p className={`text-xs ${subTextColor} mt-0.5`}>При отметке выбор стратегии необязателен</p>
-                                            </label>
-                                        </div>
-
-                                        <button
-                                            type="button"
-                                            onClick={handleAddToList}
-                                            className="w-full py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-500 font-semibold transition-colors flex items-center justify-center gap-2"
-                                        >
-                                            <Plus className="w-4 h-4" />
-                                            <span>Добавить в список</span>
-                                        </button>
-                                    </div>
-
-                                    {/* List of alerts to add */}
-                                    {alertsToAdd.length > 0 && (
-                                        <div className="space-y-3">
-                                            <div className="flex items-center justify-between">
-                                                <h4 className={`text-sm font-semibold ${headingColor}`}>
-                                                    Сигналы для добавления ({alertsToAdd.length})
-                                                </h4>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setAlertsToAdd([])}
-                                                    className={`text-xs ${subTextColor} hover:text-red-500 transition-colors`}
-                                                >
-                                                    Очистить всё
-                                                </button>
-                                            </div>
-
-                                            <div className="space-y-2 max-h-60 overflow-y-auto">
-                                                {alertsToAdd.map((alert, index) => (
-                                                    <div
-                                                        key={index}
-                                                        className={`flex items-center justify-between p-3 rounded-xl ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'}`}
-                                                    >
-                                                        <div className="flex items-center gap-3 overflow-hidden">
-                                                            <div className={`w-2 h-2 rounded-full flex-shrink-0 ${alert.maxDropFromSignal?.startsWith('-') ? 'bg-red-500' : 'bg-green-500'}`}></div>
-                                                            <div className="flex flex-col min-w-0">
-                                                                <span className={`text-xs font-medium truncate ${headingColor}`}>
-                                                                    {truncateAddress(alert.address || '')}
-                                                                </span>
-                                                                <span className={`text-[10px] ${subTextColor}`}>
-                                                                    {alert.signalTime} • {alert.strategies?.join(', ') || '-'} • {alert.maxDropFromSignal || '-'} / {alert.maxDropFromLevel07 || '-'} / {alert.maxProfit || '-'}
-                                                                </span>
-                                                            </div>
-                                                        </div>
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => handleRemoveFromList(index)}
-                                                            className="p-1.5 rounded-lg hover:bg-red-500/10 text-red-500 transition-colors flex-shrink-0"
-                                                        >
-                                                            <X className="w-4 h-4" />
-                                                        </button>
-                                                    </div>
-                                                ))}
-                                            </div>
-
-                                            <button
-                                                type="button"
-                                                onClick={handleSaveAll}
-                                                className="w-full py-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-semibold transition-colors flex items-center justify-center gap-2"
-                                            >
-                                                <Save className="w-4 h-4" />
-                                                <span>Сохранить все ({alertsToAdd.length})</span>
-                                            </button>
-                                        </div>
-                                    )}
-                                </>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* Confirm Save Modal */}
-            {showConfirmSave && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-                    <div className={`w-full max-w-sm rounded-3xl ${cardBg} ${cardBorder} border shadow-2xl p-6 animate-in zoom-in-95 duration-300`}>
-                        <div className="flex flex-col items-center text-center">
-                            <div className="w-14 h-14 rounded-full bg-amber-500/20 flex items-center justify-center mb-4">
-                                <Save className="w-7 h-7 text-amber-500" />
-                            </div>
-                            <h3 className={`text-xl font-bold ${headingColor} mb-2`}>
-                                Сохранить сигналы?
-                            </h3>
-                            <p className={`${subTextColor} mb-6`}>
-                                Вы собираетесь добавить <span className="font-semibold text-amber-500">{pendingAlertsCount}</span> сигнал{pendingAlertsCount === 1 ? '' : pendingAlertsCount >= 2 && pendingAlertsCount <= 4 ? 'а' : 'ов'} в базу данных
-                            </p>
-                            <div className="flex gap-3 w-full">
-                                <button
-                                    onClick={() => setShowConfirmSave(false)}
-                                    className={`flex-1 py-3 rounded-xl font-semibold transition-colors ${theme === 'dark' ? 'bg-white/5 hover:bg-white/10 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-800'}`}
-                                >
-                                    Отмена
-                                </button>
-                                <button
-                                    onClick={confirmSave}
-                                    className="flex-1 py-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-semibold transition-colors flex items-center justify-center gap-2"
-                                >
-                                    <Check className="w-4 h-4" />
-                                    <span>Сохранить</span>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* Image Preview Modal */}
-            {previewImage && (
-                <div 
-                    className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200"
-                    onClick={() => setPreviewImage(null)}
-                >
-                    <button
-                        className="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
-                        onClick={() => setPreviewImage(null)}
-                    >
-                        <X className="w-6 h-6" />
-                    </button>
-                    <div 
-                        className="relative max-w-4xl max-h-[85vh] animate-in zoom-in-95 duration-300"
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        <img
-                            src={previewImage}
-                            alt="Preview"
-                            className="max-w-full max-h-[80vh] object-contain rounded-xl shadow-2xl"
-                        />
-                    </div>
-                </div>
-            )}
-
-            {/* Success Modal */}
-            {showSuccess && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-                    <div className={`w-full max-w-sm rounded-3xl ${cardBg} ${cardBorder} border shadow-2xl p-8 flex flex-col items-center text-center animate-in zoom-in-95 duration-300`}>
-                        <div className="w-16 h-16 rounded-full bg-green-500/20 flex items-center justify-center mb-4">
-                            <Check className="w-8 h-8 text-green-500" />
-                        </div>
-                        <h3 className={`text-2xl font-bold ${headingColor} mb-2`}>
-                            Успешно!
-                        </h3>
-                        <p className={`${subTextColor}`}>
-                            {successCount} сигнал{successCount === 1 ? '' : successCount >= 2 && successCount <= 4 ? 'а' : 'ов'} добавлен{successCount === 1 ? '' : 'о'}
-                        </p>
-                        <div className={`mt-6 px-4 py-2 rounded-full ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-100'}`}>
-                            <span className={`text-sm font-semibold ${headingColor}`}>{successMessage}</span>
-                        </div>
-                        <button
-                            onClick={() => {
-                                setShowSuccess(false)
-                                setSuccessCount(0)
-                                setSuccessMessage('')
-                                setAlertsToAdd([])
-                            }}
-                            className="mt-6 px-8 py-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-semibold transition-colors"
-                        >
-                            Готово
-                        </button>
-                    </div>
-                </div>
-            )}
-        </>
-    )
-}
-
-// Мультиселект стратегий (без цветовой подсветки в селекторе)
-interface MultiStrategySelectorProps {
-    value: TriggerStrategy[]
-    onChange: (strategies: TriggerStrategy[]) => void
-    theme?: string
-}
-
-const MultiStrategySelector: React.FC<MultiStrategySelectorProps> = ({ value, onChange, theme }) => {
-    const [isOpen, setIsOpen] = useState(false)
-    const containerRef = useRef<HTMLDivElement>(null)
-
-    const strategies: TriggerStrategy[] = ['Фиба', 'Market Entry']
-
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-                setIsOpen(false)
-            }
-        }
-        document.addEventListener('mousedown', handleClickOutside)
-        return () => document.removeEventListener('mousedown', handleClickOutside)
-    }, [])
-
-    const toggleStrategy = (strategy: TriggerStrategy) => {
-        if (value.includes(strategy)) {
-            onChange(value.filter(s => s !== strategy))
-        } else {
-            onChange([...value, strategy])
-        }
-    }
-
-    return (
-        <div className="space-y-1 relative" ref={containerRef}>
-            <label className={`text-xs font-semibold uppercase ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Стратегии</label>
-            <button
-                type="button"
-                onClick={() => setIsOpen(!isOpen)}
-                className={`w-full p-2.5 rounded-lg border text-sm outline-none transition-all flex items-center justify-between ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white hover:bg-black/50' : 'bg-white border-gray-200 text-gray-900 hover:bg-gray-50'}`}
-            >
-                <span className="truncate">
-                    {value.length > 0 ? value.join(', ') : 'Выберите стратегии...'}
-                </span>
-                <ChevronDown className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
-            </button>
-
-            {isOpen && (
-                <div className={`absolute z-50 w-full mt-1 py-1 rounded-lg border shadow-lg ${theme === 'dark' ? 'bg-[#1a1f26] border-white/10' : 'bg-white border-gray-200'}`}>
-                    {strategies.map(strategy => (
-                        <button
-                            key={strategy}
-                            type="button"
-                            onClick={() => toggleStrategy(strategy)}
-                            className={`w-full px-3 py-2 text-sm text-left transition-colors flex items-center gap-2 ${value.includes(strategy) ? (theme === 'dark' ? 'bg-white/10 text-white' : 'bg-gray-100 text-gray-900') : (theme === 'dark' ? 'text-gray-300 hover:bg-white/5' : 'text-gray-700 hover:bg-gray-50')}`}
-                        >
-                            <div className={`w-4 h-4 rounded border flex items-center justify-center ${value.includes(strategy) ? 'bg-amber-500 border-amber-500' : 'border-gray-400'}`}>
-                                {value.includes(strategy) && <Check className="w-3 h-3 text-white" />}
-                            </div>
-                            {strategy}
-                        </button>
-                    ))}
-                </div>
-            )}
-        </div>
-    )
-}
-
-export default SignalsTriggerBot
+                                                    <span className={`text-xs ${sub

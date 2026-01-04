@@ -9,7 +9,7 @@ import { formatDate, getWeekDays, isSameDate, getMoscowTime } from '@/utils/date
 import { getUserNicknameSync } from '@/utils/userUtils'
 import { WorkSlot, DayStatus, SLOT_CATEGORY_META, SlotCategory } from '@/types'
 import { TEAM_MEMBERS } from '@/types'
-import { Edit, Trash2, CheckCircle2, Calendar as CalendarIcon, ChevronDown, ChevronUp } from 'lucide-react'
+import { Edit, Trash2, CheckCircle2, Calendar as CalendarIcon, ChevronDown, ChevronUp, Info } from 'lucide-react'
 
 type SlotFilter = 'all' | 'upcoming' | 'completed'
 
@@ -19,15 +19,24 @@ interface ManagementWeekViewProps {
   onEditSlot: (slot: WorkSlot) => void
   onEditStatus: (status: DayStatus) => void
   refreshKey: number
+  initialDate?: string | null
+  initialWeekStart?: string | null
+  onDateChange?: (date: string | null, weekStart: string | null) => void
 }
 
-export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onEditStatus, refreshKey }: ManagementWeekViewProps) => {
+export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onEditStatus, refreshKey, initialDate, initialWeekStart, onDateChange }: ManagementWeekViewProps) => {
   const { theme } = useThemeStore()
   const { user } = useAuthStore()
   const { isAdmin } = useAdminStore()
   const [slots, setSlots] = useState<WorkSlot[]>([])
   const [statuses, setStatuses] = useState<DayStatus[]>([])
-  const [selectedWeek, setSelectedWeek] = useState(new Date())
+  const [selectedWeek, setSelectedWeek] = useState(() => {
+    // Initialize from persisted date or current date
+    if (initialWeekStart) {
+      return new Date(initialWeekStart)
+    }
+    return new Date()
+  })
   const [loading, setLoading] = useState(true)
   const [breaksExpanded, setBreaksExpanded] = useState<Record<string, boolean>>({})
 
@@ -655,6 +664,15 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
                                     }`}>
                                     {SLOT_CATEGORY_META[slot.category as SlotCategory]?.label || slot.category}
                                   </span>
+                                )}
+                                {slot.comment && (
+                                  <div className="relative group">
+                                    <Info className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white/60 hover:text-white cursor-help flex-shrink-0" />
+                                    <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 shadow-lg border border-white/10">
+                                      {slot.comment}
+                                      <div className="absolute left-1/2 -translate-x-1/2 top-full border-4 border-transparent border-t-gray-900"></div>
+                                    </div>
+                                  </div>
                                 )}
                               </div>
                             </div>

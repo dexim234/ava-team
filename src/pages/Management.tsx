@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import { useThemeStore } from '@/store/themeStore'
 import { useAdminStore } from '@/store/adminStore'
+import { useScheduleDateStore } from '@/store/scheduleDateStore'
 import { ManagementTable } from '@/components/Management/ManagementTable'
 import { ManagementWeekView } from '@/components/Management/ManagementWeekView'
 import { MemberSelector } from '@/components/Management/MemberSelector'
@@ -38,7 +39,10 @@ export type SlotFilter = 'all' | 'upcoming' | 'completed'
 export const Management = () => {
   const { theme } = useThemeStore()
   const { isAdmin } = useAdminStore()
-  const [viewMode, setViewMode] = useState<ViewMode>('table') // Default to table
+  const { viewMode: persistedViewMode, setViewMode: setPersistedViewMode, selectedDate: persistedDate, selectedWeekStart: persistedWeekStart, setSelectedDate, setSelectedWeekStart } = useScheduleDateStore()
+  const [viewMode, setViewModeState] = useState<ViewMode>(persistedViewMode || 'table')
+  const [selectedDate, setSelectedDateState] = useState<string | null>(null)
+  const [selectedWeekStart, setSelectedWeekStartState] = useState<string | null>(null)
   const [slotFilter] = useState<SlotFilter>('all')
   const [showSlotForm, setShowSlotForm] = useState(false)
   const [showDeleteSlotsForm, setShowDeleteSlotsForm] = useState(false)
@@ -72,6 +76,19 @@ export const Management = () => {
     nextStart: '—',
     activeRemaining: '—',
   })
+
+  // Sync local state with persisted store
+  useEffect(() => {
+    setViewModeState(persistedViewMode || 'table')
+  }, [persistedViewMode])
+
+  useEffect(() => {
+    setSelectedDateState(persistedDate)
+  }, [persistedDate])
+
+  useEffect(() => {
+    setSelectedWeekStartState(persistedWeekStart)
+  }, [persistedWeekStart])
 
   useEffect(() => {
     loadStats()
@@ -338,7 +355,16 @@ export const Management = () => {
 
 
   const handleViewModeChange = (mode: ViewMode) => {
-    setViewMode(mode)
+    setViewModeState(mode)
+    setPersistedViewMode(mode)
+  }
+
+  // Callback when date changes in child components
+  const handleDateChange = (date: string | null, weekStart: string | null) => {
+    setSelectedDateState(date)
+    setSelectedWeekStartState(weekStart)
+    setSelectedDate(date)
+    setSelectedWeekStart(weekStart)
   }
 
   const statCards = [
@@ -471,11 +497,12 @@ export const Management = () => {
         </div>
       </div>
 
-      {/* Controls Toolbar */}
-      <div className={`sticky top-4 z-40 p-2 rounded-2xl border shadow-xl backdrop-blur-xl ${theme === 'dark'
-        ? 'bg-[#0b1015]/80 border-white/10'
-        : 'bg-white/80 border-gray-200'
-        }`}>
+      {/* Controls Toolbar - Sticky header */}
+      <div className="sticky top-0 z-40">
+        <div className={`p-2 rounded-2xl border shadow-xl backdrop-blur-xl ${theme === 'dark'
+          ? 'bg-[#0b1015]/80 border-white/10'
+          : 'bg-white/80 border-gray-200'
+          }`}>
         <div className="flex flex-col lg:flex-row items-center justify-between gap-4 p-2">
           {/* Left: View Toggle */}
           <div className={`flex items-center gap-1 p-1 rounded-xl border ${theme === 'dark' ? 'bg-[#151a21] border-white/5' : 'bg-gray-50 border-gray-200'
@@ -557,6 +584,7 @@ export const Management = () => {
           )}
         </div>
       </div>
+      </div>
 
       {/* Main Content */}
       <div className={`rounded-2xl border overflow-hidden ${theme === 'dark'
@@ -569,6 +597,9 @@ export const Management = () => {
               selectedUserId={selectedUserId}
               slotFilter={slotFilter}
               refreshKey={refreshKey}
+              initialDate={selectedDate}
+              initialWeekStart={selectedWeekStart}
+              onDateChange={handleDateChange}
               onEditSlot={handleEditSlot}
               onEditStatus={handleEditStatus}
             />
@@ -577,6 +608,9 @@ export const Management = () => {
               selectedUserId={selectedUserId}
               slotFilter={slotFilter}
               refreshKey={refreshKey}
+              initialDate={selectedDate}
+              initialWeekStart={selectedWeekStart}
+              onDateChange={handleDateChange}
               onEditSlot={handleEditSlot}
               onEditStatus={handleEditStatus}
             />

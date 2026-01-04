@@ -30,6 +30,8 @@ export const AiAoAlerts = () => {
     const [maxDrop, setMaxDrop] = useState('')
     const [minProfit, setMinProfit] = useState('')
     const [maxProfit, setMaxProfit] = useState('')
+    const [minMc, setMinMc] = useState('')
+    const [maxMc, setMaxMc] = useState('')
     const [sortBy, setSortBy] = useState<SortField>('date')
     const [sortOrder, setSortOrder] = useState<SortOrder>('desc')
 
@@ -254,6 +256,18 @@ export const AiAoAlerts = () => {
         return isNaN(num) ? 0 : num
     }
 
+    // Parse market cap value (e.g., "300K" -> 300000, "1.5M" -> 1500000)
+    const parseMarketCap = (value: string | undefined): number => {
+        if (!value) return 0
+        const cleaned = value.toUpperCase().replace(/[^0-9.]/g, '')
+        const num = parseFloat(cleaned)
+        if (isNaN(num)) return 0
+        if (value.toUpperCase().includes('K')) return num * 1000
+        if (value.toUpperCase().includes('M')) return num * 1000000
+        if (value.toUpperCase().includes('B')) return num * 1000000000
+        return num
+    }
+
     // Filter and sort alerts
     const filteredAlerts = useMemo(() => {
         let result = [...alerts]
@@ -299,6 +313,20 @@ export const AiAoAlerts = () => {
             }
         }
 
+        // Filter by market cap range
+        if (minMc) {
+            const minVal = parseMarketCap(minMc)
+            if (!isNaN(minVal) && minVal > 0) {
+                result = result.filter(a => parseMarketCap(a.marketCap) >= minVal)
+            }
+        }
+        if (maxMc) {
+            const maxVal = parseMarketCap(maxMc)
+            if (!isNaN(maxVal) && maxVal > 0) {
+                result = result.filter(a => parseMarketCap(a.marketCap) <= maxVal)
+            }
+        }
+
         // Sort
         result.sort((a, b) => {
             let comparison = 0
@@ -317,7 +345,7 @@ export const AiAoAlerts = () => {
         })
 
         return result
-    }, [alerts, specificDate, dateFrom, dateTo, minDrop, maxDrop, minProfit, maxProfit, sortBy, sortOrder])
+    }, [alerts, specificDate, dateFrom, dateTo, minDrop, maxDrop, minProfit, maxProfit, minMc, maxMc, sortBy, sortOrder])
 
     // Reset all filters
     const resetFilters = () => {
@@ -328,14 +356,16 @@ export const AiAoAlerts = () => {
         setMaxDrop('')
         setMinProfit('')
         setMaxProfit('')
+        setMinMc('')
+        setMaxMc('')
         setSortBy('date')
         setSortOrder('desc')
     }
 
     // Check if any filter is active
     const hasActiveFilters = useMemo(() => {
-        return specificDate || dateFrom || dateTo || minDrop || maxDrop || minProfit || maxProfit || sortBy !== 'date' || sortOrder !== 'desc'
-    }, [specificDate, dateFrom, dateTo, minDrop, maxDrop, minProfit, maxProfit, sortBy, sortOrder])
+        return specificDate || dateFrom || dateTo || minDrop || maxDrop || minProfit || maxProfit || minMc || maxMc || sortBy !== 'date' || sortOrder !== 'desc'
+    }, [specificDate, dateFrom, dateTo, minDrop, maxDrop, minProfit, maxProfit, minMc, maxMc, sortBy, sortOrder])
 
     const handleDelete = async (id: string) => {
         if (!confirm('Удалить алерт?')) return
@@ -529,6 +559,33 @@ export const AiAoAlerts = () => {
                                             placeholder="500"
                                             value={maxProfit}
                                             onChange={(e) => setMaxProfit(e.target.value)}
+                                            className={`w-full p-2 rounded-lg border text-sm outline-none mt-1 ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'}`}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Market Cap Filters */}
+                            <div className="space-y-3">
+                                <h4 className={`text-xs font-semibold uppercase ${subTextColor}`}>Market Cap</h4>
+                                <div className="grid grid-cols-2 gap-2">
+                                    <div>
+                                        <label className={`text-xs ${subTextColor}`}>Мин.</label>
+                                        <input
+                                            type="text"
+                                            placeholder="напр. 100K"
+                                            value={minMc}
+                                            onChange={(e) => setMinMc(e.target.value)}
+                                            className={`w-full p-2 rounded-lg border text-sm outline-none mt-1 ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'}`}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className={`text-xs ${subTextColor}`}>Макс.</label>
+                                        <input
+                                            type="text"
+                                            placeholder="напр. 5M"
+                                            value={maxMc}
+                                            onChange={(e) => setMaxMc(e.target.value)}
                                             className={`w-full p-2 rounded-lg border text-sm outline-none mt-1 ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'}`}
                                         />
                                     </div>

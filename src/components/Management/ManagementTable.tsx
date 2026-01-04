@@ -9,7 +9,7 @@ import { getUserNicknameSync } from '@/utils/userUtils'
 import { UserNickname } from '@/components/UserNickname'
 import { WorkSlot, DayStatus, SLOT_CATEGORY_META, SlotCategory } from '@/types'
 import { TEAM_MEMBERS } from '@/types'
-import { Edit, Trash2, Clock, Calendar as CalendarIcon, ChevronDown, ChevronUp } from 'lucide-react'
+import { Edit, Trash2, Clock, Calendar as CalendarIcon, ChevronDown, ChevronUp, Info } from 'lucide-react'
 
 type SlotFilter = 'all' | 'upcoming' | 'completed'
 
@@ -19,15 +19,24 @@ interface ManagementTableProps {
   onEditSlot: (slot: WorkSlot) => void
   onEditStatus: (status: DayStatus) => void
   refreshKey: number
+  initialDate?: string | null
+  initialWeekStart?: string | null
+  onDateChange?: (date: string | null, weekStart: string | null) => void
 }
 
-export const ManagementTable = ({ selectedUserId, slotFilter, onEditSlot, onEditStatus, refreshKey }: ManagementTableProps) => {
+export const ManagementTable = ({ selectedUserId, slotFilter, onEditSlot, onEditStatus, refreshKey, initialDate, initialWeekStart, onDateChange }: ManagementTableProps) => {
   const { theme } = useThemeStore()
   const { user } = useAuthStore()
   const { isAdmin } = useAdminStore()
   const [slots, setSlots] = useState<WorkSlot[]>([])
   const [statuses, setStatuses] = useState<DayStatus[]>([])
-  const [selectedWeek, setSelectedWeek] = useState(new Date())
+  const [selectedWeek, setSelectedWeek] = useState(() => {
+    // Initialize from persisted date or current date
+    if (initialWeekStart) {
+      return new Date(initialWeekStart)
+    }
+    return new Date()
+  })
   const [loading, setLoading] = useState(true)
   const [breaksExpanded, setBreaksExpanded] = useState<Record<string, boolean>>({})
   const todayStr = formatDate(new Date(), 'yyyy-MM-dd')
@@ -417,6 +426,13 @@ export const ManagementTable = ({ selectedUserId, slotFilter, onEditSlot, onEdit
       newDate.setDate(newDate.getDate() + 7)
     }
     setSelectedWeek(newDate)
+    
+    // Notify parent about date change
+    if (onDateChange) {
+      const newWeekDays = getWeekDays(newDate)
+      const weekStartStr = formatDate(newWeekDays[0], 'yyyy-MM-dd')
+      onDateChange(null, weekStartStr)
+    }
   }
 
   const toggleBreaksVisibility = (slotId: string) => {
@@ -587,13 +603,24 @@ export const ManagementTable = ({ selectedUserId, slotFilter, onEditSlot, onEdit
                                           <Clock className="w-3 h-3 flex-shrink-0" />
                                           <span className="whitespace-nowrap tracking-tight">{s.start} - {s.end}</span>
                                         </div>
-                                        {slot.category && (
-                                          <span className={`text-[9px] px-1.5 py-0.5 rounded-full border font-medium w-full text-center truncate ${SLOT_CATEGORY_COLORS[slot.category as SlotCategory]?.bg || 'bg-gray-100 dark:bg-gray-800'
-                                            } ${SLOT_CATEGORY_COLORS[slot.category as SlotCategory]?.text || 'text-gray-700 dark:text-gray-300'} ${SLOT_CATEGORY_COLORS[slot.category as SlotCategory]?.border || 'border-gray-300 dark:border-gray-600'
-                                            }`}>
-                                            {SLOT_CATEGORY_META[slot.category as SlotCategory]?.label || slot.category}
-                                          </span>
-                                        )}
+                                        <div className="flex items-center gap-1 flex-wrap justify-center">
+                                          {slot.category && (
+                                            <span className={`text-[9px] px-1.5 py-0.5 rounded-full border font-medium truncate ${SLOT_CATEGORY_COLORS[slot.category as SlotCategory]?.bg || 'bg-gray-100 dark:bg-gray-800'
+                                              } ${SLOT_CATEGORY_COLORS[slot.category as SlotCategory]?.text || 'text-gray-700 dark:text-gray-300'} ${SLOT_CATEGORY_COLORS[slot.category as SlotCategory]?.border || 'border-gray-300 dark:border-gray-600'
+                                              }`}>
+                                              {SLOT_CATEGORY_META[slot.category as SlotCategory]?.label || slot.category}
+                                            </span>
+                                          )}
+                                          {slot.comment && (
+                                            <div className="relative group">
+                                              <Info className="w-3 h-3 text-white/60 hover:text-white cursor-help flex-shrink-0" />
+                                              <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-1 px-2 py-1 bg-gray-900 text-white text-[10px] rounded whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 shadow-lg border border-white/10">
+                                                {slot.comment}
+                                                <div className="absolute left-1/2 -translate-x-1/2 top-full border-3 border-transparent border-t-gray-900"></div>
+                                              </div>
+                                            </div>
+                                          )}
+                                        </div>
                                         {s.breaks && s.breaks.length > 0 && (
                                           <button
                                             onClick={() => toggleBreaksVisibility(slotId)}
