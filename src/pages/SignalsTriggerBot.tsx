@@ -23,6 +23,7 @@ export const SignalsTriggerBot = () => {
     const [showConfirmSave, setShowConfirmSave] = useState(false)
     const [pendingAlertsCount, setPendingAlertsCount] = useState(0)
     const [successMessage, setSuccessMessage] = useState('')
+    const [previewImage, setPreviewImage] = useState<string | null>(null)
 
     // Filter states
     const [showFilters, setShowFilters] = useState(false)
@@ -689,8 +690,8 @@ export const SignalsTriggerBot = () => {
 
                 {/* Table */}
                 <div className={`relative overflow-hidden rounded-3xl border ${cardBorder} ${cardShadow} ${cardBg}`}>
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left border-collapse">
+                    <div className="overflow-x-auto max-w-full">
+                        <table className="w-full min-w-[1400px] text-left border-collapse">
                             <thead>
                                 <tr className={`border-b ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-gray-50'}`}>
                                     <th className={`p-4 text-xs uppercase tracking-wider font-semibold ${subTextColor}`}>Дата</th>
@@ -820,7 +821,13 @@ export const SignalsTriggerBot = () => {
                                                         </td>
                                                         <td className="p-4 whitespace-nowrap">
                                                             {alert.screenshot ? (
-                                                                <span className={`text-xs ${subTextColor}`}>📷</span>
+                                                                <button
+                                                                    onClick={() => setPreviewImage(alert.screenshot || null)}
+                                                                    className={`text-xs ${subTextColor} hover:text-amber-500 transition-colors cursor-pointer`}
+                                                                    title="Просмотр фото"
+                                                                >
+                                                                    📷
+                                                                </button>
                                                             ) : (
                                                                 <span className={`text-xs ${subTextColor}`}>—</span>
                                                             )}
@@ -914,7 +921,13 @@ export const SignalsTriggerBot = () => {
                                             </td>
                                             <td className="p-4 whitespace-nowrap">
                                                 {alert.screenshot ? (
-                                                    <span className={`text-xs ${subTextColor}`}>📷</span>
+                                                    <button
+                                                        onClick={() => setPreviewImage(alert.screenshot || null)}
+                                                        className={`text-xs ${subTextColor} hover:text-amber-500 transition-colors cursor-pointer`}
+                                                        title="Просмотр фото"
+                                                    >
+                                                        📷
+                                                    </button>
                                                 ) : (
                                                     <span className={`text-xs ${subTextColor}`}>—</span>
                                                 )}
@@ -1461,6 +1474,31 @@ export const SignalsTriggerBot = () => {
                                 </button>
                             </div>
                         </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Image Preview Modal */}
+            {previewImage && (
+                <div 
+                    className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200"
+                    onClick={() => setPreviewImage(null)}
+                >
+                    <button
+                        className="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
+                        onClick={() => setPreviewImage(null)}
+                    >
+                        <X className="w-6 h-6" />
+                    </button>
+                    <div 
+                        className="relative max-w-4xl max-h-[85vh] animate-in zoom-in-95 duration-300"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <img
+                            src={previewImage}
+                            alt="Preview"
+                            className="max-w-full max-h-[80vh] object-contain rounded-xl shadow-2xl"
+                        />
                     </div>
                 </div>
             )}
