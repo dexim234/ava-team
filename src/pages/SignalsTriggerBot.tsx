@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react'
+жно быт так: ьimport React, { useState, useEffect, useMemo, useRef } from 'react'
 import { useThemeStore } from '@/store/themeStore'
 import { useAuthStore } from '@/store/authStore'
 import { getTriggerAlerts, addTriggerAlert, updateTriggerAlert, deleteTriggerAlert } from '@/services/firestoreService'
@@ -697,6 +697,7 @@ export const SignalsTriggerBot = () => {
                         <table className="w-full border-collapse">
                             <thead>
                                 <tr className={`border-b ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-gray-50'}`}>
+                                    <th className={`p-4 text-xs uppercase tracking-wider font-semibold ${subTextColor} text-center`}>Дата</th>
                                     <th className={`p-4 text-xs uppercase tracking-wider font-semibold ${subTextColor} text-center`}>Time</th>
                                     <th className={`p-4 text-xs uppercase tracking-wider font-semibold ${subTextColor} text-center`}>Strategy</th>
                                     <th className={`p-4 text-xs uppercase tracking-wider font-semibold ${subTextColor} text-center`}>MC</th>
