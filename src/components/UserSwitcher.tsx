@@ -22,15 +22,15 @@ export const UserSwitcher = () => {
     <div className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`flex items-center gap-2 px-3 py-2 rounded-xl transition-all ${
+        className={`w-full flex items-center gap-2 px-3 py-2 rounded-xl transition-all ${
           viewedUserId
             ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20'
             : 'bg-gray-100 dark:bg-gray-800 text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700'
         }`}
       >
         <Users className="w-4 h-4" />
-        <span className="text-xs font-bold">
-          {viewedUserId ? `Просмотр: ${viewedUserNickname}` : 'Переключить'}
+        <span className="text-xs font-bold flex-1 text-left">
+          {viewedUserId ? viewedUserNickname : 'Переключить'}
         </span>
         <ChevronDown className={`w-3 h-3 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </button>
@@ -38,7 +38,7 @@ export const UserSwitcher = () => {
       {isOpen && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
-          <div className="absolute top-full right-0 mt-2 w-72 glass-panel rounded-2xl border border-white/40 dark:border-white/10 shadow-2xl z-50 overflow-hidden animate-fade-in">
+          <div className="absolute left-full top-0 ml-2 w-64 glass-panel rounded-2xl border border-white/40 dark:border-white/10 shadow-2xl z-50 overflow-hidden animate-fade-in">
             <div className="p-3 border-b border-white/10 flex items-center justify-between">
               <span className="text-xs font-bold text-gray-500">Просмотр данных от лица:</span>
               {viewedUserId && (
