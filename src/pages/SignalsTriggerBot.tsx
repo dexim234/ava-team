@@ -478,8 +478,7 @@ export const SignalsTriggerBot = () => {
     }
 
     return (
-        <>
-            <div className="space-y-6">
+        <div className="space-y-6">
                 {/* Header */}
                 <div className={`relative overflow-hidden rounded-3xl border ${cardBorder} ${cardShadow} ${cardBg}`}>
                     <div className="absolute inset-0 pointer-events-none">
@@ -918,7 +917,7 @@ export const SignalsTriggerBot = () => {
                                             </td>
                                             <td className="p-2 max-w-[180px]">
                                                 <div className={`text-[10px] ${headingColor} break-words whitespace-pre-wrap`}>
-                                                    {alert.comment || '-'}
+                                                    {alert.comment || ''}
                                                 </div>
                                             </td>
                                             <td className="p-2 whitespace-nowrap">
@@ -1507,4 +1506,53 @@ export const SignalsTriggerBot = () => {
 
             {/* Success Modal */}
             {showSuccess && (
-                <div className="fixed inset-0 z-50
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className={`w-full max-w-sm rounded-3xl ${cardBg} ${cardBorder} border shadow-2xl p-6 animate-in zoom-in-95 duration-300`}>
+                        <div className="flex flex-col items-center text-center">
+                            <div className="w-14 h-14 rounded-full bg-green-500/20 flex items-center justify-center mb-4">
+                                <Check className="w-7 h-7 text-green-500" />
+                            </div>
+                            <h3 className={`text-xl font-bold ${headingColor} mb-2`}>
+                                Успешно!
+                            </h3>
+                            <p className={`${subTextColor} mb-6`}>
+                                {successMessage || 'Сигналы успешно сохранены'}
+                            </p>
+                            <button
+                                onClick={() => setShowSuccess(false)}
+                                className="w-full py-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-semibold transition-colors"
+                            >
+                                ОК
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Error Modal */}
+            {showError && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className={`w-full max-w-sm rounded-3xl ${cardBg} ${cardBorder} border shadow-2xl p-6 animate-in zoom-in-95 duration-300`}>
+                        <div className="flex flex-col items-center text-center">
+                            <div className="w-14 h-14 rounded-full bg-red-500/20 flex items-center justify-center mb-4">
+                                <AlertCircle className="w-7 h-7 text-red-500" />
+                            </div>
+                            <h3 className={`text-xl font-bold ${headingColor} mb-2`}>
+                                Ошибка
+                            </h3>
+                            <p className={`${subTextColor} mb-6`}>
+                                {errorMessage || 'Произошла ошибка при сохранении'}
+                            </p>
+                            <button
+                                onClick={() => setShowError(false)}
+                                className="w-full py-3 rounded-xl bg-red-500 hover:bg-red-600 text-white font-semibold transition-colors"
+                            >
+                                ОК
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
+    )
+}
