@@ -13,14 +13,16 @@ interface AccessBlocksFormProps {
 }
 
 const ACCESS_FEATURES: { value: AccessFeature; label: string; description: string }[] = [
-  { value: 'all', label: 'Весь доступ', description: 'Блокировать весь сайт' },
-  { value: 'login', label: 'Вход в систему', description: 'Запретить авторизацию' },
+  { value: 'all', label: 'Весь сайт', description: 'Полная блокировка доступа ко всему сайту' },
+  { value: 'tools', label: 'Раздел Tools', description: 'Скрыть раздел Tools из меню' },
+  { value: 'tools_meme_evaluation', label: 'Tools → Meme Evaluation', description: 'Заблокировать просмотр оценки мемов' },
+  { value: 'tools_ai_ao_alerts', label: 'Tools → AI-AO Alerts', description: 'Заблокировать AI - AO Alerts' },
+  { value: 'tools_signals_trigger_bot', label: 'Tools → Signals Trigger Bot', description: 'Заблокировать Signals Trigger Bot' },
   { value: 'slots', label: 'Управление слотами', description: 'Блокировать создание/редактирование слотов' },
   { value: 'earnings', label: 'Доходы', description: 'Блокировать добавление доходов' },
   { value: 'tasks', label: 'Задачи', description: 'Блокировать управление задачами' },
   { value: 'rating', label: 'Рейтинг', description: 'Блокировать просмотр рейтинга' },
   { value: 'profile', label: 'Профиль', description: 'Блокировать редактирование профиля' },
-  { value: 'admin', label: 'Админ-панель', description: 'Блокировать доступ к админке' },
 ]
 
 export const AccessBlocksForm = ({ onClose }: AccessBlocksFormProps) => {

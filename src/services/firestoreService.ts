@@ -1551,13 +1551,35 @@ export const checkUserAccess = async (userId: string, feature: string): Promise<
     // Check for general blocks (userId is null)
     const generalBlocks = await getAccessBlocks(undefined, true)
     for (const block of generalBlocks) {
-      if (!block.userId && block.blockFeatures.includes('all' as any) || block.blockFeatures.includes(feature as any)) {
-        // Check if block is expired
-        if (block.expiresAt && new Date(block.expiresAt) < new Date()) {
-          // Block is expired, mark as inactive
-          await updateAccessBlock(block.id, { isActive: false })
-          continue
-        }
+      // Check if block is expired
+      if (block.expiresAt && new Date(block.expiresAt) < new Date()) {
+        // Block is expired, mark as inactive
+        await updateAccessBlock(block.id, { isActive: false })
+        continue
+      }
+
+      // Check for 'all' feature - blocks entire site
+      if (block.blockFeatures.includes('all' as any)) {
+        return { hasAccess: false, reason: block.reason, expiresAt: block.expiresAt }
+      }
+
+      // Check for specific feature
+      if (block.blockFeatures.includes(feature as any)) {
+        return { hasAccess: false, reason: block.reason, expiresAt: block.expiresAt }
+      }
+
+      // Check for 'tools' - blocks entire Tools section (should hide from menu)
+      if (feature === 'tools' && block.blockFeatures.includes('tools' as any)) {
+        return { hasAccess: false, reason: block.reason, expiresAt: block.expiresAt }
+      }
+
+      // Check for tool sub-features
+      const toolSubFeatures = ['tools_meme_evaluation', 'tools_ai_ao_alerts', 'tools_signals_trigger_bot']
+      if (toolSubFeatures.includes(feature) && block.blockFeatures.includes('tools' as any)) {
+        // If tools section is blocked, all sub-features are blocked too
+        return { hasAccess: false, reason: block.reason, expiresAt: block.expiresAt }
+      }
+      if (toolSubFeatures.includes(feature) && block.blockFeatures.includes(feature as any)) {
         return { hasAccess: false, reason: block.reason, expiresAt: block.expiresAt }
       }
     }
@@ -1565,13 +1587,34 @@ export const checkUserAccess = async (userId: string, feature: string): Promise<
     // Check for user-specific blocks
     const userBlocks = await getAccessBlocks(userId, true)
     for (const block of userBlocks) {
-      if (block.blockFeatures.includes('all' as any) || block.blockFeatures.includes(feature as any)) {
-        // Check if block is expired
-        if (block.expiresAt && new Date(block.expiresAt) < new Date()) {
-          // Block is expired, mark as inactive
-          await updateAccessBlock(block.id, { isActive: false })
-          continue
-        }
+      // Check if block is expired
+      if (block.expiresAt && new Date(block.expiresAt) < new Date()) {
+        // Block is expired, mark as inactive
+        await updateAccessBlock(block.id, { isActive: false })
+        continue
+      }
+
+      // Check for 'all' feature - blocks entire site
+      if (block.blockFeatures.includes('all' as any)) {
+        return { hasAccess: false, reason: block.reason, expiresAt: block.expiresAt }
+      }
+
+      // Check for specific feature
+      if (block.blockFeatures.includes(feature as any)) {
+        return { hasAccess: false, reason: block.reason, expiresAt: block.expiresAt }
+      }
+
+      // Check for 'tools' - blocks entire Tools section
+      if (feature === 'tools' && block.blockFeatures.includes('tools' as any)) {
+        return { hasAccess: false, reason: block.reason, expiresAt: block.expiresAt }
+      }
+
+      // Check for tool sub-features
+      const toolSubFeatures = ['tools_meme_evaluation', 'tools_ai_ao_alerts', 'tools_signals_trigger_bot']
+      if (toolSubFeatures.includes(feature) && block.blockFeatures.includes('tools' as any)) {
+        return { hasAccess: false, reason: block.reason, expiresAt: block.expiresAt }
+      }
+      if (toolSubFeatures.includes(feature) && block.blockFeatures.includes(feature as any)) {
         return { hasAccess: false, reason: block.reason, expiresAt: block.expiresAt }
       }
     }

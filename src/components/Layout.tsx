@@ -58,11 +58,11 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
       setIsFeaturesLoading(true)
       try {
         if (!user || isAdmin) {
-          setAccessibleFeatures(new Set(['slots', 'earnings', 'tasks', 'rating', 'profile', 'admin']))
+          setAccessibleFeatures(new Set(['slots', 'earnings', 'tasks', 'rating', 'profile', 'admin', 'tools', 'tools_meme_evaluation', 'tools_ai_ao_alerts', 'tools_signals_trigger_bot']))
           return
         }
 
-        const features = ['slots', 'earnings', 'tasks', 'rating', 'profile']
+        const features = ['slots', 'earnings', 'tasks', 'rating', 'profile', 'tools', 'tools_meme_evaluation', 'tools_ai_ao_alerts', 'tools_signals_trigger_bot']
         const accessible = new Set<string>()
 
         for (const feature of features) {
@@ -103,11 +103,16 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
     !item.feature || accessibleFeatures.has(item.feature) || isAdmin
   )
 
-  const toolsSubItems: { path: string; label: string; icon: LucideIcon }[] = [
-    { path: '/meme-evaluation', label: 'Оценка мема', icon: TrendingUp },
-    { path: '/ai-ao-alerts', label: 'ИИ - АО Alerts', icon: AlertTriangle },
-    { path: '/signals-trigger-bot', label: 'Signals Trigger Bot', icon: Zap },
+  const toolsSubItems: { path: string; label: string; icon: LucideIcon; feature: string }[] = [
+    { path: '/meme-evaluation', label: 'Оценка мема', icon: TrendingUp, feature: 'tools_meme_evaluation' },
+    { path: '/ai-ao-alerts', label: 'ИИ - АО Alerts', icon: AlertTriangle, feature: 'tools_ai_ao_alerts' },
+    { path: '/signals-trigger-bot', label: 'Signals Trigger Bot', icon: Zap, feature: 'tools_signals_trigger_bot' },
   ]
+
+  // Filter tools that user has access to
+  const accessibleToolsSubItems = toolsSubItems.filter(item =>
+    accessibleFeatures.has(item.feature) || isAdmin
+  )
 
   const isToolsActive = toolsSubItems.some(item => location.pathname === item.path)
 
@@ -365,55 +370,58 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
           <nav className="relative z-10 flex-1 px-4 py-4 space-y-1 overflow-y-auto no-scrollbar">
             {!isFeaturesLoading && (
               <>
-                <div className="space-y-1 relative group/tools">
-                  <button
-                    onClick={() => !isCollapsed && setShowToolsMenu(!showToolsMenu)}
-                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 ${isToolsActive ? 'bg-[#4E6E49]/15 text-[#4E6E49]' : 'text-gray-500 hover:bg-gray-100/50 dark:hover:bg-white/5'
-                      } ${isCollapsed ? 'justify-center px-0' : ''}`}
-                  >
-                    <Settings className={`w-4 h-4 transition-transform duration-500 ${isCollapsed ? 'group-hover/tools:rotate-90' : ''}`} />
-                    {!isCollapsed && (
-                      <>
-                        <span className="font-bold flex-1 text-left">Tools</span>
-                        <ChevronDown className={`w-4 h-4 transition-transform ${showToolsMenu ? 'rotate-180' : ''}`} />
-                      </>
-                    )}
-                  </button>
+                {/* Tools section - hide if user doesn't have access */}
+                {(accessibleFeatures.has('tools') || isAdmin) && (
+                  <div className="space-y-1 relative group/tools">
+                    <button
+                      onClick={() => !isCollapsed && setShowToolsMenu(!showToolsMenu)}
+                      className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 ${isToolsActive ? 'bg-[#4E6E49]/15 text-[#4E6E49]' : 'text-gray-500 hover:bg-gray-100/50 dark:hover:bg-white/5'
+                        } ${isCollapsed ? 'justify-center px-0' : ''}`}
+                    >
+                      <Settings className={`w-4 h-4 transition-transform duration-500 ${isCollapsed ? 'group-hover/tools:rotate-90' : ''}`} />
+                      {!isCollapsed && (
+                        <>
+                          <span className="font-bold flex-1 text-left">Tools</span>
+                          <ChevronDown className={`w-4 h-4 transition-transform ${showToolsMenu ? 'rotate-180' : ''}`} />
+                        </>
+                      )}
+                    </button>
 
-                  {isCollapsed && (
-                    <div className="absolute left-full top-0 invisible group-hover/tools:visible opacity-0 group-hover/tools:opacity-100 transition-all duration-300 translate-x-3 group-hover/tools:translate-x-1 z-[100]">
-                      <div className="ml-2 glass-panel border border-white/40 dark:border-white/10 rounded-2xl p-2 min-w-[200px] shadow-2xl backdrop-blur-2xl">
-                        <div className="px-3 py-2 mb-1 border-b border-white/10">
-                          <p className="text-[10px] font-black uppercase tracking-widest text-[#4E6E49]">Инструменты</p>
+                    {isCollapsed && (
+                      <div className="absolute left-full top-0 invisible group-hover/tools:visible opacity-0 group-hover/tools:opacity-100 transition-all duration-300 translate-x-3 group-hover/tools:translate-x-1 z-[100]">
+                        <div className="ml-2 glass-panel border border-white/40 dark:border-white/10 rounded-2xl p-2 min-w-[200px] shadow-2xl backdrop-blur-2xl">
+                          <div className="px-3 py-2 mb-1 border-b border-white/10">
+                            <p className="text-[10px] font-black uppercase tracking-widest text-[#4E6E49]">Инструменты</p>
+                          </div>
+                          {accessibleToolsSubItems.map((item) => (
+                            <Link
+                              key={item.path}
+                              to={item.path}
+                              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-all ${location.pathname === item.path ? 'bg-[#4E6E49] text-white' : 'text-gray-500 hover:bg-[#4E6E49]/10 hover:text-[#4E6E49]'}`}
+                            >
+                              <item.icon className="w-3.5 h-3.5" />
+                              <span>{item.label}</span>
+                            </Link>
+                          ))}
                         </div>
-                        {toolsSubItems.map((item) => (
+                      </div>
+                    )}
+
+                    {showToolsMenu && !isCollapsed && (
+                      <div className="pl-11 pr-4 py-1 space-y-1 animate-in fade-in slide-in-from-top-1 duration-300">
+                        {accessibleToolsSubItems.map((item) => (
                           <Link
                             key={item.path}
                             to={item.path}
-                            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-all ${location.pathname === item.path ? 'bg-[#4E6E49] text-white' : 'text-gray-500 hover:bg-[#4E6E49]/10 hover:text-[#4E6E49]'}`}
+                            className={`block py-2 text-sm font-medium transition-colors ${location.pathname === item.path ? 'text-[#4E6E49]' : 'text-gray-400 hover:text-[#4E6E49]'}`}
                           >
-                            <item.icon className="w-3.5 h-3.5" />
-                            <span>{item.label}</span>
+                            {item.label}
                           </Link>
                         ))}
                       </div>
-                    </div>
-                  )}
-
-                  {showToolsMenu && !isCollapsed && (
-                    <div className="pl-11 pr-4 py-1 space-y-1 animate-in fade-in slide-in-from-top-1 duration-300">
-                      {toolsSubItems.map((item) => (
-                        <Link
-                          key={item.path}
-                          to={item.path}
-                          className={`block py-2 text-sm font-medium transition-colors ${location.pathname === item.path ? 'text-[#4E6E49]' : 'text-gray-400 hover:text-[#4E6E49]'}`}
-                        >
-                          {item.label}
-                        </Link>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                    )}
+                  </div>
+                )}
 
                 {accessibleFuncsSubItems.map((item) => (
                   <Link
@@ -500,6 +508,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                 <button
                   onClick={() => setShowToolsMenu(!showToolsMenu)}
                   className={`flex-1 min-w-0 flex flex-col items-center justify-center gap-1 py-3 ${isToolsActive ? 'text-[#4E6E49]' : 'text-gray-400'}`}
+                  style={{ display: (accessibleFeatures.has('tools') || isAdmin) ? 'flex' : 'none' }}
                 >
                   <Settings className="w-5 h-5" />
                   <span className="text-[10px] font-bold truncate px-1">Tools</span>
@@ -538,7 +547,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
             <>
               <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[-1]" onClick={() => setShowToolsMenu(false)} />
               <div className="absolute bottom-20 left-4 right-4 glass-panel rounded-2xl border border-white/40 dark:border-white/10 overflow-hidden animate-fade-in">
-                {toolsSubItems.map(item => (
+                {accessibleToolsSubItems.map(item => (
                   <Link
                     key={item.path}
                     to={item.path}

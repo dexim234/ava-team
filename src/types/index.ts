@@ -445,14 +445,16 @@ export interface AccessBlock {
 }
 
 export type AccessFeature =
-  | 'all' // block everything
+  | 'all' // block entire site
+  | 'tools' // block access to Tools section (hide from menu)
+  | 'tools_meme_evaluation' // block Meme Evaluation in Tools
+  | 'tools_ai_ao_alerts' // block AI-AO Alerts in Tools
+  | 'tools_signals_trigger_bot' // block Signals Trigger Bot in Tools
   | 'slots' // block slot management
   | 'earnings' // block earnings
   | 'tasks' // block tasks
   | 'profile' // block profile access
   | 'rating' // block rating
-  | 'admin' // block admin panel
-  | 'login' // block login entirely
 
 // AI - AO Alerts types
 export interface AiAlert {
