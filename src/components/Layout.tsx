@@ -86,7 +86,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
   }, [user, isAdmin])
 
   const funcsSubItems: { path: string; label: string; icon: LucideIcon; feature?: string }[] = [
-    { path: '/call', label: 'AVF HUB', icon: Radio, feature: 'call' },
+    { path: '/call', label: 'AVF HUB', icon: Radio, feature: 'avf_hub' },
     { path: '/management', label: 'AVF Schedule', icon: Calendar, feature: 'slots' },
     { path: '/tasks', label: 'AVF Tasks', icon: CheckSquare, feature: 'tasks' },
     { path: '/earnings', label: 'AVF Profit', icon: DollarSign, feature: 'earnings' },
