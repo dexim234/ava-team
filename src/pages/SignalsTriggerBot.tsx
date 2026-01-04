@@ -3,7 +3,7 @@ import { useThemeStore } from '@/store/themeStore'
 import { useAuthStore } from '@/store/authStore'
 import { getTriggerAlerts, addTriggerAlert, updateTriggerAlert, deleteTriggerAlert } from '@/services/firestoreService'
 import { TriggerAlert, TriggerStrategy, TriggerProfit } from '@/types'
-import { Plus, Edit, Trash2, Save, X, Copy, Check, Zap, Table, Filter, ArrowUp, ArrowDown, RotateCcw, TrendingUp, Image, XCircle, ChevronDown } from 'lucide-react'
+import { Plus, Edit, Trash2, Save, X, Copy, Check, Zap, Table, Filter, ArrowUp, ArrowDown, RotateCcw, TrendingUp, Activity, Target, Image, XCircle, ChevronDown } from 'lucide-react'
 
 type SortField = 'date' | 'drop' | 'profit'
 type SortOrder = 'asc' | 'desc'
@@ -292,11 +292,11 @@ export const SignalsTriggerBot = () => {
         return `${parts[2]}.${parts[1]}.${year}`
     }
 
-    // Truncate address for display: 5 chars + ... + 3 chars
+    // Truncate address for display: 3 chars + ... + 3 chars
     const truncateAddress = (address: string) => {
         if (!address) return '-'
-        if (address.length <= 9) return address
-        return `${address.slice(0, 5)}...${address.slice(-3)}`
+        if (address.length <= 7) return address
+        return `${address.slice(0, 3)}...${address.slice(-3)}`
     }
 
     // Parse numeric value from drop/profit string
@@ -411,11 +411,11 @@ export const SignalsTriggerBot = () => {
         setShowModal(true)
     }
 
-    // Получение цвета для стратегии (только для таблицы)
-    const getStrategyColor = (strategy: TriggerStrategy) => {
+    // Получение цвета и иконки для стратегии
+    const getStrategyConfig = (strategy: TriggerStrategy) => {
         switch (strategy) {
-            case 'Фиба': return 'bg-purple-500/20 text-purple-400'
-            case 'Market Entry': return 'bg-green-500/20 text-green-400'
+            case 'Фиба': return { color: 'bg-purple-500/20 text-purple-400', icon: Activity, label: 'Фиба' }
+            case 'Market Entry': return { color: 'bg-green-500/20 text-green-400', icon: Target, label: 'ME' }
         }
     }
 
@@ -694,17 +694,17 @@ export const SignalsTriggerBot = () => {
                         <table className="w-full text-left border-collapse">
                             <thead>
                                 <tr className={`border-b ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-gray-50'}`}>
-                                    <th className={`p-2 sm:p-3 text-[10px] sm:text-xs uppercase tracking-wider font-semibold ${subTextColor}`}>Дата</th>
-                                    <th className={`p-2 sm:p-3 text-[10px] sm:text-xs uppercase tracking-wider font-semibold ${subTextColor}`}>Время</th>
-                                    <th className={`p-2 sm:p-3 text-[10px] sm:text-xs uppercase tracking-wider font-semibold ${subTextColor}`}>Стратегии</th>
-                                    <th className={`p-2 sm:p-3 text-[10px] sm:text-xs uppercase tracking-wider font-semibold ${subTextColor}`}>MC</th>
-                                    <th className={`p-2 sm:p-3 text-[10px] sm:text-xs uppercase tracking-wider font-semibold ${subTextColor}`}>Адрес</th>
-                                    <th className={`p-2 sm:p-3 text-[10px] sm:text-xs uppercase tracking-wider font-semibold ${subTextColor}`}>Drop</th>
-                                    <th className={`p-2 sm:p-3 text-[10px] sm:text-xs uppercase tracking-wider font-semibold ${subTextColor}`}>Drop 0.7</th>
-                                    <th className={`p-2 sm:p-3 text-[10px] sm:text-xs uppercase tracking-wider font-semibold ${subTextColor}`}>Профит</th>
-                                    <th className={`p-2 sm:p-3 text-[10px] sm:text-xs uppercase tracking-wider font-semibold ${subTextColor}`}>Комментарий</th>
-                                    <th className={`p-2 sm:p-3 text-[10px] sm:text-xs uppercase tracking-wider font-semibold ${subTextColor}`}>📷</th>
-                                    <th className={`p-2 sm:p-3 text-[10px] sm:text-xs uppercase tracking-wider font-semibold ${subTextColor}`}>⚙</th>
+                                    <th className={`p-2 sm:p-3 text-[10px] sm:text-xs uppercase tracking-wider font-semibold ${subTextColor} text-center`}>Дата</th>
+                                    <th className={`p-2 sm:p-3 text-[10px] sm:text-xs uppercase tracking-wider font-semibold ${subTextColor} text-center`}>Время</th>
+                                    <th className={`p-2 sm:p-3 text-[10px] sm:text-xs uppercase tracking-wider font-semibold ${subTextColor} text-center`}>Стратегии</th>
+                                    <th className={`p-2 sm:p-3 text-[10px] sm:text-xs uppercase tracking-wider font-semibold ${subTextColor} text-center`}>MC</th>
+                                    <th className={`p-2 sm:p-3 text-[10px] sm:text-xs uppercase tracking-wider font-semibold ${subTextColor} text-center`}>Адрес</th>
+                                    <th className={`p-2 sm:p-3 text-[10px] sm:text-xs uppercase tracking-wider font-semibold ${subTextColor} text-center`}>Drop</th>
+                                    <th className={`p-2 sm:p-3 text-[10px] sm:text-xs uppercase tracking-wider font-semibold ${subTextColor} text-center`}>Drop 0.7</th>
+                                    <th className={`p-2 sm:p-3 text-[10px] sm:text-xs uppercase tracking-wider font-semibold ${subTextColor} text-center`}>Профит</th>
+                                    <th className={`p-2 sm:p-3 text-[10px] sm:text-xs uppercase tracking-wider font-semibold ${subTextColor} text-center`}>Коммент</th>
+                                    <th className={`p-2 sm:p-3 text-[10px] sm:text-xs uppercase tracking-wider font-semibold ${subTextColor} text-center`}>📷</th>
+                                    <th className={`p-2 sm:p-3 text-[10px] sm:text-xs uppercase tracking-wider font-semibold ${subTextColor} text-center`}>⚙</th>
                                 </tr>
                             </thead>
                             <tbody className={`divide-y ${theme === 'dark' ? 'divide-white/5' : 'divide-gray-100'}`}>
@@ -758,31 +758,35 @@ export const SignalsTriggerBot = () => {
                                             dateAlerts.forEach((alert: TriggerAlert) => {
                                                 rows.push(
                                                     <tr key={alert.id} className={`${theme === 'dark' ? 'hover:bg-white/5' : 'hover:bg-gray-50'} transition-colors ${alert.isScam ? 'bg-red-500/10' : ''}`}>
-                                                        <td className="p-2 sm:p-3 whitespace-nowrap">
+                                                        <td className="p-2 sm:p-3 whitespace-nowrap text-center">
                                                             <div className={`font-mono font-medium text-xs sm:text-sm ${headingColor}`}>{formatDateForDisplay(alert.signalDate)}</div>
                                                         </td>
-                                                        <td className="p-2 sm:p-3 whitespace-nowrap">
+                                                        <td className="p-2 sm:p-3 whitespace-nowrap text-center">
                                                             <div className={`font-mono text-xs sm:text-sm ${headingColor}`}>{alert.signalTime}</div>
                                                         </td>
-                                                        <td className="p-2 sm:p-3 whitespace-nowrap">
+                                                        <td className="p-2 sm:p-3 whitespace-nowrap text-center">
                                                             {alert.isScam ? (
                                                                 <span className="text-red-500 font-bold text-[10px] sm:text-xs">СКАМ</span>
                                                             ) : (
-                                                                <div className="flex flex-wrap gap-0.5">
-                                                                    {alert.strategies?.map((strategy) => (
-                                                                        <span key={strategy} className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] sm:text-xs font-semibold ${getStrategyColor(strategy)}`}>
-                                                                            <TrendingUp className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
-                                                                            <span className="hidden xs:inline">{strategy}</span>
-                                                                        </span>
-                                                                    )) || '-'}
+                                                                <div className="flex flex-wrap gap-0.5 justify-center">
+                                                                    {alert.strategies?.map((strategy) => {
+                                                                        const config = getStrategyConfig(strategy)
+                                                                        const Icon = config.icon
+                                                                        return (
+                                                                            <span key={strategy} className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] sm:text-xs font-semibold ${config.color}`}>
+                                                                                <Icon className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                                                                                <span>{config.label}</span>
+                                                                            </span>
+                                                                        )
+                                                                    }) || '-'}
                                                                 </div>
                                                             )}
                                                         </td>
-                                                        <td className="p-2 sm:p-3 whitespace-nowrap">
+                                                        <td className="p-2 sm:p-3 whitespace-nowrap text-center">
                                                             <div className={`font-mono text-xs sm:text-sm ${headingColor}`}>{alert.marketCap || '-'}</div>
                                                         </td>
-                                                        <td className="p-2 sm:p-3">
-                                                            <div className="flex items-center gap-1">
+                                                        <td className="p-2 sm:p-3 text-center">
+                                                            <div className="flex items-center justify-center gap-1">
                                                                 <div
                                                                     className={`font-mono text-[10px] sm:text-sm ${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'}`}
                                                                     title={alert.address}
@@ -797,27 +801,27 @@ export const SignalsTriggerBot = () => {
                                                                 </button>
                                                             </div>
                                                         </td>
-                                                        <td className="p-2 sm:p-3 whitespace-nowrap">
+                                                        <td className="p-2 sm:p-3 whitespace-nowrap text-center">
                                                             <span className={`font-mono text-xs sm:text-sm ${alert.maxDropFromSignal && alert.maxDropFromSignal.startsWith('-') ? 'text-red-500' : headingColor}`}>
                                                                 {alert.maxDropFromSignal || '-'}
                                                             </span>
                                                         </td>
-                                                        <td className="p-2 sm:p-3 whitespace-nowrap">
+                                                        <td className="p-2 sm:p-3 whitespace-nowrap text-center">
                                                             <span className={`font-mono text-xs sm:text-sm ${alert.maxDropFromLevel07 && alert.maxDropFromLevel07.startsWith('-') ? 'text-red-500' : headingColor}`}>
                                                                 {alert.maxDropFromLevel07 || '-'}
                                                             </span>
                                                         </td>
-                                                        <td className="p-2 sm:p-3 whitespace-nowrap">
+                                                        <td className="p-2 sm:p-3 whitespace-nowrap text-center">
                                                             <span className="font-mono text-xs sm:text-sm text-green-500 font-bold">
                                                                 {getProfitDisplay(alert.profits)}
                                                             </span>
                                                         </td>
-                                                        <td className="p-2 sm:p-3 max-w-[120px] sm:max-w-[200px]">
+                                                        <td className="p-2 sm:p-3 max-w-[120px] sm:max-w-[200px] text-center">
                                                             <div className={`text-[10px] sm:text-sm ${headingColor} break-words whitespace-pre-wrap line-clamp-2 sm:line-clamp-3`}>
                                                                 {alert.comment || '-'}
                                                             </div>
                                                         </td>
-                                                        <td className="p-2 sm:p-3 whitespace-nowrap">
+                                                        <td className="p-2 sm:p-3 whitespace-nowrap text-center">
                                                             {alert.screenshot ? (
                                                                 <button
                                                                     onClick={() => setPreviewImage(alert.screenshot || null)}
@@ -830,8 +834,8 @@ export const SignalsTriggerBot = () => {
                                                                 <span className={`text-xs ${subTextColor}`}>—</span>
                                                             )}
                                                         </td>
-                                                        <td className="p-2 sm:p-3 whitespace-nowrap">
-                                                            <div className="flex items-center gap-0.5 sm:gap-1">
+                                                        <td className="p-2 sm:p-3 whitespace-nowrap text-center">
+                                                            <div className="flex items-center justify-center gap-0.5 sm:gap-1">
                                                                 <button
                                                                     onClick={() => handleEdit(alert)}
                                                                     className={`p-1 sm:p-2 rounded-lg hover:bg-white/10 transition-colors ${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'}`}
@@ -856,31 +860,35 @@ export const SignalsTriggerBot = () => {
                                 ) : (
                                     filteredAlerts.map((alert: TriggerAlert) => (
                                         <tr key={alert.id} className={`${theme === 'dark' ? 'hover:bg-white/5' : 'hover:bg-gray-50'} transition-colors ${alert.isScam ? 'bg-red-500/10' : ''}`}>
-                                            <td className="p-2 sm:p-3 whitespace-nowrap">
+                                            <td className="p-2 sm:p-3 whitespace-nowrap text-center">
                                                 <div className={`font-mono font-medium text-xs sm:text-sm ${headingColor}`}>{formatDateForDisplay(alert.signalDate)}</div>
                                             </td>
-                                            <td className="p-2 sm:p-3 whitespace-nowrap">
+                                            <td className="p-2 sm:p-3 whitespace-nowrap text-center">
                                                 <div className={`font-mono text-xs sm:text-sm ${headingColor}`}>{alert.signalTime}</div>
                                             </td>
-                                            <td className="p-2 sm:p-3 whitespace-nowrap">
+                                            <td className="p-2 sm:p-3 whitespace-nowrap text-center">
                                                 {alert.isScam ? (
                                                     <span className="text-red-500 font-bold text-[10px] sm:text-xs">СКАМ</span>
                                                 ) : (
-                                                    <div className="flex flex-wrap gap-0.5">
-                                                        {alert.strategies?.map((strategy) => (
-                                                            <span key={strategy} className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] sm:text-xs font-semibold ${getStrategyColor(strategy)}`}>
-                                                                <TrendingUp className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
-                                                                <span className="hidden xs:inline">{strategy}</span>
-                                                            </span>
-                                                        )) || '-'}
+                                                    <div className="flex flex-wrap gap-0.5 justify-center">
+                                                        {alert.strategies?.map((strategy) => {
+                                                            const config = getStrategyConfig(strategy)
+                                                            const Icon = config.icon
+                                                            return (
+                                                                <span key={strategy} className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] sm:text-xs font-semibold ${config.color}`}>
+                                                                    <Icon className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                                                                    <span>{config.label}</span>
+                                                                </span>
+                                                            )
+                                                        }) || '-'}
                                                     </div>
                                                 )}
                                             </td>
-                                            <td className="p-2 sm:p-3 whitespace-nowrap">
+                                            <td className="p-2 sm:p-3 whitespace-nowrap text-center">
                                                 <div className={`font-mono text-xs sm:text-sm ${headingColor}`}>{alert.marketCap || '-'}</div>
                                             </td>
-                                            <td className="p-2 sm:p-3">
-                                                <div className="flex items-center gap-1">
+                                            <td className="p-2 sm:p-3 text-center">
+                                                <div className="flex items-center justify-center gap-1">
                                                     <div
                                                         className={`font-mono text-[10px] sm:text-sm ${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'}`}
                                                         title={alert.address}
@@ -895,27 +903,27 @@ export const SignalsTriggerBot = () => {
                                                     </button>
                                                 </div>
                                             </td>
-                                            <td className="p-2 sm:p-3 whitespace-nowrap">
+                                            <td className="p-2 sm:p-3 whitespace-nowrap text-center">
                                                 <span className={`font-mono text-xs sm:text-sm ${alert.maxDropFromSignal && alert.maxDropFromSignal.startsWith('-') ? 'text-red-500' : headingColor}`}>
                                                     {alert.maxDropFromSignal || '-'}
                                                 </span>
                                             </td>
-                                            <td className="p-2 sm:p-3 whitespace-nowrap">
+                                            <td className="p-2 sm:p-3 whitespace-nowrap text-center">
                                                 <span className={`font-mono text-xs sm:text-sm ${alert.maxDropFromLevel07 && alert.maxDropFromLevel07.startsWith('-') ? 'text-red-500' : headingColor}`}>
                                                     {alert.maxDropFromLevel07 || '-'}
                                                 </span>
                                             </td>
-                                            <td className="p-2 sm:p-3 whitespace-nowrap">
+                                            <td className="p-2 sm:p-3 whitespace-nowrap text-center">
                                                 <span className="font-mono text-xs sm:text-sm text-green-500 font-bold">
                                                     {getProfitDisplay(alert.profits)}
                                                 </span>
                                             </td>
-                                            <td className="p-2 sm:p-3 max-w-[120px] sm:max-w-[200px]">
+                                            <td className="p-2 sm:p-3 max-w-[120px] sm:max-w-[200px] text-center">
                                                 <div className={`text-[10px] sm:text-sm ${headingColor} break-words whitespace-pre-wrap line-clamp-2 sm:line-clamp-3`}>
                                                     {alert.comment || '-'}
                                                 </div>
                                             </td>
-                                            <td className="p-2 sm:p-3 whitespace-nowrap">
+                                            <td className="p-2 sm:p-3 whitespace-nowrap text-center">
                                                 {alert.screenshot ? (
                                                     <button
                                                         onClick={() => setPreviewImage(alert.screenshot || null)}
@@ -928,8 +936,8 @@ export const SignalsTriggerBot = () => {
                                                     <span className={`text-xs ${subTextColor}`}>—</span>
                                                 )}
                                             </td>
-                                            <td className="p-2 sm:p-3 whitespace-nowrap">
-                                                <div className="flex items-center gap-0.5 sm:gap-1">
+                                            <td className="p-2 sm:p-3 whitespace-nowrap text-center">
+                                                <div className="flex items-center justify-center gap-0.5 sm:gap-1">
                                                     <button
                                                         onClick={() => handleEdit(alert)}
                                                         className={`p-1 sm:p-2 rounded-lg hover:bg-white/10 transition-colors ${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'}`}
