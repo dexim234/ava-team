@@ -62,7 +62,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
           return
         }
 
-        const features = ['slots', 'earnings', 'tasks', 'rating', 'profile', 'tools', 'tools_meme_evaluation', 'tools_ai_ao_alerts', 'tools_signals_trigger_bot']
+        const features = ['slots', 'earnings', 'tasks', 'rating', 'profile', 'tools', 'tools_meme_evaluation', 'tools_ai_ao_alerts', 'tools_signals_trigger_bot', 'call']
         const accessible = new Set<string>()
 
         for (const feature of features) {
@@ -86,7 +86,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
   }, [user, isAdmin])
 
   const funcsSubItems: { path: string; label: string; icon: LucideIcon; feature?: string }[] = [
-    { path: '/call', label: 'AVF HUB', icon: Radio, feature: 'slots' },
+    { path: '/call', label: 'AVF HUB', icon: Radio, feature: 'call' },
     { path: '/management', label: 'AVF Schedule', icon: Calendar, feature: 'slots' },
     { path: '/tasks', label: 'AVF Tasks', icon: CheckSquare, feature: 'tasks' },
     { path: '/earnings', label: 'AVF Profit', icon: DollarSign, feature: 'earnings' },
