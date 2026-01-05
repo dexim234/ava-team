@@ -637,7 +637,7 @@ export const ManagementTable = ({ selectedUserId, slotFilter, onEditSlot, onEdit
                                           {slot.comment && (
                                             <div className="relative group">
                                               <Info className="w-3 h-3 text-white/60 hover:text-white cursor-help flex-shrink-0" />
-                                              <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-1 px-2 py-1 bg-gray-900 text-white text-[10px] rounded whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 shadow-lg border border-white/10">
+                                              <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-1 px-3 py-2 bg-gray-900 text-white text-[10px] rounded-lg max-w-xs whitespace-normal break-words opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 shadow-lg border border-white/10">
                                                 {slot.comment}
                                                 <div className="absolute left-1/2 -translate-x-1/2 top-full border-3 border-transparent border-t-gray-900"></div>
                                               </div>
@@ -692,7 +692,7 @@ export const ManagementTable = ({ selectedUserId, slotFilter, onEditSlot, onEdit
                                 {status.comment && (
                                   <div className="relative group/stat">
                                     <Info className="w-3 h-3 opacity-60 hover:opacity-100 cursor-help" />
-                                    <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-1 px-2 py-1 bg-gray-900 text-white text-[10px] rounded whitespace-nowrap opacity-0 invisible group-hover/stat:opacity-100 group-hover/stat:visible transition-all z-50 shadow-lg border border-white/10">
+                                    <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-1 px-3 py-2 bg-gray-900 text-white text-[10px] rounded-lg max-w-xs whitespace-normal break-words opacity-0 invisible group-hover/stat:opacity-100 group-hover/stat:visible transition-all z-50 shadow-lg border border-white/10">
                                       {status.comment}
                                       <div className="absolute left-1/2 -translate-x-1/2 top-full border-3 border-transparent border-t-gray-900"></div>
                                     </div>

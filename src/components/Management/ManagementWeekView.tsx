@@ -547,7 +547,7 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
                           {status.comment && (
                             <div className="relative group/statuscomm ml-1">
                               <Info className="w-3.5 h-3.5 opacity-60 hover:opacity-100 cursor-help" />
-                              <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 px-3 py-1.5 bg-gray-900 text-white text-xs rounded-lg whitespace-nowrap opacity-0 invisible group-hover/statuscomm:opacity-100 group-hover/statuscomm:visible transition-all z-[100] shadow-xl border border-white/10">
+                              <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg max-w-xs whitespace-normal break-words opacity-0 invisible group-hover/statuscomm:opacity-100 group-hover/statuscomm:visible transition-all z-[100] shadow-xl border border-white/10">
                                 {status.comment}
                                 <div className="absolute left-1/2 -translate-x-1/2 top-full border-4 border-transparent border-t-gray-900"></div>
                               </div>
@@ -703,7 +703,7 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
                                 {slot.comment && (
                                   <div className="relative group">
                                     <Info className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white/60 hover:text-white cursor-help flex-shrink-0" />
-                                    <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 shadow-lg border border-white/10">
+                                    <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg max-w-xs whitespace-normal break-words opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 shadow-lg border border-white/10">
                                       {slot.comment}
                                       <div className="absolute left-1/2 -translate-x-1/2 top-full border-4 border-transparent border-t-gray-900"></div>
                                     </div>

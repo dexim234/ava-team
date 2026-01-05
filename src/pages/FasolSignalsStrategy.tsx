@@ -538,15 +538,19 @@ export const FasolSignalsStrategy = () => {
                         <table className="w-full text-left border-collapse">
                             <thead>
                                 <tr className={`border-b ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-gray-50'}`}>
+                                    <th className={`p-2 sm:p-3 text-[10px] sm:text-xs uppercase tracking-wider font-semibold ${subTextColor} text-center w-10`}>#</th>
                                     {['Дата', 'Время', 'Setup', 'Стратегии', 'MC', 'Адрес', 'Drop', '0.7', 'Профит', 'Коммент', 'Автор', '📷', '⚙'].map(h => (
                                         <th key={h} className={`p-2 sm:p-3 text-[10px] sm:text-xs uppercase tracking-wider font-semibold ${subTextColor} text-center`}>{h}</th>
                                     ))}
                                 </tr>
                             </thead>
                             <tbody className={`divide-y ${theme === 'dark' ? 'divide-white/5' : 'divide-gray-100'}`}>
-                                {loading ? (<tr><td colSpan={11} className="p-8 text-center text-gray-500">Загрузка...</td></tr>) : filteredAlerts.length === 0 ? (<tr><td colSpan={11} className="p-8 text-center text-gray-500">Нет сигналов</td></tr>) : (
-                                    filteredAlerts.map(alert => (
+                                {loading ? (<tr><td colSpan={14} className="p-8 text-center text-gray-500">Загрузка...</td></tr>) : filteredAlerts.length === 0 ? (<tr><td colSpan={14} className="p-8 text-center text-gray-500">Нет сигналов</td></tr>) : (
+                                    filteredAlerts.map((alert, index) => (
                                         <tr key={alert.id} className={`${theme === 'dark' ? 'hover:bg-white/5' : 'hover:bg-gray-50'} transition-colors ${alert.isScam ? 'bg-red-500/10' : ''}`}>
+                                            <td className="p-2 sm:p-3 text-center whitespace-nowrap">
+                                                <div className={`font-mono text-[10px] sm:text-xs font-bold ${subTextColor}`}>{index + 1}</div>
+                                            </td>
                                             <td className="p-2 sm:p-3 whitespace-nowrap text-center font-mono text-xs sm:text-sm">{formatDateForDisplay(alert.signalDate)}</td>
                                             <td className="p-2 sm:p-3 whitespace-nowrap text-center font-mono text-xs sm:text-sm">{alert.signalTime}</td>
                                             <td className="p-2 sm:p-3 text-center font-mono text-xs font-bold text-purple-400">{alert.setup || '-'}</td>

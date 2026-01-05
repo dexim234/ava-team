@@ -759,6 +759,7 @@ export const SignalsTriggerBot = () => {
                         <table className="w-full text-left border-collapse">
                             <thead>
                                 <tr className={`border-b ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-gray-50'}`}>
+                                    <th className={`p-2 sm:p-3 text-[10px] sm:text-xs uppercase tracking-wider font-semibold ${subTextColor} text-center w-10`}>#</th>
                                     <th className={`p-2 sm:p-3 text-[10px] sm:text-xs uppercase tracking-wider font-semibold ${subTextColor} text-center`}>Дата</th>
                                     <th className={`p-2 sm:p-3 text-[10px] sm:text-xs uppercase tracking-wider font-semibold ${subTextColor} text-center`}>Время</th>
                                     <th className={`p-2 sm:p-3 text-[10px] sm:text-xs uppercase tracking-wider font-semibold ${subTextColor} text-center`}>Стратегии</th>
@@ -776,11 +777,11 @@ export const SignalsTriggerBot = () => {
                             <tbody className={`divide-y ${theme === 'dark' ? 'divide-white/5' : 'divide-gray-100'}`}>
                                 {loading ? (
                                     <tr>
-                                        <td colSpan={12} className="p-8 text-center text-gray-500">Загрузка...</td>
+                                        <td colSpan={13} className="p-8 text-center text-gray-500">Загрузка...</td>
                                     </tr>
                                 ) : filteredAlerts.length === 0 ? (
                                     <tr>
-                                        <td colSpan={12} className="p-8 text-center text-gray-500">
+                                        <td colSpan={13} className="p-8 text-center text-gray-500">
                                             {hasActiveFilters ? 'Нет сигналов по выбранным фильтрам' : 'Нет сигналов'}
                                         </td>
                                     </tr>
@@ -804,7 +805,7 @@ export const SignalsTriggerBot = () => {
                                             if (dateIndex > 0) {
                                                 rows.push(
                                                     <tr key={`separator-${dateKey}`}>
-                                                        <td colSpan={12} className="py-1">
+                                                        <td colSpan={13} className="py-1">
                                                             <div className={`h-px ${theme === 'dark' ? 'bg-white/10' : 'bg-gray-200'}`}></div>
                                                         </td>
                                                     </tr>
@@ -813,7 +814,7 @@ export const SignalsTriggerBot = () => {
 
                                             rows.push(
                                                 <tr key={`header-${dateKey}`} className={`${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'}`}>
-                                                    <td colSpan={12} className="p-2 px-3">
+                                                    <td colSpan={13} className="p-2 px-3">
                                                         <span className={`text-xs sm:text-sm font-semibold ${subTextColor}`}>
                                                             {formatDateForDisplay(dateKey)}
                                                         </span>
@@ -822,8 +823,12 @@ export const SignalsTriggerBot = () => {
                                             )
 
                                             dateAlerts.forEach((alert: TriggerAlert) => {
+                                                const globalIndex = filteredAlerts.indexOf(alert) + 1;
                                                 rows.push(
                                                     <tr key={alert.id} className={`${theme === 'dark' ? 'hover:bg-white/5' : 'hover:bg-gray-50'} transition-colors ${alert.isScam ? 'bg-red-500/10' : ''}`}>
+                                                        <td className="p-2 sm:p-3 text-center whitespace-nowrap">
+                                                            <div className={`font-mono text-[10px] sm:text-xs font-bold ${subTextColor}`}>{globalIndex}</div>
+                                                        </td>
                                                         <td className="p-2 sm:p-3 whitespace-nowrap text-center">
                                                             <div className={`font-mono font-medium text-xs sm:text-sm ${headingColor}`}>{formatDateForDisplay(alert.signalDate)}</div>
                                                         </td>
@@ -890,6 +895,9 @@ export const SignalsTriggerBot = () => {
                                                                 {alert.comment || '-'}
                                                             </div>
                                                         </td>
+                                                        <td className="p-2 sm:p-3 text-center">
+                                                            <UserNickname userId={alert.createdBy} className="text-[10px] sm:text-xs font-medium" />
+                                                        </td>
                                                         <td className="p-2 sm:p-3 whitespace-nowrap text-center">
                                                             {alert.screenshot ? (
                                                                 <button
@@ -931,8 +939,11 @@ export const SignalsTriggerBot = () => {
                                         return rows
                                     })()
                                 ) : (
-                                    filteredAlerts.map((alert: TriggerAlert) => (
+                                    filteredAlerts.map((alert: TriggerAlert, index: number) => (
                                         <tr key={alert.id} className={`${theme === 'dark' ? 'hover:bg-white/5' : 'hover:bg-gray-50'} transition-colors ${alert.isScam ? 'bg-red-500/10' : ''}`}>
+                                            <td className="p-2 sm:p-3 text-center whitespace-nowrap">
+                                                <div className={`font-mono text-[10px] sm:text-xs font-bold ${subTextColor}`}>{index + 1}</div>
+                                            </td>
                                             <td className="p-2 sm:p-3 whitespace-nowrap text-center">
                                                 <div className={`font-mono font-medium text-xs sm:text-sm ${headingColor}`}>{formatDateForDisplay(alert.signalDate)}</div>
                                             </td>

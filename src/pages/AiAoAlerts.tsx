@@ -634,6 +634,7 @@ export const AiAoAlerts = () => {
                         <table className="w-full text-left border-collapse">
                             <thead>
                                 <tr className={`border-b ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-gray-50'}`}>
+                                    <th className={`p-4 text-[10px] sm:text-xs uppercase tracking-wider font-semibold ${subTextColor} text-center w-10`}>#</th>
                                     <th className={`p-4 text-xs uppercase tracking-wider font-semibold ${subTextColor}`}>Дата</th>
                                     <th className={`p-4 text-xs uppercase tracking-wider font-semibold ${subTextColor}`}>Время</th>
                                     <th className={`p-4 text-xs uppercase tracking-wider font-semibold ${subTextColor}`}>Market Cap</th>
@@ -648,11 +649,11 @@ export const AiAoAlerts = () => {
                             <tbody className={`divide-y ${theme === 'dark' ? 'divide-white/5' : 'divide-gray-100'}`}>
                                 {loading ? (
                                     <tr>
-                                        <td colSpan={8} className="p-8 text-center text-gray-500">Загрузка...</td>
+                                        <td colSpan={10} className="p-8 text-center text-gray-500">Загрузка...</td>
                                     </tr>
                                 ) : filteredAlerts.length === 0 ? (
                                     <tr>
-                                        <td colSpan={8} className="p-8 text-center text-gray-500">
+                                        <td colSpan={10} className="p-8 text-center text-gray-500">
                                             {hasActiveFilters ? 'Нет сигналов по выбранным фильтрам' : 'Нет сигналов'}
                                         </td>
                                     </tr>
@@ -678,7 +679,7 @@ export const AiAoAlerts = () => {
                                             if (dateIndex > 0) {
                                                 rows.push(
                                                     <tr key={`separator-${dateKey}`}>
-                                                        <td colSpan={9} className="py-2">
+                                                        <td colSpan={10} className="py-2">
                                                             <div className={`h-px ${theme === 'dark' ? 'bg-white/10' : 'bg-gray-200'}`}></div>
                                                         </td>
                                                     </tr>
@@ -688,7 +689,7 @@ export const AiAoAlerts = () => {
                                             // Add date header row
                                             rows.push(
                                                 <tr key={`header-${dateKey}`} className={`${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'}`}>
-                                                    <td colSpan={9} className="p-3 px-4">
+                                                    <td colSpan={10} className="p-3 px-4">
                                                         <span className={`text-sm font-semibold ${subTextColor}`}>
                                                             {formatDateForDisplay(dateKey)}
                                                         </span>
@@ -698,8 +699,12 @@ export const AiAoAlerts = () => {
 
                                             // Add alert rows
                                             dateAlerts.forEach((alert: AiAlert) => {
+                                                const globalIndex = filteredAlerts.indexOf(alert) + 1;
                                                 rows.push(
                                                     <tr key={alert.id} className={`${theme === 'dark' ? 'hover:bg-white/5' : 'hover:bg-gray-50'} transition-colors`}>
+                                                        <td className="p-4 text-center whitespace-nowrap">
+                                                            <div className={`font-mono text-[10px] sm:text-xs font-bold ${subTextColor}`}>{globalIndex}</div>
+                                                        </td>
                                                         <td className="p-4 whitespace-nowrap">
                                                             <div className={`font-mono font-medium ${headingColor}`}>{formatDateForDisplay(alert.signalDate)}</div>
                                                         </td>
@@ -775,8 +780,11 @@ export const AiAoAlerts = () => {
                                     })()
                                 ) : (
                                     // Simple list when sorting by drop or profit
-                                    filteredAlerts.map((alert: AiAlert) => (
+                                    filteredAlerts.map((alert: AiAlert, index: number) => (
                                         <tr key={alert.id} className={`${theme === 'dark' ? 'hover:bg-white/5' : 'hover:bg-gray-50'} transition-colors`}>
+                                            <td className="p-4 text-center whitespace-nowrap">
+                                                <div className={`font-mono text-[10px] sm:text-xs font-bold ${subTextColor}`}>{index + 1}</div>
+                                            </td>
                                             <td className="p-4 whitespace-nowrap">
                                                 <div className={`font-mono font-medium ${headingColor}`}>{formatDateForDisplay(alert.signalDate)}</div>
                                             </td>
