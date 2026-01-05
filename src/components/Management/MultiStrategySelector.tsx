@@ -4,7 +4,7 @@ import { TriggerStrategy } from '@/types'
 interface MultiStrategySelectorProps {
     value: TriggerStrategy[]
     onChange: (strategies: TriggerStrategy[]) => void
-    onChange: (strategies: TriggerStrategy[]) => void
+    theme: string
 }
 
 export const MultiStrategySelector: React.FC<MultiStrategySelectorProps> = ({ value, onChange }) => {

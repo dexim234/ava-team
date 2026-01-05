@@ -19,12 +19,11 @@ interface ManagementTableProps {
   onEditSlot: (slot: WorkSlot) => void
   onEditStatus: (status: DayStatus) => void
   refreshKey: number
-  initialDate?: string | null
   initialWeekStart?: string | null
   onDateChange?: (date: string | null, weekStart: string | null) => void
 }
 
-export const ManagementTable = ({ selectedUserId, slotFilter, onEditSlot, onEditStatus, refreshKey, initialDate, initialWeekStart, onDateChange }: ManagementTableProps) => {
+export const ManagementTable = ({ selectedUserId, slotFilter, onEditSlot, onEditStatus, refreshKey, initialWeekStart, onDateChange }: ManagementTableProps) => {
   const { theme } = useThemeStore()
   const { user } = useAuthStore()
   const { isAdmin } = useAdminStore()
@@ -426,7 +425,7 @@ export const ManagementTable = ({ selectedUserId, slotFilter, onEditSlot, onEdit
       newDate.setDate(newDate.getDate() + 7)
     }
     setSelectedWeek(newDate)
-    
+
     // Notify parent about date change
     if (onDateChange) {
       const newWeekDays = getWeekDays(newDate)

@@ -19,12 +19,10 @@ interface ManagementWeekViewProps {
   onEditSlot: (slot: WorkSlot) => void
   onEditStatus: (status: DayStatus) => void
   refreshKey: number
-  initialDate?: string | null
   initialWeekStart?: string | null
-  onDateChange?: (date: string | null, weekStart: string | null) => void
 }
 
-export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onEditStatus, refreshKey, initialDate, initialWeekStart, onDateChange }: ManagementWeekViewProps) => {
+export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onEditStatus, refreshKey, initialWeekStart }: ManagementWeekViewProps) => {
   const { theme } = useThemeStore()
   const { user } = useAuthStore()
   const { isAdmin } = useAdminStore()

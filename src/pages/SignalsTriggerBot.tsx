@@ -29,7 +29,7 @@ export const SignalsTriggerBot = () => {
     const [_showConfirmSave, _setShowConfirmSave] = useState(false)
     const [_pendingAlertsCount, _setPendingAlertsCount] = useState(0)
     const [_successMessage, _setSuccessMessage] = useState('')
-    const [previewImage, setPreviewImage] = useState<string | null>(null)
+    const [_previewImage, setPreviewImage] = useState<string | null>(null)
 
     // Filter states
     const [showFilters, setShowFilters] = useState(false)
@@ -1132,6 +1132,7 @@ export const SignalsTriggerBot = () => {
                                         <MultiStrategySelector
                                             value={formData.strategies || []}
                                             onChange={(strategies: TriggerStrategy[]) => setFormData({ ...formData, strategies })}
+                                            theme={theme}
                                         />
                                     </div>
 

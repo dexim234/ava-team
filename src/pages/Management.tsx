@@ -503,87 +503,87 @@ export const Management = () => {
           ? 'bg-[#0b1015]/80 border-white/10'
           : 'bg-white/80 border-gray-200'
           }`}>
-        <div className="flex flex-col lg:flex-row items-center justify-between gap-4 p-2">
-          {/* Left: View Toggle */}
-          <div className={`flex items-center gap-1 p-1 rounded-xl border ${theme === 'dark' ? 'bg-[#151a21] border-white/5' : 'bg-gray-50 border-gray-200'
-            }`}>
-            <button
-              onClick={() => handleViewModeChange('table')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all ${viewMode === 'table'
-                ? 'bg-[#2A3441] text-white shadow-lg ring-1 ring-white/10'
-                : 'text-gray-400 hover:text-gray-200'
-                }`}
-            >
-              <Table2 className="w-4 h-4" />
-              <span>Таблица</span>
-            </button>
-            <button
-              onClick={() => handleViewModeChange('week')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all ${viewMode === 'week'
-                ? 'bg-[#4E6E49] text-white shadow-lg shadow-emerald-900/20'
-                : 'text-gray-400 hover:text-gray-200'
-                }`}
-            >
-              <Calendar className="w-4 h-4" />
-              <span>Неделя</span>
-            </button>
-          </div>
-
-          {/* Center: Actions */}
-          <div className="flex items-center gap-2">
-            <button
-              onClick={handleAddSlot}
-              className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-sm transition-all shadow-lg shadow-emerald-500/20 hover:scale-105 active:scale-95"
-            >
-              <PlusCircle className="w-4 h-4" />
-              <span>Добавить слот</span>
-            </button>
-            <button
-              onClick={handleAddAbsence}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border font-bold text-sm transition-all hover:scale-105 active:scale-95 ${theme === 'dark'
-                ? 'border-white/10 bg-white/5 text-gray-300 hover:bg-white/10 hover:text-white'
-                : 'border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100'
-                }`}
-            >
-              <UserX className="w-4 h-4" />
-              <span className="hidden sm:inline">Отсутствие</span>
-            </button>
-            <button
-              onClick={handleDeleteSlots}
-              className="p-2.5 rounded-xl border border-rose-500/20 bg-rose-500/10 text-rose-500 hover:bg-rose-500/20 transition-all"
-              title="Очистить"
-            >
-              <Trash2 className="w-5 h-5" />
-            </button>
-          </div>
-
-          <div className="flex items-center gap-2 w-full lg:w-72">
-            <MemberSelector
-              selectedUserId={selectedUserId}
-              onSelect={setSelectedUserId}
-            />
-          </div>
-          {/* Admin Actions Dropdown Trigger (Simplified for now) */}
-          {isAdmin && (
-            <div className="flex gap-1">
-              {[
-                { icon: <Shield className="w-4 h-4" />, action: handleManageRestrictions, title: "Ограничения" },
-                { icon: <Shield className="w-4 h-4" />, action: handleManageConflicts, title: "Конфликты" },
-                { icon: <ShieldX className="w-4 h-4" />, action: handleManageAccessBlocks, title: "Блокировки" }
-              ].map((btn, i) => (
-                <button
-                  key={i}
-                  onClick={btn.action}
-                  title={btn.title}
-                  className={`p-2.5 rounded-xl border ${theme === 'dark' ? 'border-white/10 bg-white/5 text-gray-400 hover:text-white' : 'border-gray-200 text-gray-500'}`}
-                >
-                  {btn.icon}
-                </button>
-              ))}
+          <div className="flex flex-col lg:flex-row items-center justify-between gap-4 p-2">
+            {/* Left: View Toggle */}
+            <div className={`flex items-center gap-1 p-1 rounded-xl border ${theme === 'dark' ? 'bg-[#151a21] border-white/5' : 'bg-gray-50 border-gray-200'
+              }`}>
+              <button
+                onClick={() => handleViewModeChange('table')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all ${viewMode === 'table'
+                  ? 'bg-[#2A3441] text-white shadow-lg ring-1 ring-white/10'
+                  : 'text-gray-400 hover:text-gray-200'
+                  }`}
+              >
+                <Table2 className="w-4 h-4" />
+                <span>Таблица</span>
+              </button>
+              <button
+                onClick={() => handleViewModeChange('week')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all ${viewMode === 'week'
+                  ? 'bg-[#4E6E49] text-white shadow-lg shadow-emerald-900/20'
+                  : 'text-gray-400 hover:text-gray-200'
+                  }`}
+              >
+                <Calendar className="w-4 h-4" />
+                <span>Неделя</span>
+              </button>
             </div>
-          )}
+
+            {/* Center: Actions */}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleAddSlot}
+                className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-sm transition-all shadow-lg shadow-emerald-500/20 hover:scale-105 active:scale-95"
+              >
+                <PlusCircle className="w-4 h-4" />
+                <span>Добавить слот</span>
+              </button>
+              <button
+                onClick={handleAddAbsence}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border font-bold text-sm transition-all hover:scale-105 active:scale-95 ${theme === 'dark'
+                  ? 'border-white/10 bg-white/5 text-gray-300 hover:bg-white/10 hover:text-white'
+                  : 'border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100'
+                  }`}
+              >
+                <UserX className="w-4 h-4" />
+                <span className="hidden sm:inline">Отсутствие</span>
+              </button>
+              <button
+                onClick={handleDeleteSlots}
+                className="p-2.5 rounded-xl border border-rose-500/20 bg-rose-500/10 text-rose-500 hover:bg-rose-500/20 transition-all"
+                title="Очистить"
+              >
+                <Trash2 className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="flex items-center gap-2 w-full lg:w-72">
+              <MemberSelector
+                selectedUserId={selectedUserId}
+                onSelect={setSelectedUserId}
+              />
+            </div>
+            {/* Admin Actions Dropdown Trigger (Simplified for now) */}
+            {isAdmin && (
+              <div className="flex gap-1">
+                {[
+                  { icon: <Shield className="w-4 h-4" />, action: handleManageRestrictions, title: "Ограничения" },
+                  { icon: <Shield className="w-4 h-4" />, action: handleManageConflicts, title: "Конфликты" },
+                  { icon: <ShieldX className="w-4 h-4" />, action: handleManageAccessBlocks, title: "Блокировки" }
+                ].map((btn, i) => (
+                  <button
+                    key={i}
+                    onClick={btn.action}
+                    title={btn.title}
+                    className={`p-2.5 rounded-xl border ${theme === 'dark' ? 'border-white/10 bg-white/5 text-gray-400 hover:text-white' : 'border-gray-200 text-gray-500'}`}
+                  >
+                    {btn.icon}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
-      </div>
       </div>
 
       {/* Main Content */}
@@ -597,7 +597,6 @@ export const Management = () => {
               selectedUserId={selectedUserId}
               slotFilter={slotFilter}
               refreshKey={refreshKey}
-              initialDate={selectedDate}
               initialWeekStart={selectedWeekStart}
               onDateChange={handleDateChange}
               onEditSlot={handleEditSlot}
@@ -608,9 +607,7 @@ export const Management = () => {
               selectedUserId={selectedUserId}
               slotFilter={slotFilter}
               refreshKey={refreshKey}
-              initialDate={selectedDate}
               initialWeekStart={selectedWeekStart}
-              onDateChange={handleDateChange}
               onEditSlot={handleEditSlot}
               onEditStatus={handleEditStatus}
             />
