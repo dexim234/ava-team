@@ -4,7 +4,7 @@ import { useAuthStore } from '@/store/authStore'
 import { useAdminStore } from '@/store/adminStore'
 import { getFasolTriggerAlerts, addFasolTriggerAlert, updateFasolTriggerAlert, deleteFasolTriggerAlert } from '@/services/firestoreService'
 import { FasolTriggerAlert, TriggerStrategy, TriggerProfit } from '@/types'
-import { Plus, Edit, Trash2, Save, X, Copy, Check, Table, Filter, ArrowUp, ArrowDown, RotateCcw, Zap, Image, XCircle, Activity, Target } from 'lucide-react'
+import { Plus, Edit, Trash2, Save, X, Copy, Check, Table, Filter, ArrowUp, ArrowDown, RotateCcw, Image, XCircle, Activity, Target, TrendingUp } from 'lucide-react'
 import { MultiStrategySelector } from '../components/Management/MultiStrategySelector'
 import { UserNickname } from '../components/UserNickname'
 
@@ -419,7 +419,7 @@ export const FasolSignalsStrategy = () => {
                     <div className="relative p-6 sm:p-8 flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-6">
                         <div className="flex items-center gap-4">
                             <div className={`p-3 rounded-2xl ${theme === 'dark' ? 'bg-white/10 border-white/20' : 'bg-purple-500/10 border-purple-500/30'} shadow-inner`}>
-                                <Zap className={`w-8 h-8 ${theme === 'dark' ? 'text-white' : 'text-purple-500'}`} />
+                                <TrendingUp className={`w-8 h-8 ${theme === 'dark' ? 'text-white' : 'text-purple-500'}`} />
                             </div>
                             <div className="flex flex-col">
                                 <h1 className={`text-3xl font-black ${headingColor}`}>Fasol Signals Strategy</h1>
@@ -538,9 +538,9 @@ export const FasolSignalsStrategy = () => {
                         <table className="w-full text-left border-collapse">
                             <thead>
                                 <tr className={`border-b ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-gray-50'}`}>
-                                    <th className={`p-2 sm:p-3 text-[10px] sm:text-xs uppercase tracking-wider font-semibold ${subTextColor} text-center w-10`}>#</th>
+                                    <th className={`p-2 sm:p-3 text-[10px] sm:text-xs uppercase tracking-wider font-semibold ${subTextColor} text-center w-10 border-r ${theme === 'dark' ? 'border-white/10' : 'border-gray-200'} last:border-r-0`}>#</th>
                                     {['Дата', 'Время', 'Setup', 'Стратегии', 'MC', 'Адрес', 'Drop', '0.7', 'Профит', 'Коммент', 'Автор', '📷', '⚙'].map(h => (
-                                        <th key={h} className={`p-2 sm:p-3 text-[10px] sm:text-xs uppercase tracking-wider font-semibold ${subTextColor} text-center`}>{h}</th>
+                                        <th key={h} className={`p-2 sm:p-3 text-[10px] sm:text-xs uppercase tracking-wider font-semibold ${subTextColor} text-center border-r ${theme === 'dark' ? 'border-white/10' : 'border-gray-200'} last:border-r-0`}>{h}</th>
                                     ))}
                                 </tr>
                             </thead>
@@ -548,13 +548,13 @@ export const FasolSignalsStrategy = () => {
                                 {loading ? (<tr><td colSpan={14} className="p-8 text-center text-gray-500">Загрузка...</td></tr>) : filteredAlerts.length === 0 ? (<tr><td colSpan={14} className="p-8 text-center text-gray-500">Нет сигналов</td></tr>) : (
                                     filteredAlerts.map((alert, index) => (
                                         <tr key={alert.id} className={`${theme === 'dark' ? 'hover:bg-white/5' : 'hover:bg-gray-50'} transition-colors ${alert.isScam ? 'bg-red-500/10' : ''}`}>
-                                            <td className="p-2 sm:p-3 text-center whitespace-nowrap">
+                                            <td className={`p-2 sm:p-3 text-center whitespace-nowrap border-r ${theme === 'dark' ? 'border-white/5' : 'border-gray-100'} last:border-r-0`}>
                                                 <div className={`font-mono text-[10px] sm:text-xs font-bold ${subTextColor}`}>{index + 1}</div>
                                             </td>
-                                            <td className="p-2 sm:p-3 whitespace-nowrap text-center font-mono text-xs sm:text-sm">{formatDateForDisplay(alert.signalDate)}</td>
-                                            <td className="p-2 sm:p-3 whitespace-nowrap text-center font-mono text-xs sm:text-sm">{alert.signalTime}</td>
-                                            <td className="p-2 sm:p-3 text-center font-mono text-xs font-bold text-purple-400">{alert.setup || '-'}</td>
-                                            <td className="p-2 sm:p-3 text-center">
+                                            <td className={`p-2 sm:p-3 whitespace-nowrap text-center font-mono text-xs sm:text-sm border-r ${theme === 'dark' ? 'border-white/5' : 'border-gray-100'} last:border-r-0`}>{formatDateForDisplay(alert.signalDate)}</td>
+                                            <td className={`p-2 sm:p-3 whitespace-nowrap text-center font-mono text-xs sm:text-sm border-r ${theme === 'dark' ? 'border-white/5' : 'border-gray-100'} last:border-r-0`}>{alert.signalTime}</td>
+                                            <td className={`p-2 sm:p-3 text-center font-mono text-xs font-bold text-purple-400 border-r ${theme === 'dark' ? 'border-white/5' : 'border-gray-100'} last:border-r-0`}>{alert.setup || '-'}</td>
+                                            <td className={`p-2 sm:p-3 text-center border-r ${theme === 'dark' ? 'border-white/5' : 'border-gray-100'} last:border-r-0`}>
                                                 {alert.isScam ? <span className="text-red-500 font-bold text-[10px]">СКАМ</span> : (
                                                     <div className="flex flex-wrap gap-0.5 justify-center">
                                                         {alert.strategies?.map(s => {
@@ -564,8 +564,8 @@ export const FasolSignalsStrategy = () => {
                                                     </div>
                                                 )}
                                             </td>
-                                            <td className="p-2 sm:p-3 text-center font-mono text-xs">{alert.marketCap || '-'}</td>
-                                            <td className="p-2 sm:p-3 text-center">
+                                            <td className={`p-2 sm:p-3 text-center font-mono text-xs border-r ${theme === 'dark' ? 'border-white/5' : 'border-gray-100'} last:border-r-0`}>{alert.marketCap || '-'}</td>
+                                            <td className={`p-2 sm:p-3 text-center border-r ${theme === 'dark' ? 'border-white/5' : 'border-gray-100'} last:border-r-0`}>
                                                 <div className="flex items-center justify-center gap-1">
                                                     <a href={`https://gmgn.ai/sol/token/${alert.address}`} target="_blank" rel="noopener noreferrer" className={`font-mono text-[10px] sm:text-sm ${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'}`}>{truncateAddress(alert.address)}</a>
                                                     <button onClick={() => handleCopy(alert.address, alert.id)} className={`p-1 rounded hover:bg-white/10 ${subTextColor}`}>
@@ -573,15 +573,15 @@ export const FasolSignalsStrategy = () => {
                                                     </button>
                                                 </div>
                                             </td>
-                                            <td className="p-2 sm:p-3 text-center font-mono text-xs">{alert.maxDropFromSignal || '-'}</td>
-                                            <td className="p-2 sm:p-3 text-center font-mono text-xs">{alert.maxDropFromLevel07 || '-'}</td>
-                                            <td className="p-2 sm:p-3 text-center font-mono text-xs text-green-500 font-bold">{getProfitDisplay(alert.profits)}</td>
-                                            <td className="p-2 sm:p-3 text-center"><div className="text-[10px] sm:text-xs truncate max-w-[150px] mx-auto">{alert.comment || '-'}</div></td>
-                                            <td className="p-2 sm:p-3 text-center">
+                                            <td className={`p-2 sm:p-3 text-center font-mono text-xs border-r ${theme === 'dark' ? 'border-white/5' : 'border-gray-100'} last:border-r-0`}>{alert.maxDropFromSignal || '-'}</td>
+                                            <td className={`p-2 sm:p-3 text-center font-mono text-xs border-r ${theme === 'dark' ? 'border-white/5' : 'border-gray-100'} last:border-r-0`}>{alert.maxDropFromLevel07 || '-'}</td>
+                                            <td className={`p-2 sm:p-3 text-center font-mono text-xs text-green-500 font-bold border-r ${theme === 'dark' ? 'border-white/5' : 'border-gray-100'} last:border-r-0`}>{getProfitDisplay(alert.profits)}</td>
+                                            <td className={`p-2 sm:p-3 text-center border-r ${theme === 'dark' ? 'border-white/5' : 'border-gray-100'} last:border-r-0`}><div className="text-[10px] sm:text-xs truncate max-w-[150px] mx-auto">{alert.comment || '-'}</div></td>
+                                            <td className={`p-2 sm:p-3 text-center border-r ${theme === 'dark' ? 'border-white/5' : 'border-gray-100'} last:border-r-0`}>
                                                 <UserNickname userId={alert.createdBy} className="text-[10px] sm:text-xs font-medium" />
                                             </td>
-                                            <td className="p-2 sm:p-3 text-center">{alert.screenshot ? <button onClick={() => setPreviewImage(alert.screenshot!)} className="text-xs">📷</button> : '—'}</td>
-                                            <td className="p-2 sm:p-3 text-center">
+                                            <td className={`p-2 sm:p-3 text-center border-r ${theme === 'dark' ? 'border-white/5' : 'border-gray-100'} last:border-r-0`}>{alert.screenshot ? <button onClick={() => setPreviewImage(alert.screenshot!)} className="text-xs">📷</button> : '—'}</td>
+                                            <td className={`p-2 sm:p-3 text-center last:border-r-0`}>
                                                 <div className="flex items-center justify-center gap-1">
                                                     {(isAdmin || user?.id === alert.createdBy) && (
                                                         <button onClick={() => handleEdit(alert)} className="p-1.5 rounded-lg hover:bg-white/10 text-blue-500"><Edit size={14} /></button>
