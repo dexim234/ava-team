@@ -510,7 +510,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
         </aside>
 
         <div className={`flex-1 ${isCollapsed ? 'xl:pl-20' : 'xl:pl-72'} min-h-screen transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]`}>
-          <main className="page-shell xl:pb-0 pb-6 pt-20 xl:pt-0">
+          <main className="page-shell xl:pb-0 pb-6 pt-32 xl:pt-0">
             {children}
           </main>
         </div>
@@ -588,8 +588,8 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                         to={item.path}
                         onClick={() => setIsMobileMenuOpen(false)}
                         className={`flex flex-col items-center justify-center gap-2 p-3 rounded-xl border transition-all ${location.pathname === item.path
-                            ? 'border-[#4E6E49]/50 bg-[#4E6E49]/10'
-                            : theme === 'dark' ? 'border-white/10 bg-white/5 hover:bg-white/10' : 'border-gray-100 bg-gray-50 hover:bg-gray-100'
+                          ? 'border-[#4E6E49]/50 bg-[#4E6E49]/10'
+                          : theme === 'dark' ? 'border-white/10 bg-white/5 hover:bg-white/10' : 'border-gray-100 bg-gray-50 hover:bg-gray-100'
                           }`}
                       >
                         <item.icon className={`w-6 h-6 ${location.pathname === item.path ? 'text-[#4E6E49]' : 'text-gray-400'}`} />
@@ -610,8 +610,8 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                       to={item.path}
                       onClick={() => setIsMobileMenuOpen(false)}
                       className={`flex items-center gap-3 p-3 rounded-xl transition-all ${location.pathname === item.path
-                          ? 'bg-[#4E6E49] text-white shadow-lg'
-                          : theme === 'dark' ? 'text-gray-400 hover:bg-white/5 hover:text-white' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'
+                        ? 'bg-[#4E6E49] text-white shadow-lg'
+                        : theme === 'dark' ? 'text-gray-400 hover:bg-white/5 hover:text-white' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'
                         }`}
                     >
                       <item.icon className="w-5 h-5" />
