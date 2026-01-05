@@ -59,6 +59,7 @@ const CATEGORY_META: Record<CallCategory, { label: string; gradient: string; ico
   spot: { label: 'Спот', gradient: 'from-amber-300 to-orange-300', icon: <Coins className="w-5 h-5" />, pastelBg: 'bg-amber-50', pastelBorder: 'border-amber-100', pastelText: 'text-amber-800' },
   polymarket: { label: 'Polymarket', gradient: 'from-rose-300 to-red-300', icon: <Target className="w-5 h-5" />, pastelBg: 'bg-rose-50', pastelBorder: 'border-rose-100', pastelText: 'text-rose-800' },
   staking: { label: 'Стейкинг', gradient: 'from-cyan-300 to-blue-300', icon: <Shield className="w-5 h-5" />, pastelBg: 'bg-cyan-50', pastelBorder: 'border-cyan-100', pastelText: 'text-cyan-800' },
+  airdrop: { label: 'AirDrop', gradient: 'from-blue-300 to-indigo-400', icon: <Sparkles className="w-5 h-5" />, pastelBg: 'bg-blue-50', pastelBorder: 'border-blue-100', pastelText: 'text-blue-800' },
 }
 
 const CATEGORY_SECTIONS: Record<CallCategory, Record<string, SectionConfig>> = {
@@ -99,6 +100,12 @@ const CATEGORY_SECTIONS: Record<CallCategory, Record<string, SectionConfig>> = {
     targets: { title: 'Риски и анализ', icon: <AlertTriangle className="w-4 h-4" />, description: 'Оценка рисков' },
     additional: { title: 'Дополнительно', icon: <Settings className="w-4 h-4" />, description: 'Комментарии и детали' },
   },
+  airdrop: {
+    basic: { title: 'Проект', icon: <Info className="w-4 h-4" />, description: 'Информация о проекте' },
+    details: { title: 'Детали дропа', icon: <Target className="w-4 h-4" />, description: 'Задачи и вознаграждения' },
+    links: { title: 'Ссылки и сроки', icon: <Link2 className="w-4 h-4" />, description: 'Полезные ссылки' },
+    analysis: { title: 'Анализ', icon: <Shield className="w-4 h-4" />, description: 'Почему заходим и риски' },
+  },
 }
 
 const CATEGORY_FIELDS: Record<CallCategory, FieldConfig[]> = {
@@ -107,64 +114,78 @@ const CATEGORY_FIELDS: Record<CallCategory, FieldConfig[]> = {
     { key: 'ticker', label: 'Тикер', placeholder: 'PEPE', section: 'basic' },
     { key: 'network', label: 'Сеть', type: 'select', options: networkOptions, section: 'basic' },
     { key: 'contract', label: 'Контракт', placeholder: '0x...', section: 'basic' },
-    { key: 'signalType', label: 'Тип сигнала', type: 'select', options: [
-      { value: 'buy', label: 'Buy' },
-      { value: 'sell', label: 'Sell' },
-      { value: 'hold', label: 'Hold' },
-      { value: 'alert', label: 'Alert' },
-    ], section: 'basic' },
+    {
+      key: 'signalType', label: 'Тип сигнала', type: 'select', options: [
+        { value: 'buy', label: 'Buy' },
+        { value: 'sell', label: 'Sell' },
+        { value: 'hold', label: 'Hold' },
+        { value: 'alert', label: 'Alert' },
+      ], section: 'basic'
+    },
     { key: 'reason', label: 'Причина входа', placeholder: 'Хайп, крупные покупки, листинг...', type: 'textarea', section: 'entry' },
     { key: 'entryCap', label: 'Зона входа в капитализации', placeholder: '10M-15M', section: 'entry' },
     { key: 'targets', label: 'Цели (TP1/TP2/TP3)', placeholder: '20M / 30M / 50M', section: 'targets' },
     { key: 'stopLoss', label: 'Стоп-лосс', placeholder: '5M или -25%', section: 'targets' },
-    { key: 'riskLevel', label: 'Риск-уровень', type: 'select', options: [
-      { value: 'low', label: 'Низкий' },
-      { value: 'medium', label: 'Средний' },
-      { value: 'high', label: 'Высокий' },
-      { value: 'ultra', label: 'Ультра-высокий' },
-    ], section: 'targets' },
+    {
+      key: 'riskLevel', label: 'Риск-уровень', type: 'select', options: [
+        { value: 'low', label: 'Низкий' },
+        { value: 'medium', label: 'Средний' },
+        { value: 'high', label: 'Высокий' },
+        { value: 'ultra', label: 'Ультра-высокий' },
+      ], section: 'targets'
+    },
     { key: 'risks', label: 'Риски', placeholder: 'Разворот тренда, низкая ликвидность', type: 'textarea', section: 'targets' },
-    { key: 'holdPlan', label: 'План удержания', type: 'select', options: [
-      { value: 'flip', label: 'Флип' },
-      { value: 'short', label: 'Краткосрок' },
-      { value: 'medium', label: 'Среднесрок' },
-      { value: 'long', label: 'Дальнесрок' },
-    ], section: 'additional' },
+    {
+      key: 'holdPlan', label: 'План удержания', type: 'select', options: [
+        { value: 'flip', label: 'Флип' },
+        { value: 'short', label: 'Краткосрок' },
+        { value: 'medium', label: 'Среднесрок' },
+        { value: 'long', label: 'Дальнесрок' },
+      ], section: 'additional'
+    },
     { key: 'liquidityLocked', label: 'Залочена ли ликвидность', type: 'checkbox', section: 'additional' },
     { key: 'traderComment', label: 'Комментарий трейдера', type: 'textarea', placeholder: 'Доп. наблюдения, планы', section: 'additional' },
   ],
   futures: [
     { key: 'pair', label: 'Пара', placeholder: 'BTC/USDT', section: 'basic' },
-    { key: 'direction', label: 'Направление', type: 'select', options: [
-      { value: 'long', label: 'Long' },
-      { value: 'short', label: 'Short' },
-    ], section: 'basic' },
+    {
+      key: 'direction', label: 'Направление', type: 'select', options: [
+        { value: 'long', label: 'Long' },
+        { value: 'short', label: 'Short' },
+      ], section: 'basic'
+    },
     { key: 'leverage', label: 'Рекомендованное плечо', placeholder: 'x3 - x10', section: 'entry' },
     { key: 'entryPrice', label: 'Цена входа', placeholder: '69500', section: 'entry' },
     { key: 'entryZone', label: 'Зоны входа (min-max)', placeholder: '69000 - 70000', section: 'entry' },
     { key: 'positionSize', label: 'Размер позиции (% от депо)', placeholder: '2-5%', section: 'entry' },
     { key: 'targets', label: 'Цели (TP1/TP2/TP3)', placeholder: '71000 / 72500 / 74000', section: 'targets' },
     { key: 'stopLoss', label: 'SL уровень', placeholder: '68000', section: 'targets' },
-    { key: 'riskLevel', label: 'Риск-уровень', type: 'select', options: [
-      { value: 'low', label: 'Низкий' },
-      { value: 'medium', label: 'Средний' },
-      { value: 'high', label: 'Высокий' },
-      { value: 'ultra', label: 'Ультра-высокий' },
-    ], section: 'targets' },
-    { key: 'signalStyle', label: 'Тип сигнала', type: 'select', options: [
-      { value: 'breakout', label: 'Breakout' },
-      { value: 'retest', label: 'Retest' },
-      { value: 'range', label: 'Range' },
-      { value: 'scalping', label: 'Scalping' },
-      { value: 'swing', label: 'Swing' },
-    ], section: 'strategy' },
-    { key: 'timeframe', label: 'Таймфрейм анализа', type: 'select', options: [
-      { value: '1m', label: '1m' },
-      { value: '5m', label: '5m' },
-      { value: '15m', label: '15m' },
-      { value: '1h', label: '1h' },
-      { value: '4h', label: '4h' },
-    ], section: 'strategy' },
+    {
+      key: 'riskLevel', label: 'Риск-уровень', type: 'select', options: [
+        { value: 'low', label: 'Низкий' },
+        { value: 'medium', label: 'Средний' },
+        { value: 'high', label: 'Высокий' },
+        { value: 'ultra', label: 'Ультра-высокий' },
+      ], section: 'targets'
+    },
+    {
+      key: 'signalStyle', label: 'Тип сигнала', type: 'select', options: [
+        { value: 'breakout', label: 'Breakout' },
+        { value: 'retest', label: 'Retest' },
+        { value: 'range', label: 'Range' },
+        { value: 'scalping', label: 'Scalping' },
+        { value: 'swing', label: 'Swing' },
+      ], section: 'strategy'
+    },
+    {
+      key: 'timeframe', label: 'Таймфрейм анализа', type: 'select', options: [
+        { value: '1m', label: '1m' },
+        { value: '5m', label: '5m' },
+        { value: '15m', label: '15m' },
+        { value: '1h', label: '1h' },
+        { value: '4h', label: '4h' },
+      ], section: 'strategy'
+    },
     { key: 'reason', label: 'Причина входа (анализ)', placeholder: 'Тренд, объемы, дивергенция...', type: 'textarea', section: 'strategy' },
     { key: 'risks', label: 'Риски', placeholder: 'Резкий вброс, низкая волатильность', type: 'textarea', section: 'additional' },
   ],
@@ -176,17 +197,21 @@ const CATEGORY_FIELDS: Record<CallCategory, FieldConfig[]> = {
     { key: 'entryPrice', label: 'Рекомендованная цена входа', placeholder: '1.2 ETH', section: 'entry' },
     { key: 'rarity', label: 'Редкость / атрибуты', placeholder: 'Rank < 5%', section: 'entry' },
     { key: 'minLiquidity', label: 'Минимальная ликвидность', placeholder: 'Floor 2 ETH, объём 120 ETH', section: 'entry' },
-    { key: 'signalType', label: 'Тип сигнала', type: 'select', options: [
-      { value: 'buy', label: 'Buy' },
-      { value: 'sell', label: 'Sell' },
-      { value: 'mint', label: 'Mint' },
-    ], section: 'entry' },
-    { key: 'holdingHorizon', label: 'Срок удержания', type: 'select', options: [
-      { value: 'flip', label: 'Скоростной флип' },
-      { value: 'short', label: 'Краткосрок' },
-      { value: 'medium', label: 'Среднесрок' },
-      { value: 'long', label: 'Долгосрок' },
-    ], section: 'targets' },
+    {
+      key: 'signalType', label: 'Тип сигнала', type: 'select', options: [
+        { value: 'buy', label: 'Buy' },
+        { value: 'sell', label: 'Sell' },
+        { value: 'mint', label: 'Mint' },
+      ], section: 'entry'
+    },
+    {
+      key: 'holdingHorizon', label: 'Срок удержания', type: 'select', options: [
+        { value: 'flip', label: 'Скоростной флип' },
+        { value: 'short', label: 'Краткосрок' },
+        { value: 'medium', label: 'Среднесрок' },
+        { value: 'long', label: 'Долгосрок' },
+      ], section: 'targets'
+    },
     { key: 'targetPrice', label: 'Цель продажи / Target price', placeholder: '3 ETH', section: 'targets' },
     { key: 'risks', label: 'Риски', placeholder: 'Падение спроса, фальшивый объём', type: 'textarea', section: 'targets' },
     { key: 'reason', label: 'Причина входа', placeholder: 'Минт, хайп, инсайд', type: 'textarea', section: 'additional' },
@@ -198,17 +223,21 @@ const CATEGORY_FIELDS: Record<CallCategory, FieldConfig[]> = {
     { key: 'positionSize', label: 'Размер позиции', placeholder: '5-10% портфеля', section: 'entry' },
     { key: 'targets', label: 'Цели (TP1/TP2/TP3)', placeholder: '550M / 650M / 750M', section: 'targets' },
     { key: 'stopLoss', label: 'SL', placeholder: '-10%', section: 'targets' },
-    { key: 'holdingHorizon', label: 'Горизонт удержания', type: 'select', options: [
-      { value: 'short', label: 'Краткосрок' },
-      { value: 'medium', label: 'Среднесрок' },
-      { value: 'long', label: 'Долгосрок' },
-    ], section: 'targets' },
-    { key: 'riskLevel', label: 'Риск-уровень', type: 'select', options: [
-      { value: 'low', label: 'Низкий' },
-      { value: 'medium', label: 'Средний' },
-      { value: 'high', label: 'Высокий' },
-      { value: 'ultra', label: 'Ультра-высокий' },
-    ], section: 'targets' },
+    {
+      key: 'holdingHorizon', label: 'Горизонт удержания', type: 'select', options: [
+        { value: 'short', label: 'Краткосрок' },
+        { value: 'medium', label: 'Среднесрок' },
+        { value: 'long', label: 'Долгосрок' },
+      ], section: 'targets'
+    },
+    {
+      key: 'riskLevel', label: 'Риск-уровень', type: 'select', options: [
+        { value: 'low', label: 'Низкий' },
+        { value: 'medium', label: 'Средний' },
+        { value: 'high', label: 'Высокий' },
+        { value: 'ultra', label: 'Ультра-высокий' },
+      ], section: 'targets'
+    },
     { key: 'reason', label: 'Причина входа', placeholder: 'Фундаментал, хайп', type: 'textarea', section: 'additional' },
     { key: 'risks', label: 'Риски', placeholder: 'Регуляторика, конкуренты', type: 'textarea', section: 'additional' },
     { key: 'traderComment', label: 'Комментарий', type: 'textarea', placeholder: 'Условия фиксации, обновления', section: 'additional' },
@@ -216,48 +245,77 @@ const CATEGORY_FIELDS: Record<CallCategory, FieldConfig[]> = {
   polymarket: [
     { key: 'event', label: 'Событие', placeholder: 'Trump wins 2025', section: 'basic' },
     { key: 'eventDeadline', label: 'Срок исхода события', placeholder: '31.12.2025', section: 'basic' },
-    { key: 'positionType', label: 'Тип позиции', type: 'select', options: [
-      { value: 'yes', label: 'Yes' },
-      { value: 'no', label: 'No' },
-    ], section: 'entry' },
+    {
+      key: 'positionType', label: 'Тип позиции', type: 'select', options: [
+        { value: 'yes', label: 'Yes' },
+        { value: 'no', label: 'No' },
+      ], section: 'entry'
+    },
     { key: 'entryPrice', label: 'Цена входа (%)', placeholder: '42%', section: 'entry' },
     { key: 'expectedProbability', label: 'Ожидаемая вероятность (%)', placeholder: '65%', section: 'entry' },
     { key: 'maxStake', label: 'Максимальный объём ставки', placeholder: 'до $5k', section: 'entry' },
     { key: 'targetPlan', label: 'Цель', placeholder: 'Продажа до события или удержание', section: 'targets' },
-    { key: 'riskLevel', label: 'Риск', type: 'select', options: [
-      { value: 'low', label: 'Низкий' },
-      { value: 'medium', label: 'Средний' },
-      { value: 'high', label: 'Высокий' },
-      { value: 'ultra', label: 'Ультра-высокий' },
-    ], section: 'targets' },
+    {
+      key: 'riskLevel', label: 'Риск', type: 'select', options: [
+        { value: 'low', label: 'Низкий' },
+        { value: 'medium', label: 'Средний' },
+        { value: 'high', label: 'Высокий' },
+        { value: 'ultra', label: 'Ультра-высокий' },
+      ], section: 'targets'
+    },
     { key: 'risks', label: 'Риски', placeholder: 'Неопределённость новостей, низкая ликвидность', type: 'textarea', section: 'targets' },
     { key: 'reason', label: 'Причина входа', placeholder: 'Аналитика, инсайд', type: 'textarea', section: 'additional' },
   ],
   staking: [
     { key: 'coin', label: 'Монета', placeholder: 'SOL', section: 'basic' },
     { key: 'platform', label: 'Платформа', placeholder: 'Jito, Lido...', section: 'entry' },
-    { key: 'term', label: 'Срок стейкинга', type: 'select', options: [
-      { value: 'flexible', label: 'Гибкий' },
-      { value: '30d', label: '30 дней' },
-      { value: '90d', label: '90 дней' },
-      { value: 'fixed', label: 'Фиксированный' },
-    ], section: 'entry' },
+    {
+      key: 'term', label: 'Срок стейкинга', type: 'select', options: [
+        { value: 'flexible', label: 'Гибкий' },
+        { value: '30d', label: '30 дней' },
+        { value: '90d', label: '90 дней' },
+        { value: 'fixed', label: 'Фиксированный' },
+      ], section: 'entry'
+    },
     { key: 'apy', label: 'APY', placeholder: '12-18%', section: 'entry' },
     { key: 'minDeposit', label: 'Минимальный депозит', placeholder: '100 USDT', section: 'entry' },
-    { key: 'action', label: 'Тип сигнала', type: 'select', options: [
-      { value: 'enter', label: 'Вход' },
-      { value: 'exit', label: 'Выход' },
-      { value: 'rebalance', label: 'Перераспределение' },
-    ], section: 'entry' },
-    { key: 'protocolRisk', label: 'Риски протокола', type: 'select', options: [
-      { value: 'low', label: 'Низкие' },
-      { value: 'medium', label: 'Средние' },
-      { value: 'high', label: 'Высокие' },
-      { value: 'ultra', label: 'Ультра' },
-    ], section: 'targets' },
+    {
+      key: 'action', label: 'Тип сигнала', type: 'select', options: [
+        { value: 'enter', label: 'Вход' },
+        { value: 'exit', label: 'Выход' },
+        { value: 'rebalance', label: 'Перераспределение' },
+      ], section: 'entry'
+    },
+    {
+      key: 'protocolRisk', label: 'Риски протокола', type: 'select', options: [
+        { value: 'low', label: 'Низкие' },
+        { value: 'medium', label: 'Средние' },
+        { value: 'high', label: 'Высокие' },
+        { value: 'ultra', label: 'Ультра' },
+      ], section: 'targets'
+    },
     { key: 'risks', label: 'Риски', placeholder: 'Смарт-контракт, ликвидность', type: 'textarea', section: 'targets' },
     { key: 'reason', label: 'Причина', placeholder: 'Рост доходности', type: 'textarea', section: 'additional' },
     { key: 'traderComment', label: 'Комментарий трейдера', type: 'textarea', placeholder: 'Тактика выхода, дополнительные условия', section: 'additional' },
+  ],
+  airdrop: [
+    { key: 'projectName', label: 'Название проекта', placeholder: 'Project Name', section: 'basic', required: true },
+    { key: 'network', label: 'Сеть', type: 'select', options: [...networkOptions, { value: 'other' as any, label: 'Другое' }], section: 'basic' },
+    {
+      key: 'rewardType', label: 'Тип награды', type: 'select', options: [
+        { value: 'token', label: 'Токены' },
+        { value: 'points', label: 'Поинты' },
+        { value: 'nft', label: 'NFT' },
+        { value: 'other', label: 'Другое' },
+      ], section: 'details'
+    },
+    { key: 'expectedValue', label: 'Ожидаемая стоимость', placeholder: '$100 - $1000', section: 'details' },
+    { key: 'tasks', label: 'Список задач', placeholder: 'Свапы, бридж, подписка...', type: 'textarea', section: 'details', required: true },
+    { key: 'link', label: 'Ссылка на активность', placeholder: 'https://...', section: 'links', required: true },
+    { key: 'deadline', label: 'Дедлайн', placeholder: '31.12.2025', section: 'links' },
+    { key: 'reason', label: 'Почему заходим (Lust)', placeholder: 'Большие инвестиции, проект от Binance...', type: 'textarea', section: 'analysis', required: true },
+    { key: 'risks', label: 'Риски', placeholder: 'Скам, долгое ожидание, затраты на газ', type: 'textarea', section: 'analysis' },
+    { key: 'traderComment', label: 'Комментарий', type: 'textarea', placeholder: 'Лайфхаки, как лучше делать', section: 'analysis' },
   ],
 }
 
@@ -344,6 +402,18 @@ const buildEmptyDetails = (): FormDetailsState => ({
     risks: '',
     traderComment: '',
   },
+  airdrop: {
+    projectName: '',
+    network: 'solana',
+    rewardType: 'token',
+    expectedValue: '',
+    tasks: '',
+    deadline: '',
+    link: '',
+    reason: '',
+    risks: '',
+    traderComment: '',
+  },
 })
 
 const mergeDetails = (base: FormDetailsState, incoming?: CallDetails): FormDetailsState => ({
@@ -353,6 +423,7 @@ const mergeDetails = (base: FormDetailsState, incoming?: CallDetails): FormDetai
   spot: { ...base.spot, ...(incoming?.spot || {}) },
   polymarket: { ...base.polymarket, ...(incoming?.polymarket || {}) },
   staking: { ...base.staking, ...(incoming?.staking || {}) },
+  airdrop: { ...base.airdrop, ...(incoming?.airdrop || {}) },
 })
 
 export const CallForm = ({ onSuccess, onCancel, callToEdit, initialCategory }: CallFormProps) => {
@@ -470,6 +541,12 @@ export const CallForm = ({ onSuccess, onCancel, callToEdit, initialCategory }: C
       border: theme === 'dark' ? 'border-cyan-500/30' : 'border-cyan-200',
       chipBg: theme === 'dark' ? 'bg-cyan-500/20' : 'bg-cyan-500/10',
     },
+    airdrop: {
+      bg: theme === 'dark' ? 'bg-blue-500/10' : 'bg-blue-50',
+      text: theme === 'dark' ? 'text-blue-100' : 'text-blue-800',
+      border: theme === 'dark' ? 'border-blue-500/30' : 'border-blue-200',
+      chipBg: theme === 'dark' ? 'bg-blue-500/20' : 'bg-blue-500/10',
+    },
   }
 
   const getDetails = (call: Call) => (call.details as any)?.[call.category] || {}
@@ -489,6 +566,8 @@ export const CallForm = ({ onSuccess, onCancel, callToEdit, initialCategory }: C
         return d.event || 'Polymarket событие'
       case 'staking':
         return d.coin || 'Стейкинг'
+      case 'airdrop':
+        return d.projectName || 'AirDrop'
       default:
         return 'Сигнал'
     }
@@ -509,6 +588,8 @@ export const CallForm = ({ onSuccess, onCancel, callToEdit, initialCategory }: C
         return `${d.positionType === 'yes' ? 'YES' : 'NO'} • ${d.entryPrice || ''}`
       case 'staking':
         return `${d.platform || ''}${d.term ? ` • ${d.term}` : ''}`
+      case 'airdrop':
+        return `${d.network ? String(d.network).toUpperCase() : ''} • ${d.rewardType || ''}`
       default:
         return ''
     }
@@ -594,6 +675,14 @@ export const CallForm = ({ onSuccess, onCancel, callToEdit, initialCategory }: C
         addMetric('APY', d.apy, <Percent className="w-4 h-4" />)
         addMetric('Мин. депозит', d.minDeposit, <Coins className="w-4 h-4" />)
         addMetric('Тип сигнала', d.action, <Shield className="w-4 h-4" />)
+        break
+      case 'airdrop':
+        addMetric('Проект', d.projectName, <Building2 className="w-4 h-4" />)
+        addMetric('Сеть', d.network ? String(d.network).toUpperCase() : '', <Globe2 className="w-4 h-4" />)
+        addMetric('Награда', d.rewardType, <Target className="w-4 h-4" />)
+        addMetric('Ценность', d.expectedValue, <Coins className="w-4 h-4" />)
+        addMetric('Задачи', d.tasks, <ScrollText className="w-4 h-4" />)
+        addMetric('Дедлайн', d.deadline, <Timer className="w-4 h-4" />)
         break
     }
 
@@ -729,8 +818,8 @@ export const CallForm = ({ onSuccess, onCancel, callToEdit, initialCategory }: C
     if (field.type === 'select' && field.options) {
       // Replace select with beautiful button grid for better UX
       const cols = field.options.length <= 3 ? 'grid-cols-1 sm:grid-cols-3' :
-                   field.options.length <= 4 ? 'grid-cols-2 sm:grid-cols-4' :
-                   'grid-cols-2 sm:grid-cols-3'
+        field.options.length <= 4 ? 'grid-cols-2 sm:grid-cols-4' :
+          'grid-cols-2 sm:grid-cols-3'
       return (
         <div className={`grid ${cols} gap-2 sm:gap-3`}>
           {field.options.map((opt) => {
@@ -740,11 +829,10 @@ export const CallForm = ({ onSuccess, onCancel, callToEdit, initialCategory }: C
                 key={opt.value}
                 type="button"
                 onClick={() => updateField(field.key, opt.value)}
-                className={`px-3 py-3 sm:py-2 rounded-lg border-2 text-sm font-medium transition-all duration-300 min-h-[44px] sm:min-h-[40px] hover:shadow-md focus:outline-none focus:ring-2 focus:ring-[#4E6E49]/30 ${
-                  isSelected
-                    ? 'border-[#4E6E49] bg-gradient-to-r from-[#4E6E49] to-emerald-600 text-white shadow-md shadow-emerald-300/30 scale-[1.02] ring-2 ring-[#4E6E49]/20'
-                    : `border-gray-200 dark:border-gray-700 ${theme === 'dark' ? 'text-gray-300 hover:border-gray-600 hover:bg-gray-800' : 'text-gray-700 hover:border-gray-400 hover:bg-gray-50'} active:scale-95 hover:-translate-y-0.5`
-                }`}
+                className={`px-3 py-3 sm:py-2 rounded-lg border-2 text-sm font-medium transition-all duration-300 min-h-[44px] sm:min-h-[40px] hover:shadow-md focus:outline-none focus:ring-2 focus:ring-[#4E6E49]/30 ${isSelected
+                  ? 'border-[#4E6E49] bg-gradient-to-r from-[#4E6E49] to-emerald-600 text-white shadow-md shadow-emerald-300/30 scale-[1.02] ring-2 ring-[#4E6E49]/20'
+                  : `border-gray-200 dark:border-gray-700 ${theme === 'dark' ? 'text-gray-300 hover:border-gray-600 hover:bg-gray-800' : 'text-gray-700 hover:border-gray-400 hover:bg-gray-50'} active:scale-95 hover:-translate-y-0.5`
+                  }`}
               >
                 {opt.label}
               </button>
@@ -807,11 +895,10 @@ export const CallForm = ({ onSuccess, onCancel, callToEdit, initialCategory }: C
                 key={cat}
                 type="button"
                 onClick={() => setCategory(cat)}
-                className={`p-4 rounded-xl border-2 transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 active:scale-95 ${
-                  isSelected
-                    ? `border-[#4E6E49] bg-gradient-to-br from-[#4E6E49]/10 to-emerald-500/10 shadow-md shadow-emerald-300/20 scale-[1.02] ring-2 ring-[#4E6E49]/20`
-                    : `border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 hover:shadow-lg`
-                }`}
+                className={`p-4 rounded-xl border-2 transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 active:scale-95 ${isSelected
+                  ? `border-[#4E6E49] bg-gradient-to-br from-[#4E6E49]/10 to-emerald-500/10 shadow-md shadow-emerald-300/20 scale-[1.02] ring-2 ring-[#4E6E49]/20`
+                  : `border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 hover:shadow-lg`
+                  }`}
               >
                 <div className="flex flex-col items-center gap-2 text-center">
                   <div className={`p-2 rounded-lg ${isSelected ? 'bg-[#4E6E49] text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300'} transition-colors`}>
@@ -890,9 +977,9 @@ export const CallForm = ({ onSuccess, onCancel, callToEdit, initialCategory }: C
                   {sectionFields.map((field) => (
                     <div key={field.key} className="space-y-2">
                       {field.type !== 'checkbox' && (
-                      <label className={`text-sm font-semibold ${textColor}`}>
-                        {field.label}
-                      </label>
+                        <label className={`text-sm font-semibold ${textColor}`}>
+                          {field.label}
+                        </label>
                       )}
                       {renderField(field)}
                     </div>
@@ -928,13 +1015,12 @@ export const CallForm = ({ onSuccess, onCancel, callToEdit, initialCategory }: C
             Предпросмотр
           </button>
           <button
-          type="submit"
-          disabled={loading}
-          className={`flex-1 py-4 sm:py-3 rounded-lg font-semibold transition-all shadow-md min-h-[48px] sm:min-h-[44px] ${
-            theme === 'dark'
+            type="submit"
+            disabled={loading}
+            className={`flex-1 py-4 sm:py-3 rounded-lg font-semibold transition-all shadow-md min-h-[48px] sm:min-h-[44px] ${theme === 'dark'
               ? 'bg-gradient-to-r from-[#4E6E49] to-emerald-700 text-white hover:scale-[1.01] active:scale-[0.98] disabled:bg-gray-700'
               : 'bg-gradient-to-r from-[#4E6E49] to-emerald-600 text-white hover:shadow-lg active:shadow-md disabled:bg-gray-300 disabled:text-gray-600'
-          }`}
+              }`}
           >
             {loading ? 'Сохраняем...' : callToEdit ? 'Обновить сигнал' : 'Создать сигнал'}
           </button>
@@ -1036,11 +1122,10 @@ export const CallForm = ({ onSuccess, onCancel, callToEdit, initialCategory }: C
                         const form = document.querySelector('form') as HTMLFormElement
                         form?.requestSubmit()
                       }}
-                      className={`flex-1 px-4 py-3 rounded-xl font-semibold transition-all ${
-                        progress.percentage === 100
-                          ? 'bg-gradient-to-r from-[#4E6E49] to-emerald-600 text-white shadow-md hover:shadow-lg'
-                          : 'bg-gray-400 text-gray-200 cursor-not-allowed'
-                      }`}
+                      className={`flex-1 px-4 py-3 rounded-xl font-semibold transition-all ${progress.percentage === 100
+                        ? 'bg-gradient-to-r from-[#4E6E49] to-emerald-600 text-white shadow-md hover:shadow-lg'
+                        : 'bg-gray-400 text-gray-200 cursor-not-allowed'
+                        }`}
                     >
                       <Check className="w-4 h-4 inline mr-2" />
                       Создать сигнал

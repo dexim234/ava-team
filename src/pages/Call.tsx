@@ -13,7 +13,7 @@ import {
   Check,
   Search,
   Sparkles,
-  Filter,
+  Copy,
   Shield,
   Rocket,
   LineChart,
@@ -38,6 +38,7 @@ const CATEGORY_META: Record<CallCategory, { label: string; gradient: string; chi
   futures: { label: 'Фьючерсы', gradient: 'from-blue-400 to-indigo-500', chip: 'bg-blue-500/10 text-blue-600', icon: <LineChart className="w-5 h-5 text-white" /> },
   nft: { label: 'NFT', gradient: 'from-purple-400 to-pink-500', chip: 'bg-purple-500/10 text-purple-600', icon: <Image className="w-5 h-5 text-white" /> },
   spot: { label: 'Спот', gradient: 'from-amber-400 to-orange-500', chip: 'bg-amber-500/10 text-amber-600', icon: <Coins className="w-5 h-5 text-white" /> },
+  airdrop: { label: 'AirDrop', gradient: 'from-cyan-400 to-blue-500', chip: 'bg-cyan-500/10 text-cyan-600', icon: <Sparkles className="w-5 h-5 text-white" /> },
   polymarket: { label: 'Polymarket', gradient: 'from-rose-400 to-red-500', chip: 'bg-rose-500/10 text-rose-600', icon: <Gauge className="w-5 h-5 text-white" /> },
   staking: { label: 'Стейкинг', gradient: 'from-violet-400 to-purple-500', chip: 'bg-violet-500/10 text-violet-600', icon: <Shield className="w-5 h-5 text-white" /> },
 }
@@ -160,6 +161,8 @@ export const CallPage = () => {
         return d.event || 'Polymarket событие'
       case 'staking':
         return d.coin || 'Стейкинг'
+      case 'airdrop':
+        return d.projectName || 'AirDrop'
       default:
         return 'Сигнал'
     }
@@ -210,6 +213,7 @@ export const CallPage = () => {
       futures: { total: 0, active: 0 },
       nft: { total: 0, active: 0 },
       spot: { total: 0, active: 0 },
+      airdrop: { total: 0, active: 0 },
       polymarket: { total: 0, active: 0 },
       staking: { total: 0, active: 0 },
     })
@@ -287,16 +291,18 @@ export const CallPage = () => {
           {(Object.keys(CATEGORY_META) as CallCategory[]).map((cat) => {
             const meta = CATEGORY_META[cat]
             const stats = categoryStats[cat]
-            const isActive = categoryFilter === cat
             return (
               <button
                 key={cat}
-                onClick={() => setCategoryFilter(isActive ? 'all' : cat)}
-                className={`flex-shrink-0 min-w-[200px] p-0.5 rounded-2xl transition-all relative group overflow-hidden ${isActive ? 'scale-[1.02]' : 'hover:-translate-y-1'
-                  }`}
+                onClick={() => {
+                  setEditingCall(null)
+                  setFormCategory(cat)
+                  setShowForm(true)
+                }}
+                className="flex-shrink-0 min-w-[200px] p-0.5 rounded-2xl transition-all relative group overflow-hidden"
               >
                 {/* Gradient Border Background */}
-                <div className={`absolute inset-0 bg-gradient-to-br ${meta.gradient} ${isActive ? 'opacity-100' : 'opacity-40 group-hover:opacity-100'} transition-opacity`} />
+                <div className={`absolute inset-0 bg-gradient-to-br ${meta.gradient} opacity-40 group-hover:opacity-100 transition-opacity`} />
 
                 {/* Content Container */}
                 <div className={`relative h-full px-5 py-4 rounded-[14px] flex flex-col items-center justify-center gap-2 ${theme === 'dark' ? 'bg-[#151a21]' : 'bg-white'
@@ -312,7 +318,7 @@ export const CallPage = () => {
                   {/* Stats Row: Active & Total */}
                   <div className="flex items-center justify-between w-full mt-1 px-1 gap-2">
                     <div className="flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                       <span className="text-[10px] font-bold text-emerald-500">
                         +{stats?.active || 0} АКТИВ
                       </span>
@@ -376,15 +382,6 @@ export const CallPage = () => {
               icon={<User size={16} />}
             />
           </div>
-
-          {/* Filters Button */}
-          <button
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border ${borderColor} ${theme === 'dark' ? 'bg-gray-900 hover:bg-gray-800' : 'bg-white hover:bg-gray-50'
-              } transition-colors ml-auto sm:ml-0`}
-          >
-            <Filter className="w-4 h-4" />
-            <span className={`text-sm font-medium ${textColor}`}>Фильтры</span>
-          </button>
         </div>
       </div>
 
@@ -532,6 +529,23 @@ export const CallPage = () => {
 
                     {/* Right: Actions */}
                     <div className="flex items-center gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                      <button
+                        onClick={() => {
+                          const text = `🚀 ${meta.label}: ${getPrimaryTitle(call)}\n` +
+                            (details.entryPrice ? `📍 Вход: ${details.entryPrice}\n` : '') +
+                            (details.targets ? `🎯 Цели: ${details.targets}\n` : '') +
+                            (details.stopLoss ? `🛑 Стоп: ${details.stopLoss}\n` : '') +
+                            (details.contract ? `📝 CA: ${details.contract}\n` : '') +
+                            (details.link ? `🔗 Ссылка: ${details.link}\n` : '') +
+                            `👤 Трейдер: ${trader?.name || 'Admin'}`
+                          navigator.clipboard.writeText(text)
+                          // Optional: add a success toast or visual cue
+                        }}
+                        className={`p-2 rounded-lg transition-colors ${theme === 'dark' ? 'hover:bg-emerald-500/20 text-emerald-400 hover:text-emerald-300' : 'hover:bg-emerald-50 text-emerald-600 hover:text-emerald-700'}`}
+                        title="Копировать сигнал"
+                      >
+                        <Copy className="w-4 h-4" />
+                      </button>
                       <button
                         onClick={() => handleEdit(call)}
                         className={`p-2 rounded-lg transition-colors ${theme === 'dark' ? 'hover:bg-white/10 text-gray-400 hover:text-white' : 'hover:bg-gray-100 text-gray-500 hover:text-gray-900'}`}

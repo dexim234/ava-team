@@ -155,7 +155,7 @@ export interface Referral {
 
 // Call (Trading Signal) types
 export type Network = 'solana' | 'ethereum' | 'bsc' | 'ton' | 'base' | 'sui' | 'monad' | 'polygon'
-export type CallCategory = 'memecoins' | 'futures' | 'nft' | 'spot' | 'polymarket' | 'staking'
+export type CallCategory = 'memecoins' | 'futures' | 'nft' | 'spot' | 'airdrop' | 'polymarket' | 'staking'
 export type CallStatus = 'active' | 'completed' | 'cancelled' | 'reviewed'
 export type CallRiskLevel = 'low' | 'medium' | 'high' | 'ultra'
 export type CallSentiment = 'buy' | 'sell' | 'hold' | 'alert'
@@ -253,6 +253,19 @@ export interface StakingSignalFields {
   traderComment?: string
 }
 
+export interface AirdropSignalFields {
+  projectName: string
+  network: Network | 'other'
+  rewardType: 'token' | 'points' | 'nft' | 'other'
+  expectedValue?: string
+  tasks: string
+  deadline?: string
+  link: string
+  reason: string
+  risks: string
+  traderComment?: string
+}
+
 export interface CallDetails {
   memecoins?: MemecoinSignalFields
   futures?: FuturesSignalFields
@@ -260,6 +273,7 @@ export interface CallDetails {
   spot?: SpotSignalFields
   polymarket?: PolymarketSignalFields
   staking?: StakingSignalFields
+  airdrop?: AirdropSignalFields
 }
 
 export interface Call {

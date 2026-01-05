@@ -138,22 +138,11 @@ export const SignalsTriggerBot = () => {
     */
 
     // Save all alerts to Firestore
-    /*
-    const _handleSaveAll = async () => {
+    const handleSaveAll = async () => {
         if (alertsToAdd.length === 0) {
             alert('Добавьте хотя бы один сигнал')
             return
         }
-
-        // Показываем окно подтверждения
-        setPendingAlertsCount(alertsToAdd.length)
-        setShowConfirmSave(true)
-    }
-    */
-
-    /*
-    const _confirmSave = async () => {
-        setShowConfirmSave(false)
 
         try {
             const promises = alertsToAdd.map(alert =>
@@ -164,14 +153,6 @@ export const SignalsTriggerBot = () => {
                 })
             )
             await Promise.all(promises)
-
-            // Show success animation
-            setSuccessCount(pendingAlertsCount)
-            setShowSuccess(true)
-            setTimeout(() => {
-                setShowSuccess(false)
-                setSuccessCount(0)
-            }, 2500)
 
             // Reset
             setAlertsToAdd([])
@@ -191,11 +172,12 @@ export const SignalsTriggerBot = () => {
             setProfitsInput([])
             setShowModal(false)
             await loadAlerts()
+            alert(`Успешно сохранено ${alertsToAdd.length} сигналов!`)
         } catch (error: any) {
             console.error('Error saving alerts:', error)
+            alert('Ошибка при сохранении сигналов')
         }
     }
-    */
 
     // Handle single save (for editing or single alert)
     const handleSubmit = async (e: React.FormEvent) => {
@@ -1493,23 +1475,12 @@ export const SignalsTriggerBot = () => {
                                             <div className="pt-4 flex gap-3">
                                                 <button
                                                     type="button"
-                                                    onClick={() => {
-                                                        setShowModal(false)
-                                                        setAlertsToAdd([])
-                                                        setFormData({
-                                                            signalDate: new Date().toISOString().split('T')[0],
-                                                            signalTime: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
-                                                            marketCap: '',
-                                                            address: '',
-                                                            strategies: [],
-                                                            maxDropFromSignal: '',
-                                                            maxDropFromLevel07: '',
-                                                            comment: ''
-                                                        })
-                                                    }}
-                                                    className={`flex-1 py-3 rounded-xl font-semibold transition-colors ${theme === 'dark' ? 'bg-white/5 hover:bg-white/10 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-800'}`}
+                                                    onClick={handleSaveAll}
+                                                    disabled={alertsToAdd.length === 0}
+                                                    className={`flex-1 py-3 rounded-xl bg-green-600 hover:bg-green-700 text-white font-semibold transition-colors flex items-center justify-center gap-2 ${alertsToAdd.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
                                                 >
-                                                    Отмена
+                                                    <Save className="w-4 h-4" />
+                                                    <span>Сохранить все ({alertsToAdd.length})</span>
                                                 </button>
                                                 <button
                                                     type="button"
@@ -1517,9 +1488,41 @@ export const SignalsTriggerBot = () => {
                                                     className="flex-1 py-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-semibold transition-colors flex items-center justify-center gap-2"
                                                 >
                                                     <Plus className="w-4 h-4" />
-                                                    <span>Добавить</span>
+                                                    <span>Добавить в список</span>
                                                 </button>
                                             </div>
+
+                                            {/* Preview of added alerts */}
+                                            {alertsToAdd.length > 0 && (
+                                                <div className="space-y-3 pt-4 border-t border-white/10">
+                                                    <h4 className={`text-xs font-semibold uppercase ${subTextColor}`}>Добавленные сигналы</h4>
+                                                    <div className="space-y-2">
+                                                        {alertsToAdd.map((alert, idx) => (
+                                                            <div key={idx} className={`flex items-center justify-between p-3 rounded-xl ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-100'}`}>
+                                                                <div className="flex flex-col gap-1">
+                                                                    <div className="flex items-center gap-2">
+                                                                        <span className={`text-xs font-mono ${headingColor}`}>{alert.signalTime}</span>
+                                                                        <span className={`text-xs ${subTextColor}`}>{truncateAddress(alert.address || '')}</span>
+                                                                    </div>
+                                                                    <div className="flex gap-1">
+                                                                        {alert.strategies?.map(s => (
+                                                                            <span key={s} className="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-500 text-[10px] font-bold">
+                                                                                {s}
+                                                                            </span>
+                                                                        ))}
+                                                                    </div>
+                                                                </div>
+                                                                <button
+                                                                    onClick={() => setAlertsToAdd(alertsToAdd.filter((_, i) => i !== idx))}
+                                                                    className="p-1.5 rounded-lg hover:bg-red-500/20 text-red-500 transition-colors"
+                                                                >
+                                                                    <Trash2 size={16} />
+                                                                </button>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
                                     </>
                                 )}

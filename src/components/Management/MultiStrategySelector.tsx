@@ -7,9 +7,11 @@ interface MultiStrategySelectorProps {
     theme: string
 }
 
-export const MultiStrategySelector: React.FC<MultiStrategySelectorProps> = ({ value, onChange }) => {
-    // Placeholder implementation
-    const strategies: TriggerStrategy[] = ['Фиба', 'Market Entry'] // Assuming these are valid strategies based on code
+export const MultiStrategySelector: React.FC<MultiStrategySelectorProps> = ({ value, onChange, theme }) => {
+    const strategies: { value: TriggerStrategy; label: string }[] = [
+        { value: 'Фиба', label: 'Фиба' },
+        { value: 'Market Entry', label: 'Market Entry' }
+    ]
 
     const toggleStrategy = (strategy: TriggerStrategy) => {
         if (value.includes(strategy)) {
@@ -20,17 +22,28 @@ export const MultiStrategySelector: React.FC<MultiStrategySelectorProps> = ({ va
     }
 
     return (
-        <div className="flex gap-2">
-            {strategies.map(strategy => (
-                <button
-                    key={strategy}
-                    type="button"
-                    onClick={() => toggleStrategy(strategy)}
-                    className={`px-3 py-1 rounded border ${value.includes(strategy) ? 'bg-amber-500 text-white border-amber-500' : 'bg-transparent border-gray-300'}`}
-                >
-                    {strategy}
-                </button>
-            ))}
+        <div className="space-y-1">
+            <label className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Стратегии</label>
+            <div className="flex flex-wrap gap-2">
+                {strategies.map(s => {
+                    const isActive = value.includes(s.value)
+                    return (
+                        <button
+                            key={s.value}
+                            type="button"
+                            onClick={() => toggleStrategy(s.value)}
+                            className={`flex-1 min-w-[100px] px-3 py-2 rounded-xl text-xs font-semibold border-2 transition-all duration-300 ${isActive
+                                ? 'bg-amber-500 border-amber-500 text-white shadow-lg shadow-amber-500/20 scale-[1.02]'
+                                : theme === 'dark'
+                                    ? 'bg-black/20 border-white/10 text-gray-400 hover:border-white/20 hover:bg-black/40'
+                                    : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-50'
+                                } active:scale-95`}
+                        >
+                            {s.label}
+                        </button>
+                    )
+                })}
+            </div>
         </div>
     )
 }
