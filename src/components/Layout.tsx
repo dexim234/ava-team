@@ -25,10 +25,11 @@ import {
   CheckSquare,
   ChevronDown,
   Info,
-  ArrowUpRight,
   Radio,
   PanelLeftClose,
   PanelLeftOpen,
+  Menu,
+  X,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import logo from '@/assets/logo.png'
@@ -41,7 +42,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
   const { viewedUserId } = useViewedUserStore()
   const location = useLocation()
   const [showToolsMenu, setShowToolsMenu] = useState(false)
-  const [showFuncsMenu, setShowFuncsMenu] = useState(false)
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [showNotifications, setShowNotifications] = useState(false)
   const [isCollapsed, setIsCollapsed] = useState(() => {
     const saved = localStorage.getItem('sidebarCollapsed')
@@ -121,7 +122,6 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     setShowToolsMenu(false)
-    setShowFuncsMenu(false)
   }, [location.pathname])
 
   useEffect(() => {
@@ -510,94 +510,130 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
         </aside>
 
         <div className={`flex-1 ${isCollapsed ? 'xl:pl-20' : 'xl:pl-72'} min-h-screen transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]`}>
-          <main className="page-shell xl:pb-0 pb-48">
+          <main className="page-shell xl:pb-0 pb-6">
             {children}
           </main>
         </div>
 
-        {/* Mobile Navbar */}
-        <nav className="xl:hidden fixed bottom-4 left-0 right-0 px-3 z-50">
-          <div className="max-w-5xl mx-auto">
-            <div className="glass-panel rounded-2xl shadow-2xl border border-white/60 dark:border-white/10 overflow-hidden">
-              <div className="flex divide-x divide-white/40 dark:divide-white/5 w-full">
-                <button
-                  onClick={() => setShowToolsMenu(!showToolsMenu)}
-                  className={`flex-1 min-w-0 flex flex-col items-center justify-center gap-1 py-3 ${isToolsActive ? 'text-[#4E6E49]' : 'text-gray-400'}`}
-                  style={{ display: (isAdmin || accessibleFeatures.has('tools') || isFeaturesLoading) ? 'flex' : 'none' }}
-                >
-                  <Settings className="w-5 h-5" />
-                  <span className="text-[10px] font-bold truncate px-1">Tools</span>
-                </button>
+        {/* Mobile Header with Burger */}
+        <div className="xl:hidden fixed top-0 left-0 right-0 z-50 px-4 py-3 glass-panel border-b border-white/10 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 flex items-center justify-center">
+              <img
+                src={logo}
+                alt="ApeVault"
+                className="w-7 h-7 object-contain filter drop-shadow-[0_0_8px_rgba(78,110,73,0.3)]"
+              />
+            </div>
+            <span className="text-sm font-black tracking-widest text-[#4E6E49] dark:text-white uppercase">ApeVault</span>
+          </div>
+          <button
+            onClick={() => setIsMobileMenuOpen(true)}
+            className="p-2 rounded-xl bg-[#4E6E49]/10 text-[#4E6E49] dark:text-white hover:bg-[#4E6E49]/20 transition-colors"
+          >
+            <Menu className="w-6 h-6" />
+          </button>
+        </div>
 
-                <button
-                  onClick={() => setShowFuncsMenu(true)}
-                  className={`flex-1 min-w-0 flex flex-col items-center justify-center gap-1 py-3 ${location.pathname.startsWith('/call') || location.pathname.startsWith('/management') || location.pathname.startsWith('/tasks') || location.pathname.startsWith('/earnings') || location.pathname.startsWith('/rating') ? 'text-[#4E6E49]' : 'text-gray-400'}`}
-                >
-                  <Radio className="w-5 h-5" />
-                  <span className="text-[10px] font-bold truncate px-1">Function</span>
-                </button>
-
-                <Link
-                  to="/about"
-                  className={`flex-1 min-w-0 flex flex-col items-center justify-center gap-1 py-3 ${location.pathname === '/about' ? 'text-[#4E6E49]' : 'text-gray-400'}`}
-                >
-                  <Info className="w-5 h-5" />
-                  <span className="text-[10px] font-bold truncate px-1">AVF INFO</span>
-                </Link>
-
-                <Link
-                  to="/profile"
-                  className={`flex-1 min-w-0 flex flex-col items-center justify-center gap-1 py-3 ${location.pathname === '/profile' ? 'text-[#4E6E49]' : 'text-gray-400'}`}
-                >
-                  <div className="w-8 h-8 rounded-full bg-[#4E6E49]/10 flex items-center justify-center text-[10px] font-bold">
-                    {getInitials(user?.name || 'AU')}
-                  </div>
-                  <span className="text-[10px] font-bold truncate px-1">Profile</span>
-                </Link>
+        {/* Mobile Menu Overlay */}
+        {isMobileMenuOpen && (
+          <div className="fixed inset-0 z-[100] bg-[#0b0f17] flex flex-col animate-in slide-in-from-right duration-300">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 flex items-center justify-center">
+                  <img
+                    src={logo}
+                    alt="ApeVault"
+                    className="w-7 h-7 object-contain"
+                  />
+                </div>
+                <span className="text-sm font-black tracking-widest text-white uppercase">Menu</span>
               </div>
+              <button
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="p-2 rounded-xl bg-white/5 text-white hover:bg-white/10 transition-colors"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-4 space-y-6">
+              {/* Profile Section */}
+              <div className="flex items-center gap-3 p-4 rounded-2xl bg-white/5 border border-white/10">
+                <div className="w-10 h-10 rounded-full bg-[#4E6E49]/20 flex items-center justify-center text-[#4E6E49] font-bold">
+                  {user?.avatar ? <img src={user.avatar} className="w-full h-full rounded-full object-cover" /> : getInitials(user?.name || 'User')}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-bold truncate text-white">{user?.name || 'Guest'}</p>
+                  <Link to="/profile" onClick={() => setIsMobileMenuOpen(false)} className="text-xs text-[#4E6E49] hover:underline">
+                    Перейти в профиль
+                  </Link>
+                </div>
+              </div>
+
+              {/* Tools Section */}
+              {(isAdmin || accessibleFeatures.has('tools')) && (
+                <div className="space-y-3">
+                  <p className="text-xs font-bold text-gray-500 uppercase tracking-wider px-2">Инструменты</p>
+                  <div className="grid grid-cols-2 gap-3">
+                    {accessibleToolsSubItems.map((item) => (
+                      <Link
+                        key={item.path}
+                        to={item.path}
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className={`flex flex-col items-center justify-center gap-2 p-3 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition-all ${location.pathname === item.path ? 'border-[#4E6E49]/50 bg-[#4E6E49]/10' : ''}`}
+                      >
+                        <item.icon className={`w-6 h-6 ${location.pathname === item.path ? 'text-[#4E6E49]' : 'text-gray-400'}`} />
+                        <span className="text-xs font-medium text-center text-gray-300">{item.label}</span>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Functions Section */}
+              <div className="space-y-3">
+                <p className="text-xs font-bold text-gray-500 uppercase tracking-wider px-2">Функции</p>
+                <div className="space-y-2">
+                  {mobileFuncSubItems.map((item) => (
+                    <Link
+                      key={item.path}
+                      to={item.path}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className={`flex items-center gap-3 p-3 rounded-xl transition-all ${location.pathname === item.path ? 'bg-[#4E6E49] text-white shadow-lg' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}
+                    >
+                      <item.icon className="w-5 h-5" />
+                      <span className="font-bold text-sm">{item.label}</span>
+                      <ChevronRight className="w-4 h-4 ml-auto opacity-50" />
+                    </Link>
+                  ))}
+                </div>
+              </div>
+
+              {/* Theme Toggle */}
+              <button
+                onClick={toggleTheme}
+                className="w-full flex items-center justify-between p-4 rounded-xl border border-white/10 bg-white/5"
+              >
+                <span className="text-sm font-medium text-gray-300">Тема оформления</span>
+                {theme === 'dark' ? <Sun className="w-4 h-4 text-amber-300" /> : <Moon className="w-4 h-4 text-white" />}
+              </button>
+
+              {/* Logout */}
+              <button
+                onClick={() => {
+                  logout()
+                  deactivateAdmin()
+                  window.location.href = '/login'
+                }}
+                className="w-full flex items-center justify-center gap-2 p-4 rounded-xl border border-red-500/20 bg-red-500/10 text-red-500 font-bold"
+              >
+                <LogOut className="w-4 h-4" />
+                <span>Выйти из аккаунта</span>
+              </button>
             </div>
           </div>
-
-          {showToolsMenu && (
-            <>
-              <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[-1]" onClick={() => setShowToolsMenu(false)} />
-              <div className="absolute bottom-20 left-4 right-4 glass-panel rounded-2xl border border-white/40 dark:border-white/10 overflow-hidden animate-fade-in">
-                {accessibleToolsSubItems.map(item => (
-                  <Link
-                    key={item.path}
-                    to={item.path}
-                    onClick={() => setShowToolsMenu(false)}
-                    className="flex items-center gap-3 p-4 border-b border-white/10 dark:border-white/5 last:border-0"
-                  >
-                    <item.icon className="w-4 h-4 text-[#4E6E49]" />
-                    <span className="font-bold text-sm flex-1">{item.label}</span>
-                    <ArrowUpRight className="w-4 h-4 opacity-40" />
-                  </Link>
-                ))}
-              </div>
-            </>
-          )}
-
-          {showFuncsMenu && (
-            <>
-              <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[-1]" onClick={() => setShowFuncsMenu(false)} />
-              <div className="absolute bottom-20 left-4 right-4 glass-panel rounded-2xl border border-white/40 dark:border-white/10 overflow-hidden animate-fade-in">
-                {mobileFuncSubItems.map(item => (
-                  <Link
-                    key={item.path}
-                    to={item.path}
-                    onClick={() => setShowFuncsMenu(false)}
-                    className="flex items-center gap-3 p-4 border-b border-white/10 dark:border-white/5 last:border-0"
-                  >
-                    <item.icon className="w-4 h-4 text-[#4E6E49]" />
-                    <span className="font-bold text-sm flex-1">{item.label}</span>
-                    <ArrowUpRight className="w-4 h-4 opacity-40" />
-                  </Link>
-                ))}
-              </div>
-            </>
-          )}
-        </nav>
+        )}
       </div>
     </div>
   )
