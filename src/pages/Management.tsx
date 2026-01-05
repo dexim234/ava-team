@@ -493,8 +493,8 @@ export const Management = () => {
         </div>
       </div>
 
-      {/* Controls Toolbar - Sticky header */}
-      <div className="lg:sticky lg:top-0 z-40">
+      {/* Controls Toolbar - No sticky */}
+      <div className="z-40">
         <div className={`p-2 rounded-2xl border shadow-xl ${theme === 'dark'
           ? 'bg-[#0b1015] border-white/10'
           : 'bg-white border-gray-200'
