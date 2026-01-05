@@ -635,15 +635,15 @@ export const AiAoAlerts = () => {
                             <thead>
                                 <tr className={`border-b ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-gray-50'}`}>
                                     <th className={`p-4 text-[10px] sm:text-xs uppercase tracking-wider font-semibold ${subTextColor} text-center w-10 border-r ${theme === 'dark' ? 'border-white/10' : 'border-gray-200'} last:border-r-0`}>#</th>
-                                    <th className={`p-4 text-xs uppercase tracking-wider font-semibold ${subTextColor} border-r ${theme === 'dark' ? 'border-white/10' : 'border-gray-200'} last:border-r-0`}>Дата</th>
-                                    <th className={`p-4 text-xs uppercase tracking-wider font-semibold ${subTextColor} border-r ${theme === 'dark' ? 'border-white/10' : 'border-gray-200'} last:border-r-0`}>Время</th>
-                                    <th className={`p-4 text-xs uppercase tracking-wider font-semibold ${subTextColor} border-r ${theme === 'dark' ? 'border-white/10' : 'border-gray-200'} last:border-r-0`}>Market Cap</th>
-                                    <th className={`p-4 text-xs uppercase tracking-wider font-semibold ${subTextColor} border-r ${theme === 'dark' ? 'border-white/10' : 'border-gray-200'} last:border-r-0`}>Адрес</th>
-                                    <th className={`p-4 text-xs uppercase tracking-wider font-semibold ${subTextColor} border-r ${theme === 'dark' ? 'border-white/10' : 'border-gray-200'} last:border-r-0`}>Макс. Падение</th>
-                                    <th className={`p-4 text-xs uppercase tracking-wider font-semibold ${subTextColor} border-r ${theme === 'dark' ? 'border-white/10' : 'border-gray-200'} last:border-r-0`}>Макс. Профит</th>
-                                    <th className={`p-4 text-xs uppercase tracking-wider font-semibold ${subTextColor} border-r ${theme === 'dark' ? 'border-white/10' : 'border-gray-200'} last:border-r-0`}>Комментарий</th>
-                                    <th className={`p-4 text-xs uppercase tracking-wider font-semibold ${subTextColor} border-r ${theme === 'dark' ? 'border-white/10' : 'border-gray-200'} last:border-r-0`}>Автор</th>
-                                    <th className={`p-4 text-xs uppercase tracking-wider font-semibold ${subTextColor} last:border-r-0`}>Действия</th>
+                                    <th className={`p-4 text-xs uppercase tracking-wider font-semibold ${subTextColor} text-center border-r ${theme === 'dark' ? 'border-white/10' : 'border-gray-200'} last:border-r-0`}>Дата</th>
+                                    <th className={`p-4 text-xs uppercase tracking-wider font-semibold ${subTextColor} text-center border-r ${theme === 'dark' ? 'border-white/10' : 'border-gray-200'} last:border-r-0`}>Время</th>
+                                    <th className={`p-4 text-xs uppercase tracking-wider font-semibold ${subTextColor} text-center border-r ${theme === 'dark' ? 'border-white/10' : 'border-gray-200'} last:border-r-0`}>Market Cap</th>
+                                    <th className={`p-4 text-xs uppercase tracking-wider font-semibold ${subTextColor} text-center border-r ${theme === 'dark' ? 'border-white/10' : 'border-gray-200'} last:border-r-0`}>Адрес</th>
+                                    <th className={`p-4 text-xs uppercase tracking-wider font-semibold ${subTextColor} text-center border-r ${theme === 'dark' ? 'border-white/10' : 'border-gray-200'} last:border-r-0`}>Макс. Падение</th>
+                                    <th className={`p-4 text-xs uppercase tracking-wider font-semibold ${subTextColor} text-center border-r ${theme === 'dark' ? 'border-white/10' : 'border-gray-200'} last:border-r-0`}>Макс. Профит</th>
+                                    <th className={`p-4 text-xs uppercase tracking-wider font-semibold ${subTextColor} text-center border-r ${theme === 'dark' ? 'border-white/10' : 'border-gray-200'} last:border-r-0`}>Комментарий</th>
+                                    <th className={`p-4 text-xs uppercase tracking-wider font-semibold ${subTextColor} text-center border-r ${theme === 'dark' ? 'border-white/10' : 'border-gray-200'} last:border-r-0`}>Автор</th>
+                                    <th className={`p-4 text-xs uppercase tracking-wider font-semibold ${subTextColor} text-center last:border-r-0`}>Действия</th>
                                 </tr>
                             </thead>
                             <tbody className={`divide-y ${theme === 'dark' ? 'divide-white/5' : 'divide-gray-100'}`}>
@@ -705,17 +705,17 @@ export const AiAoAlerts = () => {
                                                         <td className={`p-4 text-center whitespace-nowrap border-r ${theme === 'dark' ? 'border-white/10' : 'border-gray-200'} last:border-r-0`}>
                                                             <div className={`font-mono text-[10px] sm:text-xs font-bold ${subTextColor}`}>{globalIndex}</div>
                                                         </td>
-                                                        <td className={`p-4 whitespace-nowrap border-r ${theme === 'dark' ? 'border-white/10' : 'border-gray-200'} last:border-r-0`}>
+                                                        <td className={`p-4 whitespace-nowrap text-center border-r ${theme === 'dark' ? 'border-white/10' : 'border-gray-200'} last:border-r-0`}>
                                                             <div className={`font-mono font-medium ${headingColor}`}>{formatDateForDisplay(alert.signalDate)}</div>
                                                         </td>
-                                                        <td className={`p-4 whitespace-nowrap border-r ${theme === 'dark' ? 'border-white/10' : 'border-gray-200'} last:border-r-0`}>
+                                                        <td className={`p-4 whitespace-nowrap text-center border-r ${theme === 'dark' ? 'border-white/10' : 'border-gray-200'} last:border-r-0`}>
                                                             <div className={`font-mono ${headingColor}`}>{alert.signalTime}</div>
                                                         </td>
-                                                        <td className={`p-4 whitespace-nowrap border-r ${theme === 'dark' ? 'border-white/10' : 'border-gray-200'} last:border-r-0`}>
+                                                        <td className={`p-4 whitespace-nowrap text-center border-r ${theme === 'dark' ? 'border-white/10' : 'border-gray-200'} last:border-r-0`}>
                                                             <div className={`font-mono ${headingColor}`}>{alert.marketCap || '-'}</div>
                                                         </td>
-                                                        <td className={`p-4 border-r ${theme === 'dark' ? 'border-white/10' : 'border-gray-200'} last:border-r-0`}>
-                                                            <div className="flex items-center gap-2">
+                                                        <td className={`p-4 text-center border-r ${theme === 'dark' ? 'border-white/10' : 'border-gray-200'} last:border-r-0`}>
+                                                            <div className="flex items-center justify-center gap-2">
                                                                 <a
                                                                     href={`https://gmgn.ai/sol/token/${alert.address}`}
                                                                     target="_blank"
@@ -733,26 +733,26 @@ export const AiAoAlerts = () => {
                                                                 </button>
                                                             </div>
                                                         </td>
-                                                        <td className={`p-4 whitespace-nowrap border-r ${theme === 'dark' ? 'border-white/10' : 'border-gray-200'} last:border-r-0`}>
+                                                        <td className={`p-4 whitespace-nowrap text-center border-r ${theme === 'dark' ? 'border-white/10' : 'border-gray-200'} last:border-r-0`}>
                                                             <span className={`font-mono ${alert.maxDrop && alert.maxDrop.startsWith('-') ? 'text-red-500' : headingColor}`}>
                                                                 {alert.maxDrop || '-'}
                                                             </span>
                                                         </td>
-                                                        <td className={`p-4 whitespace-nowrap border-r ${theme === 'dark' ? 'border-white/10' : 'border-gray-200'} last:border-r-0`}>
+                                                        <td className={`p-4 whitespace-nowrap text-center border-r ${theme === 'dark' ? 'border-white/10' : 'border-gray-200'} last:border-r-0`}>
                                                             <span className="font-mono text-green-500 font-bold">
                                                                 {alert.maxProfit || '-'}
                                                             </span>
                                                         </td>
-                                                        <td className={`p-4 max-w-[250px] border-r ${theme === 'dark' ? 'border-white/10' : 'border-gray-200'} last:border-r-0`}>
+                                                        <td className={`p-4 max-w-[250px] text-center border-r ${theme === 'dark' ? 'border-white/10' : 'border-gray-200'} last:border-r-0`}>
                                                             <div className={`text-sm ${headingColor} break-words whitespace-pre-wrap`}>
                                                                 {alert.comment || '-'}
                                                             </div>
                                                         </td>
-                                                        <td className={`p-4 whitespace-nowrap border-r ${theme === 'dark' ? 'border-white/10' : 'border-gray-200'} last:border-r-0`}>
+                                                        <td className={`p-4 whitespace-nowrap text-center border-r ${theme === 'dark' ? 'border-white/10' : 'border-gray-200'} last:border-r-0`}>
                                                             <UserNickname userId={alert.createdBy} className="text-[10px] sm:text-xs font-medium" />
                                                         </td>
-                                                        <td className={`p-4 whitespace-nowrap last:border-r-0`}>
-                                                            <div className="flex items-center gap-1">
+                                                        <td className={`p-4 whitespace-nowrap text-center last:border-r-0`}>
+                                                            <div className="flex items-center justify-center gap-1">
                                                                 {(isAdmin || user?.id === alert.createdBy) && (
                                                                     <button
                                                                         onClick={() => handleEdit(alert)}
@@ -785,17 +785,17 @@ export const AiAoAlerts = () => {
                                             <td className={`p-4 text-center whitespace-nowrap border-r ${theme === 'dark' ? 'border-white/10' : 'border-gray-200'} last:border-r-0`}>
                                                 <div className={`font-mono text-[10px] sm:text-xs font-bold ${subTextColor}`}>{index + 1}</div>
                                             </td>
-                                            <td className={`p-4 whitespace-nowrap border-r ${theme === 'dark' ? 'border-white/10' : 'border-gray-200'} last:border-r-0`}>
+                                            <td className={`p-4 whitespace-nowrap text-center border-r ${theme === 'dark' ? 'border-white/10' : 'border-gray-200'} last:border-r-0`}>
                                                 <div className={`font-mono font-medium ${headingColor}`}>{formatDateForDisplay(alert.signalDate)}</div>
                                             </td>
-                                            <td className={`p-4 whitespace-nowrap border-r ${theme === 'dark' ? 'border-white/10' : 'border-gray-200'} last:border-r-0`}>
+                                            <td className={`p-4 whitespace-nowrap text-center border-r ${theme === 'dark' ? 'border-white/10' : 'border-gray-200'} last:border-r-0`}>
                                                 <div className={`font-mono ${headingColor}`}>{alert.signalTime}</div>
                                             </td>
-                                            <td className={`p-4 whitespace-nowrap border-r ${theme === 'dark' ? 'border-white/10' : 'border-gray-200'} last:border-r-0`}>
+                                            <td className={`p-4 whitespace-nowrap text-center border-r ${theme === 'dark' ? 'border-white/10' : 'border-gray-200'} last:border-r-0`}>
                                                 <div className={`font-mono ${headingColor}`}>{alert.marketCap || '-'}</div>
                                             </td>
-                                            <td className={`p-4 border-r ${theme === 'dark' ? 'border-white/10' : 'border-gray-200'} last:border-r-0`}>
-                                                <div className="flex items-center gap-2">
+                                            <td className={`p-4 text-center border-r ${theme === 'dark' ? 'border-white/10' : 'border-gray-200'} last:border-r-0`}>
+                                                <div className="flex items-center justify-center gap-2">
                                                     <a
                                                         href={`https://gmgn.ai/sol/token/${alert.address}`}
                                                         target="_blank"
@@ -813,26 +813,26 @@ export const AiAoAlerts = () => {
                                                     </button>
                                                 </div>
                                             </td>
-                                            <td className={`p-4 whitespace-nowrap border-r ${theme === 'dark' ? 'border-white/10' : 'border-gray-200'} last:border-r-0`}>
+                                            <td className={`p-4 whitespace-nowrap text-center border-r ${theme === 'dark' ? 'border-white/10' : 'border-gray-200'} last:border-r-0`}>
                                                 <span className={`font-mono ${alert.maxDrop && alert.maxDrop.startsWith('-') ? 'text-red-500' : headingColor}`}>
                                                     {alert.maxDrop || '-'}
                                                 </span>
                                             </td>
-                                            <td className={`p-4 whitespace-nowrap border-r ${theme === 'dark' ? 'border-white/10' : 'border-gray-200'} last:border-r-0`}>
+                                            <td className={`p-4 whitespace-nowrap text-center border-r ${theme === 'dark' ? 'border-white/10' : 'border-gray-200'} last:border-r-0`}>
                                                 <span className="font-mono text-green-500 font-bold">
                                                     {alert.maxProfit || '-'}
                                                 </span>
                                             </td>
-                                            <td className={`p-4 max-w-[250px] border-r ${theme === 'dark' ? 'border-white/10' : 'border-gray-200'} last:border-r-0`}>
+                                            <td className={`p-4 max-w-[250px] text-center border-r ${theme === 'dark' ? 'border-white/10' : 'border-gray-200'} last:border-r-0`}>
                                                 <div className={`text-sm ${headingColor} break-words whitespace-pre-wrap`}>
                                                     {alert.comment || ''}
                                                 </div>
                                             </td>
-                                            <td className={`p-4 whitespace-nowrap border-r ${theme === 'dark' ? 'border-white/10' : 'border-gray-200'} last:border-r-0`}>
+                                            <td className={`p-4 whitespace-nowrap text-center border-r ${theme === 'dark' ? 'border-white/10' : 'border-gray-200'} last:border-r-0`}>
                                                 <UserNickname userId={alert.createdBy} className="text-[10px] sm:text-xs font-medium" />
                                             </td>
-                                            <td className={`p-4 whitespace-nowrap last:border-r-0`}>
-                                                <div className="flex items-center gap-1">
+                                            <td className={`p-4 whitespace-nowrap text-center last:border-r-0`}>
+                                                <div className="flex items-center justify-center gap-1">
                                                     {(isAdmin || user?.id === alert.createdBy) && (
                                                         <button
                                                             onClick={() => handleEdit(alert)}

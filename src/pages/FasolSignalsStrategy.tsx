@@ -711,6 +711,38 @@ export const FasolSignalsStrategy = () => {
 
                                     <button onClick={handleAddToList} className="w-full py-3 rounded-xl bg-purple-600 text-white font-bold">Добавить в список</button>
                                     {alertsToAdd.length > 0 && <button onClick={handleSaveAll} className="w-full py-3 rounded-xl bg-green-600 text-white font-bold">Сохранить все ({alertsToAdd.length})</button>}
+
+                                    {/* Preview of added alerts */}
+                                    {alertsToAdd.length > 0 && (
+                                        <div className="space-y-3 pt-4 border-t border-white/10">
+                                            <h4 className={`text-xs font-semibold uppercase ${subTextColor}`}>Добавленные сигналы</h4>
+                                            <div className="space-y-2">
+                                                {alertsToAdd.map((alert, idx) => (
+                                                    <div key={idx} className={`flex items-center justify-between p-3 rounded-xl ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-100'}`}>
+                                                        <div className="flex flex-col gap-1">
+                                                            <div className="flex items-center gap-2">
+                                                                <span className={`text-xs font-mono ${headingColor}`}>{alert.signalTime}</span>
+                                                                <span className={`text-xs ${subTextColor}`}>{truncateAddress(alert.address || '')}</span>
+                                                            </div>
+                                                            <div className="flex gap-1">
+                                                                {alert.strategies?.map(s => (
+                                                                    <span key={s} className="px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-500 text-[10px] font-bold">
+                                                                        {s}
+                                                                    </span>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                        <button
+                                                            onClick={() => setAlertsToAdd(alertsToAdd.filter((_, i) => i !== idx))}
+                                                            className="p-1.5 rounded-lg hover:bg-red-500/20 text-red-500 transition-colors"
+                                                        >
+                                                            <Trash2 size={16} />
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             )}
                         </div>
