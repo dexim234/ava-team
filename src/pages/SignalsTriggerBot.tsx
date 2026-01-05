@@ -1524,4 +1524,3 @@ export const SignalsTriggerBot = () => {
 
 export default SignalsTriggerBot
 }
-}
