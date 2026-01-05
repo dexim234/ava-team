@@ -98,10 +98,11 @@ export const CallPage = () => {
     }
   }
 
-  const bgColor = theme === 'dark' ? 'bg-[#0a0a0a]' : 'bg-white'
   const textColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
+  const bgColor = theme === 'dark' ? 'bg-[#0a0a0a]' : 'bg-white'
   const subtleColor = theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-  const borderColor = theme === 'dark' ? 'border-gray-800' : 'border-gray-200'
+  const borderColor = theme === 'dark' ? 'border-white/10' : 'border-gray-100'
+  const cardBg = theme === 'dark' ? 'bg-white/5 backdrop-blur-md' : 'bg-white'
 
   const handleSuccess = () => {
     setShowForm(false)
@@ -277,7 +278,7 @@ export const CallPage = () => {
   ]
 
   return (
-    <div className={`min-h-screen ${bgColor} pb-20`}>
+    <div className="space-y-6 pb-20">
       {/* Header */}
       <div className="px-4 sm:px-6 lg:px-8 py-6">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-2">
@@ -321,7 +322,7 @@ export const CallPage = () => {
                 <div className={`absolute inset-0 bg-gradient-to-br ${meta.gradient} opacity-40 group-hover:opacity-100 transition-opacity`} />
 
                 {/* Content Container */}
-                <div className={`relative h-full px-5 py-4 rounded-[14px] flex flex-col items-center justify-center gap-2 ${theme === 'dark' ? 'bg-[#151a21]' : 'bg-white'
+                <div className={`relative h-full px-5 py-4 rounded-[14px] flex flex-col items-center justify-center gap-2 ${theme === 'dark' ? 'bg-[#10141c]' : 'bg-white'
                   }`}>
                   {/* Header: Icon & Label Centered */}
                   <div className="flex flex-col items-center gap-2">
@@ -352,7 +353,7 @@ export const CallPage = () => {
 
       {/* Search Bar */}
       <div className="px-4 sm:px-6 lg:px-8 mb-6">
-        <div className={`relative rounded-xl border ${borderColor} ${theme === 'dark' ? 'bg-gray-900' : 'bg-gray-50'}`}>
+        <div className={`relative rounded-xl border ${borderColor} ${cardBg} shadow-xl`}>
           <Search className={`absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 ${subtleColor}`} />
           <input
             type="text"
@@ -405,7 +406,7 @@ export const CallPage = () => {
       <div className="px-4 sm:px-6 lg:px-8 mb-8">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Total Signals */}
-          <div className={`p-4 rounded-xl border ${borderColor} ${theme === 'dark' ? 'bg-gray-900' : 'bg-white'}`}>
+          <div className={`p-4 rounded-xl border ${borderColor} ${cardBg} shadow-xl`}>
             <div className="flex items-center justify-between mb-2">
               <span className={`text-xs uppercase tracking-wider ${subtleColor}`}>Всего сигналов</span>
               <TrendingUp className="w-4 h-4 text-emerald-500" />
@@ -418,7 +419,7 @@ export const CallPage = () => {
           </div>
 
           {/* Active */}
-          <div className={`p-4 rounded-xl border ${borderColor} ${theme === 'dark' ? 'bg-gray-900' : 'bg-white'}`}>
+          <div className={`p-4 rounded-xl border ${borderColor} ${cardBg} shadow-xl`}>
             <div className="flex items-center justify-between mb-2">
               <span className={`text-xs uppercase tracking-wider ${subtleColor}`}>Активные</span>
               <Activity className="w-4 h-4 text-emerald-500" />
@@ -433,7 +434,7 @@ export const CallPage = () => {
           </div>
 
           {/* Completed */}
-          <div className={`p-4 rounded-xl border ${borderColor} ${theme === 'dark' ? 'bg-gray-900' : 'bg-white'}`}>
+          <div className={`p-4 rounded-xl border ${borderColor} ${cardBg} shadow-xl`}>
             <div className="flex items-center justify-between mb-2">
               <span className={`text-xs uppercase tracking-wider ${subtleColor}`}>Завершенные</span>
               <Check className="w-4 h-4 text-blue-500" />
@@ -442,7 +443,7 @@ export const CallPage = () => {
           </div>
 
           {/* Cancelled */}
-          <div className={`p-4 rounded-xl border ${borderColor} ${theme === 'dark' ? 'bg-gray-900' : 'bg-white'}`}>
+          <div className={`p-4 rounded-xl border ${borderColor} ${cardBg} shadow-xl`}>
             <div className="flex items-center justify-between mb-2">
               <span className={`text-xs uppercase tracking-wider ${subtleColor}`}>Отмененные</span>
               <X className="w-4 h-4 text-red-500" />
@@ -486,8 +487,7 @@ export const CallPage = () => {
               return (
                 <div
                   key={call.id}
-                  className={`p-4 rounded-xl border ${borderColor} ${theme === 'dark' ? 'bg-gray-900 hover:bg-gray-800' : 'bg-white hover:bg-gray-50'
-                    } transition-colors group`}
+                  className={`p-4 rounded-xl border ${borderColor} ${cardBg} shadow-lg hover:shadow-xl transition-all group`}
                 >
                   <div className={`flex items-start justify-between gap-4 ${call.status !== 'active' ? 'opacity-60' : ''}`}>
                     {/* Left: Icon & Title */}
