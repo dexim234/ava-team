@@ -768,6 +768,7 @@ export const SignalsTriggerBot = () => {
                                     <th className={`p-2 sm:p-3 text-[10px] sm:text-xs uppercase tracking-wider font-semibold ${subTextColor} text-center`}>Drop 0.7</th>
                                     <th className={`p-2 sm:p-3 text-[10px] sm:text-xs uppercase tracking-wider font-semibold ${subTextColor} text-center`}>Профит</th>
                                     <th className={`p-2 sm:p-3 text-[10px] sm:text-xs uppercase tracking-wider font-semibold ${subTextColor} text-center`}>Коммент</th>
+                                    <th className={`p-2 sm:p-3 text-[10px] sm:text-xs uppercase tracking-wider font-semibold ${subTextColor} text-center`}>Автор</th>
                                     <th className={`p-2 sm:p-3 text-[10px] sm:text-xs uppercase tracking-wider font-semibold ${subTextColor} text-center`}>📷</th>
                                     <th className={`p-2 sm:p-3 text-[10px] sm:text-xs uppercase tracking-wider font-semibold ${subTextColor} text-center`}>⚙</th>
                                 </tr>
@@ -904,18 +905,22 @@ export const SignalsTriggerBot = () => {
                                                         </td>
                                                         <td className="p-2 sm:p-3 whitespace-nowrap text-center">
                                                             <div className="flex items-center justify-center gap-0.5 sm:gap-1">
-                                                                <button
-                                                                    onClick={() => handleEdit(alert)}
-                                                                    className={`p-1 sm:p-2 rounded-lg hover:bg-white/10 transition-colors ${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'}`}
-                                                                >
-                                                                    <Edit className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                                                                </button>
-                                                                <button
-                                                                    onClick={() => handleDelete(alert.id)}
-                                                                    className="p-1 sm:p-2 rounded-lg hover:bg-red-500/10 text-red-500 transition-colors"
-                                                                >
-                                                                    <Trash2 size={16} className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                                                                </button>
+                                                                {(isAdmin || user?.id === alert.createdBy) && (
+                                                                    <button
+                                                                        onClick={() => handleEdit(alert)}
+                                                                        className={`p-1 sm:p-2 rounded-lg hover:bg-white/10 transition-colors ${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'}`}
+                                                                    >
+                                                                        <Edit className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                                                                    </button>
+                                                                )}
+                                                                {isAdmin && (
+                                                                    <button
+                                                                        onClick={() => handleDelete(alert.id)}
+                                                                        className="p-1 sm:p-2 rounded-lg hover:bg-red-500/10 text-red-500 transition-colors"
+                                                                    >
+                                                                        <Trash2 size={16} className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                                                                    </button>
+                                                                )}
                                                             </div>
                                                         </td>
                                                     </tr>

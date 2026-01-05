@@ -58,6 +58,12 @@ export const ManagementTable = ({ selectedUserId, slotFilter, onEditSlot, onEdit
   const displayUsers = selectedUserId ? TEAM_MEMBERS.filter((u) => u.id === selectedUserId) : TEAM_MEMBERS
 
   useEffect(() => {
+    if (initialWeekStart) {
+      setSelectedWeek(new Date(initialWeekStart))
+    }
+  }, [initialWeekStart])
+
+  useEffect(() => {
     loadData()
   }, [selectedUserId, selectedWeek, refreshKey])
 
@@ -681,8 +687,17 @@ export const ManagementTable = ({ selectedUserId, slotFilter, onEditSlot, onEdit
                             </div>
                           ) : status ? (
                             <div className="flex flex-col items-center gap-1.5 group/status">
-                              <div className={`w-full max-w-[120px] rounded-lg p-2 text-[10px] font-black text-center border shadow-sm ${theme === 'dark' ? 'bg-[#2A3441]/40' : 'bg-white'} ${statusTone[status.type as keyof typeof statusTone]}`}>
-                                {status.type === 'dayoff' ? 'Выходной' : status.type === 'sick' ? 'Больничный' : status.type === 'vacation' ? 'Отпуск' : 'Прогул'}
+                              <div className={`w-full max-w-[120px] rounded-lg p-2 text-[10px] font-black text-center border shadow-sm flex items-center justify-center gap-1 ${theme === 'dark' ? 'bg-[#2A3441]/40' : 'bg-white'} ${statusTone[status.type as keyof typeof statusTone]}`}>
+                                <span>{status.type === 'dayoff' ? 'Выходной' : status.type === 'sick' ? 'Больничный' : status.type === 'vacation' ? 'Отпуск' : 'Прогул'}</span>
+                                {status.comment && (
+                                  <div className="relative group/stat">
+                                    <Info className="w-3 h-3 opacity-60 hover:opacity-100 cursor-help" />
+                                    <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-1 px-2 py-1 bg-gray-900 text-white text-[10px] rounded whitespace-nowrap opacity-0 invisible group-hover/stat:opacity-100 group-hover/stat:visible transition-all z-50 shadow-lg border border-white/10">
+                                      {status.comment}
+                                      <div className="absolute left-1/2 -translate-x-1/2 top-full border-3 border-transparent border-t-gray-900"></div>
+                                    </div>
+                                  </div>
+                                )}
                               </div>
                               <div className="flex items-center gap-2 opacity-0 group-hover/status:opacity-100 transition-opacity duration-200">
                                 <button

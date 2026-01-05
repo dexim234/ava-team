@@ -460,6 +460,7 @@ export const FasolSignalsStrategy = () => {
                                     setCommonDate(new Date().toISOString().split('T')[0])
                                     setFormData({
                                         signalTime: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
+                                        setup: 'One',
                                         marketCap: '', address: '', strategies: [], maxDropFromSignal: '', maxDropFromLevel07: '', profits: [], comment: '', isScam: false
                                     })
                                     setShowModal(true)
@@ -607,7 +608,23 @@ export const FasolSignalsStrategy = () => {
                             {editingAlert ? (
                                 <form onSubmit={handleSubmit} className="space-y-4">
                                     <div className="grid grid-cols-2 gap-4">
-                                        <input type="time" value={formData.signalTime} onChange={e => setFormData({ ...formData, signalTime: e.target.value })} className="p-2.5 rounded-xl border dark:bg-black/30" />
+                                        <div className="space-y-1">
+                                            <label className={`text-[10px] font-bold uppercase ${subTextColor} ml-1`}>Время</label>
+                                            <input type="time" value={formData.signalTime} onChange={e => setFormData({ ...formData, signalTime: e.target.value })} className="w-full p-2.5 rounded-xl border dark:bg-black/30 outline-none focus:ring-2 focus:ring-purple-500/50" />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className={`text-[10px] font-bold uppercase ${subTextColor} ml-1`}>Setup</label>
+                                            <select
+                                                value={formData.setup || 'One'}
+                                                onChange={e => setFormData({ ...formData, setup: e.target.value as any })}
+                                                className="w-full p-2.5 rounded-xl border dark:bg-black/30 outline-none focus:ring-2 focus:ring-purple-500/50"
+                                            >
+                                                {['One', 'Two', 'Three', 'Four', 'Five'].map(s => <option key={s} value={s}>{s}</option>)}
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className={`text-[10px] font-bold uppercase ${subTextColor} ml-1`}>Стратегии</label>
                                         <MultiStrategySelector strategies={formData.strategies || []} profits={profitsInput} onChange={(s, p) => { setFormData({ ...formData, strategies: s }); setProfitsInput(p) }} theme={theme} />
                                     </div>
                                     <input type="text" placeholder="Адрес токена" value={formData.address || ''} onChange={e => setFormData({ ...formData, address: e.target.value })} className="w-full p-2.5 rounded-xl border dark:bg-black/30" />

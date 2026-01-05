@@ -60,6 +60,12 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
   const today = new Date()
 
   useEffect(() => {
+    if (initialWeekStart) {
+      setSelectedWeek(new Date(initialWeekStart))
+    }
+  }, [initialWeekStart])
+
+  useEffect(() => {
     loadData()
   }, [selectedUserId, selectedWeek, refreshKey])
 
@@ -532,13 +538,21 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
                   return (
                     <div
                       key={status.id}
-                      className={`relative flex flex-col sm: flex-row sm: items-center sm: justify-between gap-3 p-4 rounded-2xl border-2 transition - all duration-300 hover: shadow-xl backdrop-blur text-center sm: text-left ring-1 ring-inset ring-black/5 dark: ring-white/5 ${statusTone[status.type]
-                        } `}
+                      className={`relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 rounded-2xl border-2 transition-all duration-300 hover:shadow-xl backdrop-blur text-center sm:text-left ring-1 ring-inset ring-black/5 dark:ring-white/5 ${statusTone[status.type]}`}
                     >
                       <div className="flex flex-col sm:flex-row sm:items-center gap-2 justify-center sm:justify-start w-full">
                         <span className="font-semibold text-base sm:text-lg">{displayName}</span>
                         <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/70 dark:bg-white/10 text-xs sm:text-sm font-semibold">
                           {status.type === 'dayoff' ? 'Выходной' : status.type === 'sick' ? 'Больничный' : status.type === 'vacation' ? 'Отпуск' : 'Прогул'}
+                          {status.comment && (
+                            <div className="relative group/statuscomm ml-1">
+                              <Info className="w-3.5 h-3.5 opacity-60 hover:opacity-100 cursor-help" />
+                              <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 px-3 py-1.5 bg-gray-900 text-white text-xs rounded-lg whitespace-nowrap opacity-0 invisible group-hover/statuscomm:opacity-100 group-hover/statuscomm:visible transition-all z-[100] shadow-xl border border-white/10">
+                                {status.comment}
+                                <div className="absolute left-1/2 -translate-x-1/2 top-full border-4 border-transparent border-t-gray-900"></div>
+                              </div>
+                            </div>
+                          )}
                         </span>
                       </div>
                       <div className="flex gap-2 justify-center sm:justify-end w-full">
@@ -546,13 +560,13 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
                           <>
                             <button
                               onClick={() => onEditStatus(status)}
-                              className={`p-1 rounded transition - colors ${theme === 'dark' ? 'bg-white/10 hover:bg-white/20 text-white' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-100'} `}
+                              className={`p-1 rounded transition-colors ${theme === 'dark' ? 'bg-white/10 hover:bg-white/20 text-white' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-100'}`}
                             >
                               <Edit className="w-4 h-4 text-current" />
                             </button>
                             <button
                               onClick={() => handleDeleteStatus(status, dateStr)}
-                              className={`p-1 rounded transition - colors ${theme === 'dark' ? 'bg-white/10 hover:bg-white/20 text-white' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-100'} `}
+                              className={`p-1 rounded transition-colors ${theme === 'dark' ? 'bg-white/10 hover:bg-white/20 text-white' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-100'}`}
                             >
                               <Trash2 className="w-4 h-4 text-current" />
                             </button>
@@ -561,14 +575,14 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
                           <>
                             <button
                               disabled
-                              className={`p-1 cursor - not - allowed rounded ${theme === 'dark' ? 'bg-white/5 text-white/60' : 'bg-gray-100 text-gray-400 border border-gray-200'} `}
+                              className={`p-1 cursor-not-allowed rounded ${theme === 'dark' ? 'bg-white/5 text-white/60' : 'bg-gray-100 text-gray-400 border border-gray-200'}`}
                               title="Вы можете редактировать только свои статусы"
                             >
                               <Edit className="w-4 h-4 text-current opacity-60" />
                             </button>
                             <button
                               disabled
-                              className={`p-1 cursor - not - allowed rounded ${theme === 'dark' ? 'bg-white/5 text-white/60' : 'bg-gray-100 text-gray-400 border border-gray-200'} `}
+                              className={`p-1 cursor-not-allowed rounded ${theme === 'dark' ? 'bg-white/5 text-white/60' : 'bg-gray-100 text-gray-400 border border-gray-200'}`}
                               title="Вы можете удалять только свои статусы"
                             >
                               <Trash2 className="w-4 h-4 text-current opacity-60" />
@@ -592,10 +606,10 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
                   return (
                     <div
                       key={slot.id}
-                      className={`group relative space - y - 2 sm: space - y - 3 p-3 sm: p-4 ${slotBg} rounded-lg sm: rounded-xl shadow-xl border-2 transition - all duration-300 hover: shadow-2xl active: scale-[0.98] sm: hover: scale-[1.03] mb-2 sm: mb-3 hover: z-50 ${isUpcoming
+                      className={`group relative space-y-2 sm:space-y-3 p-3 sm:p-4 ${slotBg} rounded-lg sm:rounded-xl shadow-xl border-2 transition-all duration-300 hover:shadow-2xl active:scale-[0.98] sm:hover:scale-[1.03] mb-2 sm:mb-3 hover:z-50 ${isUpcoming
                         ? 'hover:border-emerald-200/80 ring-2 ring-emerald-200/40 hover:ring-4 hover:ring-emerald-200/60'
                         : 'hover:border-slate-200/80 ring-2 ring-slate-200/40 hover:ring-4 hover:ring-slate-200/60'
-                        } `}
+                        }`}
                     >
                       <div className="flex items-center justify-center sm:justify-start border-b border-white/20 pb-2 sm:pb-3">
                         <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
