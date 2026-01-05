@@ -9,7 +9,8 @@ import { formatDate, getWeekDays, isSameDate, getMoscowTime } from '@/utils/date
 import { getUserNicknameSync } from '@/utils/userUtils'
 import { WorkSlot, DayStatus, SLOT_CATEGORY_META, SlotCategory } from '@/types'
 import { TEAM_MEMBERS } from '@/types'
-import { Edit, Trash2, CheckCircle2, Calendar as CalendarIcon, ChevronDown, ChevronUp, Info } from 'lucide-react'
+import { Edit, Trash2, CheckCircle2, Calendar as CalendarIcon, ChevronDown, ChevronUp, Info, ChevronLeft, ChevronRight, RotateCcw } from 'lucide-react'
+import { startOfWeek } from 'date-fns'
 
 type SlotFilter = 'all' | 'upcoming' | 'completed'
 
@@ -20,9 +21,10 @@ interface ManagementWeekViewProps {
   onEditStatus: (status: DayStatus) => void
   refreshKey: number
   initialWeekStart?: string | null
+  onDateChange?: (date: string | null, weekStart: string | null) => void
 }
 
-export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onEditStatus, refreshKey, initialWeekStart }: ManagementWeekViewProps) => {
+export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onEditStatus, refreshKey, initialWeekStart, onDateChange }: ManagementWeekViewProps) => {
   const { theme } = useThemeStore()
   const { user } = useAuthStore()
   const { isAdmin } = useAdminStore()
@@ -408,6 +410,8 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
       newDate.setDate(newDate.getDate() + 7)
     }
     setSelectedWeek(newDate)
+    const weekStart = startOfWeek(newDate, { weekStartsOn: 1 })
+    onDateChange?.(null, formatDate(weekStart, 'yyyy-MM-dd'))
   }
 
   const toggleBreaksVisibility = (slotId: string) => {
@@ -419,7 +423,7 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
 
   if (loading) {
     return (
-      <div className={`rounded-lg p-8 text-center ${theme === 'dark' ? 'bg-[#1a1a1a]' : 'bg-white'}`}>
+      <div className={`rounded-lg p-8 text-center ${theme === 'dark' ? 'bg-[#1a1a1a]' : 'bg-white'} `}>
         <p className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>Загрузка...</p>
       </div>
     )
@@ -447,27 +451,46 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
     <div className={`rounded-2xl ${theme === 'dark' ? 'bg-transparent' : 'bg-white'} overflow-visible`}>
       {/* Week navigation */}
       <div
-        className={`p-3 sm:p-4 border-b ${theme === 'dark' ? 'border-white/5' : 'border-gray-100'} flex flex-col gap-2 sm:gap-3 sm:flex-row sm:items-center sm:justify-between`}
+        className={`p-3 sm: p-4 border-b ${theme === 'dark' ? 'border-white/5' : 'border-gray-100'} flex flex-col gap-2 sm: gap-3 sm: flex-row sm: items-center sm: justify-between`}
       >
-        <button
-          onClick={() => navigateWeek('prev')}
-          className={`px-4 py-2 text-sm font-bold rounded-xl transition-all flex items-center gap-2 hover:scale-105 active:scale-95 ${theme === 'dark'
-            ? 'bg-[#151a21] text-gray-300 hover:text-white hover:bg-[#1f2937]'
-            : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
-            }`}
-        >
-          <ChevronDown className="w-4 h-4 rotate-90" />
-          <span>Пред. неделя</span>
-        </button>
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+          <button
+            onClick={() => navigateWeek('prev')}
+            className={`p-1.5 sm: p-2 rounded-xl border transition - all ${theme === 'dark' ? 'bg-white/5 border-white/10 hover:bg-white/10 text-white' : 'bg-white border-gray-200 hover:bg-gray-50 text-gray-900 shadow-sm'} `}
+          >
+            <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5 text-purple-500" />
+          </button>
+
+          <button
+            onClick={() => {
+              const today = new Date()
+              const weekStart = startOfWeek(today, { weekStartsOn: 1 })
+              setSelectedWeek(weekStart)
+              onDateChange?.(null, formatDate(weekStart, 'yyyy-MM-dd'))
+            }}
+            className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs sm: text-sm font-semibold transition - all ${theme === 'dark' ? 'bg-white/5 border-white/10 hover:bg-white/10 text-white' : 'bg-white border-gray-200 hover:bg-gray-50 text-gray-900 shadow-sm'} `}
+            title="Вернуться к сегодняшнему дню"
+          >
+            <RotateCcw className="w-3.5 h-3.5 text-purple-500" />
+            <span className="hidden sm:inline">Актуальный день</span>
+          </button>
+
+          <button
+            onClick={() => navigateWeek('next')}
+            className={`p-1.5 sm: p-2 rounded-xl border transition - all ${theme === 'dark' ? 'bg-white/5 border-white/10 hover:bg-white/10 text-white' : 'bg-white border-gray-200 hover:bg-gray-50 text-gray-900 shadow-sm'} `}
+          >
+            <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-purple-500" />
+          </button>
+        </div>
         <span className={`${headingColor} font-black text-lg tracking-tight whitespace-nowrap`}>
           {formatDate(weekDays[0], 'd MMMM')} — {formatDate(weekDays[6], 'd MMMM yyyy')}
         </span>
         <button
           onClick={() => navigateWeek('next')}
-          className={`px-4 py-2 text-sm font-bold rounded-xl transition-all flex items-center gap-2 hover:scale-105 active:scale-95 ${theme === 'dark'
+          className={`px-4 py-2 text-sm font-bold rounded-xl transition - all flex items-center gap-2 hover: scale-105 active: scale-95 ${theme === 'dark'
             ? 'bg-[#151a21] text-gray-300 hover:text-white hover:bg-[#1f2937]'
             : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
-            }`}
+            } `}
         >
           <span>След. неделя</span>
           <ChevronDown className="w-4 h-4 -rotate-90" />
@@ -490,7 +513,7 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
           return (
             <div
               key={dateStr}
-              className={`${dayCardBase} ${dayCardTone} ${isToday ? dayCardHighlight : ''}`}
+              className={`${dayCardBase} ${dayCardTone} ${isToday ? dayCardHighlight : ''} `}
             >
               {isToday && (
                 <div className="absolute top-3 right-3 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500 text-white text-xs font-semibold shadow-lg ring-2 ring-white/50 dark:ring-emerald-200/30">
@@ -498,7 +521,7 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
                   <span className="relative">Сегодня</span>
                 </div>
               )}
-              <h3 className={`text-lg font-semibold mb-3 ${headingColor}`}>
+              <h3 className={`text-lg font-semibold mb-3 ${headingColor} `}>
                 {formatDate(day, 'dd.MM.yyyy')}
               </h3>
 
@@ -509,8 +532,8 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
                   return (
                     <div
                       key={status.id}
-                      className={`relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 rounded-2xl border-2 transition-all duration-300 hover:shadow-xl backdrop-blur text-center sm:text-left ring-1 ring-inset ring-black/5 dark:ring-white/5 ${statusTone[status.type]
-                        }`}
+                      className={`relative flex flex-col sm: flex-row sm: items-center sm: justify-between gap-3 p-4 rounded-2xl border-2 transition - all duration-300 hover: shadow-xl backdrop-blur text-center sm: text-left ring-1 ring-inset ring-black/5 dark: ring-white/5 ${statusTone[status.type]
+                        } `}
                     >
                       <div className="flex flex-col sm:flex-row sm:items-center gap-2 justify-center sm:justify-start w-full">
                         <span className="font-semibold text-base sm:text-lg">{displayName}</span>
@@ -523,13 +546,13 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
                           <>
                             <button
                               onClick={() => onEditStatus(status)}
-                              className={`p-1 rounded transition-colors ${theme === 'dark' ? 'bg-white/10 hover:bg-white/20 text-white' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-100'}`}
+                              className={`p-1 rounded transition - colors ${theme === 'dark' ? 'bg-white/10 hover:bg-white/20 text-white' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-100'} `}
                             >
                               <Edit className="w-4 h-4 text-current" />
                             </button>
                             <button
                               onClick={() => handleDeleteStatus(status, dateStr)}
-                              className={`p-1 rounded transition-colors ${theme === 'dark' ? 'bg-white/10 hover:bg-white/20 text-white' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-100'}`}
+                              className={`p-1 rounded transition - colors ${theme === 'dark' ? 'bg-white/10 hover:bg-white/20 text-white' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-100'} `}
                             >
                               <Trash2 className="w-4 h-4 text-current" />
                             </button>
@@ -538,14 +561,14 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
                           <>
                             <button
                               disabled
-                              className={`p-1 cursor-not-allowed rounded ${theme === 'dark' ? 'bg-white/5 text-white/60' : 'bg-gray-100 text-gray-400 border border-gray-200'}`}
+                              className={`p-1 cursor - not - allowed rounded ${theme === 'dark' ? 'bg-white/5 text-white/60' : 'bg-gray-100 text-gray-400 border border-gray-200'} `}
                               title="Вы можете редактировать только свои статусы"
                             >
                               <Edit className="w-4 h-4 text-current opacity-60" />
                             </button>
                             <button
                               disabled
-                              className={`p-1 cursor-not-allowed rounded ${theme === 'dark' ? 'bg-white/5 text-white/60' : 'bg-gray-100 text-gray-400 border border-gray-200'}`}
+                              className={`p-1 cursor - not - allowed rounded ${theme === 'dark' ? 'bg-white/5 text-white/60' : 'bg-gray-100 text-gray-400 border border-gray-200'} `}
                               title="Вы можете удалять только свои статусы"
                             >
                               <Trash2 className="w-4 h-4 text-current opacity-60" />
@@ -569,10 +592,10 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
                   return (
                     <div
                       key={slot.id}
-                      className={`group relative space-y-2 sm:space-y-3 p-3 sm:p-4 ${slotBg} rounded-lg sm:rounded-xl shadow-xl border-2 transition-all duration-300 hover:shadow-2xl active:scale-[0.98] sm:hover:scale-[1.03] mb-2 sm:mb-3 ${isUpcoming
+                      className={`group relative space - y - 2 sm: space - y - 3 p-3 sm: p-4 ${slotBg} rounded-lg sm: rounded-xl shadow-xl border-2 transition - all duration-300 hover: shadow-2xl active: scale-[0.98] sm: hover: scale-[1.03] mb-2 sm: mb-3 hover: z-50 ${isUpcoming
                         ? 'hover:border-emerald-200/80 ring-2 ring-emerald-200/40 hover:ring-4 hover:ring-emerald-200/60'
                         : 'hover:border-slate-200/80 ring-2 ring-slate-200/40 hover:ring-4 hover:ring-slate-200/60'
-                        }`}
+                        } `}
                     >
                       <div className="flex items-center justify-center sm:justify-start border-b border-white/20 pb-2 sm:pb-3">
                         <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
@@ -581,10 +604,10 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
                               <img
                                 src={slotUser.avatar}
                                 alt={displayName}
-                                className={`w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 lg:w-11 lg:h-11 rounded-full object-cover border-2 shadow-xl transition-all duration-300 group-hover/avatar:scale-110 group-hover/avatar:shadow-2xl ${isUpcoming
+                                className={`w-8 h-8 sm: w-9 sm: h-9 md: w-10 md: h-10 lg: w-11 lg: h-11 rounded-full object - cover border-2 shadow-xl transition - all duration-300 group-hover/avatar: scale-110 group-hover/avatar: shadow-2xl ${isUpcoming
                                   ? 'border-white/50 ring-2 ring-white/40 ring-offset-2 ring-offset-emerald-400/30 group-hover/avatar:ring-4 group-hover/avatar:ring-white/60'
                                   : 'border-white/40 ring-2 ring-white/30 ring-offset-2 ring-offset-slate-400/30 group-hover/avatar:ring-4 group-hover/avatar:ring-white/50'
-                                  }`}
+                                  } `}
                                 onError={(e) => {
                                   const target = e.target as HTMLImageElement
                                   target.style.display = 'none'
@@ -594,10 +617,10 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
                               />
                             ) : null}
                             <div
-                              className={`w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 lg:w-11 lg:h-11 rounded-full flex items-center justify-center font-bold text-xs sm:text-sm transition-all duration-300 shadow-xl group-hover/avatar:scale-110 group-hover/avatar:shadow-2xl ${isUpcoming
+                              className={`w-8 h-8 sm: w-9 sm: h-9 md: w-10 md: h-10 lg: w-11 lg: h-11 rounded-full flex items-center justify-center font-bold text-xs sm: text-sm transition - all duration-300 shadow-xl group-hover/avatar: scale-110 group-hover/avatar: shadow-2xl ${isUpcoming
                                 ? 'bg-white/25 backdrop-blur-md border-2 border-white/40 ring-2 ring-white/30 group-hover/avatar:ring-4 group-hover/avatar:ring-white/60'
                                 : 'bg-white/15 backdrop-blur-md border-2 border-white/30 ring-2 ring-white/20 group-hover/avatar:ring-4 group-hover/avatar:ring-white/50'
-                                } ${slotUser?.avatar ? 'absolute inset-0 hidden' : ''}`}
+                                } ${slotUser?.avatar ? 'absolute inset-0 hidden' : ''} `}
                             >
                               {displayName.charAt(0).toUpperCase()}
                             </div>
@@ -644,12 +667,12 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
                         {slot.slots.map((s, slotIdx) => (
                           <div key={slotIdx} className="space-y-1.5">
                             {/* Main slot time */}
-                            <div className={`bg-white/25 backdrop-blur-md rounded-md sm:rounded-lg px-2 sm:px-3 py-1.5 sm:py-2 border-2 transition-all duration-300 hover:scale-105 hover:shadow-xl ${isUpcoming
+                            <div className={`bg-white/25 backdrop-blur-md rounded-md sm: rounded-lg px-2 sm: px-3 py-1.5 sm: py-2 border-2 transition - all duration-300 hover: scale-105 hover: shadow-xl ${isUpcoming
                               ? 'border-white/40 ring-2 ring-white/20 hover:border-white/60 hover:ring-4 hover:ring-white/40'
                               : 'border-white/30 ring-2 ring-white/10 hover:border-white/50 hover:ring-4 hover:ring-white/30'
-                              }`}>
+                              } `}>
                               <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-                                <SlotIcon className={`w-3.5 h-3.5 sm:w-4 sm:h-4 text-white flex-shrink-0 ${isUpcoming ? 'animate-pulse' : ''}`} />
+                                <SlotIcon className={`w-3.5 h-3.5 sm: w-4 sm: h-4 text-white flex-shrink - 0 ${isUpcoming ? 'animate-pulse' : ''} `} />
                                 <span className="text-white font-bold text-xs sm:text-sm whitespace-nowrap">{s.start} - {s.end}</span>
                                 {s.endDate && (
                                   <span className="text-white/80 font-medium text-[10px] sm:text-xs whitespace-nowrap">
@@ -659,7 +682,7 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
                                 {slot.category && (
                                   <span className={`text-[10px] px-1.5 py-0.5 rounded-full border font-medium whitespace-nowrap ${SLOT_CATEGORY_COLORS[slot.category as SlotCategory]?.bg || 'bg-white/20'
                                     } ${SLOT_CATEGORY_COLORS[slot.category as SlotCategory]?.text || 'text-white'} ${SLOT_CATEGORY_COLORS[slot.category as SlotCategory]?.border || 'border-white/30'
-                                    }`}>
+                                    } `}>
                                     {SLOT_CATEGORY_META[slot.category as SlotCategory]?.label || slot.category}
                                   </span>
                                 )}
@@ -679,10 +702,10 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
                               <div className="flex justify-center">
                                 <button
                                   onClick={() => toggleBreaksVisibility(slot.id)}
-                                  className={`p-1 rounded-md transition-all duration-200 hover:scale-110 ${breaksExpanded[slot.id]
+                                  className={`p-1 rounded-md transition - all duration-200 hover: scale-110 ${breaksExpanded[slot.id]
                                     ? 'text-white hover:text-white/80'
                                     : 'text-white/70 hover:text-white'
-                                    }`}
+                                    } `}
                                   title={breaksExpanded[slot.id] ? 'Скрыть перерывы' : 'Показать перерывы'}
                                 >
                                   {breaksExpanded[slot.id] ? (

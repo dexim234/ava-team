@@ -17,7 +17,8 @@ import { Rules } from './pages/Rules'
 import { Approvals } from './pages/Approvals'
 import { MemeEvaluation } from './pages/MemeEvaluation'
 import { AiAoAlerts } from './pages/AiAoAlerts'
-import { SignalsTriggerBot } from './pages/SignalsTriggerBot'
+import SignalsTriggerBot from './pages/SignalsTriggerBot'
+import FasolSignalsStrategy from './pages/FasolSignalsStrategy'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { AccessBlockScreen } from './components/AccessBlockScreen'
 import { cleanupOldData } from './services/firestoreService'
@@ -156,6 +157,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <SignalsTriggerBot />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/fasol-signals-strategy"
+            element={
+              <ProtectedRoute>
+                <FasolSignalsStrategy />
               </ProtectedRoute>
             }
           />

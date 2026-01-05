@@ -513,6 +513,25 @@ export interface TriggerAlert {
   createdBy: string
 }
 
+// Fasol Signals Strategy types
+export interface FasolTriggerAlert {
+  id: string
+  signalDate: string // YYYY-MM-DD
+  signalTime: string // HH:mm
+  marketCap?: string
+  address: string
+  strategies: TriggerStrategy[]
+  maxDropFromSignal?: string
+  maxDropFromLevel07?: string
+  maxProfit?: string
+  profits?: TriggerProfit[]
+  comment?: string
+  screenshot?: string
+  isScam?: boolean
+  createdAt: string
+  createdBy: string
+}
+
 export interface ActivityLog {
   id: string
   userId: string

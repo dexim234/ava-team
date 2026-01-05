@@ -7,25 +7,45 @@ import { useUserActivity } from '@/hooks/useUserActivity'
 import { checkUserAccess, getApprovalRequests, getTasks, getWorkSlots } from '@/services/firestoreService'
 import { formatDate } from '@/utils/dateUtils'
 import {
+  Layout as LayoutIcon,
+  Users,
+  Calendar,
+  Layers,
+  Settings,
+  LogOut,
+  ChevronLeft,
+  ChevronRight,
+  Menu,
+  X,
+  Bell,
+  Search,
+  BookOpen,
+  PieChart,
+  Target,
+  TrendingUp,
+  Zap,
+  Briefcase,
+  Bot,
+  MessageSquare,
+  Shield,
+  Clock,
+  HelpCircle,
+  Code,
+  DollarSign,
+  Star,
+  User,
+  AlertTriangle,
+  RefreshCw,
+  Table,
+  ZapOff,
   Moon,
   Sun,
   CheckCircle2,
-  Settings,
-  Shield,
-  Calendar,
-  DollarSign,
   CheckSquare,
-  TrendingUp,
   ChevronDown,
-  ChevronRight,
   Info,
   ArrowUpRight,
-  Bell,
-  AlertTriangle,
-  LogOut,
-  ZapOff,
   Radio,
-  Zap,
   PanelLeftClose,
   PanelLeftOpen,
 } from 'lucide-react'
@@ -62,11 +82,11 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
       setIsFeaturesLoading(true)
       try {
         if (!user || isAdmin) {
-          setAccessibleFeatures(new Set(['slots', 'earnings', 'tasks', 'rating', 'profile', 'admin', 'tools', 'tools_meme_evaluation', 'tools_ai_ao_alerts', 'tools_signals_trigger_bot']))
+          setAccessibleFeatures(new Set(['slots', 'earnings', 'tasks', 'rating', 'profile', 'admin', 'tools', 'tools_meme_evaluation', 'tools_ai_ao_alerts', 'tools_signals_trigger_bot', 'tools_fasol_signals_strategy']))
           return
         }
 
-        const features = ['slots', 'earnings', 'tasks', 'rating', 'profile', 'about', 'tools', 'tools_meme_evaluation', 'tools_ai_ao_alerts', 'tools_signals_trigger_bot', 'avf_hub']
+        const features = ['slots', 'earnings', 'tasks', 'rating', 'profile', 'about', 'tools', 'tools_meme_evaluation', 'tools_ai_ao_alerts', 'tools_signals_trigger_bot', 'tools_fasol_signals_strategy', 'avf_hub']
         const accessible = new Set<string>()
 
         for (const feature of features) {
@@ -99,7 +119,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
     ...(isAdmin ? [{ path: '/approvals', label: 'AVF Check', icon: CheckCircle2, feature: 'admin' }] : []),
   ]
 
-  const mobileFuncSubItems = funcsSubItems.filter(item => 
+  const mobileFuncSubItems = funcsSubItems.filter(item =>
     item.path !== '/about' && item.path !== '/approvals' &&
     (!item.feature || accessibleFeatures.has(item.feature) || isAdmin)
   )
@@ -107,7 +127,8 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
   const toolsSubItems: { path: string; label: string; icon: LucideIcon; feature: string }[] = [
     { path: '/meme-evaluation', label: 'Оценка мема', icon: TrendingUp, feature: 'tools_meme_evaluation' },
     { path: '/ai-ao-alerts', label: 'ИИ - АО Alerts', icon: AlertTriangle, feature: 'tools_ai_ao_alerts' },
-    { path: '/signals-trigger-bot', label: 'Signals Trigger Bot', icon: Zap, feature: 'tools_signals_trigger_bot' },
+    { path: '/signals-trigger-bot', label: 'Signals Trigger Bot', icon: Table, feature: 'tools_signals_trigger_bot' },
+    { path: '/fasol-signals-strategy', label: 'Fasol Signals Strategy', icon: Zap, feature: 'tools_fasol_signals_strategy' },
   ]
 
   // Filter tools that user has access to

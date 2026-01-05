@@ -14,7 +14,7 @@ import {
   DocumentSnapshot,
 } from 'firebase/firestore'
 import { db } from '@/firebase/config' // Keep original path for db
-import { WorkSlot, DayStatus, Earnings, RatingData, Referral, Call, Task, TaskStatus, Note, TaskPriority, StageAssignee, ApprovalRequest, ApprovalStatus, UserActivity, UserNickname, Restriction, RestrictionType, UserConflict, AccessBlock, AiAlert, User, TriggerAlert } from '@/types' // Add User to existing types
+import { WorkSlot, DayStatus, Earnings, RatingData, Referral, Call, Task, TaskStatus, Note, TaskPriority, StageAssignee, ApprovalRequest, ApprovalStatus, UserActivity, UserNickname, Restriction, RestrictionType, UserConflict, AccessBlock, AiAlert, User, TriggerAlert, FasolTriggerAlert } from '@/types' // Add User to existing types
 import { clearNicknameCache, getUserNicknameAsync } from '@/utils/userUtils'
 import { formatDate } from '@/utils/dateUtils'
 
@@ -1768,5 +1768,38 @@ export const updateTriggerAlert = async (id: string, updates: Partial<TriggerAle
 
 export const deleteTriggerAlert = async (id: string) => {
   const alertRef = doc(db, 'triggerAlerts', id)
+  await deleteDoc(alertRef)
+}
+
+// Fasol Signals Strategy (independent collection)
+export const getFasolTriggerAlerts = async (): Promise<FasolTriggerAlert[]> => {
+  const alertsRef = collection(db, 'fasolTriggerAlerts')
+  const q = query(alertsRef, orderBy('createdAt', 'desc'))
+  const querySnapshot = await getDocs(q)
+  return querySnapshot.docs.map((docSnap) => ({
+    id: docSnap.id,
+    ...docSnap.data(),
+  } as FasolTriggerAlert))
+}
+
+export const addFasolTriggerAlert = async (alert: Omit<FasolTriggerAlert, 'id'>) => {
+  const alertsRef = collection(db, 'fasolTriggerAlerts')
+  const cleanAlert = Object.fromEntries(
+    Object.entries(alert).filter(([_, value]: [string, any]) => value !== undefined)
+  )
+  const result = await addDoc(alertsRef, cleanAlert)
+  return result
+}
+
+export const updateFasolTriggerAlert = async (id: string, updates: Partial<FasolTriggerAlert>) => {
+  const alertRef = doc(db, 'fasolTriggerAlerts', id)
+  const cleanUpdates = Object.fromEntries(
+    Object.entries(updates).filter(([_, value]: [string, any]) => value !== undefined)
+  )
+  await updateDoc(alertRef, cleanUpdates)
+}
+
+export const deleteFasolTriggerAlert = async (id: string) => {
+  const alertRef = doc(db, 'fasolTriggerAlerts', id)
   await deleteDoc(alertRef)
 }

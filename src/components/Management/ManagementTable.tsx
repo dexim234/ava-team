@@ -9,7 +9,8 @@ import { getUserNicknameSync } from '@/utils/userUtils'
 import { UserNickname } from '@/components/UserNickname'
 import { WorkSlot, DayStatus, SLOT_CATEGORY_META, SlotCategory } from '@/types'
 import { TEAM_MEMBERS } from '@/types'
-import { Edit, Trash2, Clock, Calendar as CalendarIcon, ChevronDown, ChevronUp, Info } from 'lucide-react'
+import { Edit, Trash2, Clock, Calendar as CalendarIcon, ChevronDown, ChevronUp, Info, ChevronLeft, ChevronRight, RotateCcw } from 'lucide-react'
+import { format, startOfWeek } from 'date-fns'
 
 type SlotFilter = 'all' | 'upcoming' | 'completed'
 
@@ -477,16 +478,39 @@ export const ManagementTable = ({ selectedUserId, slotFilter, onEditSlot, onEdit
       <div
         className={`p-4 border-b ${theme === 'dark' ? 'border-white/5' : 'border-gray-100'} flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between`}
       >
-        <button
-          onClick={() => navigateWeek('prev')}
-          className={`px-4 py-2 text-sm font-bold rounded-xl transition-all flex items-center gap-2 hover:scale-105 active:scale-95 ${theme === 'dark'
-            ? 'bg-[#151a21] text-gray-300 hover:text-white hover:bg-[#1f2937]'
-            : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
-            }`}
-        >
-          <ChevronDown className="w-4 h-4 rotate-90" />
-          <span>Пред. неделя</span>
-        </button>
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+          <button
+            onClick={() => navigateWeek('prev')}
+            className={`p-1.5 sm:p-2 rounded-xl border transition-all ${theme === 'dark' ? 'bg-white/5 border-white/10 hover:bg-white/10 text-white' : 'bg-white border-gray-200 hover:bg-gray-50 text-gray-900 shadow-sm'}`}
+          >
+            <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5 text-purple-500" />
+          </button>
+
+          <button
+            onClick={() => {
+              const today = new Date()
+              const weekStart = startOfWeek(today, { weekStartsOn: 1 })
+              const dateStr = format(today, 'yyyy-MM-dd')
+              const weekStartStr = format(weekStart, 'yyyy-MM-dd')
+              setSelectedWeek(weekStart)
+              if (onDateChange) {
+                onDateChange(dateStr, weekStartStr)
+              }
+            }}
+            className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs sm:text-sm font-semibold transition-all ${theme === 'dark' ? 'bg-white/5 border-white/10 hover:bg-white/10 text-white' : 'bg-white border-gray-200 hover:bg-gray-50 text-gray-900 shadow-sm'}`}
+            title="Вернуться к текущей неделе"
+          >
+            <RotateCcw className="w-3.5 h-3.5 text-purple-500" />
+            <span className="hidden sm:inline">Актуальная неделя</span>
+          </button>
+
+          <button
+            onClick={() => navigateWeek('next')}
+            className={`p-1.5 sm:p-2 rounded-xl border transition-all ${theme === 'dark' ? 'bg-white/5 border-white/10 hover:bg-white/10 text-white' : 'bg-white border-gray-200 hover:bg-gray-50 text-gray-900 shadow-sm'}`}
+          >
+            <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-purple-500" />
+          </button>
+        </div>
 
         <div className="flex items-center gap-2">
           <CalendarIcon className={`w-5 h-5 ${theme === 'dark' ? 'text-emerald-500' : 'text-emerald-600'}`} />
@@ -495,16 +519,10 @@ export const ManagementTable = ({ selectedUserId, slotFilter, onEditSlot, onEdit
           </span>
         </div>
 
-        <button
-          onClick={() => navigateWeek('next')}
-          className={`px-4 py-2 text-sm font-bold rounded-xl transition-all flex items-center gap-2 hover:scale-105 active:scale-95 ${theme === 'dark'
-            ? 'bg-[#151a21] text-gray-300 hover:text-white hover:bg-[#1f2937]'
-            : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
-            }`}
-        >
-          <span>След. неделя</span>
-          <ChevronDown className="w-4 h-4 -rotate-90" />
-        </button>
+        {/* Placeholder to balance layout if needed, or remove if not */}
+        <div className="w-full sm:w-auto flex justify-end sm:justify-start">
+          {/* Original next button was here, now moved into the flex-wrap group */}
+        </div>
       </div>
 
       {/* Table */}
@@ -595,7 +613,7 @@ export const ManagementTable = ({ selectedUserId, slotFilter, onEditSlot, onEdit
 
                                 return (
                                   <div key={slotIdx} className="w-full flex flex-col items-center gap-1.5 group/timecard">
-                                    <div className={`w-full max-w-[120px] rounded-xl p-2 text-[10px] font-bold transition-all relative overflow-hidden shadow-md ${theme === 'dark' ? 'bg-[#1a1f26] border border-white/5 text-gray-200' : 'bg-gray-100 text-gray-700'
+                                    <div className={`w-full max-w-[120px] rounded-xl p-2 text-[10px] font-bold transition-all relative shadow-md ${theme === 'dark' ? 'bg-[#1a1f26] border border-white/5 text-gray-200' : 'bg-gray-100 text-gray-700'
                                       }`}>
                                       <div className="flex flex-col items-center gap-1.5 w-full">
                                         <div className="flex items-center gap-1 opacity-80 justify-center">
