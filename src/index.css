@@ -145,7 +145,7 @@ body.dark ::-webkit-scrollbar-track {
 
 @media (min-width: 1024px) {
   .page-shell {
-    padding: 2rem 2rem 3rem;
+    padding: 0 2rem 3rem;
   }
 }
 
