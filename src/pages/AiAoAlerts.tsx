@@ -3,7 +3,7 @@ import { useThemeStore } from '@/store/themeStore'
 import { useAuthStore } from '@/store/authStore'
 import { getAiAlerts, addAiAlert, updateAiAlert, deleteAiAlert } from '@/services/firestoreService'
 import { AiAlert } from '@/types'
-import { Plus, Edit, Trash2, Save, X, Copy, Check, Terminal, Table, Filter, ArrowUp, ArrowDown, RotateCcw } from 'lucide-react'
+import { Plus, Edit, Trash2, Save, X, Copy, Check, Terminal, Table, Filter, ArrowUp, ArrowDown, RotateCcw, Calendar, ChevronDown, Hash, Coins, TrendingDown, TrendingUp, Search, Activity } from 'lucide-react'
 import { UserNickname } from '../components/UserNickname'
 import { useAdminStore } from '@/store/adminStore'
 
@@ -14,6 +14,12 @@ export const AiAoAlerts = () => {
     const { theme } = useThemeStore()
     const { user } = useAuthStore()
     const { isAdmin } = useAdminStore()
+
+    const subTextColor = theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+    const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
+    const cardBg = theme === 'dark' ? 'bg-[#10141c]' : 'bg-white'
+    const cardBorder = theme === 'dark' ? 'border-[#48a35e]/30' : 'border-[#48a35e]/20'
+    const cardShadow = theme === 'dark' ? 'shadow-[0_24px_80px_rgba(0,0,0,0.45)]' : 'shadow-[0_24px_80px_rgba(0,0,0,0.15)]'
 
     const [alerts, setAlerts] = useState<AiAlert[]>([])
     const [loading, setLoading] = useState(true)
@@ -164,12 +170,6 @@ export const AiAoAlerts = () => {
             console.error('Error saving alert:', error)
         }
     }
-
-    const subTextColor = theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-    const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
-    const cardBg = theme === 'dark' ? 'bg-[#10141c]' : 'bg-white'
-    const cardBorder = theme === 'dark' ? 'border-[#48a35e]/30' : 'border-[#48a35e]/20'
-    const cardShadow = theme === 'dark' ? 'shadow-[0_24px_80px_rgba(0,0,0,0.45)]' : 'shadow-[0_24px_80px_rgba(0,0,0,0.15)]'
 
     useEffect(() => {
         loadAlerts()
@@ -474,156 +474,181 @@ export const AiAoAlerts = () => {
 
                 {/* Filters Panel */}
                 {showFilters && (
-                    <div className={`rounded-3xl border ${cardBorder} ${cardBg} p-6 space-y-4`}>
-                        <div className="flex items-center gap-2 mb-4">
-                            <Filter className={`w-5 h-5 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`} />
-                            <h3 className={`text-lg font-semibold ${headingColor}`}>Фильтры и сортировка</h3>
+                    <div className={`rounded-3xl border ${cardBorder} ${cardBg} p-6 pb-4 sm:p-8 space-y-6 shadow-2xl relative overflow-hidden group transition-all duration-500`}>
+                        {/* Decorative Background Element */}
+                        <div className={`absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 rounded-full blur-3xl opacity-10 ${theme === 'dark' ? 'bg-white' : 'bg-[#4E6E49]'}`}></div>
+
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative z-10">
+                            <div className="flex items-center gap-3">
+                                <div className={`p-2 rounded-xl border ${theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-gray-100 border-gray-200'}`}>
+                                    <Filter className={`w-5 h-5 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`} />
+                                </div>
+                                <div className="flex flex-col">
+                                    <h3 className={`text-lg font-bold tracking-tight ${headingColor}`}>Управление выборкой</h3>
+                                    <p className={`text-[10px] font-medium uppercase tracking-widest ${subTextColor} opacity-60`}>Настройка фильтрации и сортировки</p>
+                                </div>
+                            </div>
+
+                            <div className={`px-4 py-1.5 rounded-full text-[11px] font-bold border flex items-center gap-2 ${theme === 'dark' ? 'bg-white/5 border-white/10 text-gray-400' : 'bg-gray-50 border-gray-200 text-gray-500'}`}>
+                                <Activity className="w-3.5 h-3.5" />
+                                <span>Адаптивный фильтр</span>
+                            </div>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                            {/* Date Filters */}
-                            <div className="space-y-3">
-                                <h4 className={`text-xs font-semibold uppercase ${subTextColor}`}>Дата</h4>
-                                <div className="space-y-2">
-                                    <div>
-                                        <label className={`text-xs ${subTextColor}`}>Конкретная дата</label>
-                                        <input
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-6 relative z-10">
+                            {/* Date Group */}
+                            <div className="lg:col-span-3 space-y-4">
+                                <div className="flex items-center gap-2 px-1">
+                                    <Calendar className="w-3.5 h-3.5 text-blue-500" />
+                                    <span className={`text-[11px] font-bold uppercase tracking-wider ${subTextColor}`}>Временные рамки</span>
+                                </div>
+                                <div className="space-y-3">
+                                    <PremiumInput
+                                        icon={Search}
+                                        type="date"
+                                        label="Конкретный день"
+                                        value={specificDate}
+                                        onChange={(e) => setSpecificDate(e.target.value)}
+                                        theme={theme}
+                                    />
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <PremiumInput
                                             type="date"
-                                            value={specificDate}
-                                            onChange={(e) => setSpecificDate(e.target.value)}
-                                            className={`w-full p-2 rounded-lg border text-sm outline-none mt-1 ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'}`}
+                                            label="От"
+                                            value={dateFrom}
+                                            onChange={(e) => setDateFrom(e.target.value)}
+                                            theme={theme}
                                         />
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-2">
-                                        <div>
-                                            <label className={`text-xs ${subTextColor}`}>От</label>
-                                            <input
-                                                type="date"
-                                                value={dateFrom}
-                                                onChange={(e) => setDateFrom(e.target.value)}
-                                                className={`w-full p-2 rounded-lg border text-sm outline-none mt-1 ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'}`}
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className={`text-xs ${subTextColor}`}>До</label>
-                                            <input
-                                                type="date"
-                                                value={dateTo}
-                                                onChange={(e) => setDateTo(e.target.value)}
-                                                className={`w-full p-2 rounded-lg border text-sm outline-none mt-1 ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'}`}
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Drop Filters */}
-                            <div className="space-y-3">
-                                <h4 className={`text-xs font-semibold uppercase ${subTextColor}`}>Макс. Падение (%)</h4>
-                                <div className="grid grid-cols-2 gap-2">
-                                    <div>
-                                        <label className={`text-xs ${subTextColor}`}>Мин.</label>
-                                        <input
-                                            type="number"
-                                            placeholder="-50"
-                                            value={minDrop}
-                                            onChange={(e) => setMinDrop(e.target.value)}
-                                            className={`w-full p-2 rounded-lg border text-sm outline-none mt-1 ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'}`}
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className={`text-xs ${subTextColor}`}>Макс.</label>
-                                        <input
-                                            type="number"
-                                            placeholder="-5"
-                                            value={maxDrop}
-                                            onChange={(e) => setMaxDrop(e.target.value)}
-                                            className={`w-full p-2 rounded-lg border text-sm outline-none mt-1 ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'}`}
+                                        <PremiumInput
+                                            type="date"
+                                            label="До"
+                                            value={dateTo}
+                                            onChange={(e) => setDateTo(e.target.value)}
+                                            theme={theme}
                                         />
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Profit Filters */}
-                            <div className="space-y-3">
-                                <h4 className={`text-xs font-semibold uppercase ${subTextColor}`}>Макс. Профит (%)</h4>
-                                <div className="grid grid-cols-2 gap-2">
-                                    <div>
-                                        <label className={`text-xs ${subTextColor}`}>Мин.</label>
-                                        <input
-                                            type="number"
-                                            placeholder="10"
-                                            value={minProfit}
-                                            onChange={(e) => setMinProfit(e.target.value)}
-                                            className={`w-full p-2 rounded-lg border text-sm outline-none mt-1 ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'}`}
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className={`text-xs ${subTextColor}`}>Макс.</label>
-                                        <input
-                                            type="number"
-                                            placeholder="500"
-                                            value={maxProfit}
-                                            onChange={(e) => setMaxProfit(e.target.value)}
-                                            className={`w-full p-2 rounded-lg border text-sm outline-none mt-1 ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'}`}
-                                        />
-                                    </div>
+                            {/* Drop Group */}
+                            <div className="lg:col-span-2 space-y-4">
+                                <div className="flex items-center gap-2 px-1">
+                                    <TrendingDown className="w-3.5 h-3.5 text-rose-500" />
+                                    <span className={`text-[11px] font-bold uppercase tracking-wider ${subTextColor}`}>Падение (%)</span>
+                                </div>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <PremiumInput
+                                        icon={TrendingDown}
+                                        placeholder="Min"
+                                        value={minDrop}
+                                        onChange={(e) => setMinDrop(e.target.value)}
+                                        theme={theme}
+                                    />
+                                    <PremiumInput
+                                        placeholder="Max"
+                                        value={maxDrop}
+                                        onChange={(e) => setMaxDrop(e.target.value)}
+                                        theme={theme}
+                                    />
                                 </div>
                             </div>
 
-                            {/* Market Cap Filters */}
-                            <div className="space-y-3">
-                                <h4 className={`text-xs font-semibold uppercase ${subTextColor}`}>Market Cap</h4>
-                                <div className="grid grid-cols-2 gap-2">
-                                    <div>
-                                        <label className={`text-xs ${subTextColor}`}>Мин.</label>
-                                        <input
-                                            type="text"
-                                            placeholder="напр. 100K"
-                                            value={minMc}
-                                            onChange={(e) => setMinMc(e.target.value)}
-                                            className={`w-full p-2 rounded-lg border text-sm outline-none mt-1 ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'}`}
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className={`text-xs ${subTextColor}`}>Макс.</label>
-                                        <input
-                                            type="text"
-                                            placeholder="напр. 5M"
-                                            value={maxMc}
-                                            onChange={(e) => setMaxMc(e.target.value)}
-                                            className={`w-full p-2 rounded-lg border text-sm outline-none mt-1 ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'}`}
-                                        />
-                                    </div>
+                            {/* Profit Group */}
+                            <div className="lg:col-span-2 space-y-4">
+                                <div className="flex items-center gap-2 px-1">
+                                    <TrendingUp className="w-3.5 h-3.5 text-emerald-500" />
+                                    <span className={`text-[11px] font-bold uppercase tracking-wider ${subTextColor}`}>Профит (%)</span>
+                                </div>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <PremiumInput
+                                        icon={TrendingUp}
+                                        placeholder="Min"
+                                        value={minProfit}
+                                        onChange={(e) => setMinProfit(e.target.value)}
+                                        theme={theme}
+                                    />
+                                    <PremiumInput
+                                        placeholder="Max"
+                                        value={maxProfit}
+                                        onChange={(e) => setMaxProfit(e.target.value)}
+                                        theme={theme}
+                                    />
                                 </div>
                             </div>
 
-                            {/* Sort */}
-                            <div className="space-y-3">
-                                <h4 className={`text-xs font-semibold uppercase ${subTextColor}`}>Сортировка</h4>
-                                <div className="space-y-2">
-                                    <select
-                                        value={sortBy}
-                                        onChange={(e) => setSortBy(e.target.value as SortField)}
-                                        className={`w-full p-2 rounded-lg border text-sm outline-none ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white focus:border-[#4E6E49]' : 'bg-white border-gray-200 text-gray-900 focus:border-[#4E6E49]'}`}
-                                    >
-                                        <option value="date">По дате</option>
-                                        <option value="drop">По падению</option>
-                                        <option value="profit">По росту</option>
-                                    </select>
+                            {/* Market Cap Group */}
+                            <div className="lg:col-span-2 space-y-4">
+                                <div className="flex items-center gap-2 px-1">
+                                    <Coins className="w-3.5 h-3.5 text-amber-500" />
+                                    <span className={`text-[11px] font-bold uppercase tracking-wider ${subTextColor}`}>Капитализация</span>
+                                </div>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <PremiumInput
+                                        icon={Coins}
+                                        placeholder="Напр: 100K"
+                                        value={minMc}
+                                        onChange={(e) => setMinMc(e.target.value)}
+                                        theme={theme}
+                                    />
+                                    <PremiumInput
+                                        placeholder="Напр: 5M"
+                                        value={maxMc}
+                                        onChange={(e) => setMaxMc(e.target.value)}
+                                        theme={theme}
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Sort Group */}
+                            <div className="lg:col-span-3 space-y-4">
+                                <div className="flex items-center gap-2 px-1">
+                                    <Hash className="w-3.5 h-3.5 text-purple-500" />
+                                    <span className={`text-[11px] font-bold uppercase tracking-wider ${subTextColor}`}>Древо сортировки</span>
+                                </div>
+                                <div className="flex gap-2">
+                                    <div className="flex-1">
+                                        <PremiumSelect
+                                            value={sortBy}
+                                            options={[
+                                                { value: 'date', label: 'По дате' },
+                                                { value: 'drop', label: 'По падению' },
+                                                { value: 'profit', label: 'По росту' }
+                                            ]}
+                                            onChange={(val) => setSortBy(val as SortField)}
+                                            theme={theme}
+                                        />
+                                    </div>
                                     <button
                                         onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-                                        className={`w-full p-2 rounded-lg border text-sm flex items-center justify-center gap-2 transition-all ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white hover:bg-white/10' : 'bg-white border-gray-200 text-gray-900 hover:bg-gray-100'}`}
+                                        className={`w-12 flex items-center justify-center rounded-xl border transition-all shadow-sm ${theme === 'dark'
+                                            ? 'bg-white/5 border-white/10 hover:bg-white/10 text-white active:scale-95'
+                                            : 'bg-white border-gray-200 text-gray-900 hover:border-gray-300 active:scale-95'}`}
                                     >
-                                        {sortOrder === 'asc' ? <ArrowUp className="w-4 h-4" /> : <ArrowDown className="w-4 h-4" />}
-                                        <span>{sortOrder === 'asc' ? 'По возрастанию' : 'По убыванию'}</span>
+                                        {sortOrder === 'asc' ? <ArrowUp className="w-5 h-5 text-emerald-500" /> : <ArrowDown className="w-5 h-5 text-rose-500" />}
                                     </button>
                                 </div>
                             </div>
                         </div>
 
-                        <div className={`text-sm ${subTextColor} pt-2`}>
-                            Показано сигналов: <span className={headingColor}>{filteredAlerts.length}</span> из <span className={headingColor}>{alerts.length}</span>
+                        <div className="flex items-center justify-between pt-4 border-t border-white/5 relative z-10">
+                            <div className={`flex items-center gap-4 text-xs font-bold ${subTextColor}`}>
+                                <div className="flex items-center gap-2">
+                                    <div className={`w-1.5 h-1.5 rounded-full ${filteredAlerts.length > 0 ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}`}></div>
+                                    <span>Сигналов: <span className={headingColor}>{filteredAlerts.length}</span></span>
+                                </div>
+                                <span className="opacity-30">|</span>
+                                <span>Всего в базе: <span className={headingColor}>{alerts.length}</span></span>
+                            </div>
+
+                            {hasActiveFilters && (
+                                <button
+                                    onClick={resetFilters}
+                                    className="flex items-center gap-1.5 text-[11px] font-bold text-rose-500 hover:text-rose-400 transition-colors uppercase tracking-widest px-3 py-1.5 rounded-lg hover:bg-rose-500/10 active:scale-95"
+                                >
+                                    <RotateCcw className="w-3 h-3" />
+                                    Очистить фильтры
+                                </button>
+                            )}
                         </div>
                     </div>
                 )}
@@ -1163,3 +1188,110 @@ export const AiAoAlerts = () => {
         </>
     )
 }
+
+// --- Premium Helper Components ---
+
+const PremiumInput: React.FC<{
+    icon?: any;
+    label?: string;
+    placeholder?: string;
+    value: string;
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    type?: string;
+    theme: string;
+}> = ({ icon: Icon, label, placeholder, value, onChange, type = "text", theme }) => {
+    return (
+        <div className="space-y-1.5 group/input">
+            {label && (
+                <label className={`text-[10px] font-bold uppercase tracking-wider ml-1 opacity-50 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                    {label}
+                </label>
+            )}
+            <div className="relative">
+                {Icon && (
+                    <div className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center pointer-events-none transition-transform group-focus-within/input:scale-110">
+                        <Icon size={14} className={theme === 'dark' ? 'text-gray-500' : 'text-gray-400'} />
+                    </div>
+                )}
+                <input
+                    type={type}
+                    value={value}
+                    onChange={onChange}
+                    placeholder={placeholder}
+                    className={`w-full px-4 py-2.5 ${Icon ? 'pl-10' : ''} rounded-xl border text-sm font-semibold transition-all outline-none shadow-sm
+                        ${theme === 'dark'
+                            ? 'bg-white/5 border-white/5 text-white placeholder:text-gray-600 focus:bg-white/10 focus:border-white/20 focus:ring-4 focus:ring-white/5'
+                            : 'bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus:border-[#4E6E49]/30 focus:ring-4 focus:ring-[#4E6E49]/5 hover:border-gray-300'}`}
+                />
+            </div>
+        </div>
+    );
+};
+
+const PremiumSelect: React.FC<{
+    value: string;
+    options: { value: string; label: string }[];
+    onChange: (val: string) => void;
+    theme: string;
+}> = ({ value, options, onChange, theme }) => {
+    const [isOpen, setIsOpen] = useState(false);
+    const containerRef = React.useRef<HTMLDivElement>(null);
+    const selectedOption = options.find(o => o.value === value);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+                setIsOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    return (
+        <div className="relative" ref={containerRef}>
+            <div className="flex flex-col space-y-1.5">
+                <label className={`text-[10px] font-bold uppercase tracking-wider ml-1 opacity-50 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                    Поля данных
+                </label>
+                <button
+                    type="button"
+                    onClick={() => setIsOpen(!isOpen)}
+                    className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl border text-sm font-bold transition-all shadow-sm
+                        ${theme === 'dark'
+                            ? 'bg-white/5 border-white/5 text-white hover:bg-white/10 hover:border-white/10 active:scale-95'
+                            : 'bg-white border-gray-200 text-gray-900 hover:bg-gray-50 active:scale-95'}`}
+                >
+                    <span className="truncate">{selectedOption?.label}</span>
+                    <ChevronDown size={14} className={`text-gray-500 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
+                </button>
+            </div>
+
+            {isOpen && (
+                <div className={`absolute z-50 bottom-full mb-2 w-full min-w-[160px] rounded-xl border shadow-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-200 
+                    ${theme === 'dark' ? 'bg-[#151a21] border-white/10' : 'bg-white border-gray-200'}`}>
+                    <div className="p-1 space-y-1">
+                        {options.map(opt => (
+                            <button
+                                key={opt.value}
+                                type="button"
+                                onClick={() => {
+                                    onChange(opt.value);
+                                    setIsOpen(false);
+                                }}
+                                className={`w-full flex items-center px-4 py-2.5 rounded-lg text-xs font-bold transition-all text-left
+                                    ${opt.value === value
+                                        ? theme === 'dark' ? 'bg-white/10 text-white' : 'bg-[#4E6E49]/10 text-[#4E6E49]'
+                                        : theme === 'dark' ? 'text-gray-400 hover:bg-white/5 hover:text-white' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                                    }`}
+                            >
+                                {opt.label}
+                                {opt.value === value && <Check size={12} className="ml-auto" />}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};

@@ -4,7 +4,7 @@ import { useAuthStore } from '@/store/authStore'
 import { useAdminStore } from '@/store/adminStore'
 import { getFasolTriggerAlerts, addFasolTriggerAlert, updateFasolTriggerAlert, deleteFasolTriggerAlert } from '@/services/firestoreService'
 import { FasolTriggerAlert, TriggerStrategy, TriggerProfit } from '@/types'
-import { Plus, Edit, Trash2, Save, X, Copy, Check, Table, Filter, ArrowUp, ArrowDown, RotateCcw, Image, XCircle, Activity, Target, TrendingUp } from 'lucide-react'
+import { Plus, Edit, Trash2, Save, X, Copy, Check, Table, Filter, ArrowUp, ArrowDown, RotateCcw, Image, XCircle, Activity, Target, TrendingUp, Calendar, ChevronDown, TrendingDown } from 'lucide-react'
 import { MultiStrategySelector } from '../components/Management/MultiStrategySelector'
 import { UserNickname } from '../components/UserNickname'
 
@@ -15,6 +15,12 @@ export const FasolSignalsStrategy = () => {
     const { theme } = useThemeStore()
     const { user } = useAuthStore()
     const { isAdmin } = useAdminStore()
+
+    const subTextColor = theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+    const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
+    const cardBg = theme === 'dark' ? 'bg-[#151a21]/80 backdrop-blur-xl' : 'bg-white/80 backdrop-blur-xl'
+    const cardBorder = theme === 'dark' ? 'border-purple-500/30' : 'border-purple-500/20'
+    const cardShadow = theme === 'dark' ? 'shadow-[0_8px_32px_rgba(0,0,0,0.4)]' : 'shadow-[0_8px_32px_rgba(0,0,0,0.08)]'
 
     const [alerts, setAlerts] = useState<FasolTriggerAlert[]>([])
     const [loading, setLoading] = useState(true)
@@ -200,11 +206,7 @@ export const FasolSignalsStrategy = () => {
         }
     }
 
-    const subTextColor = theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-    const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
-    const cardBg = theme === 'dark' ? 'bg-[#10141c]' : 'bg-white'
-    const cardBorder = theme === 'dark' ? 'border-purple-500/30' : 'border-purple-500/20'
-    const cardShadow = theme === 'dark' ? 'shadow-[0_24px_80px_rgba(0,0,0,0.45)]' : 'shadow-[0_24px_80px_rgba(0,0,0,0.15)]'
+
 
     const handleCopy = (text: string, id: string) => {
         navigator.clipboard.writeText(text)
@@ -474,60 +476,128 @@ export const FasolSignalsStrategy = () => {
                 </div>
 
                 {showFilters && (
-                    <div className={`rounded-3xl border ${cardBorder} ${cardBg} p-6 space-y-4`}>
-                        <div className="flex items-center gap-2 mb-4">
-                            <Filter className={`w-5 h-5 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`} />
-                            <h3 className={`text-lg font-semibold ${headingColor}`}>Фильтры и сортировка</h3>
+                    <div className={`rounded-3xl border ${cardBorder} ${cardBg} p-6 space-y-6 animate-in fade-in slide-in-from-top-4 duration-300 shadow-xl relative overflow-hidden`}>
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/5 blur-3xl -z-10"></div>
+
+                        <div className="flex items-center justify-between border-b border-white/5 pb-4">
+                            <div className="flex items-center gap-3">
+                                <div className={`p-2 rounded-xl ${theme === 'dark' ? 'bg-purple-500/10 text-purple-400' : 'bg-purple-50 text-purple-600'}`}>
+                                    <Filter size={18} />
+                                </div>
+                                <div>
+                                    <h3 className={`text-sm font-bold uppercase tracking-tight ${headingColor}`}>Параметры фильтрации</h3>
+                                    <p className={`text-[10px] ${subTextColor}`}>Настройте отображение сигналов</p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={resetFilters}
+                                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition-all
+                                ${theme === 'dark' ? 'hover:bg-white/5 text-gray-400 hover:text-white' : 'hover:bg-gray-100 text-gray-500 hover:text-gray-900'}`}
+                            >
+                                <RotateCcw size={14} />
+                                Сбросить
+                            </button>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                            <div className="space-y-3">
-                                <h4 className={`text-xs font-semibold uppercase ${subTextColor}`}>Дата</h4>
-                                <div className="space-y-2">
-                                    <div>
-                                        <label className={`text-xs ${subTextColor}`}>Конкретная дата</label>
-                                        <input type="date" value={specificDate} onChange={(e) => setSpecificDate(e.target.value)} className={`w-full p-2 rounded-lg border text-sm outline-none mt-1 ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'}`} />
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-2">
-                                        <div><label className={`text-xs ${subTextColor}`}>От</label><input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className={`w-full p-2 rounded-lg border text-sm outline-none mt-1 ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'}`} /></div>
-                                        <div><label className={`text-xs ${subTextColor}`}>До</label><input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className={`w-full p-2 rounded-lg border text-sm outline-none mt-1 ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'}`} /></div>
-                                    </div>
-                                </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-y-6 gap-x-4">
+                            {/* Date Filter */}
+                            <PremiumInput
+                                label="Конкретная дата"
+                                type="date"
+                                icon={Calendar}
+                                placeholder="Выберите дату..."
+                                value={specificDate}
+                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSpecificDate(e.target.value)}
+                                theme={theme}
+                            />
+
+                            {/* Drop Filter */}
+                            <div className="grid grid-cols-2 gap-2">
+                                <PremiumInput
+                                    label="Мин. падение"
+                                    icon={TrendingDown}
+                                    placeholder="-50"
+                                    value={minDrop}
+                                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setMinDrop(e.target.value)}
+                                    theme={theme}
+                                />
+                                <PremiumInput
+                                    label="Макс. падение"
+                                    icon={TrendingDown}
+                                    placeholder="-5"
+                                    value={maxDrop}
+                                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setMaxDrop(e.target.value)}
+                                    theme={theme}
+                                />
                             </div>
-                            <div className="space-y-3">
-                                <h4 className={`text-xs font-semibold uppercase ${subTextColor}`}>Макс. падение (%)</h4>
-                                <div className="grid grid-cols-2 gap-2">
-                                    <div><label className={`text-xs ${subTextColor}`}>Мин.</label><input type="number" placeholder="-50" value={minDrop} onChange={(e) => setMinDrop(e.target.value)} className={`w-full p-2 rounded-lg border text-sm outline-none mt-1 ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'}`} /></div>
-                                    <div><label className={`text-xs ${subTextColor}`}>Макс.</label><input type="number" placeholder="-5" value={maxDrop} onChange={(e) => setMaxDrop(e.target.value)} className={`w-full p-2 rounded-lg border text-sm outline-none mt-1 ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'}`} /></div>
-                                </div>
-                            </div>
-                            <div className="space-y-3">
-                                <h4 className={`text-xs font-semibold uppercase ${subTextColor}`}>Стратегия и скам</h4>
-                                <div className="space-y-2">
-                                    <select value={strategyFilter} onChange={(e) => setStrategyFilter(e.target.value as any)} className={`w-full p-2 rounded-lg border text-sm outline-none mt-1 ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'}`}>
-                                        <option value="all">Все</option>
+
+                            {/* Strategy Select */}
+                            <div className="space-y-1.5">
+                                <label className={`text-[10px] font-bold uppercase tracking-wider ml-1 opacity-50 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                                    Стратегия
+                                </label>
+                                <div className="relative">
+                                    <div className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center pointer-events-none">
+                                        <Activity size={14} className={theme === 'dark' ? 'text-gray-500' : 'text-gray-400'} />
+                                    </div>
+                                    <select
+                                        value={strategyFilter}
+                                        onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setStrategyFilter(e.target.value as any)}
+                                        className={`w-full pl-10 pr-4 py-2.5 rounded-xl border text-sm font-bold appearance-none transition-all outline-none shadow-sm
+                                        ${theme === 'dark'
+                                                ? 'bg-white/5 border-white/5 text-white focus:bg-white/10 focus:border-white/20'
+                                                : 'bg-white border-gray-200 text-gray-900 focus:border-purple-500/30'}`}
+                                    >
+                                        <option value="all">Все стратегии</option>
                                         <option value="Фиба">Фиба</option>
                                         <option value="Market Entry">Market Entry</option>
                                     </select>
-                                    <label className="flex items-center gap-2 cursor-pointer">
-                                        <input type="checkbox" checked={showScamOnly} onChange={(e) => setShowScamOnly(e.target.checked)} className="rounded border-gray-300 text-red-500 focus:ring-red-500" />
-                                        <span className={`text-sm ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Только скам</span>
-                                    </label>
+                                    <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                                        <ChevronDown size={14} className="text-gray-500" />
+                                    </div>
                                 </div>
+                                <label className="flex items-center gap-2 mt-2 cursor-pointer group">
+                                    <div className="relative flex items-center">
+                                        <input
+                                            type="checkbox"
+                                            checked={showScamOnly}
+                                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setShowScamOnly(e.target.checked)}
+                                            className="w-4 h-4 rounded border-gray-300 text-red-500 focus:ring-red-500/20 transition-all cursor-pointer"
+                                        />
+                                    </div>
+                                    <span className={`text-[11px] font-bold uppercase tracking-tight ${theme === 'dark' ? 'text-gray-400 group-hover:text-red-400' : 'text-gray-500 group-hover:text-red-600'} transition-colors`}>
+                                        Только скам
+                                    </span>
+                                </label>
                             </div>
-                            <div className="space-y-3">
-                                <h4 className={`text-xs font-semibold uppercase ${subTextColor}`}>Сортировка</h4>
-                                <div className="space-y-2">
-                                    <select value={sortBy} onChange={(e) => setSortBy(e.target.value as SortField)} className={`w-full p-2 rounded-lg border outline-none transition-all ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'}`}>
-                                        <option value="date">По дате</option>
-                                        <option value="drop">По падению</option>
-                                        <option value="profit">По росту</option>
-                                    </select>
-                                    <button onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')} className={`w-full p-2 rounded-lg border text-sm flex items-center justify-center gap-2 transition-all ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white hover:bg-white/10' : 'bg-white border-gray-200 text-gray-900 hover:bg-gray-100'}`}>
-                                        {sortOrder === 'asc' ? <ArrowUp className="w-4 h-4" /> : <ArrowDown className="w-4 h-4" />}
-                                        <span>{sortOrder === 'asc' ? 'По возрастанию' : 'По убыванию'}</span>
-                                    </button>
-                                </div>
+
+                            {/* Sorting Field */}
+                            <PremiumSelect
+                                theme={theme}
+                                value={sortBy}
+                                options={[
+                                    { value: 'date', label: 'По дате сигнала' },
+                                    { value: 'drop', label: 'По падению' },
+                                    { value: 'profit', label: 'По профиту' }
+                                ]}
+                                onChange={(val: string) => setSortBy(val as SortField)}
+                            />
+
+                            {/* Sort Direction */}
+                            <div className="space-y-1.5">
+                                <label className={`text-[10px] font-bold uppercase tracking-wider ml-1 opacity-50 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                                    Направление
+                                </label>
+                                <button
+                                    onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+                                    className={`w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-bold transition-all shadow-sm
+                                    ${theme === 'dark'
+                                            ? 'bg-white/5 border-white/10 text-white hover:bg-white/10 active:scale-95'
+                                            : 'bg-white border-gray-200 text-gray-900 hover:bg-gray-50 active:scale-95'}`}
+                                >
+                                    {sortOrder === 'asc' ? <ArrowUp size={16} className="text-purple-500" /> : <ArrowDown size={16} className="text-purple-500" />}
+                                    <span>{sortOrder === 'asc' ? 'По возрастанию' : 'По убыванию'}</span>
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -758,5 +828,117 @@ export const FasolSignalsStrategy = () => {
         </>
     )
 }
+
+
+// --- Premium Helper Components ---
+
+interface PremiumInputProps {
+    icon?: any;
+    label?: string;
+    placeholder?: string;
+    value: string;
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    type?: string;
+    theme: string;
+}
+
+const PremiumInput: React.FC<PremiumInputProps> = ({ icon: Icon, label, placeholder, value, onChange, type = "text", theme }) => {
+    return (
+        <div className="space-y-1.5 group/input">
+            {label && (
+                <label className={`text-[10px] font-bold uppercase tracking-wider ml-1 opacity-50 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                    {label}
+                </label>
+            )}
+            <div className="relative">
+                {Icon && (
+                    <div className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center pointer-events-none transition-transform group-focus-within/input:scale-110">
+                        <Icon size={14} className={theme === 'dark' ? 'text-gray-500' : 'text-gray-400'} />
+                    </div>
+                )}
+                <input
+                    type={type}
+                    value={value}
+                    onChange={onChange}
+                    placeholder={placeholder}
+                    className={`w-full px-4 py-2.5 ${Icon ? 'pl-10' : ''} rounded-xl border text-sm font-semibold transition-all outline-none shadow-sm
+                    ${theme === 'dark'
+                            ? 'bg-white/5 border-white/5 text-white placeholder:text-gray-600 focus:bg-white/10 focus:border-white/20 focus:ring-4 focus:ring-white/5'
+                            : 'bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus:border-purple-500/30 focus:ring-4 focus:ring-purple-500/5 hover:border-gray-300'}`}
+                />
+            </div>
+        </div>
+    );
+};
+
+interface PremiumSelectProps {
+    value: string;
+    options: { value: string; label: string }[];
+    onChange: (val: string) => void;
+    theme: string;
+}
+
+const PremiumSelect: React.FC<PremiumSelectProps> = ({ value, options, onChange, theme }) => {
+    const [isOpen, setIsOpen] = useState(false);
+    const containerRef = useRef<HTMLDivElement>(null);
+    const selectedOption = options.find(o => o.value === value);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+                setIsOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    return (
+        <div className="relative" ref={containerRef}>
+            <div className="flex flex-col space-y-1.5">
+                <label className={`text-[10px] font-bold uppercase tracking-wider ml-1 opacity-50 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                    Сортировать по
+                </label>
+                <button
+                    type="button"
+                    onClick={() => setIsOpen(!isOpen)}
+                    className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl border text-sm font-bold transition-all shadow-sm
+                    ${theme === 'dark'
+                            ? 'bg-white/5 border-white/5 text-white hover:bg-white/10 hover:border-white/10 active:scale-95'
+                            : 'bg-white border-gray-200 text-gray-900 hover:bg-gray-50 active:scale-95'}`}
+                >
+                    <span className="truncate">{selectedOption?.label}</span>
+                    <ChevronDown size={14} className={`text-gray-500 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
+                </button>
+            </div>
+
+            {isOpen && (
+                <div className={`absolute z-50 bottom-full mb-2 w-full min-w-[160px] rounded-xl border shadow-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-200 
+                ${theme === 'dark' ? 'bg-[#151a21] border-white/10' : 'bg-white border-gray-200'}`}>
+                    <div className="p-1 space-y-1">
+                        {options.map(opt => (
+                            <button
+                                key={opt.value}
+                                type="button"
+                                onClick={() => {
+                                    onChange(opt.value);
+                                    setIsOpen(false);
+                                }}
+                                className={`w-full flex items-center px-4 py-2.5 rounded-lg text-xs font-bold transition-all text-left
+                                ${opt.value === value
+                                        ? theme === 'dark' ? 'bg-white/10 text-white' : 'bg-purple-500/10 text-purple-600'
+                                        : theme === 'dark' ? 'text-gray-400 hover:bg-white/5 hover:text-white' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                                    }`}
+                            >
+                                {opt.label}
+                                {opt.value === value && <Check size={12} className="ml-auto" />}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
 
 export default FasolSignalsStrategy

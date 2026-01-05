@@ -4,7 +4,7 @@ import { useAuthStore } from '@/store/authStore'
 import { useAdminStore } from '@/store/adminStore'
 import { getTriggerAlerts, addTriggerAlert, updateTriggerAlert, deleteTriggerAlert } from '@/services/firestoreService'
 import { TriggerAlert, TriggerStrategy, TriggerProfit } from '@/types'
-import { Plus, Edit, Trash2, Save, X, Copy, Check, Table, Filter, ArrowUp, ArrowDown, RotateCcw, Zap, Image, XCircle, Activity, Target } from 'lucide-react'
+import { Plus, Edit, Trash2, Save, X, Copy, Check, Table, Filter, ArrowUp, ArrowDown, RotateCcw, Zap, Image, XCircle, Activity, Target, Search, Calendar, ChevronDown, Hash, Coins, TrendingDown, TrendingUp } from 'lucide-react'
 import { MultiStrategySelector } from '../components/Management/MultiStrategySelector'
 import { UserNickname } from '../components/UserNickname'
 
@@ -20,6 +20,12 @@ export const SignalsTriggerBot = () => {
     const { theme } = useThemeStore()
     const { user } = useAuthStore()
     const { isAdmin } = useAdminStore()
+
+    const subTextColor = theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+    const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
+    const cardBg = theme === 'dark' ? 'bg-[#151a21]/80 backdrop-blur-xl' : 'bg-white/80 backdrop-blur-xl'
+    const cardBorder = theme === 'dark' ? 'border-[#f59e0b]/30' : 'border-[#f59e0b]/20'
+    const cardShadow = theme === 'dark' ? 'shadow-[0_8px_32px_rgba(0,0,0,0.4)]' : 'shadow-[0_8px_32px_rgba(0,0,0,0.08)]'
 
     const [alerts, setAlerts] = useState<TriggerAlert[]>([])
     const [loading, setLoading] = useState(true)
@@ -219,11 +225,7 @@ export const SignalsTriggerBot = () => {
         }
     }
 
-    const subTextColor = theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-    const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
-    const cardBg = theme === 'dark' ? 'bg-[#10141c]' : 'bg-white'
-    const cardBorder = theme === 'dark' ? 'border-[#f59e0b]/30' : 'border-[#f59e0b]/20'
-    const cardShadow = theme === 'dark' ? 'shadow-[0_24px_80px_rgba(0,0,0,0.45)]' : 'shadow-[0_24px_80px_rgba(0,0,0,0.15)]'
+
 
     const handleCopy = (text: string, id: string) => {
         navigator.clipboard.writeText(text)
@@ -571,187 +573,206 @@ export const SignalsTriggerBot = () => {
 
                 {/* Filters Panel */}
                 {showFilters && (
-                    <div className={`rounded-3xl border ${cardBorder} ${cardBg} p-6 space-y-4`}>
-                        <div className="flex items-center gap-2 mb-4">
-                            <Filter className={`w-5 h-5 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`} />
-                            <h3 className={`text-lg font-semibold ${headingColor}`}>Фильтры и сортировка</h3>
-                        </div>
+                    <div className={`rounded-3xl border ${cardBorder} ${cardBg} p-6 pb-4 sm:p-8 space-y-6 shadow-2xl relative overflow-hidden group transition-all duration-500`}>
+                        {/* Decorative Background Element */}
+                        <div className={`absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 rounded-full blur-3xl opacity-10 ${theme === 'dark' ? 'bg-white' : 'bg-amber-500'}`}></div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                            {/* Date Filters */}
-                            <div className="space-y-3">
-                                <h4 className={`text-xs font-semibold uppercase ${subTextColor}`}>Дата</h4>
-                                <div className="space-y-2">
-                                    <div>
-                                        <label className={`text-xs ${subTextColor}`}>Конкретная дата</label>
-                                        <input
-                                            type="date"
-                                            value={specificDate}
-                                            onChange={(e) => setSpecificDate(e.target.value)}
-                                            className={`w-full p-2 rounded-lg border text-sm outline-none mt-1 ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'}`}
-                                        />
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-2">
-                                        <div>
-                                            <label className={`text-xs ${subTextColor}`}>От</label>
-                                            <input
-                                                type="date"
-                                                value={dateFrom}
-                                                onChange={(e) => setDateFrom(e.target.value)}
-                                                className={`w-full p-2 rounded-lg border text-sm outline-none mt-1 ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'}`}
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className={`text-xs ${subTextColor}`}>До</label>
-                                            <input
-                                                type="date"
-                                                value={dateTo}
-                                                onChange={(e) => setDateTo(e.target.value)}
-                                                className={`w-full p-2 rounded-lg border text-sm outline-none mt-1 ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'}`}
-                                            />
-                                        </div>
-                                    </div>
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative z-10">
+                            <div className="flex items-center gap-3">
+                                <div className={`p-2 rounded-xl border ${theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-amber-50 border-amber-100'}`}>
+                                    <Filter className={`w-5 h-5 ${theme === 'dark' ? 'text-white' : 'text-amber-600'}`} />
+                                </div>
+                                <div className="flex flex-col">
+                                    <h3 className={`text-lg font-bold tracking-tight ${headingColor}`}>Параметры ботов</h3>
+                                    <p className={`text-[10px] font-medium uppercase tracking-widest ${subTextColor} opacity-60`}>Фильтрация независимых сигналов</p>
                                 </div>
                             </div>
 
-                            {/* Drop Filters */}
-                            <div className="space-y-3">
-                                <h4 className={`text-xs font-semibold uppercase ${subTextColor}`}>Макс. падение от сигнала (%)</h4>
-                                <div className="grid grid-cols-2 gap-2">
-                                    <div>
-                                        <label className={`text-xs ${subTextColor}`}>Мин.</label>
-                                        <input
-                                            type="number"
-                                            placeholder="-50"
-                                            value={minDrop}
-                                            onChange={(e) => setMinDrop(e.target.value)}
-                                            className={`w-full p-2 rounded-lg border text-sm outline-none mt-1 ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'}`}
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className={`text-xs ${subTextColor}`}>Макс.</label>
-                                        <input
-                                            type="number"
-                                            placeholder="-5"
-                                            value={maxDrop}
-                                            onChange={(e) => setMaxDrop(e.target.value)}
-                                            className={`w-full p-2 rounded-lg border text-sm outline-none mt-1 ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'}`}
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Strategy & Scam Filters */}
-                            <div className="space-y-3">
-                                <h4 className={`text-xs font-semibold uppercase ${subTextColor}`}>Стратегия и скам</h4>
-                                <div className="space-y-2">
-                                    <div>
-                                        <label className={`text-xs ${subTextColor}`}>Стратегия</label>
-                                        <select
-                                            value={strategyFilter}
-                                            onChange={(e) => setStrategyFilter(e.target.value as 'all' | 'Фиба' | 'Market Entry')}
-                                            className={`w-full p-2 rounded-lg border text-sm outline-none mt-1 ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'}`}
-                                        >
-                                            <option value="all">Все</option>
-                                            <option value="Фиба">Фиба</option>
-                                            <option value="Market Entry">Market Entry</option>
-                                        </select>
-                                    </div>
-                                    <label className="flex items-center gap-2 cursor-pointer">
+                            <div className="flex items-center gap-4">
+                                <label className="flex items-center gap-3 cursor-pointer group/scam relative hover:scale-[1.02] transition-transform">
+                                    <div className="relative">
                                         <input
                                             type="checkbox"
                                             checked={showScamOnly}
                                             onChange={(e) => setShowScamOnly(e.target.checked)}
-                                            className="rounded border-gray-300 text-red-500 focus:ring-red-500"
+                                            className="peer sr-only"
                                         />
-                                        <span className={`text-sm ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Только скам</span>
-                                    </label>
+                                        <div className={`w-10 h-5 rounded-full transition-all duration-300 ${theme === 'dark' ? 'bg-white/10' : 'bg-gray-200'} peer-checked:bg-rose-500`}></div>
+                                        <div className="absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full transition-all duration-300 peer-checked:translate-x-5 shadow-sm"></div>
+                                    </div>
+                                    <div className="flex flex-col">
+                                        <span className={`text-[11px] font-bold uppercase tracking-wider ${showScamOnly ? 'text-rose-500' : subTextColor}`}>Scam Only</span>
+                                        <span className="text-[9px] opacity-40 font-medium leading-none">Режим отсева</span>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-6 relative z-10">
+                            {/* Date Group */}
+                            <div className="lg:col-span-3 space-y-4">
+                                <div className="flex items-center gap-2 px-1">
+                                    <Calendar className="w-3.5 h-3.5 text-blue-500" />
+                                    <span className={`text-[11px] font-bold uppercase tracking-wider ${subTextColor}`}>Дата сигнала</span>
+                                </div>
+                                <div className="space-y-3">
+                                    <PremiumInput
+                                        icon={Search}
+                                        type="date"
+                                        label="Поиск по дню"
+                                        value={specificDate}
+                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSpecificDate(e.target.value)}
+                                        theme={theme}
+                                    />
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <PremiumInput
+                                            type="date"
+                                            label="От"
+                                            value={dateFrom}
+                                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDateFrom(e.target.value)}
+                                            theme={theme}
+                                        />
+                                        <PremiumInput
+                                            type="date"
+                                            label="До"
+                                            value={dateTo}
+                                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDateTo(e.target.value)}
+                                            theme={theme}
+                                        />
+                                    </div>
                                 </div>
                             </div>
 
-                            {/* Profit Filters */}
-                            <div className="space-y-3">
-                                <h4 className={`text-xs font-semibold uppercase ${subTextColor}`}>Макс. Профит (%)</h4>
-                                <div className="grid grid-cols-2 gap-2">
-                                    <div>
-                                        <label className={`text-xs ${subTextColor}`}>Мин.</label>
-                                        <input
-                                            type="text"
-                                            placeholder="10"
+                            {/* Drop Group */}
+                            <div className="lg:col-span-2 space-y-4">
+                                <div className="flex items-center gap-2 px-1">
+                                    <TrendingDown className="w-3.5 h-3.5 text-rose-500" />
+                                    <span className={`text-[11px] font-bold uppercase tracking-wider ${subTextColor}`}>Падение (%)</span>
+                                </div>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <PremiumInput
+                                        icon={TrendingDown}
+                                        placeholder="Min"
+                                        value={minDrop}
+                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setMinDrop(e.target.value)}
+                                        theme={theme}
+                                    />
+                                    <PremiumInput
+                                        placeholder="Max"
+                                        value={maxDrop}
+                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setMaxDrop(e.target.value)}
+                                        theme={theme}
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Strategy Group */}
+                            <div className="lg:col-span-2 space-y-4">
+                                <div className="flex items-center gap-2 px-1">
+                                    <Target className="w-3.5 h-3.5 text-amber-500" />
+                                    <span className={`text-[11px] font-bold uppercase tracking-wider ${subTextColor}`}>Стратегия</span>
+                                </div>
+                                <PremiumSelect
+                                    value={strategyFilter}
+                                    options={[
+                                        { value: 'all', label: 'Все стратегии' },
+                                        { value: 'Фиба', label: 'Фиба' },
+                                        { value: 'Market Entry', label: 'Market Entry' }
+                                    ]}
+                                    onChange={(val: string) => setStrategyFilter(val as 'all' | 'Фиба' | 'Market Entry')}
+                                    theme={theme}
+                                />
+                            </div>
+
+                            {/* Profit/MC Group */}
+                            <div className="lg:col-span-2 space-y-4">
+                                <div className="flex items-center gap-2 px-1">
+                                    <Coins className="w-3.5 h-3.5 text-emerald-500" />
+                                    <span className={`text-[11px] font-bold uppercase tracking-wider ${subTextColor}`}>Профит / Кап</span>
+                                </div>
+                                <div className="space-y-3">
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <PremiumInput
+                                            icon={TrendingUp}
+                                            placeholder="Min"
                                             value={minProfit}
-                                            onChange={(e) => setMinProfit(e.target.value)}
-                                            className={`w-full p-2 rounded-lg border text-sm outline-none mt-1 ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'}`}
+                                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setMinProfit(e.target.value)}
+                                            theme={theme}
                                         />
-                                    </div>
-                                    <div>
-                                        <label className={`text-xs ${subTextColor}`}>Макс.</label>
-                                        <input
-                                            type="text"
-                                            placeholder="500"
+                                        <PremiumInput
+                                            placeholder="Max"
                                             value={maxProfit}
-                                            onChange={(e) => setMaxProfit(e.target.value)}
-                                            className={`w-full p-2 rounded-lg border text-sm outline-none mt-1 ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'}`}
+                                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setMaxProfit(e.target.value)}
+                                            theme={theme}
                                         />
                                     </div>
+                                    <PremiumInput
+                                        icon={Coins}
+                                        placeholder="Market Cap (напр. 1M)"
+                                        value={minMc}
+                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setMinMc(e.target.value)}
+                                        theme={theme}
+                                    />
                                 </div>
                             </div>
 
-                            {/* Market Cap Filters */}
-                            <div className="space-y-3">
-                                <h4 className={`text-xs font-semibold uppercase ${subTextColor}`}>Market Cap</h4>
-                                <div className="grid grid-cols-2 gap-2">
-                                    <div>
-                                        <label className={`text-xs ${subTextColor}`}>Мин.</label>
-                                        <input
-                                            type="text"
-                                            placeholder=" напр. 100K"
-                                            value={minMc}
-                                            onChange={(e) => setMinMc(e.target.value)}
-                                            className={`w-full p-2 rounded-lg border text-sm outline-none mt-1 ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'}`}
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className={`text-xs ${subTextColor}`}>Макс.</label>
-                                        <input
-                                            type="text"
-                                            placeholder="напр. 5M"
-                                            value={maxMc}
-                                            onChange={(e) => setMaxMc(e.target.value)}
-                                            className={`w-full p-2 rounded-lg border text-sm outline-none mt-1 ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'}`}
-                                        />
-                                    </div>
+                            {/* Sort Group */}
+                            <div className="lg:col-span-3 space-y-4">
+                                <div className="flex items-center gap-2 px-1">
+                                    <Hash className="w-3.5 h-3.5 text-purple-500" />
+                                    <span className={`text-[11px] font-bold uppercase tracking-wider ${subTextColor}`}>Сортировка</span>
                                 </div>
-                            </div>
-
-                            {/* Sort */}
-                            <div className="space-y-3">
-                                <h4 className={`text-xs font-semibold uppercase ${subTextColor}`}>Сортировка</h4>
-                                <div className="space-y-2">
-                                    <select
-                                        value={sortBy}
-                                        onChange={(e) => setSortBy(e.target.value as SortField)}
-                                        className={`w-full p-2 rounded-lg border outline-none transition-all ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'}`}
-                                    >
-                                        <option value="date">По дате</option>
-                                        <option value="drop">По падению</option>
-                                        <option value="profit">По росту</option>
-                                    </select>
+                                <div className="flex gap-2">
+                                    <div className="flex-1">
+                                        <PremiumSelect
+                                            value={sortBy}
+                                            options={[
+                                                { value: 'date', label: 'По дате' },
+                                                { value: 'drop', label: 'По падению' },
+                                                { value: 'profit', label: 'По росту' }
+                                            ]}
+                                            onChange={(val: string) => setSortBy(val as SortField)}
+                                            theme={theme}
+                                        />
+                                    </div>
                                     <button
                                         onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-                                        className={`w-full p-2 rounded-lg border text-sm flex items-center justify-center gap-2 transition-all ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white hover:bg-white/10' : 'bg-white border-gray-200 text-gray-900 hover:bg-gray-100'}`}
+                                        className={`w-12 flex items-center justify-center rounded-xl border transition-all shadow-sm ${theme === 'dark'
+                                            ? 'bg-white/5 border-white/10 hover:bg-white/10 text-white active:scale-95'
+                                            : 'bg-white border-gray-200 text-gray-900 hover:border-gray-300 active:scale-95'}`}
                                     >
-                                        {sortOrder === 'asc' ? <ArrowUp className="w-4 h-4" /> : <ArrowDown className="w-4 h-4" />}
-                                        <span>{sortOrder === 'asc' ? 'По возрастанию' : 'По убыванию'}</span>
+                                        {sortOrder === 'asc' ? <ArrowUp className="w-5 h-5 text-emerald-500" /> : <ArrowDown className="w-5 h-5 text-rose-500" />}
                                     </button>
                                 </div>
                             </div>
                         </div>
 
-                        <div className={`text-sm ${subTextColor} pt-2`}>
-                            Показано сигналов: <span className={headingColor}>{filteredAlerts.length}</span> из <span className={headingColor}>{alerts.length}</span>
+                        <div className="flex items-center justify-between pt-4 border-t border-white/5 relative z-10">
+                            <div className={`flex items-center gap-4 text-xs font-bold ${subTextColor}`}>
+                                <div className="flex items-center gap-2">
+                                    <div className={`w-1.5 h-1.5 rounded-full ${filteredAlerts.length > 0 ? 'bg-amber-500 animate-pulse' : 'bg-rose-500'}`}></div>
+                                    <span>Найдено: <span className={headingColor}>{filteredAlerts.length}</span></span>
+                                </div>
+                                <span className="opacity-30">|</span>
+                                <span>Всего: <span className={headingColor}>{alerts.length}</span></span>
+                            </div>
+
+                            {hasActiveFilters && (
+                                <button
+                                    onClick={resetFilters}
+                                    className="flex items-center gap-1.5 text-[11px] font-bold text-rose-500 hover:text-rose-400 transition-colors uppercase tracking-widest px-3 py-1.5 rounded-lg hover:bg-rose-500/10 active:scale-95"
+                                >
+                                    <RotateCcw className="w-3 h-3" />
+                                    Очистить
+                                </button>
+                            )}
                         </div>
                     </div>
                 )}
+
+                <div className={`text-sm ${subTextColor} pt-2`}>
+                    Показано сигналов: <span className={headingColor}>{filteredAlerts.length}</span> из <span className={headingColor}>{alerts.length}</span>
+                </div>
 
                 {/* Table */}
                 <div className={`relative overflow-hidden rounded-3xl border ${cardBorder} ${cardShadow} ${cardBg}`}>
@@ -1053,66 +1074,221 @@ export const SignalsTriggerBot = () => {
                         </table>
                     </div>
                 </div>
-            </div >
+            </div>
 
-            {/* Modal */}
-            {
-                showModal && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-                        <div className={`w-full max-w-2xl rounded-3xl ${cardBg} ${cardBorder} border shadow-2xl overflow-hidden max-h-[90vh] flex flex-col`}>
-                            <div className={`p-6 border-b ${theme === 'dark' ? 'border-white/10' : 'border-gray-100'} flex items-center justify-between flex-shrink-0`}>
-                                <div>
-                                    <h3 className={`text-xl font-bold ${headingColor}`}>
-                                        {editingAlert ? 'Редактировать сигнал' : 'Добавить сигналы'}
-                                    </h3>
-                                    {!editingAlert && (
-                                        <p className={`text-sm ${subTextColor}`}>Добавьте один или несколько сигналов за одну дату</p>
-                                    )}
-                                </div>
-                                <button onClick={() => {
-                                    setShowModal(false)
-                                    setAlertsToAdd([])
-                                    setCommonDate(new Date().toISOString().split('T')[0])
-                                    setFormData({
-                                        signalTime: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
-                                        marketCap: '',
-                                        address: '',
-                                        strategies: [],
-                                        maxDropFromSignal: '',
-                                        maxDropFromLevel07: '',
-                                        comment: ''
-                                    })
-                                }} className={`p-2 rounded-lg hover:bg-white/10 transition-colors ${subTextColor}`}>
-                                    <X className="w-5 h-5" />
-                                </button>
+            {/* Modals and Overlays */}
+            {showModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+                    <div className={`w-full max-w-2xl rounded-3xl ${theme === 'dark' ? 'bg-[#0f1216]' : 'bg-white'} border shadow-2xl overflow-hidden max-h-[90vh] flex flex-col ${theme === 'dark' ? 'border-white/10' : 'border-gray-200'}`}>
+                        <div className={`p-6 border-b ${theme === 'dark' ? 'border-white/10' : 'border-gray-100'} flex items-center justify-between flex-shrink-0`}>
+                            <div>
+                                <h3 className={`text-xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                                    {editingAlert ? 'Редактировать сигнал' : 'Добавить сигналы'}
+                                </h3>
+                                {!editingAlert && (
+                                    <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Добавьте один или несколько сигналов за одну дату</p>
+                                )}
+                            </div>
+                            <button onClick={() => {
+                                setShowModal(false)
+                                setAlertsToAdd([])
+                                setCommonDate(new Date().toISOString().split('T')[0])
+                                setFormData({
+                                    signalTime: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
+                                    marketCap: '',
+                                    address: '',
+                                    strategies: [],
+                                    maxDropFromSignal: '',
+                                    maxDropFromLevel07: '',
+                                    comment: ''
+                                })
+                            }} className={`p-2 rounded-lg hover:bg-white/10 transition-colors ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        <div className="flex-1 overflow-y-auto p-6 space-y-6">
+                            {/* Common Date */}
+                            <div className="space-y-1">
+                                <label className={`text-xs font-semibold uppercase ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Дата</label>
+                                <input
+                                    type="date"
+                                    value={editingAlert?.signalDate || commonDate || formData.signalDate || ''}
+                                    onChange={(e) => {
+                                        setCommonDate(e.target.value)
+                                        setFormData({ ...formData, signalDate: e.target.value })
+                                    }}
+                                    className={`w-full p-3 rounded-xl border outline-none transition-all ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white focus:border-amber-500' : 'bg-white border-gray-200 text-gray-900 focus:border-amber-500'}`}
+                                />
                             </div>
 
-                            <div className="flex-1 overflow-y-auto p-6 space-y-6">
-                                {/* Common Date */}
-                                <div className="space-y-1">
-                                    <label className={`text-xs font-semibold uppercase ${subTextColor}`}>Дата</label>
-                                    <input
-                                        type="date"
-                                        value={editingAlert?.signalDate || commonDate || formData.signalDate || ''}
-                                        onChange={(e) => {
-                                            setCommonDate(e.target.value)
-                                            setFormData({ ...formData, signalDate: e.target.value })
-                                        }}
-                                        className={`w-full p-3 rounded-xl border outline-none transition-all ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white focus:border-amber-500' : 'bg-white border-gray-200 text-gray-900 focus:border-amber-500'}`}
-                                    />
-                                </div>
+                            {editingAlert ? (
+                                <form onSubmit={handleSubmit} className="space-y-4">
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-1">
+                                            <label className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Время</label>
+                                            <input
+                                                type="time"
+                                                required
+                                                value={formData.signalTime}
+                                                onChange={(e) => setFormData({ ...formData, signalTime: e.target.value })}
+                                                className={`w-full p-3 rounded-xl border outline-none transition-all ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white focus:border-amber-500' : 'bg-white border-gray-200 text-gray-900 focus:border-amber-500'}`}
+                                            />
+                                        </div>
+                                        <MultiStrategySelector
+                                            strategies={formData.strategies || []}
+                                            profits={profitsInput}
+                                            onChange={(strategies, profits) => {
+                                                setFormData({ ...formData, strategies })
+                                                setProfitsInput(profits)
+                                            }}
+                                            theme={theme}
+                                        />
+                                    </div>
 
-                                {editingAlert ? (
-                                    <form onSubmit={handleSubmit} className="space-y-4">
+                                    <div className="space-y-1">
+                                        <label className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Адрес токена</label>
+                                        <input
+                                            type="text"
+                                            required
+                                            placeholder="Адрес контракта..."
+                                            value={formData.address || ''}
+                                            onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                                            className={`w-full p-3 rounded-xl border outline-none transition-all font-mono text-sm ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white focus:border-amber-500' : 'bg-white border-gray-200 text-gray-900 focus:border-amber-500'}`}
+                                        />
+                                    </div>
+
+                                    <div className="grid grid-cols-3 gap-4">
+                                        <div className="space-y-1">
+                                            <label className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Market Cap</label>
+                                            <input
+                                                type="text"
+                                                placeholder="e.g. 300,77"
+                                                value={formData.marketCap || ''}
+                                                onChange={(e) => setFormData({ ...formData, marketCap: e.target.value })}
+                                                className={`w-full p-2 rounded-lg border text-sm outline-none mt-1 ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'}`}
+                                            />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Макс. падение от сигнала</label>
+                                            <input
+                                                type="text"
+                                                placeholder="e.g. -16"
+                                                value={formData.maxDropFromSignal || ''}
+                                                onChange={(e) => setFormData({ ...formData, maxDropFromSignal: e.target.value })}
+                                                className={`w-full p-2 rounded-lg border text-sm outline-none mt-1 ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'}`}
+                                            />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Макс. падение от 0.7</label>
+                                            <input
+                                                type="text"
+                                                placeholder="e.g. -5"
+                                                value={formData.maxDropFromLevel07 || ''}
+                                                onChange={(e) => setFormData({ ...formData, maxDropFromLevel07: e.target.value })}
+                                                className={`w-full p-2 rounded-lg border text-sm outline-none mt-1 ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'}`}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-1">
+                                        <label className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Комментарий</label>
+                                        <input
+                                            type="text"
+                                            placeholder="Дополнительная информация..."
+                                            value={formData.comment || ''}
+                                            onChange={(e) => setFormData({ ...formData, comment: e.target.value })}
+                                            className={`w-full p-2 rounded-xl border outline-none transition-all font-mono text-sm ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white focus:border-amber-500' : 'bg-white border-gray-200 text-gray-900'}`}
+                                        />
+                                    </div>
+
+                                    {/* Screenshot Upload */}
+                                    <div className="space-y-2">
+                                        <label className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Скриншот</label>
+                                        <div className={`flex items-center gap-3 ${theme === 'dark' ? 'bg-black/30' : 'bg-gray-100'} p-3 rounded-xl border border-dashed ${theme === 'dark' ? 'border-white/10' : 'border-gray-300'}`}>
+                                            {screenshotPreview ? (
+                                                <div className="relative">
+                                                    <img
+                                                        src={screenshotPreview}
+                                                        alt="Preview"
+                                                        className="w-16 h-16 object-cover rounded-lg"
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={removeScreenshot}
+                                                        className="absolute -top-2 -right-2 p-0.5 rounded-full bg-red-500 text-white hover:bg-red-600 transition-colors"
+                                                    >
+                                                        <XCircle className="w-4 h-4" />
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <label className="flex items-center gap-2 cursor-pointer text-amber-500 hover:text-amber-400 transition-colors">
+                                                    <Image className="w-5 h-5" />
+                                                    <span className="text-sm">Загрузить фото</span>
+                                                    <input
+                                                        ref={fileInputRef}
+                                                        type="file"
+                                                        accept="image/*"
+                                                        onChange={handleScreenshotChange}
+                                                        className="hidden"
+                                                    />
+                                                </label>
+                                            )}
+                                            {!screenshotPreview && (
+                                                <span className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Макс. 5MB</span>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* Is Scam checkbox */}
+                                    <div className="flex items-center gap-3 p-3 rounded-xl bg-red-500/10 border border-red-500/20">
+                                        <input
+                                            type="checkbox"
+                                            id="isScamNew"
+                                            checked={formData.isScam || false}
+                                            onChange={(e) => setFormData({ ...formData, isScam: e.target.checked })}
+                                            className={`w-5 h-5 rounded border-2 ${theme === 'dark' ? 'border-gray-700 bg-gray-800' : 'border-gray-300 bg-white'} cursor-pointer accent-red-500`}
+                                        />
+                                        <label htmlFor="isScamNew" className="cursor-pointer">
+                                            <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-red-400' : 'text-red-600'}`}>Это скам</span>
+                                            <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'} mt-0.5`}>При отметке выбор стратегии необязателен</p>
+                                        </label>
+                                    </div>
+
+                                    <div className="pt-4 flex gap-3">
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setShowModal(false)
+                                                setEditingAlert(null)
+                                            }}
+                                            className={`flex-1 py-3 rounded-xl font-semibold transition-colors ${theme === 'dark' ? 'bg-white/5 hover:bg-white/10 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-800'}`}
+                                        >
+                                            Отмена
+                                        </button>
+                                        <button
+                                            type="submit"
+                                            className="flex-1 py-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-semibold transition-colors flex items-center justify-center gap-2"
+                                        >
+                                            <Save className="w-4 h-4" />
+                                            <span>Сохранить</span>
+                                        </button>
+                                    </div>
+                                </form>
+                            ) : (
+                                <>
+                                    {/* Form for new alert */}
+                                    <div className={`p-4 rounded-2xl ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'} space-y-4`}>
+                                        <h4 className={`text-sm font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Новый сигнал</h4>
+
                                         <div className="grid grid-cols-2 gap-4">
                                             <div className="space-y-1">
-                                                <label className={`text-xs ${subTextColor}`}>Время</label>
+                                                <label className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Время</label>
                                                 <input
                                                     type="time"
-                                                    required
                                                     value={formData.signalTime}
                                                     onChange={(e) => setFormData({ ...formData, signalTime: e.target.value })}
-                                                    className={`w-full p-3 rounded-xl border outline-none transition-all ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white focus-border-amber-500' : 'bg-white border-gray-200 text-gray-900 focus-border-amber-500'}`}
+                                                    className={`w-full p-2 rounded-lg border outline-none transition-all ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'}`}
                                                 />
                                             </div>
                                             <MultiStrategySelector
@@ -1127,20 +1303,19 @@ export const SignalsTriggerBot = () => {
                                         </div>
 
                                         <div className="space-y-1">
-                                            <label className={`text-xs ${subTextColor}`}>Адрес токена</label>
+                                            <label className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Адрес токена</label>
                                             <input
                                                 type="text"
-                                                required
                                                 placeholder="Адрес контракта..."
                                                 value={formData.address || ''}
                                                 onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                                                className={`w-full p-3 rounded-xl border outline-none transition-all font-mono text-sm ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white focus-border-amber-500' : 'bg-white border-gray-200 text-gray-900 focus-border-amber-500'}`}
+                                                className={`w-full p-2 rounded-lg border outline-none transition-all font-mono text-sm ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white focus:border-amber-500' : 'bg-white border-gray-200 text-gray-900 focus:border-amber-500'}`}
                                             />
                                         </div>
 
                                         <div className="grid grid-cols-3 gap-4">
                                             <div className="space-y-1">
-                                                <label className={`text-xs ${subTextColor}`}>Market Cap</label>
+                                                <label className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Market Cap</label>
                                                 <input
                                                     type="text"
                                                     placeholder="e.g. 300,77"
@@ -1150,7 +1325,7 @@ export const SignalsTriggerBot = () => {
                                                 />
                                             </div>
                                             <div className="space-y-1">
-                                                <label className={`text-xs ${subTextColor}`}>Макс. падение от сигнала</label>
+                                                <label className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Макс. падение от сигнала</label>
                                                 <input
                                                     type="text"
                                                     placeholder="e.g. -16"
@@ -1160,7 +1335,7 @@ export const SignalsTriggerBot = () => {
                                                 />
                                             </div>
                                             <div className="space-y-1">
-                                                <label className={`text-xs ${subTextColor}`}>Макс. падение от 0.7</label>
+                                                <label className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Макс. падение от 0.7</label>
                                                 <input
                                                     type="text"
                                                     placeholder="e.g. -5"
@@ -1172,21 +1347,19 @@ export const SignalsTriggerBot = () => {
                                         </div>
 
                                         <div className="space-y-1">
-                                            <label className={`text-xs ${subTextColor}`}>Комментарий</label>
+                                            <label className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Комментарий</label>
                                             <input
                                                 type="text"
                                                 placeholder="Дополнительная информация..."
                                                 value={formData.comment || ''}
                                                 onChange={(e) => setFormData({ ...formData, comment: e.target.value })}
-                                                className={`w-full p-2 rounded-xl border outline-none transition-all font-mono text-sm ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white focus-border-amber-500' : 'bg-white border-gray-200 text-gray-900'}`}
+                                                className={`w-full p-2 rounded-xl border outline-none transition-all font-mono text-sm ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white focus:border-amber-500' : 'bg-white border-gray-200 text-gray-900'}`}
                                             />
                                         </div>
 
-
-
                                         {/* Screenshot Upload */}
                                         <div className="space-y-2">
-                                            <label className={`text-xs ${subTextColor}`}>Скриншот</label>
+                                            <label className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Скриншот</label>
                                             <div className={`flex items-center gap-3 ${theme === 'dark' ? 'bg-black/30' : 'bg-gray-100'} p-3 rounded-xl border border-dashed ${theme === 'dark' ? 'border-white/10' : 'border-gray-300'}`}>
                                                 {screenshotPreview ? (
                                                     <div className="relative">
@@ -1217,7 +1390,7 @@ export const SignalsTriggerBot = () => {
                                                     </label>
                                                 )}
                                                 {!screenshotPreview && (
-                                                    <span className={`text-xs ${subTextColor}`}>Макс. 5MB</span>
+                                                    <span className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Макс. 5MB</span>
                                                 )}
                                             </div>
                                         </div>
@@ -1233,243 +1406,89 @@ export const SignalsTriggerBot = () => {
                                             />
                                             <label htmlFor="isScamNew" className="cursor-pointer">
                                                 <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-red-400' : 'text-red-600'}`}>Это скам</span>
-                                                <p className={`text-xs ${subTextColor} mt-0.5`}>При отметке выбор стратегии необязателен</p>
+                                                <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'} mt-0.5`}>При отметке выбор стратегии необязателен</p>
                                             </label>
                                         </div>
 
                                         <div className="pt-4 flex gap-3">
                                             <button
                                                 type="button"
-                                                onClick={() => {
-                                                    setShowModal(false)
-                                                    setEditingAlert(null)
-                                                }}
-                                                className={`flex-1 py-3 rounded-xl font-semibold transition-colors ${theme === 'dark' ? 'bg-white/5 hover:bg-white/10 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-800'}`}
-                                            >
-                                                Отмена
-                                            </button>
-                                            <button
-                                                type="submit"
-                                                className="flex-1 py-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-semibold transition-colors flex items-center justify-center gap-2"
+                                                onClick={handleSaveAll}
+                                                disabled={alertsToAdd.length === 0}
+                                                className={`flex-1 py-3 rounded-xl bg-green-600 hover:bg-green-700 text-white font-semibold transition-colors flex items-center justify-center gap-2 ${alertsToAdd.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
                                             >
                                                 <Save className="w-4 h-4" />
-                                                <span>Сохранить</span>
+                                                <span>Сохранить все ({alertsToAdd.length})</span>
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={handleAddToList}
+                                                className="flex-1 py-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-semibold transition-colors flex items-center justify-center gap-2"
+                                            >
+                                                <Plus className="w-4 h-4" />
+                                                <span>Добавить в список</span>
                                             </button>
                                         </div>
-                                    </form>
-                                ) : (
-                                    <>
-                                        {/* Form for new alert */}
-                                        <div className={`p-4 rounded-2xl ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'} space-y-4`}>
-                                            <h4 className={`text-sm font-semibold ${headingColor}`}>Новый сигнал</h4>
 
-                                            <div className="grid grid-cols-2 gap-4">
-                                                <div className="space-y-1">
-                                                    <label className={`text-xs ${subTextColor}`}>Время</label>
-                                                    <input
-                                                        type="time"
-                                                        value={formData.signalTime}
-                                                        onChange={(e) => setFormData({ ...formData, signalTime: e.target.value })}
-                                                        className={`w-full p-2 rounded-lg border outline-none transition-all ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'}`}
-                                                    />
-                                                </div>
-                                                <MultiStrategySelector
-                                                    strategies={formData.strategies || []}
-                                                    profits={profitsInput}
-                                                    onChange={(strategies, profits) => {
-                                                        setFormData({ ...formData, strategies })
-                                                        setProfitsInput(profits)
-                                                    }}
-                                                    theme={theme}
-                                                />
-                                            </div>
-
-                                            <div className="space-y-1">
-                                                <label className={`text-xs ${subTextColor}`}>Адрес токена</label>
-                                                <input
-                                                    type="text"
-                                                    placeholder="Адрес контракта..."
-                                                    value={formData.address || ''}
-                                                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                                                    className={`w-full p-2 rounded-lg border outline-none transition-all font-mono text-sm ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white focus-border-amber-500' : 'bg-white border-gray-200 text-gray-900'}`}
-                                                />
-                                            </div>
-
-                                            <div className="grid grid-cols-3 gap-4">
-                                                <div className="space-y-1">
-                                                    <label className={`text-xs ${subTextColor}`}>Market Cap</label>
-                                                    <input
-                                                        type="text"
-                                                        placeholder="e.g. 300,77"
-                                                        value={formData.marketCap || ''}
-                                                        onChange={(e) => setFormData({ ...formData, marketCap: e.target.value })}
-                                                        className={`w-full p-2 rounded-lg border text-sm outline-none mt-1 ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'}`}
-                                                    />
-                                                </div>
-                                                <div className="space-y-1">
-                                                    <label className={`text-xs ${subTextColor}`}>Макс. падение от сигнала</label>
-                                                    <input
-                                                        type="text"
-                                                        placeholder="e.g. -16"
-                                                        value={formData.maxDropFromSignal || ''}
-                                                        onChange={(e) => setFormData({ ...formData, maxDropFromSignal: e.target.value })}
-                                                        className={`w-full p-2 rounded-lg border text-sm outline-none mt-1 ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'}`}
-                                                    />
-                                                </div>
-                                                <div className="space-y-1">
-                                                    <label className={`text-xs ${subTextColor}`}>Макс. падение от 0.7</label>
-                                                    <input
-                                                        type="text"
-                                                        placeholder="e.g. -5"
-                                                        value={formData.maxDropFromLevel07 || ''}
-                                                        onChange={(e) => setFormData({ ...formData, maxDropFromLevel07: e.target.value })}
-                                                        className={`w-full p-2 rounded-lg border text-sm outline-none mt-1 ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'}`}
-                                                    />
-                                                </div>
-                                            </div>
-
-                                            <div className="space-y-1">
-                                                <label className={`text-xs ${subTextColor}`}>Комментарий</label>
-                                                <input
-                                                    type="text"
-                                                    placeholder="Дополнительная информация..."
-                                                    value={formData.comment || ''}
-                                                    onChange={(e) => setFormData({ ...formData, comment: e.target.value })}
-                                                    className={`w-full p-2 rounded-xl border outline-none transition-all font-mono text-sm ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white focus-border-amber-500' : 'bg-white border-gray-200 text-gray-900'}`}
-                                                />
-                                            </div>
-
-
-
-                                            {/* Screenshot Upload */}
-                                            <div className="space-y-2">
-                                                <label className={`text-xs ${subTextColor}`}>Скриншот</label>
-                                                <div className={`flex items-center gap-3 ${theme === 'dark' ? 'bg-black/30' : 'bg-gray-100'} p-3 rounded-xl border border-dashed ${theme === 'dark' ? 'border-white/10' : 'border-gray-300'}`}>
-                                                    {screenshotPreview ? (
-                                                        <div className="relative">
-                                                            <img
-                                                                src={screenshotPreview}
-                                                                alt="Preview"
-                                                                className="w-16 h-16 object-cover rounded-lg"
-                                                            />
+                                        {/* Preview of added alerts */}
+                                        {alertsToAdd.length > 0 && (
+                                            <div className="space-y-3 pt-4 border-t border-white/10">
+                                                <h4 className={`text-xs font-semibold uppercase ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Добавленные сигналы</h4>
+                                                <div className="space-y-2">
+                                                    {alertsToAdd.map((alert, idx) => (
+                                                        <div key={idx} className={`flex items-center justify-between p-3 rounded-xl ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-100'}`}>
+                                                            <div className="flex flex-col gap-1">
+                                                                <div className="flex items-center gap-2">
+                                                                    <span className={`text-xs font-mono ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{alert.signalTime}</span>
+                                                                    <span className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>{truncateAddress(alert.address || '')}</span>
+                                                                </div>
+                                                                <div className="flex gap-1">
+                                                                    {alert.strategies?.map(s => (
+                                                                        <span key={s} className="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-500 text-[10px] font-bold">
+                                                                            {s}
+                                                                        </span>
+                                                                    ))}
+                                                                </div>
+                                                            </div>
                                                             <button
-                                                                type="button"
-                                                                onClick={removeScreenshot}
-                                                                className="absolute -top-2 -right-2 p-0.5 rounded-full bg-red-500 text-white hover:bg-red-600 transition-colors"
+                                                                onClick={() => setAlertsToAdd(alertsToAdd.filter((_, i) => i !== idx))}
+                                                                className="p-1.5 rounded-lg hover:bg-red-500/20 text-red-500 transition-colors"
                                                             >
-                                                                <XCircle className="w-4 h-4" />
+                                                                <Trash2 size={16} />
                                                             </button>
                                                         </div>
-                                                    ) : (
-                                                        <label className="flex items-center gap-2 cursor-pointer text-amber-500 hover:text-amber-400 transition-colors">
-                                                            <Image className="w-5 h-5" />
-                                                            <span className="text-sm">Загрузить фото</span>
-                                                            <input
-                                                                ref={fileInputRef}
-                                                                type="file"
-                                                                accept="image/*"
-                                                                onChange={handleScreenshotChange}
-                                                                className="hidden"
-                                                            />
-                                                        </label>
-                                                    )}
-                                                    {!screenshotPreview && (
-                                                        <span className={`text-xs ${subTextColor}`}>Макс. 5MB</span>
-                                                    )}
+                                                    ))}
                                                 </div>
                                             </div>
-
-                                            {/* Is Scam checkbox */}
-                                            <div className="flex items-center gap-3 p-3 rounded-xl bg-red-500/10 border border-red-500/20">
-                                                <input
-                                                    type="checkbox"
-                                                    id="isScamNew"
-                                                    checked={formData.isScam || false}
-                                                    onChange={(e) => setFormData({ ...formData, isScam: e.target.checked })}
-                                                    className={`w-5 h-5 rounded border-2 ${theme === 'dark' ? 'border-gray-700 bg-gray-800' : 'border-gray-300 bg-white'} cursor-pointer accent-red-500`}
-                                                />
-                                                <label htmlFor="isScamNew" className="cursor-pointer">
-                                                    <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-red-400' : 'text-red-600'}`}>Это скам</span>
-                                                    <p className={`text-xs ${subTextColor} mt-0.5`}>При отметке выбор стратегии необязателен</p>
-                                                </label>
-                                            </div>
-
-                                            <div className="pt-4 flex gap-3">
-                                                <button
-                                                    type="button"
-                                                    onClick={handleSaveAll}
-                                                    disabled={alertsToAdd.length === 0}
-                                                    className={`flex-1 py-3 rounded-xl bg-green-600 hover:bg-green-700 text-white font-semibold transition-colors flex items-center justify-center gap-2 ${alertsToAdd.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                                >
-                                                    <Save className="w-4 h-4" />
-                                                    <span>Сохранить все ({alertsToAdd.length})</span>
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    onClick={handleAddToList}
-                                                    className="flex-1 py-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-semibold transition-colors flex items-center justify-center gap-2"
-                                                >
-                                                    <Plus className="w-4 h-4" />
-                                                    <span>Добавить в список</span>
-                                                </button>
-                                            </div>
-
-                                            {/* Preview of added alerts */}
-                                            {alertsToAdd.length > 0 && (
-                                                <div className="space-y-3 pt-4 border-t border-white/10">
-                                                    <h4 className={`text-xs font-semibold uppercase ${subTextColor}`}>Добавленные сигналы</h4>
-                                                    <div className="space-y-2">
-                                                        {alertsToAdd.map((alert, idx) => (
-                                                            <div key={idx} className={`flex items-center justify-between p-3 rounded-xl ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-100'}`}>
-                                                                <div className="flex flex-col gap-1">
-                                                                    <div className="flex items-center gap-2">
-                                                                        <span className={`text-xs font-mono ${headingColor}`}>{alert.signalTime}</span>
-                                                                        <span className={`text-xs ${subTextColor}`}>{truncateAddress(alert.address || '')}</span>
-                                                                    </div>
-                                                                    <div className="flex gap-1">
-                                                                        {alert.strategies?.map(s => (
-                                                                            <span key={s} className="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-500 text-[10px] font-bold">
-                                                                                {s}
-                                                                            </span>
-                                                                        ))}
-                                                                    </div>
-                                                                </div>
-                                                                <button
-                                                                    onClick={() => setAlertsToAdd(alertsToAdd.filter((_, i) => i !== idx))}
-                                                                    className="p-1.5 rounded-lg hover:bg-red-500/20 text-red-500 transition-colors"
-                                                                >
-                                                                    <Trash2 size={16} />
-                                                                </button>
-                                                            </div>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </>
-                                )}
-                            </div>
+                                        )}
+                                    </div>
+                                </>
+                            )}
                         </div>
                     </div>
-                )
-            }
+                </div>
+            )}
+
             {/* Image Preview Modal */}
             {previewImage && (
                 <div
-                    className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-md p-4 cursor-zoom-out"
+                    className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm cursor-zoom-out"
                     onClick={() => setPreviewImage(null)}
                 >
-                    <div className="relative max-w-full max-h-full">
+                    <div className="relative max-w-5xl w-full max-h-[90vh] flex items-center justify-center">
                         <img
                             src={previewImage}
-                            alt="Preview"
-                            className="max-w-full max-h-[90vh] object-contain rounded-2xl shadow-2xl animate-in zoom-in-95 duration-200"
+                            alt="Screenshot Preview"
+                            className="max-w-full max-h-[90vh] object-contain rounded-xl shadow-2xl"
                         />
                         <button
-                            onClick={() => setPreviewImage(null)}
-                            className="absolute -top-12 right-0 p-3 text-white/70 hover:text-white transition-colors"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setPreviewImage(null);
+                            }}
+                            className="absolute -top-12 right-0 p-2 text-white hover:text-amber-500 transition-colors"
                         >
-                            <X className="w-8 h-8" />
+                            <X size={32} />
                         </button>
                     </div>
                 </div>
@@ -1478,5 +1497,117 @@ export const SignalsTriggerBot = () => {
     )
 }
 
+// --- Premium Helper Components ---
+
+interface PremiumInputProps {
+    icon?: any;
+    label?: string;
+    placeholder?: string;
+    value: string;
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    type?: string;
+    theme: string;
+}
+
+const PremiumInput: React.FC<PremiumInputProps> = ({ icon: Icon, label, placeholder, value, onChange, type = "text", theme }) => {
+    return (
+        <div className="space-y-1.5 group/input">
+            {label && (
+                <label className={`text-[10px] font-bold uppercase tracking-wider ml-1 opacity-50 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                    {label}
+                </label>
+            )}
+            <div className="relative">
+                {Icon && (
+                    <div className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center pointer-events-none transition-transform group-focus-within/input:scale-110">
+                        <Icon size={14} className={theme === 'dark' ? 'text-gray-500' : 'text-gray-400'} />
+                    </div>
+                )}
+                <input
+                    type={type}
+                    value={value}
+                    onChange={onChange}
+                    placeholder={placeholder}
+                    className={`w-full px-4 py-2.5 ${Icon ? 'pl-10' : ''} rounded-xl border text-sm font-semibold transition-all outline-none shadow-sm
+                    ${theme === 'dark'
+                            ? 'bg-white/5 border-white/5 text-white placeholder:text-gray-600 focus:bg-white/10 focus:border-white/20 focus:ring-4 focus:ring-white/5'
+                            : 'bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus:border-blue-500/30 focus:ring-4 focus:ring-blue-500/5 hover:border-gray-300'}`}
+                />
+            </div>
+        </div>
+    );
+};
+
+interface PremiumSelectProps {
+    value: string;
+    options: { value: string; label: string }[];
+    onChange: (val: string) => void;
+    theme: string;
+}
+
+const PremiumSelect: React.FC<PremiumSelectProps> = ({ value, options, onChange, theme }) => {
+    const [isOpen, setIsOpen] = useState(false);
+    const containerRef = useRef<HTMLDivElement>(null);
+    const selectedOption = options.find(o => o.value === value);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+                setIsOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    return (
+        <div className="relative" ref={containerRef}>
+            <div className="flex flex-col space-y-1.5">
+                <label className={`text-[10px] font-bold uppercase tracking-wider ml-1 opacity-50 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                    Сортировать по
+                </label>
+                <button
+                    type="button"
+                    onClick={() => setIsOpen(!isOpen)}
+                    className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl border text-sm font-bold transition-all shadow-sm
+                    ${theme === 'dark'
+                            ? 'bg-white/5 border-white/5 text-white hover:bg-white/10 hover:border-white/10 active:scale-95'
+                            : 'bg-white border-gray-200 text-gray-900 hover:bg-gray-50 active:scale-95'}`}
+                >
+                    <span className="truncate">{selectedOption?.label}</span>
+                    <ChevronDown size={14} className={`text-gray-500 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
+                </button>
+            </div>
+
+            {isOpen && (
+                <div className={`absolute z-50 bottom-full mb-2 w-full min-w-[160px] rounded-xl border shadow-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-200 
+                ${theme === 'dark' ? 'bg-[#151a21] border-white/10' : 'bg-white border-gray-200'}`}>
+                    <div className="p-1 space-y-1">
+                        {options.map(opt => (
+                            <button
+                                key={opt.value}
+                                type="button"
+                                onClick={() => {
+                                    onChange(opt.value);
+                                    setIsOpen(false);
+                                }}
+                                className={`w-full flex items-center px-4 py-2.5 rounded-lg text-xs font-bold transition-all text-left
+                                ${opt.value === value
+                                        ? theme === 'dark' ? 'bg-white/10 text-white' : 'bg-blue-500/10 text-blue-600'
+                                        : theme === 'dark' ? 'text-gray-400 hover:bg-white/5 hover:text-white' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                                    }`}
+                            >
+                                {opt.label}
+                                {opt.value === value && <Check size={12} className="ml-auto" />}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
 export default SignalsTriggerBot
+
 
