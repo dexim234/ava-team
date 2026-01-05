@@ -510,13 +510,16 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
         </aside>
 
         <div className={`flex-1 ${isCollapsed ? 'xl:pl-20' : 'xl:pl-72'} min-h-screen transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]`}>
-          <main className="page-shell xl:pb-0 pb-6">
+          <main className="page-shell xl:pb-0 pb-6 pt-20 xl:pt-0">
             {children}
           </main>
         </div>
 
         {/* Mobile Header with Burger */}
-        <div className="xl:hidden fixed top-0 left-0 right-0 z-50 px-4 py-3 glass-panel border-b border-white/10 flex items-center justify-between">
+        <div className={`xl:hidden fixed top-0 left-0 right-0 z-50 px-4 py-3 border-b flex items-center justify-between transition-colors duration-300 backdrop-blur-xl ${theme === 'dark'
+          ? 'bg-[#0b0f17]/80 border-white/10'
+          : 'bg-white/80 border-gray-200'
+          }`}>
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 flex items-center justify-center">
               <img
@@ -525,11 +528,14 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                 className="w-7 h-7 object-contain filter drop-shadow-[0_0_8px_rgba(78,110,73,0.3)]"
               />
             </div>
-            <span className="text-sm font-black tracking-widest text-[#4E6E49] dark:text-white uppercase">ApeVault</span>
+            <span className={`text-sm font-black tracking-widest uppercase ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>ApeVault</span>
           </div>
           <button
             onClick={() => setIsMobileMenuOpen(true)}
-            className="p-2 rounded-xl bg-[#4E6E49]/10 text-[#4E6E49] dark:text-white hover:bg-[#4E6E49]/20 transition-colors"
+            className={`p-2 rounded-xl transition-colors ${theme === 'dark'
+              ? 'bg-[#4E6E49]/10 text-white hover:bg-[#4E6E49]/20'
+              : 'bg-[#4E6E49]/10 text-[#4E6E49] hover:bg-[#4E6E49]/20'
+              }`}
           >
             <Menu className="w-6 h-6" />
           </button>
@@ -537,8 +543,8 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
 
         {/* Mobile Menu Overlay */}
         {isMobileMenuOpen && (
-          <div className="fixed inset-0 z-[100] bg-[#0b0f17] flex flex-col animate-in slide-in-from-right duration-300">
-            <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
+          <div className={`fixed inset-0 z-[100] flex flex-col animate-in slide-in-from-right duration-300 ${theme === 'dark' ? 'bg-[#0b0f17]' : 'bg-white'}`}>
+            <div className={`flex items-center justify-between px-4 py-3 border-b ${theme === 'dark' ? 'border-white/10' : 'border-gray-100'}`}>
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 flex items-center justify-center">
                   <img
@@ -547,11 +553,11 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                     className="w-7 h-7 object-contain"
                   />
                 </div>
-                <span className="text-sm font-black tracking-widest text-white uppercase">Menu</span>
+                <span className={`text-sm font-black tracking-widest uppercase ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Menu</span>
               </div>
               <button
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="p-2 rounded-xl bg-white/5 text-white hover:bg-white/10 transition-colors"
+                className={`p-2 rounded-xl transition-colors ${theme === 'dark' ? 'bg-white/5 text-white hover:bg-white/10' : 'bg-gray-100 text-gray-900 hover:bg-gray-200'}`}
               >
                 <X className="w-6 h-6" />
               </button>
@@ -559,12 +565,12 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
 
             <div className="flex-1 overflow-y-auto p-4 space-y-6">
               {/* Profile Section */}
-              <div className="flex items-center gap-3 p-4 rounded-2xl bg-white/5 border border-white/10">
+              <div className={`flex items-center gap-3 p-4 rounded-2xl border ${theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-100'}`}>
                 <div className="w-10 h-10 rounded-full bg-[#4E6E49]/20 flex items-center justify-center text-[#4E6E49] font-bold">
                   {user?.avatar ? <img src={user.avatar} className="w-full h-full rounded-full object-cover" /> : getInitials(user?.name || 'User')}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-bold truncate text-white">{user?.name || 'Guest'}</p>
+                  <p className={`text-sm font-bold truncate ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{user?.name || 'Guest'}</p>
                   <Link to="/profile" onClick={() => setIsMobileMenuOpen(false)} className="text-xs text-[#4E6E49] hover:underline">
                     Перейти в профиль
                   </Link>
@@ -581,10 +587,13 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                         key={item.path}
                         to={item.path}
                         onClick={() => setIsMobileMenuOpen(false)}
-                        className={`flex flex-col items-center justify-center gap-2 p-3 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition-all ${location.pathname === item.path ? 'border-[#4E6E49]/50 bg-[#4E6E49]/10' : ''}`}
+                        className={`flex flex-col items-center justify-center gap-2 p-3 rounded-xl border transition-all ${location.pathname === item.path
+                            ? 'border-[#4E6E49]/50 bg-[#4E6E49]/10'
+                            : theme === 'dark' ? 'border-white/10 bg-white/5 hover:bg-white/10' : 'border-gray-100 bg-gray-50 hover:bg-gray-100'
+                          }`}
                       >
                         <item.icon className={`w-6 h-6 ${location.pathname === item.path ? 'text-[#4E6E49]' : 'text-gray-400'}`} />
-                        <span className="text-xs font-medium text-center text-gray-300">{item.label}</span>
+                        <span className={`text-xs font-medium text-center ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>{item.label}</span>
                       </Link>
                     ))}
                   </div>
@@ -593,14 +602,17 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
 
               {/* Functions Section */}
               <div className="space-y-3">
-                <p className="text-xs font-bold text-gray-500 uppercase tracking-wider px-2">Функции</p>
+                <p className="text-xs font-bold text-gray-500 uppercase tracking-wider px-2 pt-2">Функции</p>
                 <div className="space-y-2">
                   {mobileFuncSubItems.map((item) => (
                     <Link
                       key={item.path}
                       to={item.path}
                       onClick={() => setIsMobileMenuOpen(false)}
-                      className={`flex items-center gap-3 p-3 rounded-xl transition-all ${location.pathname === item.path ? 'bg-[#4E6E49] text-white shadow-lg' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}
+                      className={`flex items-center gap-3 p-3 rounded-xl transition-all ${location.pathname === item.path
+                          ? 'bg-[#4E6E49] text-white shadow-lg'
+                          : theme === 'dark' ? 'text-gray-400 hover:bg-white/5 hover:text-white' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'
+                        }`}
                     >
                       <item.icon className="w-5 h-5" />
                       <span className="font-bold text-sm">{item.label}</span>
@@ -613,10 +625,10 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
               {/* Theme Toggle */}
               <button
                 onClick={toggleTheme}
-                className="w-full flex items-center justify-between p-4 rounded-xl border border-white/10 bg-white/5"
+                className={`w-full flex items-center justify-between p-4 rounded-xl border ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-gray-50'}`}
               >
-                <span className="text-sm font-medium text-gray-300">Тема оформления</span>
-                {theme === 'dark' ? <Sun className="w-4 h-4 text-amber-300" /> : <Moon className="w-4 h-4 text-white" />}
+                <span className={`text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Тема оформления</span>
+                {theme === 'dark' ? <Sun className="w-4 h-4 text-amber-300" /> : <Moon className="w-4 h-4 text-gray-600" />}
               </button>
 
               {/* Logout */}
@@ -626,7 +638,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                   deactivateAdmin()
                   window.location.href = '/login'
                 }}
-                className="w-full flex items-center justify-center gap-2 p-4 rounded-xl border border-red-500/20 bg-red-500/10 text-red-500 font-bold"
+                className={`w-full flex items-center justify-center gap-2 p-4 rounded-xl border font-bold ${theme === 'dark' ? 'border-red-500/20 bg-red-500/10 text-red-500' : 'border-red-200 bg-red-50 text-red-600'}`}
               >
                 <LogOut className="w-4 h-4" />
                 <span>Выйти из аккаунта</span>
