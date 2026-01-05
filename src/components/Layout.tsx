@@ -510,7 +510,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
         </aside>
 
         <div className={`flex-1 ${isCollapsed ? 'xl:pl-20' : 'xl:pl-72'} min-h-screen transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]`}>
-          <main className="page-shell xl:pb-0 pb-6 xl:pt-10 transition-all duration-300" style={{ paddingTop: isCollapsed ? '0' : undefined }}>
+          <main className="page-shell xl:pb-14 pb-6 xl:pt-14 transition-all duration-300">
             <div className="xl:hidden h-[65px]"></div> {/* Spacer for mobile header */}
             {children}
           </main>
