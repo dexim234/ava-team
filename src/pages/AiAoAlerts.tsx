@@ -1,9 +1,9 @@
-import { useState, useEffect, useRef, useMemo } from 'react'
+import React, { useState, useEffect, useRef, useMemo } from 'react'
 import { useThemeStore } from '@/store/themeStore'
 import { useAuthStore } from '@/store/authStore'
 import { getAiAlerts, addAiAlert, updateAiAlert, deleteAiAlert } from '@/services/firestoreService'
-import { AiAlert, TriggerStrategy, TriggerProfit } from '@/types'
-import { Plus, Edit, Trash2, Save, X, Copy, Check, Terminal, Table, Filter, ArrowUp, ArrowDown, RotateCcw, Calendar, ChevronDown, Hash, Coins, TrendingDown, TrendingUp, Search, Activity, Clock, FileText, Target, AlertTriangle, Upload, XCircle } from 'lucide-react'
+import { AiAlert, TriggerStrategy } from '@/types'
+import { Plus, Edit, Trash2, Save, X, Copy, Check, Terminal, Table, Filter, ArrowUp, ArrowDown, RotateCcw, Calendar, ChevronDown, Hash, Coins, TrendingDown, TrendingUp, Search, Activity, Clock, FileText, AlertTriangle, Upload } from 'lucide-react'
 import { MultiStrategySelector } from '../components/Management/MultiStrategySelector'
 import { UserNickname } from '../components/UserNickname'
 import { useAdminStore } from '@/store/adminStore'
@@ -28,8 +28,6 @@ export const AiAoAlerts = () => {
     const [editingAlert, setEditingAlert] = useState<AiAlert | null>(null)
     const [copyingId, setCopyingId] = useState<string | null>(null)
     const [isCopyingTable, setIsCopyingTable] = useState(false)
-    const [showSuccess, setShowSuccess] = useState(false)
-    const [successCount, setSuccessCount] = useState(0)
 
     // Filter states
     const [showFilters, setShowFilters] = useState(false)
@@ -116,7 +114,7 @@ export const AiAoAlerts = () => {
         }
 
         try {
-            const promises = alertsToAdd.map(alert =>
+            const promises = alertsToAdd.map((alert: Partial<AiAlert>) =>
                 addAiAlert({
                     ...alert as AiAlert,
                     createdAt: new Date().toISOString(),
@@ -221,8 +219,9 @@ export const AiAoAlerts = () => {
             <th>Время</th>
             <th>Market Cap</th>
             <th>Адрес</th>
-            <th>Макс. Падение</th>
-            <th>Макс. Профит</th>
+            <th>Макс. Падение от сигнала</th>
+            <th>Макс. Падение от 0.7</th>
+            <th>Профит</th>
             <th>Комментарий</th>
           </tr>
         </thead>
@@ -233,8 +232,9 @@ export const AiAoAlerts = () => {
               <td>${a.signalTime}</td>
               <td>${a.marketCap || '-'}</td>
               <td>${a.address}</td>
-              <td>${a.maxDrop || '-'}</td>
-              <td>${a.maxProfit || '-'}</td>
+              <td>${a.maxDropFromSignal || '-'}</td>
+              <td>${a.maxDropFromLevel07 || '-'}</td>
+              <td>${a.profits && a.profits.length > 0 ? a.profits.map(p => `${p.strategy}: ${p.value}`).join(', ') : '-'}</td>
               <td>${a.comment || ''}</td>
             </tr>
           `).join('')}
@@ -311,27 +311,37 @@ export const AiAoAlerts = () => {
         if (minDrop) {
             const minVal = parseFloat(minDrop)
             if (!isNaN(minVal)) {
-                result = result.filter(a => parseValue(a.maxDrop) >= minVal)
+                result = result.filter(a => parseValue(a.maxDropFromSignal) >= minVal)
             }
         }
         if (maxDrop) {
             const maxVal = parseFloat(maxDrop)
             if (!isNaN(maxVal)) {
-                result = result.filter(a => parseValue(a.maxDrop) <= maxVal)
+                result = result.filter(a => parseValue(a.maxDropFromSignal) <= maxVal)
             }
         }
 
-        // Filter by max profit range
+        // Filter by max profit range (from profits array)
         if (minProfit) {
             const minVal = parseFloat(minProfit)
             if (!isNaN(minVal)) {
-                result = result.filter(a => parseValue(a.maxProfit) >= minVal)
+                result = result.filter(a => {
+                    if (a.profits && a.profits.length > 0) {
+                        return a.profits.some((p: { strategy: TriggerStrategy, value: string }) => parseValue(p.value) >= minVal)
+                    }
+                    return false
+                })
             }
         }
         if (maxProfit) {
             const maxVal = parseFloat(maxProfit)
             if (!isNaN(maxVal)) {
-                result = result.filter(a => parseValue(a.maxProfit) <= maxVal)
+                result = result.filter(a => {
+                    if (a.profits && a.profits.length > 0) {
+                        return a.profits.some((p: { strategy: TriggerStrategy, value: string }) => parseValue(p.value) <= maxVal)
+                    }
+                    return false
+                })
             }
         }
 
@@ -360,10 +370,13 @@ export const AiAoAlerts = () => {
                     }
                     break
                 case 'drop':
-                    comparison = parseValue(a.maxDrop) - parseValue(b.maxDrop)
+                    comparison = parseValue(a.maxDropFromSignal) - parseValue(b.maxDropFromSignal)
                     break
                 case 'profit':
-                    comparison = parseValue(a.maxProfit) - parseValue(b.maxProfit)
+                    // Sort by max profit from profits array
+                    const aMaxProfit = a.profits && a.profits.length > 0 ? Math.max(...a.profits.map((p: { strategy: TriggerStrategy, value: string }) => parseValue(p.value))) : 0
+                    const bMaxProfit = b.profits && b.profits.length > 0 ? Math.max(...b.profits.map((p: { strategy: TriggerStrategy, value: string }) => parseValue(p.value))) : 0
+                    comparison = aMaxProfit - bMaxProfit
                     break
             }
             return sortOrder === 'asc' ? comparison : -comparison
@@ -811,13 +824,13 @@ export const AiAoAlerts = () => {
                                                             </div>
                                                         </td>
                                                         <td className={`p-4 whitespace-nowrap text-center border-r ${theme === 'dark' ? 'border-white/10' : 'border-gray-200'} last:border-r-0`}>
-                                                            <span className={`font-mono ${alert.maxDrop && alert.maxDrop.startsWith('-') ? 'text-red-500' : headingColor}`}>
-                                                                {alert.maxDrop || '-'}
+                                                            <span className={`font-mono ${alert.maxDropFromSignal && alert.maxDropFromSignal.startsWith('-') ? 'text-red-500' : headingColor}`}>
+                                                                {alert.maxDropFromSignal || '-'}
                                                             </span>
                                                         </td>
                                                         <td className={`p-4 whitespace-nowrap text-center border-r ${theme === 'dark' ? 'border-white/10' : 'border-gray-200'} last:border-r-0`}>
                                                             <span className="font-mono text-green-500 font-bold">
-                                                                {alert.maxProfit || '-'}
+                                                                {getProfitDisplay(alert.profits)}
                                                             </span>
                                                         </td>
                                                         <td className={`p-4 max-w-[250px] text-center border-r ${theme === 'dark' ? 'border-white/10' : 'border-gray-200'} last:border-r-0`}>
@@ -1043,28 +1056,28 @@ export const AiAoAlerts = () => {
 
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="space-y-1.5">
-                                            <label className={`text-[10px] font-bold uppercase tracking-wider ml-1 ${subTextColor}`}>Max Drop</label>
+                                            <label className={`text-[10px] font-bold uppercase tracking-wider ml-1 ${subTextColor}`}>Max Drop (Signal)</label>
                                             <div className="relative">
                                                 <TrendingDown className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-rose-500/50" />
                                                 <input
                                                     type="text"
                                                     placeholder="-16%"
-                                                    value={formData.maxDrop}
-                                                    onChange={(e) => setFormData({ ...formData, maxDrop: e.target.value })}
+                                                    value={formData.maxDropFromSignal || ''}
+                                                    onChange={(e) => setFormData({ ...formData, maxDropFromSignal: e.target.value })}
                                                     className={`w-full pl-10 pr-4 py-3 rounded-xl border outline-none transition-all text-sm font-semibold ${theme === 'dark' ? 'bg-black/20 border-white/5 text-white focus:border-rose-500/30 focus:ring-4 focus:ring-rose-500/5' : 'bg-gray-50 border-gray-100 text-gray-900 focus:border-rose-500/20'}`}
                                                 />
                                             </div>
                                         </div>
                                         <div className="space-y-1.5">
-                                            <label className={`text-[10px] font-bold uppercase tracking-wider ml-1 ${subTextColor}`}>Max Profit</label>
+                                            <label className={`text-[10px] font-bold uppercase tracking-wider ml-1 ${subTextColor}`}>Max Drop (0.7)</label>
                                             <div className="relative">
-                                                <TrendingUp className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-emerald-500/50" />
+                                                <TrendingDown className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-rose-500/50" />
                                                 <input
                                                     type="text"
-                                                    placeholder="+28% / X2"
-                                                    value={formData.maxProfit}
-                                                    onChange={(e) => setFormData({ ...formData, maxProfit: e.target.value })}
-                                                    className={`w-full pl-10 pr-4 py-3 rounded-xl border outline-none transition-all text-sm font-semibold ${theme === 'dark' ? 'bg-black/20 border-white/5 text-white focus:border-emerald-500/30 focus:ring-4 focus:ring-emerald-500/5' : 'bg-gray-50 border-gray-100 text-gray-900 focus:border-emerald-500/20'}`}
+                                                    placeholder="-5%"
+                                                    value={formData.maxDropFromLevel07 || ''}
+                                                    onChange={(e) => setFormData({ ...formData, maxDropFromLevel07: e.target.value })}
+                                                    className={`w-full pl-10 pr-4 py-3 rounded-xl border outline-none transition-all text-sm font-semibold ${theme === 'dark' ? 'bg-black/20 border-white/5 text-white focus:border-rose-500/30 focus:ring-4 focus:ring-rose-500/5' : 'bg-gray-50 border-gray-100 text-gray-900 focus:border-rose-500/20'}`}
                                                 />
                                             </div>
                                         </div>
