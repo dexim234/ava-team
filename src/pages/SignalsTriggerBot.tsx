@@ -4,13 +4,11 @@ import { useAuthStore } from '@/store/authStore'
 import { useAdminStore } from '@/store/adminStore'
 import { getTriggerAlerts, addTriggerAlert, updateTriggerAlert, deleteTriggerAlert } from '@/services/firestoreService'
 import { TriggerAlert, TriggerStrategy, TriggerProfit } from '@/types'
-import { Plus, Edit, Trash2, Save, X, Copy, Check, Table, Filter, ArrowUp, ArrowDown, RotateCcw, Zap, Image, XCircle, Activity, Target, Search, Calendar, ChevronDown, Hash, Coins, TrendingDown, TrendingUp } from 'lucide-react'
+import { Plus, Edit, Trash2, Save, X, Copy, Check, Table, Filter, ArrowUp, ArrowDown, RotateCcw, Zap, Activity, Target, Search, Calendar, ChevronDown, Hash, Coins, TrendingDown, TrendingUp, Clock, FileText, AlertTriangle, Upload, XCircle } from 'lucide-react'
 import { MultiStrategySelector } from '../components/Management/MultiStrategySelector'
 import { UserNickname } from '../components/UserNickname'
 
-// ... (in imports section, handle this separately or just do it in one go if close)
-// Actually I can't do multiple disparate blocks with replace_file_content.
-// I will use multi_replace_file_content.
+
 
 
 type SortField = 'date' | 'drop' | 'profit'
@@ -24,8 +22,8 @@ export const SignalsTriggerBot = () => {
     const subTextColor = theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
     const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
     const cardBg = theme === 'dark' ? 'bg-[#151a21]/80 backdrop-blur-xl' : 'bg-white/80 backdrop-blur-xl'
-    const cardBorder = theme === 'dark' ? 'border-[#f59e0b]/30' : 'border-[#f59e0b]/20'
-    const cardShadow = theme === 'dark' ? 'shadow-[0_8px_32px_rgba(0,0,0,0.4)]' : 'shadow-[0_8px_32px_rgba(0,0,0,0.08)]'
+    const cardBorder = theme === 'dark' ? 'border-amber-500/30' : 'border-amber-500/20'
+    const cardShadow = theme === 'dark' ? 'shadow-[0_24px_80px_rgba(0,0,0,0.45)]' : 'shadow-[0_24px_80px_rgba(0,0,0,0.15)]'
 
     const [alerts, setAlerts] = useState<TriggerAlert[]>([])
     const [loading, setLoading] = useState(true)
@@ -1078,391 +1076,317 @@ export const SignalsTriggerBot = () => {
 
             {/* Modals and Overlays */}
             {showModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-                    <div className={`w-full max-w-2xl rounded-3xl ${theme === 'dark' ? 'bg-[#0f1216]' : 'bg-white'} border shadow-2xl overflow-hidden max-h-[90vh] flex flex-col ${theme === 'dark' ? 'border-white/10' : 'border-gray-200'}`}>
-                        <div className={`p-6 border-b ${theme === 'dark' ? 'border-white/10' : 'border-gray-100'} flex items-center justify-between flex-shrink-0`}>
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm overflow-y-auto">
+                    <div className={`w-full max-w-4xl rounded-[32px] ${cardBg} ${cardBorder} border shadow-2xl overflow-hidden my-auto flex flex-col relative`}>
+                        {/* Decorative Background Elements */}
+                        <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/10 rounded-full blur-[100px] -mr-32 -mt-32"></div>
+                        <div className="absolute bottom-0 left-0 w-64 h-64 bg-amber-500/5 rounded-full blur-[100px] -ml-32 -mb-32"></div>
+
+                        {/* Header */}
+                        <div className="p-8 border-b border-white/5 flex items-center justify-between relative z-10">
                             <div>
-                                <h3 className={`text-xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                                    {editingAlert ? 'Редактировать сигнал' : 'Добавить сигналы'}
-                                </h3>
+                                <div className="flex items-center gap-3 mb-1">
+                                    <div className="w-10 h-10 rounded-2xl bg-amber-500/20 flex items-center justify-center">
+                                        <Zap className="w-6 h-6 text-amber-500" />
+                                    </div>
+                                    <h3 className={`text-2xl font-black uppercase tracking-tight ${headingColor}`}>
+                                        {editingAlert ? 'Редактировать сигнал' : 'Добавить сигналы'}
+                                    </h3>
+                                </div>
                                 {!editingAlert && (
-                                    <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Добавьте один или несколько сигналов за одну дату</p>
+                                    <p className={`text-sm ${subTextColor} font-medium`}>Сигналы будут сгруппированы за выбранную дату</p>
                                 )}
                             </div>
-                            <button onClick={() => {
-                                setShowModal(false)
-                                setAlertsToAdd([])
-                                setCommonDate(new Date().toISOString().split('T')[0])
-                                setFormData({
-                                    signalTime: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
-                                    marketCap: '',
-                                    address: '',
-                                    strategies: [],
-                                    maxDropFromSignal: '',
-                                    maxDropFromLevel07: '',
-                                    comment: ''
-                                })
-                            }} className={`p-2 rounded-lg hover:bg-white/10 transition-colors ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                                <X className="w-5 h-5" />
+                            <button
+                                onClick={() => {
+                                    setShowModal(false)
+                                    setEditingAlert(null)
+                                    setAlertsToAdd([])
+                                    setFormData({
+                                        signalTime: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
+                                        marketCap: '',
+                                        address: '',
+                                        strategies: [],
+                                        maxDropFromSignal: '',
+                                        maxDropFromLevel07: '',
+                                        comment: ''
+                                    })
+                                    setScreenshotPreview(null)
+                                }}
+                                className={`p-3 rounded-2xl ${theme === 'dark' ? 'hover:bg-white/5' : 'hover:bg-gray-100'} transition-all group active:scale-95`}
+                            >
+                                <X className={`w-6 h-6 ${subTextColor} group-hover:text-amber-500 transition-colors`} />
                             </button>
                         </div>
 
-                        <div className="flex-1 overflow-y-auto p-6 space-y-6">
-                            {/* Common Date */}
-                            <div className="space-y-1">
-                                <label className={`text-xs font-semibold uppercase ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Дата</label>
-                                <input
-                                    type="date"
-                                    value={editingAlert?.signalDate || commonDate || formData.signalDate || ''}
-                                    onChange={(e) => {
-                                        setCommonDate(e.target.value)
-                                        setFormData({ ...formData, signalDate: e.target.value })
-                                    }}
-                                    className={`w-full p-3 rounded-xl border outline-none transition-all ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white focus:border-amber-500' : 'bg-white border-gray-200 text-gray-900 focus:border-amber-500'}`}
-                                />
-                            </div>
+                        {/* Body */}
+                        <div className="flex-1 overflow-y-auto p-6 lg:p-8 relative z-10">
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
+                                {/* Left Column: Info */}
+                                <div className="space-y-6">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]"></div>
+                                        <span className={`text-xs font-bold uppercase tracking-widest ${subTextColor} opacity-60`}>Основная информация</span>
+                                    </div>
 
-                            {editingAlert ? (
-                                <form onSubmit={handleSubmit} className="space-y-4">
                                     <div className="grid grid-cols-2 gap-4">
-                                        <div className="space-y-1">
-                                            <label className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Время</label>
-                                            <input
-                                                type="time"
-                                                required
-                                                value={formData.signalTime}
-                                                onChange={(e) => setFormData({ ...formData, signalTime: e.target.value })}
-                                                className={`w-full p-3 rounded-xl border outline-none transition-all ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white focus:border-amber-500' : 'bg-white border-gray-200 text-gray-900 focus:border-amber-500'}`}
-                                            />
+                                        <div className="space-y-1.5">
+                                            <label className={`text-[10px] font-bold uppercase tracking-wider ml-1 ${subTextColor}`}>Дата сигнала</label>
+                                            <div className="relative">
+                                                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                                                <input
+                                                    type="date"
+                                                    value={editingAlert?.signalDate || commonDate}
+                                                    onChange={(e) => setCommonDate(e.target.value)}
+                                                    className={`w-full pl-10 pr-4 py-3 rounded-xl border outline-none transition-all text-sm ${theme === 'dark' ? 'bg-black/20 border-white/5 text-white focus:border-amber-500/50' : 'bg-gray-50 border-gray-100 text-gray-900 focus:border-amber-500/30'}`}
+                                                />
+                                            </div>
                                         </div>
-                                        <MultiStrategySelector
-                                            strategies={formData.strategies || []}
-                                            profits={profitsInput}
-                                            onChange={(strategies, profits) => {
-                                                setFormData({ ...formData, strategies })
-                                                setProfitsInput(profits)
-                                            }}
-                                            theme={theme}
-                                        />
-                                    </div>
 
-                                    <div className="space-y-1">
-                                        <label className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Адрес токена</label>
-                                        <input
-                                            type="text"
-                                            required
-                                            placeholder="Адрес контракта..."
-                                            value={formData.address || ''}
-                                            onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                                            className={`w-full p-3 rounded-xl border outline-none transition-all font-mono text-sm ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white focus:border-amber-500' : 'bg-white border-gray-200 text-gray-900 focus:border-amber-500'}`}
-                                        />
-                                    </div>
-
-                                    <div className="grid grid-cols-3 gap-4">
-                                        <div className="space-y-1">
-                                            <label className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Market Cap</label>
-                                            <input
-                                                type="text"
-                                                placeholder="e.g. 300,77"
-                                                value={formData.marketCap || ''}
-                                                onChange={(e) => setFormData({ ...formData, marketCap: e.target.value })}
-                                                className={`w-full p-2 rounded-lg border text-sm outline-none mt-1 ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'}`}
-                                            />
-                                        </div>
-                                        <div className="space-y-1">
-                                            <label className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Макс. падение от сигнала</label>
-                                            <input
-                                                type="text"
-                                                placeholder="e.g. -16"
-                                                value={formData.maxDropFromSignal || ''}
-                                                onChange={(e) => setFormData({ ...formData, maxDropFromSignal: e.target.value })}
-                                                className={`w-full p-2 rounded-lg border text-sm outline-none mt-1 ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'}`}
-                                            />
-                                        </div>
-                                        <div className="space-y-1">
-                                            <label className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Макс. падение от 0.7</label>
-                                            <input
-                                                type="text"
-                                                placeholder="e.g. -5"
-                                                value={formData.maxDropFromLevel07 || ''}
-                                                onChange={(e) => setFormData({ ...formData, maxDropFromLevel07: e.target.value })}
-                                                className={`w-full p-2 rounded-lg border text-sm outline-none mt-1 ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'}`}
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div className="space-y-1">
-                                        <label className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Комментарий</label>
-                                        <input
-                                            type="text"
-                                            placeholder="Дополнительная информация..."
-                                            value={formData.comment || ''}
-                                            onChange={(e) => setFormData({ ...formData, comment: e.target.value })}
-                                            className={`w-full p-2 rounded-xl border outline-none transition-all font-mono text-sm ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white focus:border-amber-500' : 'bg-white border-gray-200 text-gray-900'}`}
-                                        />
-                                    </div>
-
-                                    {/* Screenshot Upload */}
-                                    <div className="space-y-2">
-                                        <label className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Скриншот</label>
-                                        <div className={`flex items-center gap-3 ${theme === 'dark' ? 'bg-black/30' : 'bg-gray-100'} p-3 rounded-xl border border-dashed ${theme === 'dark' ? 'border-white/10' : 'border-gray-300'}`}>
-                                            {screenshotPreview ? (
-                                                <div className="relative">
-                                                    <img
-                                                        src={screenshotPreview}
-                                                        alt="Preview"
-                                                        className="w-16 h-16 object-cover rounded-lg"
-                                                    />
-                                                    <button
-                                                        type="button"
-                                                        onClick={removeScreenshot}
-                                                        className="absolute -top-2 -right-2 p-0.5 rounded-full bg-red-500 text-white hover:bg-red-600 transition-colors"
-                                                    >
-                                                        <XCircle className="w-4 h-4" />
-                                                    </button>
-                                                </div>
-                                            ) : (
-                                                <label className="flex items-center gap-2 cursor-pointer text-amber-500 hover:text-amber-400 transition-colors">
-                                                    <Image className="w-5 h-5" />
-                                                    <span className="text-sm">Загрузить фото</span>
-                                                    <input
-                                                        ref={fileInputRef}
-                                                        type="file"
-                                                        accept="image/*"
-                                                        onChange={handleScreenshotChange}
-                                                        className="hidden"
-                                                    />
-                                                </label>
-                                            )}
-                                            {!screenshotPreview && (
-                                                <span className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Макс. 5MB</span>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    {/* Is Scam checkbox */}
-                                    <div className="flex items-center gap-3 p-3 rounded-xl bg-red-500/10 border border-red-500/20">
-                                        <input
-                                            type="checkbox"
-                                            id="isScamNew"
-                                            checked={formData.isScam || false}
-                                            onChange={(e) => setFormData({ ...formData, isScam: e.target.checked })}
-                                            className={`w-5 h-5 rounded border-2 ${theme === 'dark' ? 'border-gray-700 bg-gray-800' : 'border-gray-300 bg-white'} cursor-pointer accent-red-500`}
-                                        />
-                                        <label htmlFor="isScamNew" className="cursor-pointer">
-                                            <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-red-400' : 'text-red-600'}`}>Это скам</span>
-                                            <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'} mt-0.5`}>При отметке выбор стратегии необязателен</p>
-                                        </label>
-                                    </div>
-
-                                    <div className="pt-4 flex gap-3">
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                setShowModal(false)
-                                                setEditingAlert(null)
-                                            }}
-                                            className={`flex-1 py-3 rounded-xl font-semibold transition-colors ${theme === 'dark' ? 'bg-white/5 hover:bg-white/10 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-800'}`}
-                                        >
-                                            Отмена
-                                        </button>
-                                        <button
-                                            type="submit"
-                                            className="flex-1 py-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-semibold transition-colors flex items-center justify-center gap-2"
-                                        >
-                                            <Save className="w-4 h-4" />
-                                            <span>Сохранить</span>
-                                        </button>
-                                    </div>
-                                </form>
-                            ) : (
-                                <>
-                                    {/* Form for new alert */}
-                                    <div className={`p-4 rounded-2xl ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'} space-y-4`}>
-                                        <h4 className={`text-sm font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Новый сигнал</h4>
-
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div className="space-y-1">
-                                                <label className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Время</label>
+                                        <div className="space-y-1.5">
+                                            <label className={`text-[10px] font-bold uppercase tracking-wider ml-1 ${subTextColor}`}>Время (UTC)</label>
+                                            <div className="relative">
+                                                <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
                                                 <input
                                                     type="time"
                                                     value={formData.signalTime}
                                                     onChange={(e) => setFormData({ ...formData, signalTime: e.target.value })}
-                                                    className={`w-full p-2 rounded-lg border outline-none transition-all ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'}`}
-                                                />
-                                            </div>
-                                            <MultiStrategySelector
-                                                strategies={formData.strategies || []}
-                                                profits={profitsInput}
-                                                onChange={(strategies, profits) => {
-                                                    setFormData({ ...formData, strategies })
-                                                    setProfitsInput(profits)
-                                                }}
-                                                theme={theme}
-                                            />
-                                        </div>
-
-                                        <div className="space-y-1">
-                                            <label className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Адрес токена</label>
-                                            <input
-                                                type="text"
-                                                placeholder="Адрес контракта..."
-                                                value={formData.address || ''}
-                                                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                                                className={`w-full p-2 rounded-lg border outline-none transition-all font-mono text-sm ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white focus:border-amber-500' : 'bg-white border-gray-200 text-gray-900 focus:border-amber-500'}`}
-                                            />
-                                        </div>
-
-                                        <div className="grid grid-cols-3 gap-4">
-                                            <div className="space-y-1">
-                                                <label className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Market Cap</label>
-                                                <input
-                                                    type="text"
-                                                    placeholder="e.g. 300,77"
-                                                    value={formData.marketCap || ''}
-                                                    onChange={(e) => setFormData({ ...formData, marketCap: e.target.value })}
-                                                    className={`w-full p-2 rounded-lg border text-sm outline-none mt-1 ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'}`}
-                                                />
-                                            </div>
-                                            <div className="space-y-1">
-                                                <label className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Макс. падение от сигнала</label>
-                                                <input
-                                                    type="text"
-                                                    placeholder="e.g. -16"
-                                                    value={formData.maxDropFromSignal || ''}
-                                                    onChange={(e) => setFormData({ ...formData, maxDropFromSignal: e.target.value })}
-                                                    className={`w-full p-2 rounded-lg border text-sm outline-none mt-1 ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'}`}
-                                                />
-                                            </div>
-                                            <div className="space-y-1">
-                                                <label className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Макс. падение от 0.7</label>
-                                                <input
-                                                    type="text"
-                                                    placeholder="e.g. -5"
-                                                    value={formData.maxDropFromLevel07 || ''}
-                                                    onChange={(e) => setFormData({ ...formData, maxDropFromLevel07: e.target.value })}
-                                                    className={`w-full p-2 rounded-lg border text-sm outline-none mt-1 ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'}`}
+                                                    className={`w-full pl-10 pr-4 py-3 rounded-xl border outline-none transition-all text-sm ${theme === 'dark' ? 'bg-black/20 border-white/5 text-white focus:border-amber-500/50' : 'bg-gray-50 border-gray-100 text-gray-900 focus:border-amber-500/30'}`}
                                                 />
                                             </div>
                                         </div>
+                                    </div>
 
-                                        <div className="space-y-1">
-                                            <label className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Комментарий</label>
-                                            <input
-                                                type="text"
-                                                placeholder="Дополнительная информация..."
+                                    <div className="grid grid-cols-1 gap-4">
+                                        <PremiumInput
+                                            icon={Activity}
+                                            label="Market Cap"
+                                            placeholder="Напр. 300,77"
+                                            value={formData.marketCap || ''}
+                                            onChange={(e) => setFormData({ ...formData, marketCap: e.target.value })}
+                                            theme={theme}
+                                        />
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <PremiumInput
+                                            icon={TrendingDown}
+                                            label="Max Drop (Signal)"
+                                            placeholder="Напр. -16"
+                                            value={formData.maxDropFromSignal || ''}
+                                            onChange={(e) => setFormData({ ...formData, maxDropFromSignal: e.target.value })}
+                                            theme={theme}
+                                        />
+                                        <PremiumInput
+                                            icon={TrendingDown}
+                                            label="Max Drop (0.7)"
+                                            placeholder="Напр. -5"
+                                            value={formData.maxDropFromLevel07 || ''}
+                                            onChange={(e) => setFormData({ ...formData, maxDropFromLevel07: e.target.value })}
+                                            theme={theme}
+                                        />
+                                    </div>
+
+                                    <div className="space-y-1.5">
+                                        <label className={`text-[10px] font-bold uppercase tracking-wider ml-1 ${subTextColor}`}>Комментарий</label>
+                                        <div className="relative">
+                                            <FileText className="absolute left-3 top-3 w-4 h-4 text-gray-500" />
+                                            <textarea
+                                                rows={2}
+                                                placeholder="Дополнительные детали..."
                                                 value={formData.comment || ''}
                                                 onChange={(e) => setFormData({ ...formData, comment: e.target.value })}
-                                                className={`w-full p-2 rounded-xl border outline-none transition-all font-mono text-sm ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white focus:border-amber-500' : 'bg-white border-gray-200 text-gray-900'}`}
+                                                className={`w-full pl-10 pr-4 py-3 rounded-xl border outline-none transition-all text-sm resize-none ${theme === 'dark' ? 'bg-black/20 border-white/5 text-white focus:border-amber-500/50' : 'bg-gray-50 border-gray-100 text-gray-900 focus:border-amber-500/30'}`}
                                             />
                                         </div>
+                                    </div>
 
-                                        {/* Screenshot Upload */}
-                                        <div className="space-y-2">
-                                            <label className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Скриншот</label>
-                                            <div className={`flex items-center gap-3 ${theme === 'dark' ? 'bg-black/30' : 'bg-gray-100'} p-3 rounded-xl border border-dashed ${theme === 'dark' ? 'border-white/10' : 'border-gray-300'}`}>
-                                                {screenshotPreview ? (
-                                                    <div className="relative">
-                                                        <img
-                                                            src={screenshotPreview}
-                                                            alt="Preview"
-                                                            className="w-16 h-16 object-cover rounded-lg"
-                                                        />
-                                                        <button
-                                                            type="button"
-                                                            onClick={removeScreenshot}
-                                                            className="absolute -top-2 -right-2 p-0.5 rounded-full bg-red-500 text-white hover:bg-red-600 transition-colors"
-                                                        >
-                                                            <XCircle className="w-4 h-4" />
-                                                        </button>
-                                                    </div>
-                                                ) : (
-                                                    <label className="flex items-center gap-2 cursor-pointer text-amber-500 hover:text-amber-400 transition-colors">
-                                                        <Image className="w-5 h-5" />
-                                                        <span className="text-sm">Загрузить фото</span>
-                                                        <input
-                                                            ref={fileInputRef}
-                                                            type="file"
-                                                            accept="image/*"
-                                                            onChange={handleScreenshotChange}
-                                                            className="hidden"
-                                                        />
-                                                    </label>
-                                                )}
-                                                {!screenshotPreview && (
-                                                    <span className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Макс. 5MB</span>
-                                                )}
-                                            </div>
-                                        </div>
-
-                                        {/* Is Scam checkbox */}
-                                        <div className="flex items-center gap-3 p-3 rounded-xl bg-red-500/10 border border-red-500/20">
-                                            <input
-                                                type="checkbox"
-                                                id="isScamNew"
-                                                checked={formData.isScam || false}
-                                                onChange={(e) => setFormData({ ...formData, isScam: e.target.checked })}
-                                                className={`w-5 h-5 rounded border-2 ${theme === 'dark' ? 'border-gray-700 bg-gray-800' : 'border-gray-300 bg-white'} cursor-pointer accent-red-500`}
-                                            />
-                                            <label htmlFor="isScamNew" className="cursor-pointer">
-                                                <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-red-400' : 'text-red-600'}`}>Это скам</span>
-                                                <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'} mt-0.5`}>При отметке выбор стратегии необязателен</p>
-                                            </label>
-                                        </div>
-
-                                        <div className="pt-4 flex gap-3">
-                                            <button
-                                                type="button"
-                                                onClick={handleSaveAll}
-                                                disabled={alertsToAdd.length === 0}
-                                                className={`flex-1 py-3 rounded-xl bg-green-600 hover:bg-green-700 text-white font-semibold transition-colors flex items-center justify-center gap-2 ${alertsToAdd.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                            >
-                                                <Save className="w-4 h-4" />
-                                                <span>Сохранить все ({alertsToAdd.length})</span>
-                                            </button>
-                                            <button
-                                                type="button"
-                                                onClick={handleAddToList}
-                                                className="flex-1 py-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-semibold transition-colors flex items-center justify-center gap-2"
-                                            >
-                                                <Plus className="w-4 h-4" />
-                                                <span>Добавить в список</span>
-                                            </button>
-                                        </div>
-
-                                        {/* Preview of added alerts */}
-                                        {alertsToAdd.length > 0 && (
-                                            <div className="space-y-3 pt-4 border-t border-white/10">
-                                                <h4 className={`text-xs font-semibold uppercase ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Добавленные сигналы</h4>
-                                                <div className="space-y-2">
-                                                    {alertsToAdd.map((alert, idx) => (
-                                                        <div key={idx} className={`flex items-center justify-between p-3 rounded-xl ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-100'}`}>
-                                                            <div className="flex flex-col gap-1">
-                                                                <div className="flex items-center gap-2">
-                                                                    <span className={`text-xs font-mono ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{alert.signalTime}</span>
-                                                                    <span className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>{truncateAddress(alert.address || '')}</span>
-                                                                </div>
-                                                                <div className="flex gap-1">
-                                                                    {alert.strategies?.map(s => (
-                                                                        <span key={s} className="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-500 text-[10px] font-bold">
-                                                                            {s}
-                                                                        </span>
-                                                                    ))}
-                                                                </div>
-                                                            </div>
-                                                            <button
-                                                                onClick={() => setAlertsToAdd(alertsToAdd.filter((_, i) => i !== idx))}
-                                                                className="p-1.5 rounded-lg hover:bg-red-500/20 text-red-500 transition-colors"
-                                                            >
-                                                                <Trash2 size={16} />
-                                                            </button>
-                                                        </div>
-                                                    ))}
+                                    <div className={`p-4 rounded-2xl border transition-all ${formData.isScam ? 'border-rose-500/50 bg-rose-500/5' : 'border-white/5 bg-white/5'}`}>
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-3">
+                                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${formData.isScam ? 'bg-rose-500 text-white shadow-lg shadow-rose-500/20' : 'bg-white/10 text-gray-500'}`}>
+                                                    <AlertTriangle className="w-5 h-5" />
+                                                </div>
+                                                <div>
+                                                    <p className={`text-sm font-bold ${formData.isScam ? 'text-rose-500' : headingColor}`}>Scam Alert</p>
+                                                    <p className={`text-[10px] ${subTextColor} opacity-60`}>Пометить как мошеннический</p>
                                                 </div>
                                             </div>
-                                        )}
+                                            <button
+                                                type="button"
+                                                onClick={() => setFormData({ ...formData, isScam: !formData.isScam })}
+                                                className={`w-12 h-6 rounded-full relative transition-all duration-300 ${formData.isScam ? 'bg-rose-500 shadow-lg shadow-rose-500/40' : 'bg-gray-700'}`}
+                                            >
+                                                <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all duration-300 shadow-sm ${formData.isScam ? 'left-7' : 'left-1'}`}></div>
+                                            </button>
+                                        </div>
                                     </div>
-                                </>
+                                </div>
+
+                                {/* Right Column: Strategy & Address */}
+                                <div className="space-y-6">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]"></div>
+                                        <span className={`text-xs font-bold uppercase tracking-widest ${subTextColor} opacity-60`}>Стратегия и медиа</span>
+                                    </div>
+
+                                    <MultiStrategySelector
+                                        strategies={formData.strategies || []}
+                                        profits={profitsInput}
+                                        onChange={(strategies, profits) => {
+                                            setFormData({ ...formData, strategies })
+                                            setProfitsInput(profits)
+                                        }}
+                                        theme={theme}
+                                        color="orange"
+                                    />
+
+                                    <div className="space-y-1.5">
+                                        <label className={`text-[10px] font-bold uppercase tracking-wider ml-1 ${subTextColor}`}>Contract Address</label>
+                                        <div className="relative">
+                                            <Target className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                                            <input
+                                                type="text"
+                                                placeholder="Введите адрес контракта..."
+                                                value={formData.address}
+                                                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                                                className={`w-full pl-10 pr-4 py-3 rounded-xl border outline-none transition-all text-sm font-mono ${theme === 'dark' ? 'bg-black/20 border-white/5 text-white focus:border-amber-500/50' : 'bg-gray-50 border-gray-100 text-gray-900 focus:border-amber-500/30'}`}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <label className={`text-[10px] font-bold uppercase tracking-wider ml-1 ${subTextColor}`}>Скриншот графика</label>
+                                        <div
+                                            onClick={() => fileInputRef.current?.click()}
+                                            className={`group relative h-32 rounded-2xl border-2 border-dashed transition-all cursor-pointer overflow-hidden flex flex-col items-center justify-center gap-2
+                                                    ${screenshotPreview
+                                                    ? 'border-amber-500/50 bg-amber-500/5'
+                                                    : 'border-white/10 hover:border-amber-500/30 hover:bg-white/5'}`}
+                                        >
+                                            {screenshotPreview ? (
+                                                <>
+                                                    <img src={screenshotPreview} alt="Preview" className="absolute inset-0 w-full h-full object-cover opacity-40" />
+                                                    <div className="relative z-10 flex flex-col items-center gap-1">
+                                                        <Check className="w-8 h-8 text-amber-500" />
+                                                        <span className="text-xs font-bold text-amber-500 uppercase tracking-widest">Фото загружено</span>
+                                                    </div>
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation()
+                                                            removeScreenshot()
+                                                        }}
+                                                        className="absolute top-2 right-2 p-1.5 rounded-lg bg-rose-500 text-white shadow-lg hover:scale-110 transition-transform"
+                                                    >
+                                                        <XCircle className="w-4 h-4" />
+                                                    </button>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                                        <Upload className="w-5 h-5 text-gray-500" />
+                                                    </div>
+                                                    <div className="text-center">
+                                                        <p className={`text-xs font-bold ${headingColor}`}>Нажмите для загрузки</p>
+                                                        <p className={`text-[10px] ${subTextColor} opacity-60`}>PNG, JPG до 5MB</p>
+                                                    </div>
+                                                </>
+                                            )}
+                                        </div>
+                                        <input ref={fileInputRef} type="file" accept="image/*" onChange={handleScreenshotChange} className="hidden" />
+                                    </div>
+
+                                    {!editingAlert && (
+                                        <button
+                                            type="button"
+                                            onClick={handleAddToList}
+                                            className="w-full py-4 rounded-2xl bg-amber-500 hover:bg-amber-600 text-white font-bold transition-all shadow-lg shadow-amber-500/20 active:scale-95 flex items-center justify-center gap-3"
+                                        >
+                                            <Plus className="w-5 h-5" />
+                                            <span>Добавить в список</span>
+                                        </button>
+                                    )}
+
+                                    {editingAlert && (
+                                        <button
+                                            type="button"
+                                            onClick={handleSubmit}
+                                            className="w-full py-4 rounded-2xl bg-amber-600 hover:bg-amber-700 text-white font-bold transition-all shadow-lg shadow-amber-600/20 active:scale-95 flex items-center justify-center gap-3"
+                                        >
+                                            <Save className="w-5 h-5" />
+                                            <span>Сохранить изменения</span>
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+
+                            {!editingAlert && alertsToAdd.length > 0 && (
+                                <div className="mt-12 space-y-4 pt-8 border-t border-white/5">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center">
+                                                <Table className="w-5 h-5 text-amber-500" />
+                                            </div>
+                                            <h4 className={`text-lg font-bold ${headingColor}`}>
+                                                Подготовленные сигналы ({alertsToAdd.length})
+                                            </h4>
+                                        </div>
+                                        <button
+                                            onClick={() => setAlertsToAdd([])}
+                                            className={`text-xs font-bold uppercase tracking-widest text-rose-500 hover:text-rose-400 transition-colors p-2`}
+                                        >
+                                            Очистить всё
+                                        </button>
+                                    </div>
+
+                                    <div className={`rounded-2xl border ${theme === 'dark' ? 'border-white/5 bg-white/5' : 'border-gray-100 bg-gray-50'} overflow-hidden`}>
+                                        <table className="w-full text-left text-sm">
+                                            <thead>
+                                                <tr className={`border-b ${theme === 'dark' ? 'border-white/5' : 'border-gray-200'}`}>
+                                                    <th className={`p-4 font-bold ${subTextColor}`}>Время</th>
+                                                    <th className={`p-4 font-bold ${subTextColor}`}>Адрес</th>
+                                                    <th className={`p-4 font-bold ${subTextColor}`}>MC</th>
+                                                    <th className={`p-4 font-bold ${subTextColor}`}>Strategies</th>
+                                                    <th className="p-4"></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className={`divide-y ${theme === 'dark' ? 'divide-white/5' : 'divide-gray-100'}`}>
+                                                {alertsToAdd.map((alert, index) => (
+                                                    <tr key={index} className="hover:bg-white/5 transition-colors">
+                                                        <td className={`p-4 font-mono font-bold ${headingColor}`}>{alert.signalTime}</td>
+                                                        <td className={`p-4 font-mono ${subTextColor}`}>{truncateAddress(alert.address || '')}</td>
+                                                        <td className={`p-4 font-mono ${headingColor}`}>{alert.marketCap || '-'}</td>
+                                                        <td className="p-4">
+                                                            <div className="flex flex-wrap gap-1">
+                                                                {alert.strategies?.map(s => (
+                                                                    <span key={s} className="px-2 py-1 rounded-lg bg-amber-500/10 text-amber-500 text-[10px] font-bold uppercase">
+                                                                        {s}
+                                                                    </span>
+                                                                ))}
+                                                            </div>
+                                                        </td>
+                                                        <td className="p-4 text-right">
+                                                            <button
+                                                                onClick={() => setAlertsToAdd(alertsToAdd.filter((_, i) => i !== index))}
+                                                                className="p-2 rounded-lg hover:bg-rose-500/10 text-rose-500 transition-colors"
+                                                            >
+                                                                <Trash2 className="w-4 h-4" />
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    <button
+                                        onClick={handleSaveAll}
+                                        className="w-full py-4 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-white font-black transition-all shadow-xl shadow-emerald-500/20 active:scale-95 flex items-center justify-center gap-3 mt-4"
+                                    >
+                                        <Check className="w-6 h-6 stroke-[3]" />
+                                        <span className="text-lg">СОХРАНИТЬ ВСЕ ДАННЫЕ В БАЗУ</span>
+                                    </button>
+                                </div>
                             )}
                         </div>
                     </div>
@@ -1530,8 +1454,8 @@ const PremiumInput: React.FC<PremiumInputProps> = ({ icon: Icon, label, placehol
                     placeholder={placeholder}
                     className={`w-full px-4 py-2.5 ${Icon ? 'pl-10' : ''} rounded-xl border text-sm font-semibold transition-all outline-none shadow-sm
                     ${theme === 'dark'
-                            ? 'bg-white/5 border-white/5 text-white placeholder:text-gray-600 focus:bg-white/10 focus:border-white/20 focus:ring-4 focus:ring-white/5'
-                            : 'bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus:border-blue-500/30 focus:ring-4 focus:ring-blue-500/5 hover:border-gray-300'}`}
+                            ? 'bg-white/5 border-white/5 text-white placeholder:text-gray-600 focus:bg-white/10 focus:border-amber-500/30 focus:ring-4 focus:ring-amber-500/5'
+                            : 'bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus:border-amber-500/30 focus:ring-4 focus:ring-amber-500/5 hover:border-gray-300'}`}
                 />
             </div>
         </div>
@@ -1593,7 +1517,7 @@ const PremiumSelect: React.FC<PremiumSelectProps> = ({ value, options, onChange,
                                 }}
                                 className={`w-full flex items-center px-4 py-2.5 rounded-lg text-xs font-bold transition-all text-left
                                 ${opt.value === value
-                                        ? theme === 'dark' ? 'bg-white/10 text-white' : 'bg-blue-500/10 text-blue-600'
+                                        ? theme === 'dark' ? 'bg-amber-500/10 text-white' : 'bg-amber-500/10 text-amber-600'
                                         : theme === 'dark' ? 'text-gray-400 hover:bg-white/5 hover:text-white' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                                     }`}
                             >

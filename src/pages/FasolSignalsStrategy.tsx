@@ -4,7 +4,7 @@ import { useAuthStore } from '@/store/authStore'
 import { useAdminStore } from '@/store/adminStore'
 import { getFasolTriggerAlerts, addFasolTriggerAlert, updateFasolTriggerAlert, deleteFasolTriggerAlert } from '@/services/firestoreService'
 import { FasolTriggerAlert, TriggerStrategy, TriggerProfit } from '@/types'
-import { Plus, Edit, Trash2, Save, X, Copy, Check, Table, Filter, ArrowUp, ArrowDown, RotateCcw, Image, XCircle, Activity, Target, TrendingUp, Calendar, ChevronDown, TrendingDown } from 'lucide-react'
+import { Plus, Edit, Trash2, Save, X, Copy, Check, Table, Filter, ArrowUp, ArrowDown, RotateCcw, Activity, Target, TrendingUp, Calendar, ChevronDown, TrendingDown, Clock, AlertTriangle, FileText, Upload } from 'lucide-react'
 import { MultiStrategySelector } from '../components/Management/MultiStrategySelector'
 import { UserNickname } from '../components/UserNickname'
 
@@ -609,7 +609,7 @@ export const FasolSignalsStrategy = () => {
                             <thead>
                                 <tr className={`border-b ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-gray-50'}`}>
                                     <th className={`p-2 sm:p-3 text-[10px] sm:text-xs uppercase tracking-wider font-semibold ${subTextColor} text-center w-10 border-r ${theme === 'dark' ? 'border-white/10' : 'border-gray-200'} last:border-r-0`}>#</th>
-                                    {['Дата', 'Время', 'Setup', 'Стратегии', 'MC', 'Адрес', 'Drop', '0.7', 'Профит', 'Коммент', 'Автор', '📷', '⚙'].map(h => (
+                                    {['Дата', 'Время', 'Стратегии', 'MC', 'Адрес', 'Drop', '0.7', 'Профит', 'Коммент', 'Автор', '📷', '⚙'].map(h => (
                                         <th key={h} className={`p-2 sm:p-3 text-[10px] sm:text-xs uppercase tracking-wider font-semibold ${subTextColor} text-center border-r ${theme === 'dark' ? 'border-white/10' : 'border-gray-200'} last:border-r-0`}>{h}</th>
                                     ))}
                                 </tr>
@@ -623,7 +623,6 @@ export const FasolSignalsStrategy = () => {
                                             </td>
                                             <td className={`p-2 sm:p-3 whitespace-nowrap text-center font-mono text-xs sm:text-sm border-r ${theme === 'dark' ? 'border-white/5' : 'border-gray-100'} last:border-r-0`}>{formatDateForDisplay(alert.signalDate)}</td>
                                             <td className={`p-2 sm:p-3 whitespace-nowrap text-center font-mono text-xs sm:text-sm border-r ${theme === 'dark' ? 'border-white/5' : 'border-gray-100'} last:border-r-0`}>{alert.signalTime}</td>
-                                            <td className={`p-2 sm:p-3 text-center font-mono text-xs font-bold text-purple-400 border-r ${theme === 'dark' ? 'border-white/5' : 'border-gray-100'} last:border-r-0`}>{alert.setup || '-'}</td>
                                             <td className={`p-2 sm:p-3 text-center border-r ${theme === 'dark' ? 'border-white/5' : 'border-gray-100'} last:border-r-0`}>
                                                 {alert.isScam ? <span className="text-red-500 font-bold text-[10px]">СКАМ</span> : (
                                                     <div className="flex flex-wrap gap-0.5 justify-center">
@@ -672,147 +671,193 @@ export const FasolSignalsStrategy = () => {
 
             {showModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-                    <div className={`w-full max-w-2xl rounded-3xl ${cardBg} ${cardBorder} border shadow-2xl overflow-hidden max-h-[90vh] flex flex-col`}>
+                    <div className={`w-full max-w-4xl rounded-3xl ${cardBg} ${cardBorder} border shadow-2xl overflow-hidden max-h-[90vh] flex flex-col`}>
                         <div className={`p-6 border-b ${theme === 'dark' ? 'border-white/10' : 'border-gray-100'} flex items-center justify-between`}>
-                            <h3 className={`text-xl font-bold ${headingColor}`}>{editingAlert ? 'Редактировать сигнал' : 'Добавить сигналы'}</h3>
+                            <div className="space-y-1">
+                                <h3 className={`text-xl font-bold ${headingColor}`}>Добавить новый сигнал</h3>
+                                <p className={`text-xs ${subTextColor}`}>Заполните данные сигнала для добавления в журнал</p>
+                            </div>
                             <button onClick={() => setShowModal(false)} className={`p-2 rounded-lg hover:bg-white/10 ${subTextColor}`}><X size={20} /></button>
                         </div>
-                        <div className="flex-1 overflow-y-auto p-6 space-y-6">
-                            <div className="space-y-1"><label className="text-xs font-semibold uppercase">Дата</label><input type="date" value={commonDate} onChange={(e) => setCommonDate(e.target.value)} className="w-full p-2.5 rounded-xl border outline-none dark:bg-black/30" /></div>
-                            {editingAlert ? (
-                                <form onSubmit={handleSubmit} className="space-y-4">
+
+                        <div className="flex-1 overflow-y-auto p-6">
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                                {/* Left Column: Basic Info */}
+                                <div className="space-y-6">
                                     <div className="grid grid-cols-2 gap-4">
-                                        <div className="space-y-1">
-                                            <label className={`text-[10px] font-bold uppercase ${subTextColor} ml-1`}>Время</label>
-                                            <input type="time" value={formData.signalTime} onChange={e => setFormData({ ...formData, signalTime: e.target.value })} className="w-full p-2.5 rounded-xl border dark:bg-black/30 outline-none focus:ring-2 focus:ring-purple-500/50" />
+                                        <div className="space-y-1.5">
+                                            <label className="text-[10px] font-bold uppercase tracking-wider opacity-50 ml-1">Дата сигнала</label>
+                                            <div className="relative">
+                                                <Calendar size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                                                <input type="date" value={commonDate} onChange={(e) => setCommonDate(e.target.value)} className={`w-full pl-10 pr-4 py-2.5 rounded-xl border outline-none text-sm font-semibold transition-all ${theme === 'dark' ? 'bg-black/30 border-white/10 focus:border-purple-500/50' : 'bg-gray-50 border-gray-200 focus:border-purple-500/30'}`} />
+                                            </div>
                                         </div>
-                                        <div className="space-y-1">
-                                            <label className={`text-[10px] font-bold uppercase ${subTextColor} ml-1`}>Setup</label>
-                                            <select
-                                                value={formData.setup || 'One'}
-                                                onChange={e => setFormData({ ...formData, setup: e.target.value as any })}
-                                                className="w-full p-2.5 rounded-xl border dark:bg-black/30 outline-none focus:ring-2 focus:ring-purple-500/50"
-                                            >
-                                                {['One', 'Two', 'Three', 'Four', 'Five'].map(s => <option key={s} value={s}>{s}</option>)}
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div className="space-y-1">
-                                        <label className={`text-[10px] font-bold uppercase ${subTextColor} ml-1`}>Стратегии</label>
-                                        <MultiStrategySelector strategies={formData.strategies || []} profits={profitsInput} onChange={(s, p) => { setFormData({ ...formData, strategies: s }); setProfitsInput(p) }} theme={theme} />
-                                    </div>
-                                    <input type="text" placeholder="Адрес токена" value={formData.address || ''} onChange={e => setFormData({ ...formData, address: e.target.value })} className="w-full p-2.5 rounded-xl border dark:bg-black/30" />
-                                    <div className="grid grid-cols-3 gap-2">
-                                        <input placeholder="MC" value={formData.marketCap || ''} onChange={e => setFormData({ ...formData, marketCap: e.target.value })} className="p-2.5 rounded-xl border dark:bg-black/30" />
-                                        <input placeholder="Drop" value={formData.maxDropFromSignal || ''} onChange={e => setFormData({ ...formData, maxDropFromSignal: e.target.value })} className="p-2.5 rounded-xl border dark:bg-black/30" />
-                                        <input placeholder="0.7" value={formData.maxDropFromLevel07 || ''} onChange={e => setFormData({ ...formData, maxDropFromLevel07: e.target.value })} className="p-2.5 rounded-xl border dark:bg-black/30" />
-                                    </div>
-                                    <textarea placeholder="Комментарий" value={formData.comment || ''} onChange={e => setFormData({ ...formData, comment: e.target.value })} className="w-full p-2.5 rounded-xl border dark:bg-black/30" />
-                                    <div className="space-y-2">
-                                        <label className={`text-xs ${subTextColor}`}>Скриншот</label>
-                                        <div className={`flex items-center gap-3 ${theme === 'dark' ? 'bg-black/30' : 'bg-gray-100'} p-3 rounded-xl border border-dashed ${theme === 'dark' ? 'border-white/10' : 'border-gray-300'}`}>
-                                            {screenshotPreview ? (
-                                                <div className="relative">
-                                                    <img
-                                                        src={screenshotPreview}
-                                                        alt="Preview"
-                                                        className="w-16 h-16 object-cover rounded-lg"
-                                                    />
-                                                    <button
-                                                        type="button"
-                                                        onClick={removeScreenshot}
-                                                        className="absolute -top-2 -right-2 p-0.5 rounded-full bg-red-500 text-white hover:bg-red-600 transition-colors"
-                                                    >
-                                                        <XCircle className="w-4 h-4" />
-                                                    </button>
-                                                </div>
-                                            ) : (
-                                                <label className="flex items-center gap-2 cursor-pointer text-purple-500 hover:text-purple-400 transition-colors">
-                                                    <Image className="w-5 h-5" />
-                                                    <span className="text-sm">Загрузить фото</span>
-                                                    <input
-                                                        ref={fileInputRef}
-                                                        type="file"
-                                                        accept="image/*"
-                                                        onChange={handleScreenshotChange}
-                                                        className="hidden"
-                                                    />
-                                                </label>
-                                            )}
+                                        <div className="space-y-1.5">
+                                            <label className="text-[10px] font-bold uppercase tracking-wider opacity-50 ml-1">Время</label>
+                                            <div className="relative">
+                                                <Clock size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                                                <input type="time" value={formData.signalTime} onChange={e => setFormData({ ...formData, signalTime: e.target.value })} className={`w-full pl-10 pr-4 py-2.5 rounded-xl border outline-none text-sm font-semibold transition-all ${theme === 'dark' ? 'bg-black/30 border-white/10 focus:border-purple-500/50' : 'bg-gray-50 border-gray-200 focus:border-purple-500/30'}`} />
+                                            </div>
                                         </div>
                                     </div>
 
-                                    <button type="submit" className="w-full py-3 rounded-xl bg-purple-600 text-white font-bold flex items-center justify-center gap-2">
-                                        <Save className="w-4 h-4" />
-                                        <span>Сохранить</span>
+                                    <div className="space-y-1.5">
+                                        <label className="text-[10px] font-bold uppercase tracking-wider opacity-50 ml-1">Market Cap ($)</label>
+                                        <div className="relative">
+                                            <TrendingUp size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                                            <input placeholder="Например: 1.5M" value={formData.marketCap || ''} onChange={e => setFormData({ ...formData, marketCap: e.target.value })} className={`w-full pl-10 pr-4 py-2.5 rounded-xl border outline-none text-sm font-semibold transition-all ${theme === 'dark' ? 'bg-black/30 border-white/10 focus:border-purple-500/50' : 'bg-gray-50 border-gray-200 focus:border-purple-500/30'}`} />
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div className="space-y-1.5">
+                                            <label className="text-[10px] font-bold uppercase tracking-wider opacity-50 ml-1">Max Drop от сигнала (%)</label>
+                                            <div className="relative">
+                                                <Activity size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                                                <input placeholder="-15%" value={formData.maxDropFromSignal || ''} onChange={e => setFormData({ ...formData, maxDropFromSignal: e.target.value })} className={`w-full pl-10 pr-4 py-2.5 rounded-xl border outline-none text-sm font-semibold transition-all ${theme === 'dark' ? 'bg-black/30 border-white/10 focus:border-purple-500/50' : 'bg-gray-50 border-gray-200 focus:border-purple-500/30'}`} />
+                                            </div>
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <label className="text-[10px] font-bold uppercase tracking-wider opacity-50 ml-1">Max Drop от 0.7 (%)</label>
+                                            <div className="relative">
+                                                <Activity size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                                                <input placeholder="-5%" value={formData.maxDropFromLevel07 || ''} onChange={e => setFormData({ ...formData, maxDropFromLevel07: e.target.value })} className={`w-full pl-10 pr-4 py-2.5 rounded-xl border outline-none text-sm font-semibold transition-all ${theme === 'dark' ? 'bg-black/30 border-white/10 focus:border-purple-500/50' : 'bg-gray-50 border-gray-200 focus:border-purple-500/30'}`} />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-1.5">
+                                        <label className="text-[10px] font-bold uppercase tracking-wider opacity-50 ml-1">Комментарий</label>
+                                        <textarea placeholder="Заметки по сигналу..." value={formData.comment || ''} onChange={e => setFormData({ ...formData, comment: e.target.value })} rows={4} className={`w-full p-4 rounded-2xl border outline-none text-sm font-semibold transition-all resize-none ${theme === 'dark' ? 'bg-black/30 border-white/10 focus:border-purple-500/50' : 'bg-gray-50 border-gray-200 focus:border-purple-500/30'}`} />
+                                    </div>
+
+                                    <button
+                                        type="button"
+                                        onClick={() => setFormData({ ...formData, isScam: !formData.isScam })}
+                                        className={`w-full p-4 rounded-2xl border-2 border-dashed flex items-center gap-4 transition-all ${formData.isScam ? 'bg-red-500/10 border-red-500/50 text-red-500' : 'bg-black/10 border-white/5 text-gray-500 hover:border-white/10'}`}
+                                    >
+                                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${formData.isScam ? 'bg-red-500 text-white' : 'bg-white/5'}`}>
+                                            <AlertTriangle size={20} />
+                                        </div>
+                                        <div className="text-left">
+                                            <h4 className="text-sm font-bold">SCAM ALERT</h4>
+                                            <p className="text-[10px] opacity-70">Пометить этот сигнал как скам/мошенничество</p>
+                                        </div>
                                     </button>
-                                </form>
-                            ) : (
-                                <div className="space-y-4">
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <input type="time" value={formData.signalTime} onChange={e => setFormData({ ...formData, signalTime: e.target.value })} className="p-2.5 rounded-xl border dark:bg-black/30" />
-                                        <MultiStrategySelector strategies={formData.strategies || []} profits={profitsInput} onChange={(s, p) => { setFormData({ ...formData, strategies: s }); setProfitsInput(p) }} theme={theme} />
-                                    </div>
-                                    <input type="text" placeholder="Адрес токена" value={formData.address || ''} onChange={e => setFormData({ ...formData, address: e.target.value })} className="w-full p-2.5 rounded-xl border dark:bg-black/30" />
-                                    <div className="grid grid-cols-3 gap-2">
-                                        <input placeholder="MC" value={formData.marketCap || ''} onChange={e => setFormData({ ...formData, marketCap: e.target.value })} className="p-2.5 rounded-xl border dark:bg-black/30" />
-                                        <input placeholder="Drop" value={formData.maxDropFromSignal || ''} onChange={e => setFormData({ ...formData, maxDropFromSignal: e.target.value })} className="p-2.5 rounded-xl border dark:bg-black/30" />
-                                        <input placeholder="0.7" value={formData.maxDropFromLevel07 || ''} onChange={e => setFormData({ ...formData, maxDropFromLevel07: e.target.value })} className="p-2.5 rounded-xl border dark:bg-black/30" />
+                                </div>
+
+                                {/* Right Column: Strategy & Media */}
+                                <div className="space-y-6">
+                                    <MultiStrategySelector
+                                        strategies={formData.strategies || []}
+                                        profits={profitsInput}
+                                        onChange={(s, p) => { setFormData({ ...formData, strategies: s }); setProfitsInput(p) }}
+                                        theme={theme}
+                                        color="bg-purple-600"
+                                    />
+
+                                    <div className="space-y-1.5">
+                                        <label className="text-[10px] font-bold uppercase tracking-wider opacity-50 ml-1">Contract Address</label>
+                                        <div className="relative flex items-center">
+                                            <FileText size={14} className="absolute left-3 text-gray-400 pointer-events-none" />
+                                            <input placeholder="0x..." value={formData.address || ''} onChange={e => setFormData({ ...formData, address: e.target.value })} className={`w-full pl-10 pr-4 py-2.5 rounded-xl border outline-none text-sm font-semibold transition-all ${theme === 'dark' ? 'bg-black/30 border-white/10 focus:border-purple-500/50' : 'bg-gray-50 border-gray-200 focus:border-purple-500/30'}`} />
+                                        </div>
                                     </div>
 
-                                    {/* Screenshot Upload for new alerts */}
-                                    <div className="space-y-2">
-                                        <label className={`text-xs ${subTextColor}`}>Скриншот</label>
-                                        <div className={`flex items-center gap-3 ${theme === 'dark' ? 'bg-black/30' : 'bg-gray-100'} p-3 rounded-xl border border-dashed ${theme === 'dark' ? 'border-white/10' : 'border-gray-300'}`}>
+                                    <div className="space-y-1.5">
+                                        <label className="text-[10px] font-bold uppercase tracking-wider opacity-50 ml-1">Скриншот / Фото</label>
+                                        <div className={`relative group cursor-pointer rounded-2xl border-2 border-dashed transition-all ${theme === 'dark' ? 'bg-black/30 border-white/10 hover:border-white/20' : 'bg-gray-50 border-gray-300 hover:border-gray-400'}`}>
                                             {screenshotPreview ? (
-                                                <div className="relative">
-                                                    <img src={screenshotPreview} alt="Preview" className="w-16 h-16 object-cover rounded-lg" />
-                                                    <button type="button" onClick={removeScreenshot} className="absolute -top-2 -right-2 p-0.5 rounded-full bg-red-500 text-white"><XCircle size={14} /></button>
+                                                <div className="relative p-2 aspect-video">
+                                                    <img src={screenshotPreview} alt="Preview" className="w-full h-full object-cover rounded-xl" />
+                                                    <button type="button" onClick={removeScreenshot} className="absolute top-4 right-4 p-1.5 rounded-full bg-red-500 text-white shadow-lg hover:scale-110 transition-transform"><X size={16} /></button>
                                                 </div>
                                             ) : (
-                                                <label className="flex items-center gap-2 cursor-pointer text-purple-500">
-                                                    <Image size={18} />
-                                                    <span className="text-sm">Загрузить фото</span>
+                                                <label className="flex flex-col items-center justify-center p-8 cursor-pointer gap-3">
+                                                    <Upload className="w-8 h-8 text-gray-500 group-hover:text-purple-500 transition-colors" />
+                                                    <span className="text-sm font-bold text-gray-500 group-hover:text-purple-500 transition-colors">Загрузить изображение</span>
                                                     <input ref={fileInputRef} type="file" accept="image/*" onChange={handleScreenshotChange} className="hidden" />
                                                 </label>
                                             )}
                                         </div>
                                     </div>
+                                </div>
+                            </div>
 
-                                    <button onClick={handleAddToList} className="w-full py-3 rounded-xl bg-purple-600 text-white font-bold">Добавить в список</button>
-                                    {alertsToAdd.length > 0 && <button onClick={handleSaveAll} className="w-full py-3 rounded-xl bg-green-600 text-white font-bold">Сохранить все ({alertsToAdd.length})</button>}
-
-                                    {/* Preview of added alerts */}
+                            {/* Footer: Multi-Add Buttons */}
+                            {!editingAlert && (
+                                <div className="mt-8 pt-6 border-t border-white/5 flex flex-col sm:flex-row items-center gap-4">
+                                    <button onClick={handleAddToList} className="flex-1 w-full py-4 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 text-white font-bold flex items-center justify-center gap-2 transition-all">
+                                        <Plus className="w-5 h-5" />
+                                        Добавить в список
+                                    </button>
                                     {alertsToAdd.length > 0 && (
-                                        <div className="space-y-3 pt-4 border-t border-white/10">
-                                            <h4 className={`text-xs font-semibold uppercase ${subTextColor}`}>Добавленные сигналы</h4>
-                                            <div className="space-y-2">
+                                        <button onClick={handleSaveAll} className="flex-1 w-full py-4 rounded-2xl bg-sky-400 hover:bg-sky-500 text-[#0b1015] font-black flex items-center justify-center gap-2 transition-all shadow-lg shadow-sky-400/20">
+                                            <Save className="w-5 h-5" />
+                                            Сохранить все ({alertsToAdd.length})
+                                        </button>
+                                    )}
+                                    {editingAlert && (
+                                        <button onClick={handleSubmit} className="flex-1 w-full py-4 rounded-2xl bg-sky-400 hover:bg-sky-500 text-[#0b1015] font-black flex items-center justify-center gap-2 transition-all shadow-lg shadow-sky-400/20">
+                                            <Save className="w-5 h-5" />
+                                            Сохранить изменения
+                                        </button>
+                                    )}
+                                </div>
+                            )}
+
+                            {editingAlert && (
+                                <div className="mt-8 pt-6 border-t border-white/5">
+                                    <button onClick={handleSubmit} className="w-full py-4 rounded-2xl bg-sky-400 hover:bg-sky-500 text-[#0b1015] font-black flex items-center justify-center gap-2 transition-all shadow-lg shadow-sky-400/20">
+                                        <Save className="w-5 h-5" />
+                                        Сохранить изменения
+                                    </button>
+                                </div>
+                            )}
+
+                            {/* Added Signals Preview */}
+                            {!editingAlert && alertsToAdd.length > 0 && (
+                                <div className="mt-8 space-y-4">
+                                    <div className="flex items-center gap-2">
+                                        <FileText size={16} className="text-purple-500" />
+                                        <h4 className="text-sm font-black uppercase tracking-tight">Подготовленные сигналы</h4>
+                                    </div>
+                                    <div className={`rounded-2xl border ${theme === 'dark' ? 'bg-black/20 border-white/5' : 'bg-gray-50 border-gray-100'} overflow-hidden`}>
+                                        <table className="w-full text-left">
+                                            <thead>
+                                                <tr className="border-b border-white/5 text-[10px] font-bold uppercase tracking-wider text-gray-500">
+                                                    <th className="p-4">Дата</th>
+                                                    <th className="p-4">Market Cap</th>
+                                                    <th className="p-4">Стратегии</th>
+                                                    <th className="p-4">Статус</th>
+                                                    <th className="p-4 w-10"></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-white/5">
                                                 {alertsToAdd.map((alert, idx) => (
-                                                    <div key={idx} className={`flex items-center justify-between p-3 rounded-xl ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-100'}`}>
-                                                        <div className="flex flex-col gap-1">
-                                                            <div className="flex items-center gap-2">
-                                                                <span className={`text-xs font-mono ${headingColor}`}>{alert.signalTime}</span>
-                                                                <span className={`text-xs ${subTextColor}`}>{truncateAddress(alert.address || '')}</span>
-                                                            </div>
+                                                    <tr key={idx} className="group hover:bg-white/5 transition-colors">
+                                                        <td className="p-4 text-xs font-mono font-bold">{alert.signalDate} {alert.signalTime}</td>
+                                                        <td className="p-4 text-xs font-bold text-green-500">${alert.marketCap}</td>
+                                                        <td className="p-4">
                                                             <div className="flex gap-1">
                                                                 {alert.strategies?.map(s => (
-                                                                    <span key={s} className="px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-500 text-[10px] font-bold">
-                                                                        {s}
+                                                                    <span key={s} className="px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-400 text-[10px] font-bold">
+                                                                        {s === 'Фиба' ? 'Fibo' : 'ME'}
                                                                     </span>
                                                                 ))}
                                                             </div>
-                                                        </div>
-                                                        <button
-                                                            onClick={() => setAlertsToAdd(alertsToAdd.filter((_, i) => i !== idx))}
-                                                            className="p-1.5 rounded-lg hover:bg-red-500/20 text-red-500 transition-colors"
-                                                        >
-                                                            <Trash2 size={16} />
-                                                        </button>
-                                                    </div>
+                                                        </td>
+                                                        <td className="p-4">
+                                                            <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-white/5 text-gray-400">Active</span>
+                                                        </td>
+                                                        <td className="p-4">
+                                                            <button onClick={() => setAlertsToAdd(alertsToAdd.filter((_, i) => i !== idx))} className="p-1.5 rounded-lg hover:bg-red-500/20 text-red-500 opacity-0 group-hover:opacity-100 transition-all"><Trash2 size={14} /></button>
+                                                        </td>
+                                                    </tr>
                                                 ))}
-                                            </div>
-                                        </div>
-                                    )}
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
                             )}
                         </div>

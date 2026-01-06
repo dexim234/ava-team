@@ -3,7 +3,7 @@ import { useThemeStore } from '@/store/themeStore'
 import { useAuthStore } from '@/store/authStore'
 import { getAiAlerts, addAiAlert, updateAiAlert, deleteAiAlert } from '@/services/firestoreService'
 import { AiAlert } from '@/types'
-import { Plus, Edit, Trash2, Save, X, Copy, Check, Terminal, Table, Filter, ArrowUp, ArrowDown, RotateCcw, Calendar, ChevronDown, Hash, Coins, TrendingDown, TrendingUp, Search, Activity } from 'lucide-react'
+import { Plus, Edit, Trash2, Save, X, Copy, Check, Terminal, Table, Filter, ArrowUp, ArrowDown, RotateCcw, Calendar, ChevronDown, Hash, Coins, TrendingDown, TrendingUp, Search, Activity, Clock, FileText, Target } from 'lucide-react'
 import { UserNickname } from '../components/UserNickname'
 import { useAdminStore } from '@/store/adminStore'
 
@@ -18,7 +18,7 @@ export const AiAoAlerts = () => {
     const subTextColor = theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
     const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
     const cardBg = theme === 'dark' ? 'bg-[#10141c]' : 'bg-white'
-    const cardBorder = theme === 'dark' ? 'border-[#48a35e]/30' : 'border-[#48a35e]/20'
+    const cardBorder = theme === 'dark' ? 'border-indigo-500/30' : 'border-indigo-500/20'
     const cardShadow = theme === 'dark' ? 'shadow-[0_24px_80px_rgba(0,0,0,0.45)]' : 'shadow-[0_24px_80px_rgba(0,0,0,0.15)]'
 
     const [alerts, setAlerts] = useState<AiAlert[]>([])
@@ -52,7 +52,8 @@ export const AiAoAlerts = () => {
         address: '',
         maxDrop: '',
         maxProfit: '',
-        comment: ''
+        comment: '',
+        strategy: 'Market Entry'
     })
 
     // Common date for all alerts in batch mode
@@ -75,13 +76,15 @@ export const AiAoAlerts = () => {
             address: formData.address,
             maxDrop: formData.maxDrop,
             maxProfit: formData.maxProfit,
-            comment: formData.comment
+            comment: formData.comment,
+            strategy: formData.strategy
         }
 
         setAlertsToAdd([...alertsToAdd, newAlert])
 
         // Reset form fields except date (which is now common)
         setFormData({
+            ...formData,
             signalTime: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
             marketCap: '',
             address: '',
@@ -92,10 +95,6 @@ export const AiAoAlerts = () => {
     }
 
     // Remove alert from list
-    const handleRemoveFromList = (index: number) => {
-        setAlertsToAdd(alertsToAdd.filter((_, i) => i !== index))
-    }
-
     // Save all alerts
     const handleSaveAll = async () => {
         if (alertsToAdd.length === 0) {
@@ -402,8 +401,8 @@ export const AiAoAlerts = () => {
 
                     <div className="relative p-6 sm:p-8 flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-6">
                         <div className="flex items-center gap-4">
-                            <div className={`p-3 rounded-2xl ${theme === 'dark' ? 'bg-white/10 border-white/20' : 'bg-[#4E6E49]/10 border-[#4E6E49]/30'} shadow-inner`}>
-                                <Terminal className={`w-8 h-8 ${theme === 'dark' ? 'text-white' : 'text-[#4E6E49]'}`} />
+                            <div className={`p-3 rounded-2xl ${theme === 'dark' ? 'bg-white/10 border-white/20' : 'bg-indigo-600/10 border-indigo-600/30'} shadow-inner`}>
+                                <Terminal className={`w-8 h-8 ${theme === 'dark' ? 'text-white' : 'text-indigo-600'}`} />
                             </div>
                             <div className="flex flex-col">
                                 <h1 className={`text-3xl font-black ${headingColor}`}>AL Agent AO</h1>
@@ -886,290 +885,280 @@ export const AiAoAlerts = () => {
             </div>
 
             {/* Modal */}
-            {
-                showModal && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-                        <div className={`w-full max-w-2xl rounded-3xl ${cardBg} ${cardBorder} border shadow-2xl overflow-hidden max-h-[90vh] flex flex-col`}>
-                            <div className={`p-6 border-b ${theme === 'dark' ? 'border-white/10' : 'border-gray-100'} flex items-center justify-between flex-shrink-0`}>
+            {showModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm overflow-y-auto">
+                    <div className={`w-full max-w-4xl rounded-[32px] ${cardBg} ${cardBorder} border shadow-2xl overflow-hidden my-auto flex flex-col relative`}>
+                        {/* Header */}
+                        <div className={`p-6 border-b ${theme === 'dark' ? 'border-white/10' : 'border-gray-100'} flex items-center justify-between flex-shrink-0 relative z-10`}>
+                            <div className="flex items-center gap-4">
+                                <div className={`p-3 rounded-2xl ${theme === 'dark' ? 'bg-indigo-500/10' : 'bg-indigo-50'}`}>
+                                    <Activity className="w-6 h-6 text-indigo-500" />
+                                </div>
                                 <div>
                                     <h3 className={`text-xl font-bold ${headingColor}`}>
-                                        {editingAlert ? 'Редактировать сигнал' : 'Добавить сигналы'}
+                                        {editingAlert ? 'Редактировать сигнал' : 'Добавить новые сигналы'}
                                     </h3>
-                                    {!editingAlert && (
-                                        <p className={`text-sm ${subTextColor}`}>Добавьте один или несколько сигналов за одну дату</p>
-                                    )}
+                                    <p className={`text-sm ${subTextColor}`}>
+                                        {editingAlert ? 'Изменение параметров существующего сигнала' : 'Заполнение данных для одного или нескольких сигналов'}
+                                    </p>
                                 </div>
-                                <button onClick={() => {
-                                    setShowModal(false)
-                                    setAlertsToAdd([])
-                                    setFormData({
-                                        signalDate: new Date().toISOString().split('T')[0],
-                                        signalTime: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
-                                        marketCap: '',
-                                        address: '',
-                                        maxDrop: '',
-                                        maxProfit: '',
-                                        comment: ''
-                                    })
-                                }} className={`p-2 rounded-lg hover:bg-white/10 ${subTextColor}`}>
-                                    <X className="w-5 h-5" />
-                                </button>
                             </div>
+                            <button
+                                onClick={() => {
+                                    setShowModal(false)
+                                    setEditingAlert(null)
+                                    setAlertsToAdd([])
+                                }}
+                                className={`p-2 rounded-xl hover:bg-white/10 transition-colors ${subTextColor}`}
+                            >
+                                <X className="w-6 h-6" />
+                            </button>
+                        </div>
 
-                            <div className="flex-1 overflow-y-auto p-6 space-y-6">
-                                {/* Common Date */}
-                                <div className="space-y-1">
-                                    <label className={`text-xs font-semibold uppercase ${subTextColor}`}>Дата</label>
-                                    <input
-                                        type="date"
-                                        value={editingAlert?.signalDate || commonDate || formData.signalDate || ''}
-                                        onChange={(e) => {
-                                            setCommonDate(e.target.value)
-                                            setFormData({ ...formData, signalDate: e.target.value })
-                                        }}
-                                        className={`w-full p-3 rounded-xl border outline-none transition-all ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white focus:border-[#4E6E49]' : 'bg-white border-gray-200 text-gray-900 focus-border-[#4E6E49]'}`}
-                                    />
-                                </div>
+                        <div className="flex-1 overflow-y-auto p-6 lg:p-8 relative z-10">
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
+                                {/* Left Column: Signal Info */}
+                                <div className="space-y-6">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-indigo-500"></div>
+                                        <span className={`text-xs font-bold uppercase tracking-widest ${subTextColor} opacity-60`}>Параметры сигнала</span>
+                                    </div>
 
-                                {editingAlert ? (
-                                    // Single edit mode
-                                    <form onSubmit={handleSubmit} className="space-y-4">
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div className="space-y-1">
-                                                <label className={`text-xs ${subTextColor}`}>Время</label>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-1.5">
+                                            <label className={`text-[10px] font-bold uppercase tracking-wider ml-1 ${subTextColor}`}>Дата</label>
+                                            <div className="relative">
+                                                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                                                <input
+                                                    type="date"
+                                                    value={editingAlert ? formData.signalDate : commonDate}
+                                                    onChange={(e) => {
+                                                        if (editingAlert) {
+                                                            setFormData({ ...formData, signalDate: e.target.value })
+                                                        } else {
+                                                            setCommonDate(e.target.value)
+                                                        }
+                                                    }}
+                                                    className={`w-full pl-10 pr-4 py-3 rounded-xl border outline-none transition-all text-sm font-semibold ${theme === 'dark' ? 'bg-black/20 border-white/5 text-white focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/5' : 'bg-gray-50 border-gray-100 text-gray-900 focus:border-indigo-500/30'}`}
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <label className={`text-[10px] font-bold uppercase tracking-wider ml-1 ${subTextColor}`}>Время</label>
+                                            <div className="relative">
+                                                <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
                                                 <input
                                                     type="time"
-                                                    required
                                                     value={formData.signalTime}
                                                     onChange={(e) => setFormData({ ...formData, signalTime: e.target.value })}
-                                                    className={`w-full p-3 rounded-xl border outline-none transition-all ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white focus:border-[#4E6E49]' : 'bg-white border-gray-200 text-gray-900 focus:border-[#4E6E49]'}`}
+                                                    className={`w-full pl-10 pr-4 py-3 rounded-xl border outline-none transition-all text-sm font-semibold ${theme === 'dark' ? 'bg-black/20 border-white/5 text-white focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/5' : 'bg-gray-50 border-gray-100 text-gray-900 focus:border-indigo-500/30'}`}
                                                 />
                                             </div>
                                         </div>
+                                    </div>
 
-                                        <div className="space-y-1">
-                                            <label className={`text-xs ${subTextColor}`}>Адрес токена</label>
+                                    <div className="space-y-1.5">
+                                        <label className={`text-[10px] font-bold uppercase tracking-wider ml-1 ${subTextColor}`}>Market Cap</label>
+                                        <div className="relative">
+                                            <Activity className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
                                             <input
                                                 type="text"
-                                                required
-                                                placeholder="Адрес контракта..."
-                                                value={formData.address || ''}
-                                                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                                                className={`w-full p-3 rounded-xl border outline-none transition-all font-mono text-sm ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white focus:border-[#4E6E49]' : 'bg-white border-gray-200 text-gray-900 focus:border-[#4E6E49]'}`}
+                                                placeholder="Напр: 300K или 1.5M"
+                                                value={formData.marketCap}
+                                                onChange={(e) => setFormData({ ...formData, marketCap: e.target.value })}
+                                                className={`w-full pl-10 pr-4 py-3 rounded-xl border outline-none transition-all text-sm font-semibold ${theme === 'dark' ? 'bg-black/20 border-white/5 text-white focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/5' : 'bg-gray-50 border-gray-100 text-gray-900 focus:border-indigo-500/30'}`}
                                             />
                                         </div>
+                                    </div>
 
-                                        <div className="grid grid-cols-3 gap-4">
-                                            <div className="space-y-1">
-                                                <label className={`text-xs ${subTextColor}`}>Market Cap</label>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-1.5">
+                                            <label className={`text-[10px] font-bold uppercase tracking-wider ml-1 ${subTextColor}`}>Max Drop</label>
+                                            <div className="relative">
+                                                <TrendingDown className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-rose-500/50" />
                                                 <input
                                                     type="text"
-                                                    placeholder="e.g. 300,77"
-                                                    value={formData.marketCap || ''}
-                                                    onChange={(e) => setFormData({ ...formData, marketCap: e.target.value })}
-                                                    className={`w-full p-3 rounded-xl border outline-none transition-all ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white focus:border-[#4E6E49]' : 'bg-white border-gray-200 text-gray-900 focus:border-[#4E6E49]'}`}
-                                                />
-                                            </div>
-                                            <div className="space-y-1">
-                                                <label className={`text-xs ${subTextColor}`}>Макс. Падение</label>
-                                                <input
-                                                    type="text"
-                                                    placeholder="e.g. -16"
-                                                    value={formData.maxDrop || ''}
+                                                    placeholder="-16%"
+                                                    value={formData.maxDrop}
                                                     onChange={(e) => setFormData({ ...formData, maxDrop: e.target.value })}
-                                                    className={`w-full p-3 rounded-xl border outline-none transition-all ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white focus:border-[#4E6E49]' : 'bg-white border-gray-200 text-gray-900 focus:border-[#4E6E49]'}`}
-                                                />
-                                            </div>
-                                            <div className="space-y-1">
-                                                <label className={`text-xs ${subTextColor}`}>Макс. Профит</label>
-                                                <input
-                                                    type="text"
-                                                    placeholder="e.g. +28"
-                                                    value={formData.maxProfit || ''}
-                                                    onChange={(e) => setFormData({ ...formData, maxProfit: e.target.value })}
-                                                    className={`w-full p-2 rounded-xl border outline-none transition-all ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white focus:border-[#4E6E49]' : 'bg-white border-gray-200 text-gray-900 focus:border-[#4E6E49]'}`}
+                                                    className={`w-full pl-10 pr-4 py-3 rounded-xl border outline-none transition-all text-sm font-semibold ${theme === 'dark' ? 'bg-black/20 border-white/5 text-white focus:border-rose-500/30 focus:ring-4 focus:ring-rose-500/5' : 'bg-gray-50 border-gray-100 text-gray-900 focus:border-rose-500/20'}`}
                                                 />
                                             </div>
                                         </div>
+                                        <div className="space-y-1.5">
+                                            <label className={`text-[10px] font-bold uppercase tracking-wider ml-1 ${subTextColor}`}>Max Profit</label>
+                                            <div className="relative">
+                                                <TrendingUp className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-emerald-500/50" />
+                                                <input
+                                                    type="text"
+                                                    placeholder="+28% / X2"
+                                                    value={formData.maxProfit}
+                                                    onChange={(e) => setFormData({ ...formData, maxProfit: e.target.value })}
+                                                    className={`w-full pl-10 pr-4 py-3 rounded-xl border outline-none transition-all text-sm font-semibold ${theme === 'dark' ? 'bg-black/20 border-white/5 text-white focus:border-emerald-500/30 focus:ring-4 focus:ring-emerald-500/5' : 'bg-gray-50 border-gray-100 text-gray-900 focus:border-emerald-500/20'}`}
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
 
-                                        <div className="space-y-1">
-                                            <label className={`text-xs ${subTextColor}`}>Комментарий</label>
+                                    <div className="space-y-1.5">
+                                        <label className={`text-[10px] font-bold uppercase tracking-wider ml-1 ${subTextColor}`}>Комментарий</label>
+                                        <div className="relative">
+                                            <FileText className="absolute left-3 top-3 w-4 h-4 text-gray-500" />
+                                            <textarea
+                                                rows={3}
+                                                placeholder="Дополнительная информация о сигнале..."
+                                                value={formData.comment}
+                                                onChange={(e) => setFormData({ ...formData, comment: e.target.value })}
+                                                className={`w-full pl-10 pr-4 py-3 rounded-xl border outline-none transition-all text-sm font-semibold resize-none ${theme === 'dark' ? 'bg-black/20 border-white/5 text-white focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/5' : 'bg-gray-50 border-gray-100 text-gray-900 focus:border-indigo-500/30'}`}
+                                            ></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Right Column: Strategy & Address */}
+                                <div className="space-y-6">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-indigo-500"></div>
+                                        <span className={`text-xs font-bold uppercase tracking-widest ${subTextColor} opacity-60`}>Стратегия и адрес</span>
+                                    </div>
+
+                                    <div className="space-y-3">
+                                        <label className={`text-[10px] font-bold uppercase tracking-wider ml-1 ${subTextColor}`}>Выбор стратегии</label>
+                                        <div className="grid grid-cols-2 gap-3">
+                                            {(['Фиба', 'Market Entry', 'Флип'] as AiAlert['strategy'][]).map((strat) => (
+                                                <button
+                                                    key={strat}
+                                                    type="button"
+                                                    onClick={() => setFormData({ ...formData, strategy: strat })}
+                                                    className={`flex items-center justify-between p-3 rounded-xl border transition-all ${formData.strategy === strat
+                                                        ? 'border-indigo-500 bg-indigo-500/10 text-indigo-500'
+                                                        : theme === 'dark'
+                                                            ? 'border-white/5 bg-white/5 text-gray-400 hover:border-white/10 hover:bg-white/10'
+                                                            : 'border-gray-100 bg-gray-50 text-gray-500 hover:border-gray-200'
+                                                        }`}
+                                                >
+                                                    <span className="text-sm font-bold">{strat}</span>
+                                                    <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${formData.strategy === strat ? 'border-indigo-500 bg-indigo-500' : 'border-gray-500/30'}`}>
+                                                        {formData.strategy === strat && <Check className="w-2.5 h-2.5 text-white stroke-[4]" />}
+                                                    </div>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-1.5">
+                                        <label className={`text-[10px] font-bold uppercase tracking-wider ml-1 ${subTextColor}`}>Contract Address</label>
+                                        <div className="relative">
+                                            <Target className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
                                             <input
                                                 type="text"
-                                                placeholder="Дополнительная информация..."
-                                                value={formData.comment || ''}
-                                                onChange={(e) => setFormData({ ...formData, comment: e.target.value })}
-                                                className={`w-full p-3 rounded-xl border outline-none transition-all ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white focus:border-[#4E6E49]' : 'bg-white border-gray-200 text-gray-900 focus:border-[#4E6E49]'}`}
+                                                placeholder="Введите адрес контракта..."
+                                                value={formData.address}
+                                                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                                                className={`w-full pl-10 pr-4 py-3 rounded-xl border outline-none transition-all text-sm font-mono ${theme === 'dark' ? 'bg-black/20 border-white/5 text-white focus:border-indigo-500/50' : 'bg-gray-50 border-gray-100 text-gray-900 focus:border-indigo-500/30'}`}
                                             />
                                         </div>
+                                    </div>
 
-                                        <div className="pt-4 flex gap-3">
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    setShowModal(false)
-                                                    setEditingAlert(null)
-                                                }}
-                                                className={`flex-1 py-3 rounded-xl font-semibold transition-colors ${theme === 'dark' ? 'bg-white/5 hover:bg-white/10 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-800'}`}
-                                            >
-                                                Отмена
-                                            </button>
-                                            <button
-                                                type="submit"
-                                                className="flex-1 py-3 rounded-xl bg-[#4E6E49] hover:bg-[#3d5a39] text-white font-semibold transition-colors flex items-center justify-center gap-2"
-                                            >
-                                                <Save className="w-4 h-4" />
-                                                <span>Сохранить</span>
-                                            </button>
-                                        </div>
-                                    </form>
-                                ) : (
-                                    // Batch add mode
-                                    <>
-                                        {/* Form for new alert */}
-                                        <div className={`p-4 rounded-2xl ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'} space-y-4`}>
-                                            <h4 className={`text-sm font-semibold ${headingColor}`}>Новый сигнал</h4>
+                                    {!editingAlert && (
+                                        <button
+                                            type="button"
+                                            onClick={handleAddToList}
+                                            className="w-full py-4 rounded-2xl bg-indigo-500 hover:bg-indigo-600 text-white font-bold transition-all shadow-lg shadow-indigo-500/20 active:scale-95 flex items-center justify-center gap-3"
+                                        >
+                                            <Plus className="w-5 h-5" />
+                                            <span>Добавить в список</span>
+                                        </button>
+                                    )}
 
-                                            <div className="grid grid-cols-2 gap-4">
-                                                <div className="space-y-1">
-                                                    <label className={`text-xs ${subTextColor}`}>Время</label>
-                                                    <input
-                                                        type="time"
-                                                        value={formData.signalTime}
-                                                        onChange={(e) => setFormData({ ...formData, signalTime: e.target.value })}
-                                                        className={`w-full p-2 rounded-lg border outline-none transition-all ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white focus:border-[#4E6E49]' : 'bg-white border-gray-200 text-gray-900 focus:border-[#4E6E49]'}`}
-                                                    />
-                                                </div>
-                                            </div>
-
-                                            <div className="space-y-1">
-                                                <label className={`text-xs ${subTextColor}`}>Адрес токена</label>
-                                                <input
-                                                    type="text"
-                                                    placeholder="Адрес контракта..."
-                                                    value={formData.address || ''}
-                                                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                                                    className={`w-full p-2 rounded-lg border outline-none transition-all font-mono text-sm ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white focus:border-[#4E6E49]' : 'bg-white border-gray-200 text-gray-900 focus:border-[#4E6E49]'}`}
-                                                />
-                                            </div>
-
-                                            <div className="grid grid-cols-3 gap-4">
-                                                <div className="space-y-1">
-                                                    <label className={`text-xs ${subTextColor}`}>Market Cap</label>
-                                                    <input
-                                                        type="text"
-                                                        placeholder="e.g. 300,77"
-                                                        value={formData.marketCap || ''}
-                                                        onChange={(e) => setFormData({ ...formData, marketCap: e.target.value })}
-                                                        className={`w-full p-2 rounded-lg border outline-none transition-all ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white focus:border-[#4E6E49]' : 'bg-white border-gray-200 text-gray-900 focus:border-[#4E6E49]'}`}
-                                                    />
-                                                </div>
-                                                <div className="space-y-1">
-                                                    <label className={`text-xs ${subTextColor}`}>Макс. Падение</label>
-                                                    <input
-                                                        type="text"
-                                                        placeholder="e.g. -16"
-                                                        value={formData.maxDrop || ''}
-                                                        onChange={(e) => setFormData({ ...formData, maxDrop: e.target.value })}
-                                                        className={`w-full p-2 rounded-lg border outline-none transition-all ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white focus:border-[#4E6E49]' : 'bg-white border-gray-200 text-gray-900 focus:border-[#4E6E49]'}`}
-                                                    />
-                                                </div>
-                                                <div className="space-y-1">
-                                                    <label className={`text-xs ${subTextColor}`}>Макс. Профит</label>
-                                                    <input
-                                                        type="text"
-                                                        placeholder="e.g. +28"
-                                                        value={formData.maxProfit || ''}
-                                                        onChange={(e) => setFormData({ ...formData, maxProfit: e.target.value })}
-                                                        className={`w-full p-2 rounded-lg border outline-none transition-all ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white focus:border-[#4E6E49]' : 'bg-white border-gray-200 text-gray-900 focus:border-[#4E6E49]'}`}
-                                                    />
-                                                </div>
-                                            </div>
-
-                                            <div className="space-y-1">
-                                                <label className={`text-xs ${subTextColor}`}>Комментарий</label>
-                                                <input
-                                                    type="text"
-                                                    placeholder="Дополнительная информация..."
-                                                    value={formData.comment || ''}
-                                                    onChange={(e) => setFormData({ ...formData, comment: e.target.value })}
-                                                    className={`w-full p-2 rounded-lg border outline-none transition-all ${theme === 'dark' ? 'bg-black/30 border-white/10 text-white focus:border-[#4E6E49]' : 'bg-white border-gray-200 text-gray-900 focus:border-[#4E6E49]'}`}
-                                                />
-                                            </div>
-
-                                            <button
-                                                type="button"
-                                                onClick={handleAddToList}
-                                                className="w-full py-2 rounded-xl bg-[#4E6E49]/20 hover:bg-[#4E6E49]/30 text-[#4E6E49] font-semibold transition-colors flex items-center justify-center gap-2"
-                                            >
-                                                <Plus className="w-4 h-4" />
-                                                <span>Добавить в список</span>
-                                            </button>
-                                        </div>
-
-                                        {/* List of alerts to add */}
-                                        {alertsToAdd.length > 0 && (
-                                            <div className="space-y-3">
-                                                <div className="flex items-center justify-between">
-                                                    <h4 className={`text-sm font-semibold ${headingColor}`}>
-                                                        Сигналы для добавления ({alertsToAdd.length})
-                                                    </h4>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => setAlertsToAdd([])}
-                                                        className={`text-xs ${subTextColor} hover:text-red-500 transition-colors`}
-                                                    >
-                                                        Очистить всё
-                                                    </button>
-                                                </div>
-
-                                                <div className="space-y-2 max-h-60 overflow-y-auto">
-                                                    {alertsToAdd.map((alert, index) => (
-                                                        <div
-                                                            key={index}
-                                                            className={`flex items-center justify-between p-3 rounded-xl ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'}`}
-                                                        >
-                                                            <div className="flex-1 min-w-0 grid grid-cols-4 gap-2 text-sm">
-                                                                <span className={`font-mono ${headingColor} truncate`}>{alert.signalTime}</span>
-                                                                <span className={`font-mono text-blue-400 truncate ${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'}`}>{truncateAddress(alert.address || '')}</span>
-                                                                <span className={`font-mono truncate ${alert.maxDrop && alert.maxDrop.startsWith('-') ? 'text-red-500' : headingColor}`}>{alert.maxDrop || '-'}</span>
-                                                                <span className="font-mono text-green-500 truncate">{alert.maxProfit || '-'}</span>
-                                                            </div>
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => handleRemoveFromList(index)}
-                                                                className="ml-2 p-1.5 rounded-lg hover:bg-red-500/10 text-red-500 transition-colors"
-                                                            >
-                                                                <X className="w-4 h-4" />
-                                                            </button>
-                                                        </div>
-                                                    ))}
-                                                </div>
-
-                                                <button
-                                                    type="button"
-                                                    onClick={handleSaveAll}
-                                                    className="w-full py-3 rounded-xl bg-[#4E6E49] hover:bg-[#3d5a39] text-white font-semibold transition-colors flex items-center justify-center gap-2"
-                                                >
-                                                    <Save className="w-4 h-4" />
-                                                    <span>Сохранить все ({alertsToAdd.length})</span>
-                                                </button>
-                                            </div>
-                                        )}
-                                    </>
-                                )}
+                                    {editingAlert && (
+                                        <button
+                                            type="button"
+                                            onClick={handleSubmit}
+                                            className="w-full py-4 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold transition-all shadow-lg shadow-indigo-600/20 active:scale-95 flex items-center justify-center gap-3"
+                                        >
+                                            <Save className="w-5 h-5" />
+                                            <span>Сохранить изменения</span>
+                                        </button>
+                                    )}
+                                </div>
                             </div>
+
+                            {!editingAlert && alertsToAdd.length > 0 && (
+                                <div className="mt-12 space-y-4 pt-8 border-t border-white/5">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center">
+                                                <Table className="w-5 h-5 text-indigo-500" />
+                                            </div>
+                                            <h4 className={`text-lg font-bold ${headingColor}`}>
+                                                Подготовленные сигналы ({alertsToAdd.length})
+                                            </h4>
+                                        </div>
+                                        <button
+                                            onClick={() => setAlertsToAdd([])}
+                                            className={`text-xs font-bold uppercase tracking-widest text-rose-500 hover:text-rose-400 transition-colors p-2`}
+                                        >
+                                            Очистить всё
+                                        </button>
+                                    </div>
+
+                                    <div className={`rounded-2xl border ${theme === 'dark' ? 'border-white/5 bg-white/5' : 'border-gray-100 bg-gray-50'} overflow-hidden`}>
+                                        <table className="w-full text-left text-sm">
+                                            <thead>
+                                                <tr className={`border-b ${theme === 'dark' ? 'border-white/5' : 'border-gray-200'}`}>
+                                                    <th className={`p-4 font-bold ${subTextColor}`}>Время</th>
+                                                    <th className={`p-4 font-bold ${subTextColor}`}>Адрес</th>
+                                                    <th className={`p-4 font-bold ${subTextColor}`}>MC</th>
+                                                    <th className={`p-4 font-bold ${subTextColor}`}>Strategy</th>
+                                                    <th className="p-4"></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className={`divide-y ${theme === 'dark' ? 'divide-white/5' : 'divide-gray-100'}`}>
+                                                {alertsToAdd.map((alert, index) => (
+                                                    <tr key={index} className="hover:bg-white/5 transition-colors">
+                                                        <td className={`p-4 font-mono font-bold ${headingColor}`}>{alert.signalTime}</td>
+                                                        <td className={`p-4 font-mono ${subTextColor}`}>{truncateAddress(alert.address || '')}</td>
+                                                        <td className={`p-4 font-mono ${headingColor}`}>{alert.marketCap || '-'}</td>
+                                                        <td className="p-4">
+                                                            <span className="px-2 py-1 rounded-lg bg-indigo-500/10 text-indigo-500 text-[10px] font-bold uppercase">
+                                                                {alert.strategy || 'ME'}
+                                                            </span>
+                                                        </td>
+                                                        <td className="p-4 text-right">
+                                                            <button
+                                                                onClick={() => setAlertsToAdd(prev => prev.filter((_, i) => i !== index))}
+                                                                className="p-2 rounded-lg hover:bg-rose-500/10 text-rose-500 transition-colors"
+                                                            >
+                                                                <Trash2 className="w-4 h-4" />
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    <button
+                                        onClick={handleSaveAll}
+                                        className="w-full py-4 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-white font-black transition-all shadow-xl shadow-emerald-500/20 active:scale-95 flex items-center justify-center gap-3 mt-4"
+                                    >
+                                        <Check className="w-6 h-6 stroke-[3]" />
+                                        <span className="text-lg">СОХРАНИТЬ ВСЕ ДАННЫЕ В БАЗУ</span>
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     </div>
-                )
-            }
+                </div>
+            )}
 
             {/* Success Modal */}
             {showSuccess && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
                     <div className={`w-full max-w-sm rounded-3xl ${cardBg} ${cardBorder} border shadow-2xl p-8 flex flex-col items-center text-center animate-in zoom-in-95 duration-300`}>
-                        <div className="w-16 h-16 rounded-full bg-green-500/20 flex items-center justify-center mb-4">
-                            <Check className="w-8 h-8 text-green-500" />
+                        <div className="w-16 h-16 rounded-full bg-indigo-500/20 flex items-center justify-center mb-4">
+                            <Check className="w-8 h-8 text-indigo-500" />
                         </div>
                         <h3 className={`text-2xl font-bold ${headingColor} mb-2`}>
                             Успешно!
@@ -1177,8 +1166,8 @@ export const AiAoAlerts = () => {
                         <p className={`${subTextColor}`}>
                             {successCount} сигнал{successCount === 1 ? '' : successCount >= 2 && successCount <= 4 ? 'а' : 'ов'} добавлен{successCount === 1 ? '' : 'о'}
                         </p>
-                        <div className={`mt-6 px-4 py-2 rounded-full ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-100'}`}>
-                            <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-[#4E6E49]' : 'text-[#4E6E49]'}`}>
+                        <div className={`mt-6 px-4 py-2 rounded-full ${theme === 'dark' ? 'bg-white/5' : 'bg-indigo-50'}`}>
+                            <span className="text-sm font-bold text-indigo-500">
                                 AI Agent AO
                             </span>
                         </div>
@@ -1220,8 +1209,8 @@ const PremiumInput: React.FC<{
                     placeholder={placeholder}
                     className={`w-full px-4 py-2.5 ${Icon ? 'pl-10' : ''} rounded-xl border text-sm font-semibold transition-all outline-none shadow-sm
                         ${theme === 'dark'
-                            ? 'bg-white/5 border-white/5 text-white placeholder:text-gray-600 focus:bg-white/10 focus:border-white/20 focus:ring-4 focus:ring-white/5'
-                            : 'bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus:border-[#4E6E49]/30 focus:ring-4 focus:ring-[#4E6E49]/5 hover:border-gray-300'}`}
+                            ? 'bg-white/5 border-white/5 text-white placeholder:text-gray-600 focus:bg-white/10 focus:border-indigo-500/30 focus:ring-4 focus:ring-indigo-500/5'
+                            : 'bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus:border-indigo-500/30 focus:ring-4 focus:ring-indigo-500/5 hover:border-gray-300'}`}
                 />
             </div>
         </div>
@@ -1281,7 +1270,7 @@ const PremiumSelect: React.FC<{
                                 }}
                                 className={`w-full flex items-center px-4 py-2.5 rounded-lg text-xs font-bold transition-all text-left
                                     ${opt.value === value
-                                        ? theme === 'dark' ? 'bg-white/10 text-white' : 'bg-[#4E6E49]/10 text-[#4E6E49]'
+                                        ? theme === 'dark' ? 'bg-indigo-500/10 text-white' : 'bg-indigo-500/10 text-indigo-600'
                                         : theme === 'dark' ? 'text-gray-400 hover:bg-white/5 hover:text-white' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                                     }`}
                             >

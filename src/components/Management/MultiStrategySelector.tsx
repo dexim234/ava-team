@@ -1,16 +1,17 @@
 import { TriggerStrategy, TriggerProfit } from '@/types'
-import { Check, XCircle } from 'lucide-react'
+import { Check } from 'lucide-react'
 
 interface MultiStrategySelectorProps {
     strategies: TriggerStrategy[]
     profits: TriggerProfit[]
     onChange: (strategies: TriggerStrategy[], profits: TriggerProfit[]) => void
     theme: string
+    color?: string
 }
 
-export const MultiStrategySelector: React.FC<MultiStrategySelectorProps> = ({ strategies: selectedStrategies, profits, onChange, theme }) => {
+export const MultiStrategySelector: React.FC<MultiStrategySelectorProps> = ({ strategies: selectedStrategies, profits, onChange, theme, color = 'bg-purple-600' }) => {
     const availableStrategies: { value: TriggerStrategy; label: string }[] = [
-        { value: 'Фиба', label: 'Фиба' },
+        { value: 'Фиба', label: 'Fibo Strategy' },
         { value: 'Market Entry', label: 'Market Entry' }
     ]
 
@@ -39,70 +40,53 @@ export const MultiStrategySelector: React.FC<MultiStrategySelectorProps> = ({ st
     }
 
     return (
-        <div className="space-y-4">
-            <div className="space-y-1">
-                <label className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Выберите стратегии</label>
-                <div className="flex flex-wrap gap-2">
-                    {availableStrategies.map(s => {
-                        const isActive = selectedStrategies.includes(s.value)
-                        return (
+        <div className="space-y-3">
+            <label className={`text-xs font-semibold uppercase tracking-wider ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} ml-1`}>
+                Выбор стратегии и профит
+            </label>
+            <div className="grid grid-cols-1 gap-2">
+                {availableStrategies.map(s => {
+                    const isActive = selectedStrategies.includes(s.value)
+                    const profitValue = profits.find(p => p.strategy === s.value)?.value || ''
+
+                    return (
+                        <div key={s.value} className="space-y-2">
                             <button
-                                key={s.value}
                                 type="button"
                                 onClick={() => toggleStrategy(s.value)}
-                                className={`flex-1 min-w-[100px] px-3 py-2 rounded-xl text-xs font-semibold border-2 transition-all duration-300 ${isActive
-                                    ? 'bg-amber-500 border-amber-500 text-white shadow-lg shadow-amber-500/20 scale-[1.02]'
+                                className={`w-full p-4 rounded-2xl border transition-all duration-300 flex items-center gap-4 ${isActive
+                                    ? `${theme === 'dark' ? 'bg-white/5 border-white/20' : 'bg-gray-50 border-gray-300'}`
                                     : theme === 'dark'
-                                        ? 'bg-black/20 border-white/10 text-gray-400 hover:border-white/20 hover:bg-black/40'
-                                        : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-50'
-                                    } active:scale-95`}
+                                        ? 'bg-black/20 border-white/5 hover:border-white/10'
+                                        : 'bg-white border-gray-100 hover:border-gray-200'
+                                    }`}
                             >
-                                <div className="flex items-center justify-center gap-1.5">
-                                    {isActive && <Check className="w-3 h-3" />}
-                                    {s.label}
+                                <div className={`w-5 h-5 rounded border transition-colors flex items-center justify-center ${isActive ? color : 'border-gray-500'}`}>
+                                    {isActive && <Check className="w-3.5 h-3.5 text-white" />}
                                 </div>
+                                <span className={`text-sm font-bold ${isActive ? (theme === 'dark' ? 'text-white' : 'text-gray-900') : 'text-gray-500'}`}>
+                                    {s.label}
+                                </span>
                             </button>
-                        )
-                    })}
-                </div>
-            </div>
 
-            {selectedStrategies.length > 0 && (
-                <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
-                    <label className={`text-xs font-semibold uppercase ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`}>Профиты по стратегиям</label>
-                    <div className="grid grid-cols-1 gap-2">
-                        {selectedStrategies.map(strategy => {
-                            const profitValue = profits.find(p => p.strategy === strategy)?.value || ''
-                            return (
-                                <div key={strategy} className={`flex items-center gap-2 p-2 rounded-xl border ${theme === 'dark' ? 'bg-black/20 border-white/5' : 'bg-gray-50 border-gray-100'}`}>
-                                    <span className={`text-xs font-bold w-24 px-2 py-1 rounded bg-amber-500/10 text-amber-500 text-center`}>
-                                        {strategy}
-                                    </span>
+                            {isActive && (
+                                <div className="px-2 animate-in fade-in slide-in-from-top-1 duration-200">
                                     <input
                                         type="text"
-                                        placeholder="Напр. +28% или X3"
+                                        placeholder="Профит (напр. +28% или X3)"
                                         value={profitValue}
-                                        onChange={(e) => updateProfitValue(strategy, e.target.value)}
-                                        className={`flex-1 p-2 rounded-lg text-sm outline-none border transition-all ${theme === 'dark'
-                                            ? 'bg-black/30 border-white/10 text-white focus:border-amber-500/50'
-                                            : 'bg-white border-gray-200 text-gray-900 focus:border-amber-500/50'
+                                        onChange={(e) => updateProfitValue(s.value, e.target.value)}
+                                        className={`w-full p-2.5 rounded-xl text-xs font-semibold outline-none border transition-all ${theme === 'dark'
+                                            ? 'bg-black/30 border-white/10 text-white focus:border-white/20'
+                                            : 'bg-gray-50 border-gray-200 text-gray-900 focus:border-gray-300'
                                             }`}
                                     />
-                                    {profitValue && (
-                                        <button
-                                            type="button"
-                                            onClick={() => updateProfitValue(strategy, '')}
-                                            className="p-1.5 rounded-lg hover:bg-red-500/10 text-red-500/50 hover:text-red-500 transition-colors"
-                                        >
-                                            <XCircle className="w-4 h-4" />
-                                        </button>
-                                    )}
                                 </div>
-                            )
-                        })}
-                    </div>
-                </div>
-            )}
+                            )}
+                        </div>
+                    )
+                })}
+            </div>
         </div>
     )
 }
