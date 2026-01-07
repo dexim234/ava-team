@@ -470,24 +470,16 @@ export type AccessFeature =
   | 'rating' // block rating
 
 // AI - AO Alerts types
-export type AiAoStrategy = 'Фиба' | 'Market Entry'
-
-export interface AiAoProfit {
-  strategy: AiAoStrategy
-  value: string // e.g. "+28" or "X3"
-}
-
 export interface AiAlert {
   id: string
   signalDate: string // YYYY-MM-DD
   signalTime: string // HH:mm
   marketCap?: string // string to allow "300,77" format
   address: string
-  strategies: AiAoStrategy[] // Multiple strategies
+  strategy?: 'Фиба' | 'Market Entry' // Trading strategy
   maxDrop?: string // e.g. "-16"
   maxDropFromLevel07?: string // Drop after level 0.7, e.g. "-5"
   maxProfit?: string // e.g. "+28" or "X3"
-  profits?: AiAoProfit[] // Multiple profits (one per strategy)
   comment?: string // "Постепенное снижение" etc.
   screenshot?: string // URL to screenshot
   isScam?: boolean
@@ -496,18 +488,24 @@ export interface AiAlert {
 }
 
 // Signals Trigger Bot types (independent from AiAlert)
+export type TriggerStrategy = 'Фиба' | 'Market Entry'
+
+export interface TriggerProfit {
+  strategy: TriggerStrategy
+  value: string // e.g. "+28" or "X3"
+}
+
 export interface TriggerAlert {
   id: string
   signalDate: string // YYYY-MM-DD
   signalTime: string // HH:mm
   marketCap?: string
   address: string
-  strategies: AiAoStrategy[] // Multiple strategies
-  maxDrop?: string // e.g. "-16"
+  strategies: TriggerStrategy[] // Multiple strategies
   maxDropFromSignal?: string // e.g. "-16"
   maxDropFromLevel07?: string // e.g. "-5"
   maxProfit?: string // e.g. "+28" or "X3"
-  profits?: AiAoProfit[] // Multiple profits (one per strategy)
+  profits?: TriggerProfit[] // Multiple profits (one per strategy)
   comment?: string
   screenshot?: string // URL to screenshot
   isScam?: boolean // Mark signal as scam
@@ -522,11 +520,11 @@ export interface FasolTriggerAlert {
   signalTime: string // HH:mm
   marketCap?: string
   address: string
-  strategies: AiAoStrategy[]
+  strategies: TriggerStrategy[]
   maxDropFromSignal?: string
   maxDropFromLevel07?: string
   maxProfit?: string
-  profits?: AiAoProfit[]
+  profits?: TriggerProfit[]
   comment?: string
   screenshot?: string
   isScam?: boolean
