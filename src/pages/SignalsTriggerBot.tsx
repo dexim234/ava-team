@@ -1397,31 +1397,6 @@ export const SignalsTriggerBot = () => {
         </div>
     );
 };
-  
-            {/* Image Preview Modal */}
-            {previewImage && (
-                <div
-                    className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm cursor-zoom-out"
-                    onClick={() => setPreviewImage(null)}
-                >
-                    <div className="relative max-w-5xl w-full max-h-[90vh] flex items-center justify-center">
-                        <img
-                            src={previewImage}
-                            alt="Screenshot Preview"
-                            className="max-w-full max-h-[90vh] object-contain rounded-xl shadow-2xl"
-                        />
-                        <button
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                setPreviewImage(null);
-                            }}
-                            className="absolute -top-12 right-0 p-2 text-white hover:text-amber-500 transition-colors"
-                        >
-                            <X size={32} />
-                        </button>
-                    </div>
-                </div>
-            )}
         </div>
     );
 };
