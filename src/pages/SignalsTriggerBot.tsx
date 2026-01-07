@@ -511,7 +511,7 @@ export const SignalsTriggerBot = () => {
                             <div className={`p-3 rounded-2xl ${theme === 'dark' ? 'bg-white/10 border-white/20' : 'bg-amber-500/10 border-amber-500/30'} shadow-inner`}>
                                 <Zap className={`w-8 h-8 ${theme === 'dark' ? 'text-white' : 'text-amber-500'}`} />
                             </div>
-                            <h1 className={`text-3xl font-black ${headingColor} whitespace-nowrap`}>Signals Trigger Bot</h1>
+                            <h1 className={`text-3xl font-black ${headingColor} whitespace-nowrap`}>Al TB ALERTS</h1>
                         </div>
 
                         <div className="flex flex-wrap items-center justify-center gap-3">

@@ -420,7 +420,7 @@ export const AiAoAlerts = () => {
                             <div className={`p-3 rounded-2xl ${theme === 'dark' ? 'bg-white/10 border-white/20' : 'bg-blue-500/10 border-blue-500/30'} shadow-inner`}>
                                 <Activity className={`w-8 h-8 ${theme === 'dark' ? 'text-white' : 'text-blue-500'}`} />
                             </div>
-                            <h1 className={`text-3xl font-black ${headingColor} whitespace-nowrap`}>AI AO ALERTS</h1>
+                            <h1 className={`text-3xl font-black ${headingColor} whitespace-nowrap`}>Al AO ALERTS</h1>
                         </div>
 
                         {/* Center: Buttons */}

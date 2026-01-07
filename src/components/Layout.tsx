@@ -108,9 +108,9 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
 
   const toolsSubItems: { path: string; label: string; icon: LucideIcon; feature: string }[] = [
     { path: '/meme-evaluation', label: 'Оценка мема', icon: TrendingUp, feature: 'tools_meme_evaluation' },
-    { path: '/ai-ao-alerts', label: 'ИИ - АО Alerts', icon: AlertTriangle, feature: 'tools_ai_ao_alerts' },
-    { path: '/signals-trigger-bot', label: 'Signals Trigger Bot', icon: Table, feature: 'tools_signals_trigger_bot' },
-    { path: '/fasol-signals-strategy', label: 'Fasol Signals Strategy', icon: Zap, feature: 'tools_fasol_signals_strategy' },
+    { path: '/ai-ao-alerts', label: 'Al AO ALERTS', icon: AlertTriangle, feature: 'tools_ai_ao_alerts' },
+    { path: '/signals-trigger-bot', label: 'Al TB ALERTS', icon: Table, feature: 'tools_signals_trigger_bot' },
+    { path: '/fasol-signals-strategy', label: 'Al FL ALERTS', icon: Zap, feature: 'tools_fasol_signals_strategy' },
   ]
 
   // Filter tools that user has access to

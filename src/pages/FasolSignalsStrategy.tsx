@@ -436,7 +436,7 @@ export const FasolSignalsStrategy = () => {
                             <div className={`p-3 rounded-2xl ${theme === 'dark' ? 'bg-white/10 border-white/20' : 'bg-purple-500/10 border-purple-500/30'} shadow-inner`}>
                                 <TrendingUp className={`w-8 h-8 ${theme === 'dark' ? 'text-white' : 'text-purple-500'}`} />
                             </div>
-                            <h1 className={`text-3xl font-black ${headingColor} whitespace-nowrap`}>Fasol Signals Strategy</h1>
+                            <h1 className={`text-3xl font-black ${headingColor} whitespace-nowrap`}>Al FL ALERTS</h1>
                         </div>
 
                         <div className="flex flex-wrap items-center justify-center gap-3">
