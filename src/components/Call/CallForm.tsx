@@ -11,7 +11,7 @@ import type {
   Network,
 } from '@/types'
 import { TEAM_MEMBERS } from '@/types'
-import { Sparkles, Rocket, LineChart, Image, Coins, Shield, Target, Info, MapPin, TrendingUp, AlertTriangle, Settings, MessageSquare, Eye, X, Check, Globe2, Wand2, Clock3, Link2, Activity, Gauge, Timer, ScrollText, Building2, CalendarClock, Percent, Octagon, Network as NetworkIcon, Copy } from 'lucide-react'
+import { Sparkles, Rocket, LineChart, Image, Coins, Shield, Target, Info, MapPin, TrendingUp, AlertTriangle, Settings, MessageSquare, Eye, X, Check, Globe2, Clock3, Link2, Activity, Gauge, Timer, ScrollText, Building2, CalendarClock, Percent, Octagon, Network as NetworkIcon, Copy } from 'lucide-react'
 
 interface CallFormProps {
   onSuccess?: () => void
@@ -59,6 +59,77 @@ const CATEGORY_META: Record<CallCategory, { label: string; gradient: string; ico
   polymarket: { label: 'Polymarket', gradient: 'from-rose-300 to-red-300', icon: <Target className="w-5 h-5" />, pastelBg: 'bg-rose-50', pastelBorder: 'border-rose-100', pastelText: 'text-rose-800' },
   staking: { label: 'Стейкинг', gradient: 'from-cyan-300 to-blue-300', icon: <Shield className="w-5 h-5" />, pastelBg: 'bg-cyan-50', pastelBorder: 'border-cyan-100', pastelText: 'text-cyan-800' },
   airdrop: { label: 'AirDrop', gradient: 'from-blue-300 to-indigo-400', icon: <Sparkles className="w-5 h-5" />, pastelBg: 'bg-blue-50', pastelBorder: 'border-blue-100', pastelText: 'text-blue-800' },
+}
+
+const riskBadges: Record<CallRiskLevel, string> = {
+  low: 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20',
+  medium: 'bg-blue-500/10 text-blue-600 border border-blue-500/20',
+  high: 'bg-amber-500/10 text-amber-600 border border-amber-500/20',
+  ultra: 'bg-red-500/10 text-red-600 border border-red-500/20',
+}
+
+const categoryTone: Record<CallCategory, { border: string; bg: string; text: string; chipBg: string }> = {
+  memecoins: { border: 'border-emerald-500/30', bg: 'bg-emerald-500/5', text: 'text-emerald-400', chipBg: 'bg-emerald-500/20' },
+  futures: { border: 'border-blue-500/30', bg: 'bg-blue-500/5', text: 'text-blue-400', chipBg: 'bg-blue-500/20' },
+  nft: { border: 'border-purple-500/30', bg: 'bg-purple-500/5', text: 'text-purple-400', chipBg: 'bg-purple-500/20' },
+  spot: { border: 'border-amber-500/30', bg: 'bg-amber-500/5', text: 'text-amber-400', chipBg: 'bg-amber-500/20' },
+  polymarket: { border: 'border-rose-500/30', bg: 'bg-rose-500/5', text: 'text-rose-400', chipBg: 'bg-rose-500/20' },
+  staking: { border: 'border-cyan-500/30', bg: 'bg-cyan-500/5', text: 'text-cyan-400', chipBg: 'bg-cyan-500/20' },
+  airdrop: { border: 'border-indigo-500/30', bg: 'bg-indigo-500/5', text: 'text-indigo-400', chipBg: 'bg-indigo-500/20' },
+}
+
+// Helper functions for preview
+const getDetails = (call: Call) => (call.details as any)?.[call.category] || {}
+
+const getPrimaryTitle = (call: Call) => {
+  const d = getDetails(call)
+  switch (call.category) {
+    case 'memecoins':
+      return d.contract ? `${d.contract.slice(0, 6)}...${d.contract.slice(-4)}` : 'Мемкоин'
+    case 'futures':
+      return d.pair || 'Фьючерс'
+    case 'nft':
+      return d.collectionLink || 'NFT коллекция'
+    case 'spot':
+      return d.coin || 'Спот'
+    case 'polymarket':
+      return d.event || 'Polymarket событие'
+    case 'staking':
+      return d.coin || 'Стейкинг'
+    case 'airdrop':
+      return d.projectName || 'AirDrop'
+    default:
+      return 'Сигнал'
+  }
+}
+
+const getSecondary = (call: Call) => {
+  const d = getDetails(call)
+  switch (call.category) {
+    case 'memecoins':
+      return d.network ? String(d.network).toUpperCase() : ''
+    case 'futures':
+      return d.direction ? (d.direction === 'long' ? 'Long' : 'Short') : ''
+    case 'nft':
+      return d.collectionLink || ''
+    case 'spot':
+      return d.network ? String(d.network).toUpperCase() : ''
+    case 'polymarket':
+      return d.event || ''
+    case 'staking':
+      return d.platform || ''
+    case 'airdrop':
+      return d.projectName || ''
+    default:
+      return ''
+  }
+}
+
+const getRiskLevel = (call: Call): CallRiskLevel => call.riskLevel || getDetails(call).riskLevel || getDetails(call).protocolRisk || 'medium'
+
+const shortenValue = (value: string | undefined, maxLength: number): string => {
+  if (!value) return ''
+  return value.length > maxLength ? `${value.slice(0, maxLength)}...` : value
 }
 
 const CATEGORY_SECTIONS: Record<CallCategory, Record<string, SectionConfig>> = {
@@ -870,9 +941,8 @@ export const CallForm = ({ onSuccess, onCancel, callToEdit, initialCategory }: C
             )
           })}
         </div>
-      </div>
 
-      
+        {/* Buttons */}
         <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
           <button
             type="button"
@@ -964,7 +1034,6 @@ export const CallForm = ({ onSuccess, onCancel, callToEdit, initialCategory }: C
                       {/* Render metrics using existing function */}
                       {renderCategoryMetrics(previewCall)}
                     </div>
-                  </div>
                   </div>
 
                   <div className="flex gap-4">
