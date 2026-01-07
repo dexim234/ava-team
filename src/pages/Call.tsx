@@ -359,8 +359,16 @@ export const CallPage = () => {
                 }}
                 className="flex-shrink-0 min-w-[200px] rounded-2xl transition-all relative group overflow-hidden"
               >
-                {/* Gradient Background */}
-                <div className={`absolute inset-0 bg-gradient-to-br ${meta.cardGradient} border-2 border-transparent group-hover:border-white/20 rounded-2xl transition-all`} />
+                {/* Gradient Background with colored border */}
+                <div className={`absolute inset-0 bg-gradient-to-br ${meta.cardGradient} rounded-2xl transition-all ${
+                  cat === 'memecoins' ? 'border-2 border-emerald-500/50 group-hover:border-emerald-400' :
+                  cat === 'polymarket' ? 'border-2 border-rose-500/50 group-hover:border-rose-400' :
+                  cat === 'nft' ? 'border-2 border-purple-500/50 group-hover:border-purple-400' :
+                  cat === 'futures' ? 'border-2 border-blue-500/50 group-hover:border-blue-400' :
+                  cat === 'spot' ? 'border-2 border-amber-500/50 group-hover:border-amber-400' :
+                  cat === 'staking' ? 'border-2 border-violet-500/50 group-hover:border-violet-400' :
+                  'border-2 border-cyan-500/50 group-hover:border-cyan-400'
+                }`} />
                 
                 {/* Content Container */}
                 <div className={`relative h-full px-5 py-4 rounded-[14px] flex flex-col items-center justify-center gap-2 ${theme === 'dark' ? 'bg-[#10141c]/90' : 'bg-white/90'
