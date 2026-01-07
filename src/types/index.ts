@@ -476,7 +476,7 @@ export interface AiAlert {
   signalTime: string // HH:mm
   marketCap?: string // string to allow "300,77" format
   address: string
-  strategy?: 'Фиба' | 'Market Entry' // Trading strategy
+  strategies?: AiAoStrategy[] // Trading strategies
   maxDrop?: string // e.g. "-16"
   maxDropFromLevel07?: string // Drop after level 0.7, e.g. "-5"
   maxProfit?: string // e.g. "+28" or "X3"
@@ -487,8 +487,16 @@ export interface AiAlert {
   createdBy: string
 }
 
+// AI-AO Alerts types
+export type AiAoStrategy = 'Фиба' | 'Market Entry'
+
+export interface AiAoProfit {
+  strategy: AiAoStrategy
+  value: string // e.g. "+28" or "X3"
+}
+
 // Signals Trigger Bot types (independent from AiAlert)
-export type TriggerStrategy = 'Фиба' | 'Market Entry'
+export type TriggerStrategy = AiAoStrategy
 
 export interface TriggerProfit {
   strategy: TriggerStrategy
