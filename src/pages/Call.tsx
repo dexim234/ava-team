@@ -637,19 +637,40 @@ export const CallPage = () => {
 
       {/* Form Modal */}
       {showForm && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[70] flex items-start sm:items-center justify-center p-4 overflow-y-auto">
-          <div className={`${bgColor} rounded-2xl shadow-2xl border ${borderColor} max-w-3xl w-full max-h-[90vh] overflow-hidden animate-in zoom-in-95 duration-200`}>
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-xl z-[70] flex items-start sm:items-center justify-center p-4 overflow-y-auto">
+          {/* Decorative background elements */}
+          <div className="fixed inset-0 overflow-hidden pointer-events-none">
+            <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-emerald-500/5 rounded-full blur-3xl animate-pulse" />
+            <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-teal-500/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '0.5s' }} />
+          </div>
+          
+          <div className={`relative ${bgColor} rounded-3xl shadow-2xl shadow-black/50 border ${borderColor} max-w-4xl w-full max-h-[90vh] overflow-hidden animate-in zoom-in-95 duration-300`}>
+            {/* Header gradient accent */}
+            <div className="h-1.5 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500" />
+            
             <div className="flex flex-col h-full">
-              <div className={`p-6 flex items-center justify-between sticky top-0 z-20 ${bgColor} border-b ${borderColor} shadow-sm`}>
-                <h2 className={`text-2xl font-bold ${textColor}`}>{editingCall ? 'Редактировать сигнал' : 'Сделать Call'}</h2>
+              <div className={`p-5 flex items-center justify-between sticky top-0 z-20 ${bgColor} border-b ${borderColor}`}>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#4E6E49] to-emerald-600 flex items-center justify-center text-white shadow-lg shadow-emerald-500/30">
+                    <Rocket className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h2 className={`text-xl font-bold ${textColor}`}>
+                      {editingCall ? 'Редактировать сигнал' : 'Новый сигнал'}
+                    </h2>
+                    <p className={`text-xs ${subtleColor}`}>
+                      {editingCall ? 'Измените данные сигнала' : 'Создайте качественный сигнал'}
+                    </p>
+                  </div>
+                </div>
                 <button
                   onClick={handleCancel}
-                  className={`p-2 rounded-xl ${theme === 'dark' ? 'hover:bg-gray-800' : 'hover:bg-gray-100'}`}
+                  className={`p-2.5 rounded-xl transition-all duration-200 ${theme === 'dark' ? 'hover:bg-gray-800 text-gray-400 hover:text-white' : 'hover:bg-gray-100 text-gray-500 hover:text-gray-900'}`}
                 >
-                  <X className={`w-5 h-5 ${subtleColor}`} />
+                  <X className="w-5 h-5" />
                 </button>
               </div>
-              <div className="px-6 pb-6 pt-2 overflow-y-auto flex-1 max-h-[75vh]">
+              <div className="px-6 pb-6 pt-4 overflow-y-auto flex-1 max-h-[calc(90vh-80px)]">
                 <CallForm
                   callToEdit={editingCall}
                   onSuccess={handleSuccess}

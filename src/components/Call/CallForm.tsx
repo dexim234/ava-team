@@ -820,25 +820,30 @@ export const CallForm = ({ onSuccess, onCancel, callToEdit, initialCategory }: C
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-5">
       {error && (
-        <div className={`p-4 rounded-lg ${theme === 'dark' ? 'bg-red-900/30 border border-red-700 text-red-300' : 'bg-red-50 border border-red-200 text-red-800'}`}>
+        <div className={`p-4 rounded-xl ${theme === 'dark' ? 'bg-red-900/30 border border-red-700/50 text-red-300' : 'bg-red-50 border border-red-200 text-red-800'} flex items-center gap-3 animate-in shake`}>
+          <AlertTriangle className="w-5 h-5 shrink-0" />
           {error}
         </div>
       )}
 
-      {/* Category Selection */}
-      <div className={`rounded-2xl border ${borderColor} ${theme === 'dark' ? 'bg-gray-800/60' : 'bg-white'} p-4 sm:p-6`}>
-        <div className="flex items-center gap-2 mb-4">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-lg" style={{ background: 'linear-gradient(135deg, #4E6E49, #3b8d5a)' }}>
+      {/* Category Selection - Enhanced Design */}
+      <div className={`relative rounded-2xl border ${borderColor} ${theme === 'dark' ? 'bg-gray-900/50' : 'bg-white'} p-5 overflow-hidden`}>
+        {/* Gradient accent bar */}
+        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500" />
+        
+        <div className="flex items-center gap-3 mb-5">
+          <div className="w-11 h-11 rounded-xl flex items-center justify-center text-white shadow-lg shadow-emerald-500/30" style={{ background: 'linear-gradient(135deg, #4E6E49, #10b981)' }}>
             <Target className="w-5 h-5" />
           </div>
           <div>
-            <p className={`text-lg font-bold ${textColor}`}>Выберите тип сигнала</p>
-            <p className={`text-xs ${subtle}`}>Какая категория лучше всего описывает ваш сигнал?</p>
+            <p className={`text-lg font-bold ${textColor}`}>Тип сигнала</p>
+            <p className={`text-xs ${subtle}`}>Выберите категорию для вашего сигнала</p>
           </div>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-2 sm:gap-3">
+        
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5">
           {(Object.keys(CATEGORY_META) as CallCategory[]).map((cat) => {
             const meta = CATEGORY_META[cat]
             const isSelected = category === cat
@@ -847,18 +852,35 @@ export const CallForm = ({ onSuccess, onCancel, callToEdit, initialCategory }: C
                 key={cat}
                 type="button"
                 onClick={() => setCategory(cat)}
-                className={`p-4 rounded-xl border-2 transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 active:scale-95 ${isSelected
-                  ? `border-[#4E6E49] bg-gradient-to-br from-[#4E6E49]/10 to-emerald-500/10 shadow-md shadow-emerald-300/20 scale-[1.02] ring-2 ring-[#4E6E49]/20`
-                  : `border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 hover:shadow-lg`
+                className={`relative p-4 rounded-xl border-2 transition-all duration-300 group overflow-hidden ${isSelected
+                  ? 'border-[#4E6E49] shadow-lg shadow-emerald-500/20 scale-[1.02]'
+                  : `border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 hover:shadow-lg hover:-translate-y-0.5`
                   }`}
               >
-                <div className="flex flex-col items-center gap-2 text-center">
-                  <div className={`p-2 rounded-lg ${isSelected ? 'bg-[#4E6E49] text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300'} transition-colors`}>
-                    {meta.icon}
+                {/* Gradient background for selected */}
+                {isSelected && (
+                  <div className="absolute inset-0 bg-gradient-to-br from-[#4E6E49]/10 via-emerald-500/5 to-transparent" />
+                )}
+                
+                {/* Hover gradient */}
+                <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/0 to-cyan-500/0 group-hover:from-emerald-500/5 group-hover:to-cyan-500/5 transition-all duration-300" />
+                
+                <div className="relative flex flex-col items-center gap-2.5 text-center">
+                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300 ${isSelected 
+                    ? 'bg-gradient-to-br from-[#4E6E49] to-emerald-600 text-white shadow-md' 
+                    : 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 group-hover:bg-gray-200 dark:group-hover:bg-gray-700'}`}>
+                    <div className="w-5 h-5">
+                      {meta.icon}
+                    </div>
                   </div>
-                  <span className={`text-sm font-semibold ${isSelected ? 'text-[#4E6E49]' : textColor}`}>
-                    {meta.label}
-                  </span>
+                  <div className="w-full">
+                    <span className={`text-sm font-bold block transition-colors ${isSelected ? 'text-[#4E6E49]' : textColor}`}>
+                      {meta.label}
+                    </span>
+                    {isSelected && (
+                      <span className="text-[10px] text-emerald-500 font-medium">Выбрано</span>
+                    )}
+                  </div>
                 </div>
               </button>
             )
@@ -866,71 +888,99 @@ export const CallForm = ({ onSuccess, onCancel, callToEdit, initialCategory }: C
         </div>
       </div>
 
-      {/* Signal Details */}
-      <div className={`rounded-2xl border ${borderColor} ${theme === 'dark' ? 'bg-gray-800/60' : 'bg-white'} p-4 sm:p-6 space-y-4`}>
-        <div className="flex items-center justify-between">
+      {/* Signal Details - Enhanced Card */}
+      <div className={`relative rounded-2xl border ${borderColor} ${theme === 'dark' ? 'bg-gray-900/50' : 'bg-white'} p-5 overflow-hidden`}>
+        {/* Decorative gradient accent */}
+        <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-emerald-500/5 to-transparent rounded-full blur-2xl" />
+        
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 relative">
           <div className="flex items-center gap-3">
-            <div className={`hidden sm:flex w-10 h-10 rounded-xl items-center justify-center text-white shadow-lg`} style={{ background: 'linear-gradient(135deg, #4E6E49, #3b8d5a)' }}>
-              <div className="w-5 h-5">
-                {CATEGORY_META[category].icon}
-              </div>
+            <div className={`w-11 h-11 rounded-xl flex items-center justify-center text-white shadow-lg shadow-emerald-500/30`} style={{ background: 'linear-gradient(135deg, #4E6E49, #10b981)' }}>
+              <ScrollText className="w-5 h-5" />
             </div>
-            <div className="hidden sm:block">
-              <p className={`text-lg font-bold ${textColor}`}>{CATEGORY_META[category].label} - Детали сигнала</p>
-              <p className={`text-xs ${subtle}`}>Заполните все необходимые поля</p>
-            </div>
-            <div className="sm:hidden">
-              <p className={`text-sm font-bold ${textColor}`}>{CATEGORY_META[category].label}</p>
+            <div>
+              <p className={`text-lg font-bold ${textColor}`}>{CATEGORY_META[category].label}</p>
+              <p className={`text-xs ${subtle}`}>Заполните детали сигнала</p>
             </div>
           </div>
-          {progress.percentage < 100 && (
+          
+          {/* Enhanced Progress */}
+          <div className="flex items-center gap-3">
             <div className="text-right">
-              <div className={`w-16 h-2 rounded-full overflow-hidden ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-200'} shadow-inner`}>
-                <div
-                  className="h-full rounded-full transition-all duration-500 ease-out bg-gradient-to-r from-[#4E6E49] to-emerald-600"
-                  style={{ width: `${progress.percentage}%` }}
+              <div className="text-2xl font-bold ${progress.percentage === 100 ? 'text-emerald-500' : textColor}">
+                {progress.percentage}%
+              </div>
+              <p className={`text-xs ${subtle}`}>заполнено</p>
+            </div>
+            <div className="w-14 h-14 relative">
+              <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+                <path
+                  className={`${theme === 'dark' ? 'text-gray-700' : 'text-gray-200'}`}
+                  d="M8.86 23.86a12 12 0 0 1-4.93-9.86A12 12 0 0 1 18 2.14a12 12 0 0 1 9.86 4.93"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="3"
                 />
+                <path
+                  className={`${progress.percentage === 100 ? 'text-emerald-500' : 'text-[#4E6E49]'}`}
+                  strokeDasharray={`${progress.percentage}, 100`}
+                  d="M8.86 23.86a12 12 0 0 1-4.93-9.86A12 12 0 0 1 18 2.14a12 12 0 0 1 9.86 4.93"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                />
+              </svg>
+              <div className={`absolute inset-0 flex items-center justify-center ${progress.percentage === 100 ? 'text-emerald-500' : 'text-[#4E6E49]'}`}>
+                {progress.percentage === 100 ? (
+                  <Check className="w-5 h-5" />
+                ) : (
+                  <span className="text-xs font-bold">{progress.filled}</span>
+                )}
               </div>
-              <p className={`text-xs ${subtle} mt-1`}>{progress.filled}/{progress.total}</p>
             </div>
-          )}
-          {progress.percentage === 100 && (
-            <div className="text-right">
-              <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center">
-                <Check className="w-4 h-4 text-white" />
-              </div>
-            </div>
-          )}
+          </div>
+        </div>
+
+        {/* Progress bar */}
+        <div className={`h-1.5 rounded-full overflow-hidden mb-6 ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'}`}>
+          <div 
+            className="h-full rounded-full transition-all duration-500 ease-out bg-gradient-to-r from-[#4E6E49] via-emerald-500 to-cyan-500"
+            style={{ width: `${progress.percentage}%` }}
+          />
         </div>
 
         <div className="space-y-6">
-          {Object.entries(CATEGORY_SECTIONS[category]).map(([sectionKey, sectionConfig], index) => {
+          {Object.entries(CATEGORY_SECTIONS[category]).map(([sectionKey, sectionConfig]) => {
             const sectionFields = CATEGORY_FIELDS[category].filter(field => field.section === sectionKey)
             if (sectionFields.length === 0) return null
 
             return (
               <div
                 key={sectionKey}
-                className="space-y-4 animate-in fade-in-0 slide-in-from-bottom-4 duration-500"
-                style={{ animationDelay: `${index * 100}ms` }}
+                className="relative space-y-4"
               >
-                <div className="flex items-center gap-2 pb-2 border-b border-gray-200 dark:border-gray-700">
-                  <div className={`p-1.5 rounded-lg transition-colors duration-200 ${theme === 'dark' ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
+                {/* Section header with accent */}
+                <div className="flex items-center gap-3 pb-3 border-b border-gray-200/50 dark:border-gray-700/50">
+                  <div className={`p-2 rounded-lg ${theme === 'dark' ? 'bg-gray-800 text-emerald-400' : 'bg-gray-100 text-emerald-600'}`}>
                     {sectionConfig.icon}
                   </div>
-                  <div>
-                    <h3 className={`text-sm font-bold ${textColor}`}>{sectionConfig.title}</h3>
+                  <div className="flex-1">
+                    <h3 className={`text-base font-bold ${textColor}`}>{sectionConfig.title}</h3>
                     {sectionConfig.description && (
                       <p className={`text-xs ${subtle}`}>{sectionConfig.description}</p>
                     )}
                   </div>
+                  <div className={`h-px flex-1 bg-gradient-to-r from-transparent via-[#4E6E49]/30 to-transparent`} />
                 </div>
+                
                 <div className="grid grid-cols-1 gap-4">
                   {sectionFields.map((field) => (
                     <div key={field.key} className="space-y-2">
                       {field.type !== 'checkbox' && (
-                        <label className={`text-sm font-semibold ${textColor}`}>
+                        <label className={`text-sm font-semibold ${textColor} flex items-center gap-2`}>
                           {field.label}
+                          {field.required && <span className="text-red-500">*</span>}
                         </label>
                       )}
                       {renderField(field)}
@@ -942,31 +992,54 @@ export const CallForm = ({ onSuccess, onCancel, callToEdit, initialCategory }: C
           })}
         </div>
 
-        {/* Buttons */}
-        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+        {/* Enhanced Action Buttons */}
+        <div className="flex flex-col sm:flex-row gap-3 mt-8 pt-6 border-t border-gray-200/50 dark:border-gray-700/50">
           <button
             type="button"
             onClick={handlePreview}
-            className={`px-6 py-4 sm:py-3 rounded-lg font-semibold border ${borderColor} ${theme === 'dark' ? 'text-white hover:bg-gray-800 active:bg-gray-800' : 'text-gray-800 hover:bg-gray-100 active:bg-gray-200'} transition-colors min-h-[48px] sm:min-h-[44px]`}
+            className={`px-5 py-3.5 rounded-xl font-semibold border-2 transition-all duration-300 flex items-center justify-center gap-2 ${borderColor} ${theme === 'dark' 
+              ? 'text-white hover:bg-gray-800 hover:border-gray-600' 
+              : 'text-gray-700 hover:bg-gray-50 hover:border-gray-400'} hover:shadow-lg active:scale-[0.98]`}
           >
-            <Eye className="w-4 h-4 inline mr-2" />
-            Предпросмотр
+            <Eye className="w-4 h-4" />
+            <span>Предпросмотр</span>
           </button>
+          
           <button
             type="submit"
-            disabled={loading}
-            className={`flex-1 py-4 sm:py-3 rounded-lg font-semibold transition-all shadow-md min-h-[48px] sm:min-h-[44px] ${theme === 'dark'
-              ? 'bg-gradient-to-r from-[#4E6E49] to-emerald-700 text-white hover:scale-[1.01] active:scale-[0.98] disabled:bg-gray-700'
-              : 'bg-gradient-to-r from-[#4E6E49] to-emerald-600 text-white hover:shadow-lg active:shadow-md disabled:bg-gray-300 disabled:text-gray-600'
+            disabled={loading || progress.percentage < 100}
+            className={`flex-1 py-3.5 rounded-xl font-bold transition-all duration-300 flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 ${loading 
+              ? 'bg-gray-400 text-gray-200 cursor-not-allowed' 
+              : progress.percentage === 100
+                ? 'bg-gradient-to-r from-[#4E6E49] to-emerald-600 text-white hover:shadow-xl hover:shadow-emerald-500/30 hover:scale-[1.01] active:scale-[0.98]'
+                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
               }`}
           >
-            {loading ? 'Сохраняем...' : callToEdit ? 'Обновить сигнал' : 'Создать сигнал'}
+            {loading ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <span>Сохранение...</span>
+              </>
+            ) : callToEdit ? (
+              <>
+                <Check className="w-4 h-4" />
+                <span>Обновить сигнал</span>
+              </>
+            ) : (
+              <>
+                <Rocket className="w-4 h-4" />
+                <span>Создать сигнал</span>
+              </>
+            )}
           </button>
+          
           {onCancel && (
             <button
               type="button"
               onClick={onCancel}
-              className={`px-6 py-4 sm:py-3 rounded-lg font-semibold border ${borderColor} ${theme === 'dark' ? 'text-white hover:bg-gray-800 active:bg-gray-800' : 'text-gray-800 hover:bg-gray-100 active:bg-gray-200'} min-h-[48px] sm:min-h-[44px]`}
+              className={`px-5 py-3.5 rounded-xl font-semibold border-2 transition-all duration-300 ${borderColor} ${theme === 'dark' 
+                ? 'text-gray-300 hover:bg-gray-800 hover:text-white' 
+                : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'} hover:shadow-lg active:scale-[0.98]`}
             >
               Отмена
             </button>
@@ -974,90 +1047,126 @@ export const CallForm = ({ onSuccess, onCancel, callToEdit, initialCategory }: C
         </div>
       </div>
 
-      {/* Preview Modal */}
+      {/* Preview Modal - Enhanced Design */}
       {showPreview && (() => {
         const previewCall = generatePreviewCall()
         const meta = CATEGORY_META[category]
         const trader = TEAM_MEMBERS.find(t => t.id === previewCall.userId)
 
         return (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[70] flex items-start sm:items-center justify-center p-4 overflow-y-auto">
-            <div className={`${bgColor} rounded-2xl shadow-2xl border ${borderColor} max-w-4xl w-full max-h-[90vh] overflow-hidden`}>
-              <div className="flex flex-col h-full">
-                <div className="p-6 flex items-center justify-between sticky top-0 z-20 ${bgColor} border-b ${borderColor} shadow-sm">
-                  <h2 className={`text-2xl font-bold ${textColor} flex items-center gap-2`}>
+          <div className="fixed inset-0 bg-black/70 backdrop-blur-xl z-[80] flex items-start sm:items-center justify-center p-4 overflow-y-auto">
+            {/* Animated background elements */}
+            <div className="fixed inset-0 overflow-hidden pointer-events-none">
+              <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl animate-pulse" />
+              <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+            </div>
+            
+            <div className={`relative ${bgColor} rounded-3xl shadow-2xl shadow-black/50 border ${borderColor} max-w-2xl w-full max-h-[90vh] overflow-hidden animate-in zoom-in-95 duration-300`}>
+              {/* Header gradient */}
+              <div className={`h-2 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500`} />
+              
+              <div className="p-6 flex items-center justify-between sticky top-0 z-10 ${bgColor} border-b ${borderColor}">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#4E6E49] to-emerald-600 flex items-center justify-center text-white shadow-lg shadow-emerald-500/30">
                     <Eye className="w-5 h-5" />
-                    Предпросмотр сигнала
-                  </h2>
-                  <button
-                    onClick={() => setShowPreview(false)}
-                    className={`p-2 rounded-xl ${theme === 'dark' ? 'hover:bg-gray-800' : 'hover:bg-gray-100'}`}
-                  >
-                    <X className={`w-5 h-5 ${subtleColor}`} />
-                  </button>
+                  </div>
+                  <div>
+                    <h2 className={`text-xl font-bold ${textColor}`}>Предпросмотр</h2>
+                    <p className={`text-xs ${subtle}`}>Проверьте сигнал перед публикацией</p>
+                  </div>
                 </div>
-                <div className="px-6 pb-6 pt-2 overflow-y-auto flex-1 max-h-[75vh]">
-                  {/* Preview Card */}
-                  <div className={`rounded-3xl border-2 shadow-xl overflow-hidden mb-6 ${categoryTone[category].border} ${categoryTone[category].bg}`}>
-                    <div className={`px-5 py-4 flex flex-wrap items-center justify-between gap-3 border-b ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-white/70 bg-white/70'}`}>
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-semibold border ${categoryTone[category].border} ${categoryTone[category].chipBg || ''} ${categoryTone[category].text}`}>
+                <button
+                  onClick={() => setShowPreview(false)}
+                  className={`p-2 rounded-xl transition-all ${theme === 'dark' ? 'hover:bg-gray-800 text-gray-400 hover:text-white' : 'hover:bg-gray-100 text-gray-500 hover:text-gray-900'}`}
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              
+              <div className="px-6 pb-6 pt-4 overflow-y-auto max-h-[calc(90vh-100px)]">
+                {/* Preview Card */}
+                <div className={`relative rounded-2xl border-2 overflow-hidden mb-6 ${categoryTone[category].border} ${categoryTone[category].bg}`}>
+                  {/* Decorative elements */}
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-white/5 to-transparent rounded-full blur-xl" />
+                  <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-emerald-500/5 to-transparent rounded-full blur-xl" />
+                  
+                  <div className={`relative px-5 py-4 flex flex-wrap items-center justify-between gap-3 border-b ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-white/70 bg-white/70'}`}>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-semibold border ${categoryTone[category].border} ${categoryTone[category].chipBg || ''} ${categoryTone[category].text}`}>
+                        <div className="w-4 h-4">
                           {meta.icon}
-                          {meta.label}
-                        </span>
-                        <span className={`px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-500 border border-emerald-500/20`}>Активен</span>
-                        <span className={`px-3 py-1.5 rounded-full text-xs font-semibold ${riskBadges[previewCall.riskLevel || 'medium']}`}>Риск: {previewCall.riskLevel || 'medium'}</span>
-                      </div>
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <div className={`px-3 py-1.5 rounded-xl text-xs font-semibold border ${theme === 'dark' ? 'bg-gray-800/70 text-gray-200 border-white/10' : 'bg-white text-gray-700 border-gray-200'}`}>
-                          Создано только что
                         </div>
-                        {trader && (
-                          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-white/10 bg-black/5 dark:bg-white/5">
-                            <div className="w-8 h-8 rounded-full bg-gradient-to-r from-[#4E6E49] to-emerald-600 text-white flex items-center justify-center text-sm font-bold">
-                              {trader.name[0]}
-                            </div>
-                            <span className={`text-xs ${subtleColor}`}>{trader.name}</span>
+                        {meta.label}
+                      </span>
+                      <span className={`px-3 py-1.5 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-500 border border-emerald-500/30`}>
+                        Активен
+                      </span>
+                      <span className={`px-3 py-1.5 rounded-full text-xs font-semibold ${riskBadges[previewCall.riskLevel || 'medium']}`}>
+                        Риск: {previewCall.riskLevel || 'medium'}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className={`px-3 py-1.5 rounded-lg text-xs font-medium ${theme === 'dark' ? 'bg-gray-800/70 text-gray-300 border border-white/10' : 'bg-gray-100 text-gray-600 border-gray-200'}`}>
+                        Только что
+                      </span>
+                      {trader && (
+                        <div className="flex items-center gap-2 px-2 py-1 rounded-lg border border-white/10 bg-black/5 dark:bg-white/5">
+                          <div className="w-7 h-7 rounded-full bg-gradient-to-r from-[#4E6E49] to-emerald-600 text-white flex items-center justify-center text-xs font-bold">
+                            {trader.name[0]}
                           </div>
-                        )}
-                      </div>
+                          <span className={`text-xs font-medium ${subtleColor}`}>{trader.name}</span>
+                        </div>
+                      )}
                     </div>
+                  </div>
 
-                    <div className="p-5 space-y-5">
-                      <div className="grid md:grid-cols-[1.15fr_auto] gap-4 items-start">
-                        <div className="space-y-1">
-                          <p className={`text-2xl font-bold ${textColor}`}>{getPrimaryTitle(previewCall)}</p>
-                          <p className={`text-sm ${subtleColor}`}>{getSecondary(previewCall)}</p>
+                  <div className="relative p-5 space-y-5">
+                    {/* Title section */}
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="space-y-1">
+                        <p className={`text-2xl font-bold ${textColor}`}>{getPrimaryTitle(previewCall)}</p>
+                        <p className={`text-sm ${subtleColor}`}>{getSecondary(previewCall)}</p>
+                      </div>
+                      <div className={`p-3 rounded-xl ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-100'}`}>
+                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-emerald-500/20 to-cyan-500/20 flex items-center justify-center">
+                          {meta.icon}
                         </div>
                       </div>
-
-                      {/* Render metrics using existing function */}
-                      {renderCategoryMetrics(previewCall)}
                     </div>
-                  </div>
 
-                  <div className="flex gap-4">
-                    <button
-                      onClick={() => setShowPreview(false)}
-                      className={`flex-1 px-4 py-3 rounded-xl border ${borderColor} ${theme === 'dark' ? 'text-white hover:bg-gray-800' : 'text-gray-800 hover:bg-gray-100'} font-semibold`}
-                    >
-                      Вернуться к редактированию
-                    </button>
-                    <button
-                      onClick={() => {
-                        setShowPreview(false)
-                        const form = document.querySelector('form') as HTMLFormElement
-                        form?.requestSubmit()
-                      }}
-                      className={`flex-1 px-4 py-3 rounded-xl font-semibold transition-all ${progress.percentage === 100
-                        ? 'bg-gradient-to-r from-[#4E6E49] to-emerald-600 text-white shadow-md hover:shadow-lg'
-                        : 'bg-gray-400 text-gray-200 cursor-not-allowed'
-                        }`}
-                    >
-                      <Check className="w-4 h-4 inline mr-2" />
-                      Создать сигнал
-                    </button>
+                    {/* Metrics */}
+                    {renderCategoryMetrics(previewCall)}
                   </div>
+                </div>
+
+                {/* Action buttons */}
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setShowPreview(false)}
+                    className={`flex-1 px-4 py-3.5 rounded-xl font-semibold border-2 transition-all duration-300 flex items-center justify-center gap-2 ${borderColor} ${theme === 'dark' 
+                      ? 'text-white hover:bg-gray-800' 
+                      : 'text-gray-700 hover:bg-gray-50'}`}
+                  >
+                    <X className="w-4 h-4" />
+                    Назад
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowPreview(false)
+                      const form = document.querySelector('form') as HTMLFormElement
+                      form?.requestSubmit()
+                    }}
+                    disabled={progress.percentage < 100}
+                    className={`flex-1 py-3.5 rounded-xl font-bold transition-all duration-300 flex items-center justify-center gap-2 shadow-lg ${progress.percentage === 100
+                      ? 'bg-gradient-to-r from-[#4E6E49] to-emerald-600 text-white hover:shadow-xl shadow-emerald-500/30'
+                      : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      }`}
+                  >
+                    <Check className="w-4 h-4" />
+                    Опубликовать
+                  </button>
                 </div>
               </div>
             </div>
@@ -1067,3 +1176,5 @@ export const CallForm = ({ onSuccess, onCancel, callToEdit, initialCategory }: C
     </form>
   )
 }
+
+// ... остальной код ...
