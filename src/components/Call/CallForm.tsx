@@ -965,6 +965,7 @@ export const CallForm = ({ onSuccess, onCancel, callToEdit, initialCategory }: C
                       {renderCategoryMetrics(previewCall)}
                     </div>
                   </div>
+                  </div>
 
                   <div className="flex gap-4">
                     <button
