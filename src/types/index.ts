@@ -84,6 +84,7 @@ export interface ApprovalRequest {
   reviewedBy?: string
   createdAt: string
   updatedAt: string
+  processedAt?: string // время когда админ обработал заявку
 }
 
 // Earnings types

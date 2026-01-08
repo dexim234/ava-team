@@ -405,6 +405,7 @@ const mapApprovalSnapshot = (docSnap: any): ApprovalRequest => {
     reviewedBy: data?.reviewedBy,
     createdAt: data?.createdAt || nowIso,
     updatedAt: data?.updatedAt || data?.createdAt || nowIso,
+    processedAt: data?.processedAt,
   }
 }
 
@@ -645,6 +646,7 @@ export const approveApprovalRequest = async (id: string, adminId: string, adminC
     status: 'approved',
     reviewedBy: adminId,
     updatedAt: new Date().toISOString(),
+    processedAt: new Date().toISOString(),
   }
   const finalComment = adminComment ?? request.adminComment
   if (finalComment !== undefined) {
@@ -666,6 +668,7 @@ export const rejectApprovalRequest = async (id: string, adminId: string, adminCo
     adminComment,
     reviewedBy: adminId,
     updatedAt: new Date().toISOString(),
+    processedAt: new Date().toISOString(),
   })
 }
 
