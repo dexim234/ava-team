@@ -347,62 +347,6 @@ export const CallPage = () => {
         </div>
       </div>
 
-      {/* Category Cards - Horizontal Scroll */}
-      <div className="px-4 sm:px-6 lg:px-8 mb-6">
-        <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide">
-          {CATEGORY_ORDER.map((cat) => {
-            const meta = CATEGORY_META[cat]
-            const stats = categoryStats[cat]
-            const progress = stats.total > 0 ? Math.round((stats.active / stats.total) * 100) : 0
-            const catGradient = theme === 'dark' ? meta.gradientDark : meta.gradient
-            
-            return (
-              <button
-                key={cat}
-                onClick={() => {
-                  setEditingCall(null)
-                  setFormCategory(cat)
-                  setShowForm(true)
-                }}
-                className="flex-shrink-0 w-[200px] h-[140px] transition-all relative group"
-              >
-                {/* Gradient border via ::before pseudo-element */}
-                <div className={`absolute inset-[1.5px] rounded-[11px] bg-gradient-to-br ${catGradient} z-0`} />
-                
-                {/* Main container - transparent background */}
-                <div className="relative w-full h-full bg-transparent rounded-[11px] flex flex-col items-center justify-between p-4 z-10">
-                  {/* Header: Icon & Label Centered */}
-                  <div className="flex flex-col items-center gap-2">
-                    <div className={`p-2 rounded-xl bg-gradient-to-br ${catGradient} text-white`}>
-                      {meta.icon}
-                    </div>
-                    <span className={`text-sm font-bold ${textColor} text-center`}>{meta.label}</span>
-                  </div>
-
-                  {/* Progress Bar */}
-                  <div className="w-full">
-                    <div className="flex items-center justify-between w-full mb-1">
-                      <span className={`text-[10px] font-bold ${textColor}`}>
-                        {stats.active}/{stats.total}
-                      </span>
-                      <span className={`text-[10px] font-medium ${subtleColor}`}>
-                        {progress}%
-                      </span>
-                    </div>
-                    <div className="w-full h-1.5 bg-gray-700/50 rounded-full overflow-hidden">
-                      <div
-                        className={`h-full bg-gradient-to-r ${catGradient} rounded-full transition-all duration-500`}
-                        style={{ width: `${progress}%` }}
-                      />
-                    </div>
-                  </div>
-                </div>
-              </button>
-            )
-          })}
-        </div>
-      </div>
-
       {/* Search Bar */}
       <div className="px-4 sm:px-6 lg:px-8 mb-6">
         <div className={`relative rounded-xl border ${borderColor} ${cardBg} shadow-xl`}>
