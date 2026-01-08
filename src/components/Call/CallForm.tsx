@@ -54,7 +54,7 @@ const networkOptions: { value: Network; label: string }[] = [
 ]
 
 const CATEGORY_META: Record<CallCategory, { label: string; gradient: string; gradientDark: string; icon: JSX.Element; pastelBg: string; pastelBorder: string; pastelText: string }> = {
-  memecoins: { label: 'Мемкоины', gradient: 'from-emerald-300 to-teal-400', gradientDark: 'from-emerald-600 to-teal-500', icon: <Rocket className="w-5 h-5" />, pastelBg: 'bg-emerald-50', pastelBorder: 'border-emerald-100', pastelText: 'text-emerald-800' },
+  memecoins: { label: 'Мемкоины', gradient: 'from-teal-400 to-emerald-500', gradientDark: 'from-teal-600 to-emerald-500', icon: <Rocket className="w-5 h-5" />, pastelBg: 'bg-teal-50', pastelBorder: 'border-teal-100', pastelText: 'text-teal-800' },
   futures: { label: 'Фьючерсы', gradient: 'from-sky-300 to-indigo-400', gradientDark: 'from-sky-600 to-indigo-500', icon: <LineChart className="w-5 h-5" />, pastelBg: 'bg-sky-50', pastelBorder: 'border-sky-100', pastelText: 'text-sky-800' },
   nft: { label: 'NFT', gradient: 'from-purple-300 to-pink-300', gradientDark: 'from-purple-600 to-pink-500', icon: <Image className="w-5 h-5" />, pastelBg: 'bg-purple-50', pastelBorder: 'border-purple-100', pastelText: 'text-purple-800' },
   spot: { label: 'Спот', gradient: 'from-amber-300 to-orange-300', gradientDark: 'from-amber-600 to-orange-500', icon: <Coins className="w-5 h-5" />, pastelBg: 'bg-amber-50', pastelBorder: 'border-amber-100', pastelText: 'text-amber-800' },
