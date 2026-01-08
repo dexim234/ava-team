@@ -395,6 +395,7 @@ export const CallPage = () => {
                       />
                     </div>
                   </div>
+                  </div>
                 </div>
               </button>
             )
