@@ -193,7 +193,7 @@ export const Login = () => {
             <img
               src={logo}
               alt="ApeVault"
-              className="w-20 h-20 sm:w-24 sm:h-24 object-contain filter drop-shadow-[0_0_15px_rgba(16,185,129,0.4)]"
+              className="w-20 h-20 sm:w-24 sm:h-24 object-contain rounded-xl filter drop-shadow-[0_0_15px_rgba(16,185,129,0.4)]"
             />
           </div>
 
@@ -216,7 +216,7 @@ export const Login = () => {
         {/* Mobile Header */}
         <div className="xl:hidden flex items-center justify-between mb-12">
           <div className="flex items-center gap-3">
-            <img src={logo} alt="Logo" className="w-10 h-10 object-contain" />
+            <img src={logo} alt="Logo" className="w-10 h-10 object-contain rounded-xl" />
             <span className={`font-black tracking-tight ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>ApeVault Frontier</span>
           </div>
           <button onClick={toggleTheme} className="p-2 rounded-xl bg-gray-100 dark:bg-white/5 text-gray-700 dark:text-amber-300">

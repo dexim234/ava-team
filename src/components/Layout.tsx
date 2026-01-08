@@ -328,7 +328,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                 <img
                   src={logo}
                   alt="ApeVault"
-                  className="w-9 h-9 object-contain filter drop-shadow-[0_0_8px_rgba(78,110,73,0.3)]"
+                  className="w-9 h-9 object-contain rounded-xl filter drop-shadow-[0_0_8px_rgba(78,110,73,0.3)]"
                 />
               </div>
               <div className="flex flex-col whitespace-nowrap">
@@ -526,7 +526,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
               <img
                 src={logo}
                 alt="ApeVault"
-                className="w-7 h-7 object-contain filter drop-shadow-[0_0_8px_rgba(78,110,73,0.3)]"
+                className="w-7 h-7 object-contain rounded-xl filter drop-shadow-[0_0_8px_rgba(78,110,73,0.3)]"
               />
             </div>
             <span className={`text-sm font-black tracking-widest uppercase ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>ApeVault</span>
@@ -551,7 +551,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                   <img
                     src={logo}
                     alt="ApeVault"
-                    className="w-7 h-7 object-contain"
+                    className="w-7 h-7 object-contain rounded-xl"
                   />
                 </div>
                 <span className={`text-sm font-black tracking-widest uppercase ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Menu</span>
