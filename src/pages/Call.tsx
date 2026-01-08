@@ -456,7 +456,7 @@ export const CallPage = () => {
 
       {/* Statistics Cards */}
       <div className="px-4 sm:px-6 lg:px-8 mb-8">
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
           {/* Total Signals */}
           <div className={`p-4 rounded-xl border ${borderColor} ${cardBg} shadow-xl`}>
             <div className="flex items-center justify-between mb-2">
