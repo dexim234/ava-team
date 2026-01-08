@@ -88,50 +88,6 @@ const categoryTone: Record<CallCategory, { border: string; bg: string; text: str
 // Helper functions for preview
 const getDetails = (call: Call) => (call.details as any)?.[call.category] || {}
 
-const getPrimaryTitle = (call: Call) => {
-  const d = getDetails(call)
-  switch (call.category) {
-    case 'memecoins':
-      return d.contract ? `${d.contract.slice(0, 6)}...${d.contract.slice(-4)}` : 'Мемкоин'
-    case 'futures':
-      return d.pair || 'Фьючерс'
-    case 'nft':
-      return d.collectionLink || 'NFT коллекция'
-    case 'spot':
-      return d.coin || 'Спот'
-    case 'polymarket':
-      return d.event || 'Polymarket событие'
-    case 'staking':
-      return d.coin || 'Стейкинг'
-    case 'airdrop':
-      return d.projectName || 'AirDrop'
-    default:
-      return 'Сигнал'
-  }
-}
-
-const getSecondary = (call: Call) => {
-  const d = getDetails(call)
-  switch (call.category) {
-    case 'memecoins':
-      return d.network ? String(d.network).toUpperCase() : ''
-    case 'futures':
-      return d.direction ? (d.direction === 'long' ? 'Long' : 'Short') : ''
-    case 'nft':
-      return d.collectionLink || ''
-    case 'spot':
-      return d.network ? String(d.network).toUpperCase() : ''
-    case 'polymarket':
-      return d.event || ''
-    case 'staking':
-      return d.platform || ''
-    case 'airdrop':
-      return d.projectName || ''
-    default:
-      return ''
-  }
-}
-
 const getRiskLevel = (call: Call): CallRiskLevel => call.riskLevel || getDetails(call).riskLevel || getDetails(call).protocolRisk || 'medium'
 
 const shortenValue = (value: string | undefined, maxLength: number): string => {
@@ -559,7 +515,7 @@ export const CallForm = ({ onSuccess, onCancel, callToEdit, initialCategory, cat
   const renderCategoryMetrics = (call: Call) => {
     const d = getDetails(call)
     const risk = getRiskLevel(call) as CallRiskLevel
-    const tone = categoryTone[call.category]
+    const catGradient = getCategoryGradient(call.category, theme)
     const metrics: { label: string; value?: string; icon: JSX.Element }[] = []
 
     const addMetric = (label: string, value: string | undefined, icon: JSX.Element) => {
@@ -639,7 +595,7 @@ export const CallForm = ({ onSuccess, onCancel, callToEdit, initialCategory, cat
           {visibleMetrics.map((metric) => (
             <div key={metric.label} className="flex items-center justify-between gap-3 px-4 py-3">
               <div className="flex items-start gap-3">
-                <div className={`p-2 rounded-xl border ${tone.border} ${tone.bg} ${tone.text}`}>
+                <div className={`p-2 rounded-xl bg-gradient-to-br ${catGradient} text-white`}>
                   {metric.icon}
                 </div>
                 <div className="flex-1 min-w-0">
@@ -1002,7 +958,6 @@ export const CallForm = ({ onSuccess, onCancel, callToEdit, initialCategory, cat
       {/* Preview Modal - Enhanced Design */}
       {showPreview && (() => {
         const previewCall = generatePreviewCall()
-        const meta = CATEGORY_META[category]
         const trader = TEAM_MEMBERS.find(t => t.id === previewCall.userId)
 
         return (
@@ -1044,12 +999,6 @@ export const CallForm = ({ onSuccess, onCancel, callToEdit, initialCategory, cat
                   
                   <div className={`relative px-5 py-4 flex flex-wrap items-center justify-between gap-3 border-b ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-white/70 bg-white/70'}`}>
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-semibold border ${categoryTone[category].border} ${categoryTone[category].chipBg || ''} ${categoryTone[category].text}`}>
-                        <div className="w-4 h-4">
-                          {meta.icon}
-                        </div>
-                        {meta.label}
-                      </span>
                       <span className={`px-3 py-1.5 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-500 border border-emerald-500/30`}>
                         Активен
                       </span>
@@ -1073,19 +1022,6 @@ export const CallForm = ({ onSuccess, onCancel, callToEdit, initialCategory, cat
                   </div>
 
                   <div className="relative p-5 space-y-5">
-                    {/* Title section */}
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="space-y-1">
-                        <p className={`text-2xl font-bold ${textColor}`}>{getPrimaryTitle(previewCall)}</p>
-                        <p className={`text-sm ${subtleColor}`}>{getSecondary(previewCall)}</p>
-                      </div>
-                      <div className={`p-3 rounded-xl ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-100'}`}>
-                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-emerald-500/20 to-cyan-500/20 flex items-center justify-center">
-                          {meta.icon}
-                        </div>
-                      </div>
-                    </div>
-
                     {/* Metrics */}
                     {renderCategoryMetrics(previewCall)}
                   </div>

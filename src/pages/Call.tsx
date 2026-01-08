@@ -339,7 +339,7 @@ export const CallPage = () => {
               setFormCategory(categoryFilter !== 'all' ? categoryFilter : 'memecoins')
               setShowForm(true)
             }}
-            className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold text-white shadow-lg transition-all hover:scale-105 active:scale-95 bg-gradient-to-r ${CATEGORY_META[formCategory].gradient} hover:opacity-90`}
+            className="flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold text-white shadow-lg transition-all hover:scale-105 active:scale-95 bg-emerald-500 hover:bg-emerald-600"
           >
             <Plus size={18} />
             <span>Call</span>
