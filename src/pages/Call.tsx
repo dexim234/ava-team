@@ -308,9 +308,31 @@ export const CallPage = () => {
 
   return (
     <div className="space-y-6 pb-20">
-      {/* Header */}
-      <div className="px-4 sm:px-6 lg:px-8 py-6">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-2">
+      {/* Mobile Header */}
+      <div className="sm:hidden px-4 py-4 border-b" style={{ borderColor: theme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }}>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <Activity className="w-7 h-7 text-emerald-500" />
+            <h1 className={`text-xl font-bold ${textColor}`}>AVF HUB</h1>
+          </div>
+          <button
+            onClick={() => {
+              setEditingCall(null)
+              setFormCategory('memecoins')
+              setShowCategorySelector(true)
+              setShowForm(true)
+            }}
+            className="flex items-center gap-1.5 px-4 py-2 rounded-lg font-bold text-white shadow-lg transition-all hover:scale-105 active:scale-95 bg-emerald-500 hover:bg-emerald-600"
+          >
+            <Plus size={16} />
+            <span>Call</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Desktop Header */}
+      <div className="hidden sm:block px-4 sm:px-6 lg:px-8 py-6">
+        <div className="flex flex-row items-center justify-between gap-4 mb-2">
           <div className="flex items-center gap-3">
             <Activity className="w-8 h-8 text-emerald-500" />
             <h1 className={`text-3xl font-bold ${textColor}`}>AVF HUB</h1>
