@@ -330,6 +330,39 @@ export const CallPage = () => {
         </div>
       </div>
 
+      {/* Category Quick Actions - Open Form */}
+      <div className="px-4 sm:px-6 lg:px-8 mb-6">
+        <div className="mb-3">
+          <h3 className={`text-sm font-semibold ${subtleColor}`}>Создать сигнал</h3>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
+          {CATEGORY_ORDER.map((cat) => {
+            const meta = CATEGORY_META[cat]
+            const catGradient = theme === 'dark' ? meta.gradientDark : meta.gradient
+            return (
+              <button
+                key={cat}
+                onClick={() => {
+                  setEditingCall(null)
+                  setFormCategory(cat)
+                  setShowForm(true)
+                }}
+                className={`flex items-center gap-2 px-3 py-2.5 rounded-lg border ${borderColor} transition-all ${
+                  theme === 'dark' ? 'bg-white/5 hover:bg-white/10' : 'bg-gray-50 hover:bg-gray-100'
+                }`}
+              >
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center bg-gradient-to-br ${catGradient} text-white shadow-md`}>
+                  {meta.icon}
+                </div>
+                <span className={`text-sm font-medium truncate ${textColor}`}>
+                  {meta.label}
+                </span>
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
       {/* Search Bar */}
       <div className="px-4 sm:px-6 lg:px-8 mb-6">
         <div className={`relative rounded-xl border ${borderColor} ${cardBg} shadow-xl`}>
