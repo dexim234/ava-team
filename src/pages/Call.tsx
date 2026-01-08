@@ -358,7 +358,7 @@ export const CallPage = () => {
         <div className="mb-3">
           <h3 className={`text-sm font-semibold ${subtleColor}`}>Создать сигнал</h3>
         </div>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
           {CATEGORY_ORDER.map((cat) => {
             const meta = CATEGORY_META[cat]
             const catGradient = theme === 'dark' ? meta.gradientDark : meta.gradient
