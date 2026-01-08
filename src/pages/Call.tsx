@@ -1,4 +1,4 @@
-Уве// Signals HUB page redesigned to match reference image
+// Signals HUB page redesigned to match reference image
 import { useState, useEffect, useMemo, type JSX } from 'react'
 import { useThemeStore } from '@/store/themeStore'
 import { CallForm } from '@/components/Call/CallForm'
