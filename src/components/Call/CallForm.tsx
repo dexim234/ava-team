@@ -20,6 +20,7 @@ interface CallFormProps {
   initialCategory?: CallCategory
   category?: CallCategory
   onCategoryChange?: (category: CallCategory) => void
+  showCategorySelector?: boolean
 }
 
 type FieldType = 'text' | 'textarea' | 'select' | 'checkbox'
@@ -456,7 +457,7 @@ const mergeDetails = (base: FormDetailsState, incoming?: CallDetails): FormDetai
   airdrop: { ...base.airdrop, ...(incoming?.airdrop || {}) },
 })
 
-export const CallForm = ({ onSuccess, onCancel, callToEdit, initialCategory, category: categoryProp, onCategoryChange }: CallFormProps) => {
+export const CallForm = ({ onSuccess, onCancel, callToEdit, initialCategory, category: categoryProp, onCategoryChange, showCategorySelector = true }: CallFormProps) => {
   const { theme } = useThemeStore()
   const { user } = useAuthStore()
   const [loading, setLoading] = useState(false)
@@ -782,6 +783,7 @@ export const CallForm = ({ onSuccess, onCancel, callToEdit, initialCategory, cat
       )}
 
       {/* Category Selection - Enhanced Design */}
+      {showCategorySelector && (
       <div className={`relative rounded-2xl border ${borderColor} ${theme === 'dark' ? 'bg-gray-900/60' : 'bg-white'} p-5 overflow-hidden`}>
         {/* Gradient accent bar using category color */}
         <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${getCategoryGradient(category, theme)}`} />
@@ -843,6 +845,7 @@ export const CallForm = ({ onSuccess, onCancel, callToEdit, initialCategory, cat
           })}
         </div>
       </div>
+      )}
 
       {/* Signal Details - Enhanced Card */}
       <div className={`relative rounded-2xl border ${borderColor} ${theme === 'dark' ? 'bg-gray-900/60' : 'bg-white'} p-5 overflow-hidden`}>

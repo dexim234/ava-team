@@ -124,6 +124,7 @@ export const CallPage = () => {
   const [cancelCallId, setCancelCallId] = useState<string | null>(null)
   const [editingCall, setEditingCall] = useState<Call | null>(null)
   const [formCategory, setFormCategory] = useState<CallCategory>('memecoins')
+  const [showCategorySelector, setShowCategorySelector] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter] = useState<StatusFilter>('all')
   const [categoryFilter, setCategoryFilter] = useState<'all' | CallCategory>('all')
@@ -318,8 +319,8 @@ export const CallPage = () => {
           <button
             onClick={() => {
               setEditingCall(null)
-              // Default to current filter if not 'all', else first category
-              setFormCategory(categoryFilter !== 'all' ? categoryFilter : 'memecoins')
+              setFormCategory('memecoins')
+              setShowCategorySelector(true)
               setShowForm(true)
             }}
             className="flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold text-white shadow-lg transition-all hover:scale-105 active:scale-95 bg-emerald-500 hover:bg-emerald-600"
@@ -348,17 +349,25 @@ export const CallPage = () => {
               polymarket: 'border-rose-500/40',
               staking: 'border-emerald-500/40',
             }
+            const bgGradientCat: Record<CallCategory, string> = {
+              memecoins: 'from-emerald-500/15 via-teal-500/5 to-cyan-500/5',
+              futures: 'from-blue-500/15 via-indigo-500/5 to-transparent',
+              nft: 'from-purple-500/15 via-pink-500/5 to-transparent',
+              spot: 'from-amber-500/15 via-orange-500/5 to-transparent',
+              airdrop: 'from-gray-400/15 via-gray-300/5 to-transparent',
+              polymarket: 'from-rose-500/15 via-red-500/5 to-transparent',
+              staking: 'from-emerald-500/15 via-green-500/5 to-transparent',
+            }
             return (
               <button
                 key={cat}
                 onClick={() => {
                   setEditingCall(null)
                   setFormCategory(cat)
+                  setShowCategorySelector(false)
                   setShowForm(true)
                 }}
-                className={`flex items-center gap-3 px-4 py-3 rounded-lg border ${borderColorCat[cat]} transition-all ${
-                  theme === 'dark' ? 'bg-white/5 hover:bg-white/10' : 'bg-gray-50 hover:bg-gray-100'
-                }`}
+                className={`flex items-center gap-3 px-4 py-3 rounded-lg border ${borderColorCat[cat]} bg-gradient-to-br ${bgGradientCat[cat]} transition-all hover:scale-[1.02]`}
               >
                 <div className={`w-10 h-10 rounded-lg flex items-center justify-center bg-gradient-to-br ${catGradient} text-white shadow-md shrink-0`}>
                   {meta.icon}
@@ -718,6 +727,7 @@ export const CallPage = () => {
                   initialCategory={formCategory}
                   category={formCategory}
                   onCategoryChange={setFormCategory}
+                  showCategorySelector={showCategorySelector}
                 />
               </div>
             </div>
