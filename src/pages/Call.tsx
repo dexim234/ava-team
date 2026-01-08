@@ -368,11 +368,13 @@ export const CallPage = () => {
               >
                 {/* Gradient border using border-image */}
                 <div
-                  className="absolute inset-0 rounded-2xl border-[1.5px] border-transparent"
+                  className="absolute inset-0 rounded-2xl border-[1.5px]"
                   style={{
-                    borderImageSource: catGradient.includes('via-') 
-                      ? `linear-gradient(to right, ${catGradient.match(/from-([^\s]+)/)?.[1]}, ${catGradient.match(/via-([^\s]+)/)?.[1]}, ${catGradient.match(/to-([^\s]+)/)?.[1]})`
-                      : `linear-gradient(to right, ${catGradient.match(/from-([^\s]+)/)?.[1]}, ${catGradient.match(/to-([^\s]+)/)?.[1]})`,
+                    borderImageSource: `linear-gradient(to right, ${
+                      catGradient.includes('via-') 
+                        ? `${catGradient.match(/from-([^\s]+)/)?.[1]}, ${catGradient.match(/via-([^\s]+)/)?.[1]}, ${catGradient.match(/to-([^\s]+)/)?.[1]}`
+                        : `${catGradient.match(/from-([^\s]+)/)?.[1]}, ${catGradient.match(/to-([^\s]+)/)?.[1]}`
+                    })`,
                     borderImageSlice: 1,
                   }}
                 />
