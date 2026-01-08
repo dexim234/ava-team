@@ -746,6 +746,8 @@ export const CallPage = () => {
                   onSuccess={handleSuccess}
                   onCancel={handleCancel}
                   initialCategory={formCategory}
+                  category={formCategory}
+                  onCategoryChange={setFormCategory}
                 />
               </div>
             </div>
