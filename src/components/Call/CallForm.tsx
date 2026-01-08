@@ -53,14 +53,19 @@ const networkOptions: { value: Network; label: string }[] = [
   { value: 'polygon', label: 'Polygon' },
 ]
 
-const CATEGORY_META: Record<CallCategory, { label: string; gradient: string; icon: JSX.Element; pastelBg: string; pastelBorder: string; pastelText: string }> = {
-  memecoins: { label: 'Мемкоины', gradient: 'from-emerald-300 to-teal-400', icon: <Rocket className="w-5 h-5" />, pastelBg: 'bg-emerald-50', pastelBorder: 'border-emerald-100', pastelText: 'text-emerald-800' },
-  futures: { label: 'Фьючерсы', gradient: 'from-sky-300 to-indigo-400', icon: <LineChart className="w-5 h-5" />, pastelBg: 'bg-sky-50', pastelBorder: 'border-sky-100', pastelText: 'text-sky-800' },
-  nft: { label: 'NFT', gradient: 'from-purple-300 to-pink-300', icon: <Image className="w-5 h-5" />, pastelBg: 'bg-purple-50', pastelBorder: 'border-purple-100', pastelText: 'text-purple-800' },
-  spot: { label: 'Спот', gradient: 'from-amber-300 to-orange-300', icon: <Coins className="w-5 h-5" />, pastelBg: 'bg-amber-50', pastelBorder: 'border-amber-100', pastelText: 'text-amber-800' },
-  polymarket: { label: 'Polymarket', gradient: 'from-rose-300 to-red-300', icon: <Target className="w-5 h-5" />, pastelBg: 'bg-rose-50', pastelBorder: 'border-rose-100', pastelText: 'text-rose-800' },
-  staking: { label: 'Стейкинг', gradient: 'from-cyan-300 to-blue-300', icon: <Shield className="w-5 h-5" />, pastelBg: 'bg-cyan-50', pastelBorder: 'border-cyan-100', pastelText: 'text-cyan-800' },
-  airdrop: { label: 'AirDrop', gradient: 'from-blue-300 to-indigo-400', icon: <Sparkles className="w-5 h-5" />, pastelBg: 'bg-blue-50', pastelBorder: 'border-blue-100', pastelText: 'text-blue-800' },
+const CATEGORY_META: Record<CallCategory, { label: string; gradient: string; gradientDark: string; icon: JSX.Element; pastelBg: string; pastelBorder: string; pastelText: string }> = {
+  memecoins: { label: 'Мемкоины', gradient: 'from-emerald-300 to-teal-400', gradientDark: 'from-emerald-600 to-teal-500', icon: <Rocket className="w-5 h-5" />, pastelBg: 'bg-emerald-50', pastelBorder: 'border-emerald-100', pastelText: 'text-emerald-800' },
+  futures: { label: 'Фьючерсы', gradient: 'from-sky-300 to-indigo-400', gradientDark: 'from-sky-600 to-indigo-500', icon: <LineChart className="w-5 h-5" />, pastelBg: 'bg-sky-50', pastelBorder: 'border-sky-100', pastelText: 'text-sky-800' },
+  nft: { label: 'NFT', gradient: 'from-purple-300 to-pink-300', gradientDark: 'from-purple-600 to-pink-500', icon: <Image className="w-5 h-5" />, pastelBg: 'bg-purple-50', pastelBorder: 'border-purple-100', pastelText: 'text-purple-800' },
+  spot: { label: 'Спот', gradient: 'from-amber-300 to-orange-300', gradientDark: 'from-amber-600 to-orange-500', icon: <Coins className="w-5 h-5" />, pastelBg: 'bg-amber-50', pastelBorder: 'border-amber-100', pastelText: 'text-amber-800' },
+  polymarket: { label: 'Polymarket', gradient: 'from-rose-300 to-red-300', gradientDark: 'from-rose-600 to-red-500', icon: <Target className="w-5 h-5" />, pastelBg: 'bg-rose-50', pastelBorder: 'border-rose-100', pastelText: 'text-rose-800' },
+  staking: { label: 'Стейкинг', gradient: 'from-cyan-300 to-blue-300', gradientDark: 'from-cyan-600 to-blue-500', icon: <Shield className="w-5 h-5" />, pastelBg: 'bg-cyan-50', pastelBorder: 'border-cyan-100', pastelText: 'text-cyan-800' },
+  airdrop: { label: 'AirDrop', gradient: 'from-blue-300 to-indigo-400', gradientDark: 'from-blue-600 to-indigo-500', icon: <Sparkles className="w-5 h-5" />, pastelBg: 'bg-blue-50', pastelBorder: 'border-blue-100', pastelText: 'text-blue-800' },
+}
+
+// Helper to get appropriate gradient based on theme
+const getCategoryGradient = (category: CallCategory, theme: string) => {
+  return theme === 'dark' ? CATEGORY_META[category].gradientDark : CATEGORY_META[category].gradient
 }
 
 const riskBadges: Record<CallRiskLevel, string> = {
@@ -525,7 +530,6 @@ export const CallForm = ({ onSuccess, onCancel, callToEdit, initialCategory, cat
 
   const textColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
   const borderColor = theme === 'dark' ? 'border-gray-800' : 'border-gray-200'
-  const inputBg = theme === 'dark' ? 'bg-gray-700/60' : 'bg-gray-50'
   const subtle = theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
   const subtleColor = subtle
   const bgColor = theme === 'dark' ? 'bg-[#121212]' : 'bg-white'
@@ -754,7 +758,7 @@ export const CallForm = ({ onSuccess, onCancel, callToEdit, initialCategory, cat
   const renderField = (field: FieldConfig) => {
     const activePayload = (details as any)[category] || {}
     const value = activePayload[field.key]
-    const common = `w-full px-4 py-2 rounded-lg border ${borderColor} ${inputBg} ${textColor} focus:outline-none focus:ring-2 focus:ring-[#4E6E49]`
+    const common = `w-full px-4 py-2.5 rounded-lg border ${borderColor} ${theme === 'dark' ? 'bg-gray-800/80' : 'bg-gray-50'} ${textColor} focus:outline-none focus:ring-2 focus:ring-[#4E6E49] transition-all`
 
     if (field.type === 'textarea') {
       return (
@@ -771,6 +775,7 @@ export const CallForm = ({ onSuccess, onCancel, callToEdit, initialCategory, cat
       const cols = field.options.length <= 3 ? 'grid-cols-1 sm:grid-cols-3' :
         field.options.length <= 4 ? 'grid-cols-2 sm:grid-cols-4' :
           'grid-cols-2 sm:grid-cols-3'
+      const catGradient = getCategoryGradient(category, theme)
       return (
         <div className={`grid ${cols} gap-2 sm:gap-3`}>
           {field.options.map((opt) => {
@@ -780,9 +785,9 @@ export const CallForm = ({ onSuccess, onCancel, callToEdit, initialCategory, cat
                 key={opt.value}
                 type="button"
                 onClick={() => updateField(field.key, opt.value)}
-                className={`px-3 py-3 sm:py-2 rounded-lg border-2 text-sm font-medium transition-all duration-300 min-h-[44px] sm:min-h-[40px] hover:shadow-md focus:outline-none focus:ring-2 focus:ring-[#4E6E49]/30 ${isSelected
-                  ? `border-[${CATEGORY_META[category].gradient.split(' ')[0].replace('from-', '')}] bg-gradient-to-r ${CATEGORY_META[category].gradient} text-white shadow-md shadow-${CATEGORY_META[category].gradient.split(' ')[0].replace('from-', '').split('-')[0]}-500/30 scale-[1.02] ring-2 ring-${CATEGORY_META[category].gradient.split(' ')[0].replace('from-', '').split('-')[0]}-500/20`
-                  : `border-gray-200 dark:border-gray-700 ${theme === 'dark' ? 'text-gray-300 hover:border-gray-600 hover:bg-gray-800' : 'text-gray-700 hover:border-gray-400 hover:bg-gray-50'} active:scale-95 hover:-translate-y-0.5`
+                className={`px-3 py-3 sm:py-2.5 rounded-lg border-2 text-sm font-medium transition-all duration-300 min-h-[44px] sm:min-h-[40px] hover:shadow-md focus:outline-none focus:ring-2 focus:ring-[#4E6E49]/30 ${isSelected
+                  ? `bg-gradient-to-r ${catGradient} text-white shadow-md border-transparent`
+                  : `${theme === 'dark' ? 'bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700 hover:border-gray-600' : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50 hover:border-gray-400'}`
                   }`}
               >
                 {opt.label}
@@ -795,7 +800,7 @@ export const CallForm = ({ onSuccess, onCancel, callToEdit, initialCategory, cat
 
     if (field.type === 'checkbox') {
       return (
-        <label className="inline-flex items-center gap-3 cursor-pointer select-none p-3 sm:p-3 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-600 transition-all duration-200 min-h-[48px] sm:min-h-[44px] hover:shadow-sm">
+        <label className="inline-flex items-center gap-3 cursor-pointer select-none p-3 sm:p-3 rounded-lg border transition-all duration-200 min-h-[48px] sm:min-h-[44px] hover:shadow-sm ${theme === 'dark' ? 'bg-gray-800/50 border-gray-700 hover:bg-gray-800' : 'bg-gray-50 border-gray-200 hover:bg-gray-100'}">
           <input
             type="checkbox"
             checked={!!value}
@@ -822,7 +827,7 @@ export const CallForm = ({ onSuccess, onCancel, callToEdit, initialCategory, cat
             onClick={() => {
               navigator.clipboard.writeText(String(value))
             }}
-            className={`absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg transition-colors ${theme === 'dark' ? 'hover:bg-gray-600 text-gray-300' : 'hover:bg-gray-200 text-gray-600'}`}
+            className={`absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg transition-colors ${theme === 'dark' ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-200 text-gray-500'}`}
             title="Скопировать контракт"
           >
             <Copy className="w-4 h-4" />
@@ -842,12 +847,12 @@ export const CallForm = ({ onSuccess, onCancel, callToEdit, initialCategory, cat
       )}
 
       {/* Category Selection - Enhanced Design */}
-      <div className={`relative rounded-2xl border ${borderColor} ${theme === 'dark' ? 'bg-gray-900/50' : 'bg-white'} p-5 overflow-hidden`}>
-        {/* Gradient accent bar using first category color */}
-        <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${CATEGORY_META[category].gradient}`} />
+      <div className={`relative rounded-2xl border ${borderColor} ${theme === 'dark' ? 'bg-gray-900/60' : 'bg-white'} p-5 overflow-hidden`}>
+        {/* Gradient accent bar using category color */}
+        <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${getCategoryGradient(category, theme)}`} />
         
         <div className="flex items-center gap-3 mb-5">
-          <div className={`w-11 h-11 rounded-xl flex items-center justify-center text-white shadow-lg bg-gradient-to-br ${CATEGORY_META[category].gradient}`}>
+          <div className={`w-11 h-11 rounded-xl flex items-center justify-center text-white shadow-lg bg-gradient-to-br ${getCategoryGradient(category, theme)}`}>
             <Target className="w-5 h-5" />
           </div>
           <div>
@@ -859,6 +864,7 @@ export const CallForm = ({ onSuccess, onCancel, callToEdit, initialCategory, cat
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5">
           {(Object.keys(CATEGORY_META) as CallCategory[]).map((cat) => {
             const meta = CATEGORY_META[cat]
+            const catGradient = getCategoryGradient(cat, theme)
             const isSelected = category === cat
             return (
               <button
@@ -866,32 +872,34 @@ export const CallForm = ({ onSuccess, onCancel, callToEdit, initialCategory, cat
                 type="button"
                 onClick={() => setCategory(cat)}
                 className={`relative p-4 rounded-xl border-2 transition-all duration-300 group overflow-hidden ${isSelected
-                  ? `border-[${meta.gradient.split(' ')[0].replace('from-', '')}] shadow-lg shadow-${meta.gradient.split(' ')[0].replace('from-', '').split('-')[0]}-500/20 scale-[1.02]`
-                  : `border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 hover:shadow-lg hover:-translate-y-0.5`
+                  ? `border-transparent shadow-lg shadow-${catGradient.split(' ')[0].replace('from-', '').split('-')[0]}-500/20 scale-[1.02]`
+                  : `border-gray-700 hover:border-gray-600 hover:shadow-lg hover:-translate-y-0.5 ${theme === 'dark' ? 'bg-gray-800/30' : 'bg-gray-50'}`
                   }`}
               >
                 {/* Gradient background for selected */}
                 {isSelected && (
-                  <div className={`absolute inset-0 bg-gradient-to-br ${meta.gradient.replace('from-', 'from-').replace(' to-', ' to-')} opacity-10`} />
+                  <div className={`absolute inset-0 bg-gradient-to-br ${catGradient} opacity-30 rounded-xl`} />
                 )}
                 
-                {/* Hover gradient */}
-                <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/0 to-cyan-500/0 group-hover:from-emerald-500/5 group-hover:to-cyan-500/5 transition-all duration-300" />
+                {/* Subtle gradient for non-selected in dark mode */}
+                {!isSelected && theme === 'dark' && (
+                  <div className={`absolute inset-0 bg-gradient-to-br ${catGradient.replace('from-', 'from-').replace(' to-', ' to-')} opacity-5 rounded-xl`} />
+                )}
                 
                 <div className="relative flex flex-col items-center gap-2.5 text-center">
                   <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300 ${isSelected 
-                    ? `bg-gradient-to-br ${meta.gradient} text-white shadow-md` 
-                    : 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 group-hover:bg-gray-200 dark:group-hover:bg-gray-700'}`}>
+                    ? `bg-gradient-to-br ${catGradient} text-white shadow-md` 
+                    : `${theme === 'dark' ? 'bg-gray-700/50 text-gray-400' : 'bg-gray-100 text-gray-500'} group-hover:${theme === 'dark' ? 'bg-gray-600' : 'bg-gray-200'}`}`}>
                     <div className="w-5 h-5">
                       {meta.icon}
                     </div>
                   </div>
                   <div className="w-full">
-                    <span className={`text-sm font-bold block transition-colors ${isSelected ? `bg-gradient-to-r ${meta.gradient} bg-clip-text text-transparent` : textColor}`}>
+                    <span className={`text-sm font-bold block transition-colors ${isSelected ? `bg-gradient-to-r ${catGradient} bg-clip-text text-transparent` : textColor}`}>
                       {meta.label}
                     </span>
                     {isSelected && (
-                      <span className={`text-[10px] bg-gradient-to-r ${meta.gradient} bg-clip-text text-transparent font-medium`}>Выбрано</span>
+                      <span className={`text-[10px] bg-gradient-to-r ${catGradient} bg-clip-text text-transparent font-medium`}>Выбрано</span>
                     )}
                   </div>
                 </div>
@@ -902,14 +910,14 @@ export const CallForm = ({ onSuccess, onCancel, callToEdit, initialCategory, cat
       </div>
 
       {/* Signal Details - Enhanced Card */}
-      <div className={`relative rounded-2xl border ${borderColor} ${theme === 'dark' ? 'bg-gray-900/50' : 'bg-white'} p-5 overflow-hidden`}>
+      <div className={`relative rounded-2xl border ${borderColor} ${theme === 'dark' ? 'bg-gray-900/60' : 'bg-white'} p-5 overflow-hidden`}>
         {/* Decorative gradient accent using category color */}
-        <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${CATEGORY_META[category].gradient}`} />
-        <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl ${CATEGORY_META[category].gradient.replace('from-', '').replace(' to-', '/5 to-').replace(' to-', '/5 to-')} to-transparent rounded-full blur-2xl opacity-50`} />
+        <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${getCategoryGradient(category, theme)}`} />
+        <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl ${getCategoryGradient(category, theme).replace('from-', '').replace(' to-', '/10 to-')} to-transparent rounded-full blur-2xl opacity-30`} />
         
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 relative">
           <div className="flex items-center gap-3">
-            <div className={`w-11 h-11 rounded-xl flex items-center justify-center text-white shadow-lg bg-gradient-to-br ${CATEGORY_META[category].gradient}`}>
+            <div className={`w-11 h-11 rounded-xl flex items-center justify-center text-white shadow-lg bg-gradient-to-br ${getCategoryGradient(category, theme)}`}>
               <ScrollText className="w-5 h-5" />
             </div>
             <div>
@@ -931,7 +939,7 @@ export const CallForm = ({ onSuccess, onCancel, callToEdit, initialCategory, cat
               >
                 {/* Section header with accent */}
                 <div className="flex items-center gap-3 pb-3 border-b border-gray-200/50 dark:border-gray-700/50">
-                  <div className={`p-2 rounded-lg bg-gradient-to-br ${CATEGORY_META[category].gradient} text-white`}>
+                  <div className={`p-2 rounded-lg bg-gradient-to-br ${getCategoryGradient(category, theme)} text-white`}>
                     {sectionConfig.icon}
                   </div>
                   <div className="flex-1">
@@ -940,7 +948,7 @@ export const CallForm = ({ onSuccess, onCancel, callToEdit, initialCategory, cat
                       <p className={`text-xs ${subtle}`}>{sectionConfig.description}</p>
                     )}
                   </div>
-                  <div className={`h-px flex-1 bg-gradient-to-r from-transparent ${CATEGORY_META[category].gradient.replace('from-', 'via-')} to-transparent opacity-30`} />
+                  <div className={`h-px flex-1 bg-gradient-to-r from-transparent ${getCategoryGradient(category, theme).replace('from-', 'via-')} to-transparent opacity-20`} />
                 </div>
                 
                 <div className="grid grid-cols-1 gap-4">
