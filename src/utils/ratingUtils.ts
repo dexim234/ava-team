@@ -10,6 +10,8 @@ export interface RatingBreakdown {
   vacationDaysPoints: number
   absenceDays: number
   absenceDaysPoints: number
+  internshipDays: number
+  internshipDaysPoints: number
   weeklyHours: number
   weeklyHoursPoints: number
   weeklyEarnings: number
@@ -80,6 +82,10 @@ export const calculateRating = (
   }
   console.log('Absence penalty:', { absenceDays: data.absenceDays, absencePenalty, currentRating: rating })
 
+  // Стажировка: без влияния на рейтинг (0%)
+  const internshipDaysPoints = 0
+  console.log('Internship calculation:', { internshipDays: data.internshipDays, internshipDaysPoints, currentRating: rating })
+
   // Часы работы в неделю: <15 = 0%, >=15 = 15%, >=20 = 25%
   if (weeklyHours >= 20) {
     rating += 25
@@ -147,6 +153,9 @@ export const getRatingBreakdown = (
     absenceDaysPoints = -30
   }
 
+  // Стажировка: без влияния на рейтинг
+  const internshipDaysPoints = 0
+
   let weeklyHoursPoints = 0
   if (weeklyHours >= 20) {
     weeklyHoursPoints = 25
@@ -183,6 +192,8 @@ export const getRatingBreakdown = (
     vacationDaysPoints,
     absenceDays: data.absenceDays,
     absenceDaysPoints,
+    internshipDays: data.internshipDays,
+    internshipDaysPoints,
     weeklyHours,
     weeklyHoursPoints,
     weeklyEarnings,

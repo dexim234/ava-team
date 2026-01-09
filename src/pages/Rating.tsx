@@ -90,6 +90,9 @@ export const Rating = () => {
         const absenceDays = monthStatuses
           .filter(s => s.type === 'absence')
           .reduce((sum, s) => sum + countDaysInPeriod(s.date, s.endDate, monthStart, monthEnd), 0)
+        const internshipDays = monthStatuses
+          .filter(s => s.type === 'internship')
+          .reduce((sum, s) => sum + countDaysInPeriod(s.date, s.endDate, monthStart, monthEnd), 0)
 
         // Недельные выходные и больничные
         const weekStatuses = statuses.filter(s => {
@@ -134,6 +137,7 @@ export const Rating = () => {
           sickDays: 0,
           vacationDays: 0,
           absenceDays: 0,
+          internshipDays: 0,
           poolAmount: 0,
           rating: 0,
           lastUpdated: new Date().toISOString(),
@@ -153,6 +157,7 @@ export const Rating = () => {
           sickDays,
           vacationDays,
           absenceDays,
+          internshipDays,
           poolAmount,
           lastUpdated: new Date().toISOString(),
         }

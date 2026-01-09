@@ -4,7 +4,7 @@ import { getRatingBreakdown, getExclusionStatus } from '@/utils/ratingUtils'
 import { RatingData, TEAM_MEMBERS } from '@/types'
 import { formatHours } from '@/utils/dateUtils'
 import { UserNickname } from '@/components/UserNickname'
-import { Calendar, Heart, Plane, Clock, DollarSign, Users, TrendingUp, Info, AlertTriangle } from 'lucide-react'
+import { Calendar, Heart, Plane, Clock, DollarSign, Users, TrendingUp, Info, AlertTriangle, GraduationCap } from 'lucide-react'
 import { useState } from 'react'
 
 interface RatingCardProps {
@@ -141,6 +141,16 @@ export const RatingCard = ({ rating, place }: RatingCardProps) => {
       explanation: 'До 1 прогула в неделю = рейтинг не страдает. Более 2 прогулов = -30% к рейтингу. Учитывается за последние 7 дней.',
       threshold: '≤1 дня',
       color: 'bg-red-200 text-red-900'
+    },
+    {
+      icon: <GraduationCap className="w-5 h-5" />,
+      label: 'Стажировка',
+      value: `${rating.breakdown.internshipDays} дней`,
+      points: rating.breakdown.internshipDaysPoints,
+      maxPoints: 0,
+      explanation: 'Стажировка не влияет на рейтинг. Это специальный статус для новых участников в период адаптации.',
+      threshold: 'Нейтрально',
+      color: 'bg-blue-200 text-blue-900'
     },
     {
       icon: <Clock className="w-5 h-5" />,

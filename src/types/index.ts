@@ -45,13 +45,13 @@ export interface DayStatus {
   id: string
   userId: string
   date: string
-  type: 'dayoff' | 'sick' | 'vacation' | 'absence'
+  type: 'dayoff' | 'sick' | 'vacation' | 'absence' | 'internship'
   comment?: string
   endDate?: string // for multi-day statuses
 }
 
 // Restriction types
-export type RestrictionType = 'slots' | 'dayoff' | 'sick' | 'vacation' | 'absence' | 'all'
+export type RestrictionType = 'slots' | 'dayoff' | 'sick' | 'vacation' | 'absence' | 'internship' | 'all'
 
 export interface Restriction {
   id: string
@@ -128,6 +128,7 @@ export interface RatingData {
   sickDays: number
   vacationDays: number
   absenceDays: number
+  internshipDays: number
   poolAmount: number
   rating: number
   lastUpdated: string

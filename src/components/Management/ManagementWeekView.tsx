@@ -441,6 +441,7 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
     sick: 'bg-orange-500/10 text-orange-500 border border-orange-500/20',
     vacation: 'bg-sky-500/10 text-sky-500 border border-sky-500/20',
     absence: 'bg-rose-500/10 text-rose-500 border border-rose-500/20',
+    internship: 'bg-blue-500/10 text-blue-500 border border-blue-500/20',
   } as const
 
   const SLOT_CATEGORY_COLORS: Record<SlotCategory, { bg: string; text: string; border: string }> = {
@@ -543,7 +544,7 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
                       <div className="flex flex-col sm:flex-row sm:items-center gap-2 justify-center sm:justify-start w-full">
                         <span className="font-semibold text-base sm:text-lg">{displayName}</span>
                         <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/70 dark:bg-white/10 text-xs sm:text-sm font-semibold">
-                          {status.type === 'dayoff' ? 'Выходной' : status.type === 'sick' ? 'Больничный' : status.type === 'vacation' ? 'Отпуск' : 'Прогул'}
+                          {status.type === 'dayoff' ? 'Выходной' : status.type === 'sick' ? 'Больничный' : status.type === 'vacation' ? 'Отпуск' : status.type === 'absence' ? 'Отсутствие' : 'Стажировка'}
                           {status.comment && (
                             <div className="relative group/statuscomm ml-1">
                               <Info className="w-3.5 h-3.5 opacity-60 hover:opacity-100 cursor-help" />

@@ -49,7 +49,7 @@ export const Management = () => {
   const [showRestrictionForm, setShowRestrictionForm] = useState(false)
   const [showConflictsForm, setShowConflictsForm] = useState(false)
   const [showAccessBlocksForm, setShowAccessBlocksForm] = useState(false)
-  const [statusType, setStatusType] = useState<'dayoff' | 'sick' | 'vacation' | null>(null)
+  const [statusType, setStatusType] = useState<'dayoff' | 'sick' | 'vacation' | 'absence' | 'internship' | null>(null)
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null)
   const [editingSlot, setEditingSlot] = useState<any>(null)
   const [editingStatus, setEditingStatus] = useState<any>(null)

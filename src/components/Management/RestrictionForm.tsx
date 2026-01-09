@@ -115,6 +115,7 @@ export const RestrictionForm = ({ onClose, onSave }: RestrictionFormProps) => {
     sick: 'Больничные',
     vacation: 'Отпуска',
     absence: 'Прогулы',
+    internship: 'Стажировка',
     all: 'Всё',
   }
 

@@ -379,7 +379,8 @@ const restrictionTypeToLabel = (type: RestrictionType): string => {
     dayoff: 'выходные',
     sick: 'больничные',
     vacation: 'отпуска',
-    absence: 'прогулы',
+    absence: 'отсутствия',
+    internship: 'стажировки',
     all: 'любые записи',
   }
   return labels[type]
@@ -790,6 +791,7 @@ export const getRatingData = async (userId?: string) => {
       sickDays: data.sickDays || 0,
       vacationDays: data.vacationDays || 0,
       absenceDays: data.absenceDays || 0,
+      internshipDays: data.internshipDays || 0,
       poolAmount: data.poolAmount || 0,
       rating: data.rating || 0,
       lastUpdated: data.lastUpdated || new Date().toISOString(),
