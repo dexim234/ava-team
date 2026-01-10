@@ -1,8 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { Search, ChevronDown, User, X } from 'lucide-react'
-import { TEAM_MEMBERS, User as UserType } from '@/types'
+import { User as UserType } from '@/types'
 import { useUserNickname } from '@/utils/userUtils'
 import { useThemeStore } from '@/store/themeStore'
+import { getAllUsers } from '@/services/firestoreService'
+import { TEAM_MEMBERS } from '@/types'
 
 interface MemberSelectorProps {
     selectedUserId: string | null
@@ -13,10 +15,40 @@ export const MemberSelector: React.FC<MemberSelectorProps> = ({ selectedUserId, 
     const { theme } = useThemeStore()
     const [isOpen, setIsOpen] = useState(false)
     const [search, setSearch] = useState('')
+    const [firestoreUsers, setFirestoreUsers] = useState<UserType[]>([])
     const containerRef = useRef<HTMLDivElement>(null)
 
-    const selectedMember = TEAM_MEMBERS.find(m => m.id === selectedUserId)
+    // Merge Firestore users with TEAM_MEMBERS (Firestore takes priority)
+    const allUsers = React.useMemo(() => {
+        const usersMap = new Map<string, UserType>()
+
+        // Add TEAM_MEMBERS first (as fallback)
+        TEAM_MEMBERS.forEach(user => {
+            usersMap.set(user.id, user)
+        })
+
+        // Override with Firestore users
+        firestoreUsers.forEach(user => {
+            usersMap.set(user.id, user)
+        })
+
+        return Array.from(usersMap.values())
+    }, [firestoreUsers])
+
+    const selectedMember = allUsers.find(m => m.id === selectedUserId)
     const selectedNickname = useUserNickname(selectedUserId || '')
+
+    useEffect(() => {
+        const loadUsers = async () => {
+            try {
+                const users = await getAllUsers()
+                setFirestoreUsers(users)
+            } catch (error) {
+                console.error('Error loading users for selector:', error)
+            }
+        }
+        loadUsers()
+    }, [])
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -28,7 +60,7 @@ export const MemberSelector: React.FC<MemberSelectorProps> = ({ selectedUserId, 
         return () => document.removeEventListener('mousedown', handleClickOutside)
     }, [])
 
-    const filteredMembers = TEAM_MEMBERS.filter(m => {
+    const filteredMembers = allUsers.filter(m => {
         const name = m.name.toLowerCase()
         const login = m.login.toLowerCase()
         const query = search.toLowerCase()

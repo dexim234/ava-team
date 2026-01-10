@@ -1,7 +1,8 @@
 // Admin page - dedicated page for admin mode management
 import { useThemeStore } from '@/store/themeStore'
 import { useAdminStore } from '@/store/adminStore'
-import { Shield, Sparkles, Lock, Key } from 'lucide-react'
+import { Shield, Sparkles, Lock, Key, Users } from 'lucide-react'
+import { UsersManagement } from '@/components/Management/UsersManagement'
 
 export const Admin = () => {
   const { theme } = useThemeStore()
@@ -122,6 +123,16 @@ export const Admin = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className={`p-4 rounded-xl border ${theme === 'dark' ? 'border-gray-800 bg-gray-700/30' : 'border-gray-200 bg-gray-50'
             }`}>
+            <h3 className={`font-semibold mb-2 ${headingColor}`}>👥 Управление участниками</h3>
+            <ul className={`text-sm space-y-1 ${labelColor} list-disc list-inside`}>
+              <li>Добавление новых участников</li>
+              <li>Редактирование данных участников</li>
+              <li>Удаление участников и всех их данных</li>
+              <li>Управление фото и доступом</li>
+            </ul>
+          </div>
+          <div className={`p-4 rounded-xl border ${theme === 'dark' ? 'border-gray-800 bg-gray-700/30' : 'border-gray-200 bg-gray-50'
+            }`}>
             <h3 className={`font-semibold mb-2 ${headingColor}`}>📅 Управление слотами</h3>
             <ul className={`text-sm space-y-1 ${labelColor} list-disc list-inside`}>
               <li>Создание слотов для любого участника</li>
@@ -158,6 +169,19 @@ export const Admin = () => {
             </ul>
           </div>
         </div>
+      </div>
+
+      {/* Users Management Section */}
+      <div className={`rounded-2xl p-6 ${cardBg} shadow-lg border-2 ${theme === 'dark' ? 'border-purple-500/30' : 'border-purple-200'
+        }`}>
+        <div className="flex items-center gap-3 mb-4">
+          <div className={`p-2 rounded-xl ${theme === 'dark' ? 'bg-purple-500/20' : 'bg-purple-100'
+            }`}>
+            <Users className={`w-6 h-6 ${theme === 'dark' ? 'text-purple-400' : 'text-purple-600'}`} />
+          </div>
+          <h2 className={`text-xl font-semibold ${headingColor}`}>Участники команды</h2>
+        </div>
+        <UsersManagement />
       </div>
     </div>
   )

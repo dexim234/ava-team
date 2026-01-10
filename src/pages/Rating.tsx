@@ -9,12 +9,14 @@ import { getRatingData, getEarnings, getDayStatuses, getReferrals, getWorkSlots,
 import { getLastNDaysRange, getWeekRange, formatDate, calculateHours, countDaysInPeriod } from '@/utils/dateUtils'
 import { calculateRating, getRatingBreakdown } from '@/utils/ratingUtils'
 import { getUserNicknameAsync, clearAllNicknameCache, getUserNicknameSync } from '@/utils/userUtils'
-import { RatingData, Referral, TEAM_MEMBERS, UserActivity } from '@/types'
+import { RatingData, Referral, UserActivity } from '@/types'
+import { useUsers } from '@/hooks/useUsers'
 
 export const Rating = () => {
   const { theme } = useThemeStore()
   const { user } = useAuthStore()
   const { isAdmin } = useAdminStore()
+  const { users: allMembers, loading: usersLoading } = useUsers()
   type RatingWithBreakdown = RatingData & { breakdown?: ReturnType<typeof getRatingBreakdown> }
   const [ratings, setRatings] = useState<RatingWithBreakdown[]>([])
   const [loading, setLoading] = useState(true)
@@ -50,7 +52,7 @@ export const Rating = () => {
       setReferrals(currentReferrals)
       const allRatings: (RatingData & { breakdown?: ReturnType<typeof getRatingBreakdown> })[] = []
 
-      for (const member of TEAM_MEMBERS) {
+      for (const member of allMembers) {
         // Данные для рейтинга
         const weekEarnings = await getEarnings(member.id, weekStart, weekEnd)
         // Если у записи несколько участников, сумма делится поровну между ними
@@ -299,12 +301,14 @@ export const Rating = () => {
   useEffect(() => {
     const loadCustomNicknames = async () => {
       clearAllNicknameCache()
-      for (const member of TEAM_MEMBERS) {
+      for (const member of allMembers) {
         await getUserNicknameAsync(member.id)
       }
     }
-    loadCustomNicknames()
-  }, [])
+    if (!usersLoading) {
+      loadCustomNicknames()
+    }
+  }, [allMembers, usersLoading])
 
   // Listen for nickname updates and reload nicknames
   useEffect(() => {
@@ -319,7 +323,7 @@ export const Rating = () => {
       } else {
         // Reload all nicknames if userId not specified
         clearAllNicknameCache()
-        for (const member of TEAM_MEMBERS) {
+        for (const member of allMembers) {
           await getUserNicknameAsync(member.id)
         }
         setRatings(prev => [...prev])
@@ -330,7 +334,7 @@ export const Rating = () => {
     return () => {
       window.removeEventListener('nicknameUpdated', handleNicknameUpdate)
     }
-  }, [])
+  }, [allMembers])
 
   const handleAddReferral = () => {
     setActiveReferral(null)
@@ -521,7 +525,7 @@ export const Rating = () => {
                 </tr>
               </thead>
               <tbody>
-                {TEAM_MEMBERS.map((member) => {
+                {allMembers.map((member) => {
                   const activity = userActivities.find((a) => a.userId === member.id)
                   const formatSessionDuration = (seconds?: number): string => {
                     if (!seconds) return '—'
@@ -606,7 +610,7 @@ export const Rating = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {TEAM_MEMBERS.map((member) => {
+                  {allMembers.map((member) => {
                     const memberActivities = activities24h.filter((a) => a.userId === member.id)
 
                     const formatSessionDuration = (seconds?: number): string => {

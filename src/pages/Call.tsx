@@ -4,7 +4,7 @@ import { CallForm } from '@/components/Call/CallForm'
 import { CustomSelect } from '@/components/Call/CustomSelect'
 import { getCalls, deleteCall, updateCall } from '@/services/firestoreService'
 import type { Call, CallCategory, CallRiskLevel } from '@/types'
-import { TEAM_MEMBERS } from '@/types'
+import { useUsers } from '@/hooks/useUsers'
 import {
   X,
   Edit,
@@ -296,9 +296,12 @@ export const CallPage = () => {
     { value: 'ultra', label: 'Ultra Risk', icon: <Zap size={14} />, chip: riskBadges['ultra'] },
   ]
 
+  // Get all users for trader options
+  const { users: allMembers } = useUsers()
+  
   const traderOptions = [
     { value: 'all', label: 'Все трейдеры', icon: <User size={16} /> },
-    ...TEAM_MEMBERS.map(t => ({
+    ...allMembers.map(t => ({
       value: t.id,
       label: t.name,
       meta: t.login,
@@ -534,7 +537,7 @@ export const CallPage = () => {
               const meta = CATEGORY_META[call.category]
               const details = getDetails(call)
               const risk = getRiskLevel(call)
-              const trader = TEAM_MEMBERS.find(t => t.id === call.userId)
+              const trader = allMembers.find(t => t.id === call.userId)
 
               return (
                 <div

@@ -1,6 +1,6 @@
 // Task filters component
 import { useThemeStore } from '@/store/themeStore'
-import { TaskCategory, TaskStatus, TEAM_MEMBERS, TASK_CATEGORIES, TASK_STATUSES } from '@/types'
+import { TaskCategory, TaskStatus, TASK_CATEGORIES, TASK_STATUSES } from '@/types'
 import {
   Archive,
   CheckCircle2,
@@ -17,6 +17,7 @@ import {
 } from 'lucide-react'
 import { CATEGORY_ICONS } from './categoryIcons'
 import { getUserNicknameSync } from '@/utils/userUtils'
+import { useUsers } from '@/hooks/useUsers'
 
 interface TaskFiltersProps {
   selectedCategory: TaskCategory | 'all'
@@ -44,7 +45,8 @@ export const TaskFilters = ({
   const borderColor = theme === 'dark' ? 'border-gray-800' : 'border-gray-300'
 
   const hasActiveFilters = selectedCategory !== 'all' || selectedStatus !== 'all' || selectedUsers.length > 0
-  const selectedUserNames = TEAM_MEMBERS.filter((m) => selectedUsers.includes(m.id)).map((m) => m.name)
+  const { users: allMembers } = useUsers()
+  const selectedUserNames = allMembers.filter((m) => selectedUsers.includes(m.id)).map((m) => m.name)
   const filterNav = [
     { href: '#filter-status', label: 'Статусы' },
     { href: '#filter-category', label: 'Категории' },
@@ -256,7 +258,7 @@ export const TaskFilters = ({
             >
               Все
             </button>
-            {TEAM_MEMBERS.map((member) => {
+            {allMembers.map((member) => {
               const isSelected = selectedUsers.includes(member.id)
               return (
                 <button

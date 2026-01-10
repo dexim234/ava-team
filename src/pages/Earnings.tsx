@@ -5,10 +5,11 @@ import { EarningsForm } from '@/components/Earnings/EarningsForm'
 import { EarningsTable } from '@/components/Earnings/EarningsTable'
 import { EarningsList } from '@/components/Earnings/EarningsList'
 import { getEarnings } from '@/services/firestoreService'
-import { Earnings as EarningsType, EARNINGS_CATEGORY_META, EarningsCategory, TEAM_MEMBERS } from '@/types'
+import { Earnings as EarningsType, EARNINGS_CATEGORY_META, EarningsCategory } from '@/types'
 import { Plus, DollarSign, TrendingUp, Sparkles, Wallet, PiggyBank, PieChart, Coins, BarChart3, Zap, ShieldCheck } from 'lucide-react'
 import { getWeekRange, formatDate } from '@/utils/dateUtils'
 import { getUserNicknameAsync } from '@/utils/userUtils'
+import { useUsers } from '@/hooks/useUsers'
 
 export const Earnings = () => {
   const { theme } = useThemeStore()
@@ -61,6 +62,9 @@ export const Earnings = () => {
     calculateStats()
   }, [earnings])
 
+  // Get all users for rankings
+  const { users: allMembers } = useUsers()
+
   // Listen for nickname updates and force re-render
   useEffect(() => {
     const handleNicknameUpdate = async (event: Event) => {
@@ -71,7 +75,7 @@ export const Earnings = () => {
         await getUserNicknameAsync(userId)
       } else {
         // Reload all nicknames if userId not specified
-        for (const member of TEAM_MEMBERS) {
+        for (const member of allMembers) {
           await getUserNicknameAsync(member.id)
         }
       }
@@ -83,7 +87,7 @@ export const Earnings = () => {
     return () => {
       window.removeEventListener('nicknameUpdated', handleNicknameUpdate)
     }
-  }, [])
+  }, [allMembers])
 
   const loadEarnings = async () => {
     setLoading(true)
@@ -148,7 +152,7 @@ export const Earnings = () => {
     share: totalNet > 0 ? (cat.net / totalNet) * 100 : 0
   })).sort((a, b) => b.share - a.share)
 
-  const contributorRanking = TEAM_MEMBERS.map((member) => {
+  const contributorRanking = allMembers.map((member) => {
     const related = earnings.filter((e) => getParticipants(e).includes(member.id))
     const net = related.reduce((sum, e) => {
       const share = getNetValue(e) / Math.max(getParticipants(e).length, 1)

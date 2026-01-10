@@ -8,9 +8,9 @@ import { getWorkSlots, getDayStatuses, addApprovalRequest, deleteWorkSlot, updat
 import { formatDate, getWeekDays, isSameDate, getMoscowTime } from '@/utils/dateUtils'
 import { getUserNicknameSync } from '@/utils/userUtils'
 import { WorkSlot, DayStatus, SLOT_CATEGORY_META, SlotCategory } from '@/types'
-import { TEAM_MEMBERS } from '@/types'
 import { Edit, Trash2, CheckCircle2, Calendar as CalendarIcon, ChevronDown, ChevronUp, Info, ChevronLeft, ChevronRight, RotateCcw } from 'lucide-react'
 import { startOfWeek } from 'date-fns'
+import { useUsers } from '@/hooks/useUsers'
 
 type SlotFilter = 'all' | 'upcoming' | 'completed'
 
@@ -28,6 +28,7 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
   const { theme } = useThemeStore()
   const { user } = useAuthStore()
   const { isAdmin } = useAdminStore()
+  const { users: allMembers } = useUsers()
   // Типы статусов, которые может удалять только админ
   const adminOnlyTypes = ['truancy', 'absence', 'internship']
   const [slots, setSlots] = useState<WorkSlot[]>([])
@@ -51,7 +52,7 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
   }
 
   const resolveUser = (userId: string) => {
-    const member = TEAM_MEMBERS.find((u) => u.id === userId) || TEAM_MEMBERS.find((u) => legacyIdMap[userId] === u.id)
+    const member = allMembers.find((u) => u.id === userId) || allMembers.find((u) => legacyIdMap[userId] === u.id)
     return {
       member,
       displayName: getUserNicknameSync(member?.id || userId),

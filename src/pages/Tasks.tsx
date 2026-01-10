@@ -7,9 +7,10 @@ import { TaskCard } from '@/components/Tasks/TaskCard'
 import { TaskFilters } from '@/components/Tasks/TaskFilters'
 import { TaskKanban } from '@/components/Tasks/TaskKanban'
 import { getTasks, deleteTask } from '@/services/firestoreService'
-import { Task, TaskCategory, TaskStatus, TEAM_MEMBERS, TASK_STATUSES } from '@/types'
+import { Task, TaskCategory, TaskStatus, TASK_STATUSES } from '@/types'
 import { CheckSquare, LayoutGrid, List, Plus, Sparkles } from 'lucide-react'
 import { formatDate } from '@/utils/dateUtils'
+import { useUsers } from '@/hooks/useUsers'
 
 export const Tasks = () => {
   const { theme } = useThemeStore()
@@ -145,7 +146,9 @@ export const Tasks = () => {
     const sorted = Object.entries(counter).sort((a, b) => b[1] - a[1])
     return sorted[0]?.[0] || ''
   })()
-  const topExecutorName = topExecutorId ? TEAM_MEMBERS.find((m) => m.id === topExecutorId)?.name || topExecutorId : '—'
+  // Get all users for task executioner names
+  const { users: allMembers } = useUsers()
+  const topExecutorName = topExecutorId ? allMembers.find((m) => m.id === topExecutorId)?.name || topExecutorId : '—'
 
   const upcomingTask = tasks
     .filter((t) => t.status !== 'completed' && t.status !== 'closed')

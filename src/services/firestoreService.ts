@@ -1722,6 +1722,103 @@ export const getUserById = async (userId: string): Promise<User | null> => {
   return null
 }
 
+// User Management Functions
+export const getAllUsers = async (): Promise<User[]> => {
+  const usersRef = collection(db, 'users')
+  const q = query(usersRef, orderBy('name', 'asc'))
+  const snapshot = await getDocs(q)
+  return snapshot.docs.map((docSnap) => ({
+    id: docSnap.id,
+    ...docSnap.data(),
+  } as User))
+}
+
+export const addUser = async (user: Omit<User, 'id'>): Promise<string> => {
+  const usersRef = collection(db, 'users')
+  const cleanUser = Object.fromEntries(
+    Object.entries(user).filter(([_, value]: [string, any]) => value !== undefined)
+  )
+  const result = await addDoc(usersRef, cleanUser)
+  return result.id
+}
+
+export const updateUser = async (id: string, updates: Partial<User>): Promise<void> => {
+  const userRef = doc(db, 'users', id)
+  const cleanUpdates = Object.fromEntries(
+    Object.entries(updates).filter(([_, value]: [string, any]) => value !== undefined)
+  )
+  await updateDoc(userRef, cleanUpdates)
+}
+
+export const deleteUser = async (userId: string): Promise<void> => {
+  console.log(`[deleteUser] Starting deletion for user: ${userId}`)
+
+  // Delete all user-related data from Firestore
+  const collectionsToClean = [
+    { name: 'workSlots', field: 'userId' },
+    { name: 'workSlots', field: 'participants' }, // slots where user is a participant
+    { name: 'dayStatuses', field: 'userId' },
+    { name: 'earnings', field: 'userId' },
+    { name: 'earnings', field: 'participants' }, // earnings where user is a participant
+    { name: 'ratings', field: 'userId' },
+    { name: 'tasks', field: 'createdBy' },
+    { name: 'tasks', field: 'assignedTo' },
+    { name: 'userActivities', field: 'userId' },
+    { name: 'userNicknames', field: 'userId' },
+    { name: 'notes', field: 'userId' },
+    { name: 'messages', field: 'userId' },
+    { name: 'userConflicts', field: 'userId' },
+    { name: 'userConflicts', field: 'restrictedUserId' },
+    { name: 'accessBlocks', field: 'userId' },
+  ]
+
+  // Get all user documents across collections
+  const userDocIds = new Set<string>()
+
+  for (const { name, field } of collectionsToClean) {
+    try {
+      const collRef = collection(db, name)
+      const q = query(collRef, where(field, '==', userId))
+      const snapshot = await getDocs(q)
+      snapshot.docs.forEach((doc) => userDocIds.add(doc.id))
+    } catch (error) {
+      console.error(`[deleteUser] Error querying ${name}.${field}:`, error)
+    }
+  }
+
+  // Delete all found documents
+  for (const docId of userDocIds) {
+    try {
+      // Determine which collection the document belongs to
+      for (const { name } of collectionsToClean) {
+        try {
+          const docRef = doc(db, name, docId)
+          const docSnap = await getDoc(docRef)
+          if (docSnap.exists()) {
+            await deleteDoc(docRef)
+            console.log(`[deleteUser] Deleted ${name}/${docId}`)
+            break // Document deleted, move to next
+          }
+        } catch (e) {
+          // Document might not exist in this collection, continue
+        }
+      }
+    } catch (error) {
+      console.error(`[deleteUser] Error deleting document ${docId}:`, error)
+    }
+  }
+
+  // Finally delete the user document itself
+  const userRef = doc(db, 'users', userId)
+  const userSnap = await getDoc(userRef)
+  if (userSnap.exists()) {
+    await deleteDoc(userRef)
+    console.log(`[deleteUser] Deleted user document: ${userId}`)
+  }
+
+  console.log(`[deleteUser] Completed deletion for user: ${userId}`)
+}
+
 export const addAiAlert = async (alert: Omit<AiAlert, 'id'>) => {
   const alertsRef = collection(db, 'aiAlerts')
   const cleanAlert = Object.fromEntries(

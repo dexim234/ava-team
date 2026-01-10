@@ -70,6 +70,85 @@ export const getUserLoginAsync = getUserNicknameAsync
 export const clearLoginCache = clearNicknameCache
 export const clearAllLoginCache = clearAllNicknameCache
 
+// Login/Password Generation Utilities
+const ADJECTIVES = [
+  'fast', 'smart', 'bright', 'cool', 'wise', 'bold', 'calm', 'eager', 'easy', 'fair',
+  'glad', 'kind', 'lucky', 'nice', 'proud', 'silly', 'vivid', 'warm', 'young', 'happy',
+  'prime', 'neo', 'super', 'mega', 'ultra', 'hyper', 'max', 'top', 'pro', 'maxi'
+]
+
+const SPECIAL_CHARS = '!@#$%&*'
+
+/**
+ * Generate a random password
+ */
+export const generatePassword = (length: number = 10): string => {
+  const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+  const lowercase = 'abcdefghijklmnopqrstuvwxyz'
+  const numbers = '0123456789'
+
+  const allChars = lowercase + numbers + uppercase + SPECIAL_CHARS
+  let password = ''
+
+  // Ensure at least one of each required type
+  password += lowercase[Math.floor(Math.random() * lowercase.length)]
+  password += numbers[Math.floor(Math.random() * numbers.length)]
+  password += uppercase[Math.floor(Math.random() * uppercase.length)]
+  password += SPECIAL_CHARS[Math.floor(Math.random() * SPECIAL_CHARS.length)]
+
+  // Fill remaining length
+  for (let i = password.length; i < length; i++) {
+    password += allChars[Math.floor(Math.random() * allChars.length)]
+  }
+
+  // Shuffle the password
+  return password.split('').sort(() => Math.random() - 0.5).join('')
+}
+
+/**
+ * Generate a unique login based on name
+ */
+export const generateLogin = (name: string, existingLogins: string[] = []): string => {
+  // Clean the name - take first word, lowercase, remove special chars
+  const baseName = name.split(' ')[0]
+    .toLowerCase()
+    .replace(/[^a-zа-яё0-9]/gi, '')
+    .slice(0, 8)
+
+  // Try base name first
+  if (!existingLogins.includes(baseName)) {
+    return baseName
+  }
+
+  // Try with random number suffix
+  const suffix = Math.floor(Math.random() * 90 + 10) // 10-99
+  const loginWithNumber = `${baseName}${suffix}`
+  if (!existingLogins.includes(loginWithNumber)) {
+    return loginWithNumber
+  }
+
+  // Try with adjective prefix
+  const adjective = ADJECTIVES[Math.floor(Math.random() * ADJECTIVES.length)]
+  const loginWithAdj = `${adjective}${baseName}`
+  if (!existingLogins.includes(loginWithAdj)) {
+    return loginWithAdj
+  }
+
+  // Try with number suffix on adjective version
+  const loginFinal = `${adjective}${baseName}${suffix}`
+  return loginFinal
+}
+
+/**
+ * Generate complete credentials for a new user
+ */
+export const generateUserCredentials = (name: string, existingUsers: { login: string }[] = []): { login: string; password: string } => {
+  const existingLogins = existingUsers.map(u => u.login)
+  const login = generateLogin(name, existingLogins)
+  const password = generatePassword(12)
+  return { login, password }
+}
+
 /**
  * React hook for user nickname that automatically updates when nickname changes
  */
