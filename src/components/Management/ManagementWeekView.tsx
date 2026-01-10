@@ -28,6 +28,8 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
   const { theme } = useThemeStore()
   const { user } = useAuthStore()
   const { isAdmin } = useAdminStore()
+  // Типы статусов, которые может удалять только админ
+  const adminOnlyTypes = ['truancy', 'absence', 'internship']
   const [slots, setSlots] = useState<WorkSlot[]>([])
   const [statuses, setStatuses] = useState<DayStatus[]>([])
   const [selectedWeek, setSelectedWeek] = useState(() => {
@@ -161,7 +163,13 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
   }
 
   const handleDeleteStatus = async (status: DayStatus, dateStr?: string) => {
-    if (!isAdmin && user?.id !== status.userId) {
+    // Статусы truancy, absence и internship могут удалять только админы
+    if (adminOnlyTypes.includes(status.type)) {
+      if (!isAdmin) {
+        alert('Только администратор может удалять этот тип статуса')
+        return
+      }
+    } else if (!isAdmin && user?.id !== status.userId) {
       alert('Только администратор может удалять чужие статусы')
       return
     }
@@ -559,7 +567,24 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
                         </span>
                       </div>
                       <div className="flex gap-2 justify-center sm:justify-end w-full">
-                        {(isAdmin || user?.id === status.userId) ? (
+                        {isAdmin && adminOnlyTypes.includes(status.type) ? (
+                          <>
+                            <button
+                              onClick={() => onEditStatus(status)}
+                              className={`p-1 rounded transition-colors ${theme === 'dark' ? 'bg-white/10 hover:bg-white/20 text-white' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-100'}`}
+                              title="Редактировать (только для админа)"
+                            >
+                              <Edit className="w-4 h-4 text-current" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteStatus(status, dateStr)}
+                              className={`p-1 rounded transition-colors ${theme === 'dark' ? 'bg-white/10 hover:bg-white/20 text-white' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-100'}`}
+                              title="Удалить (только для админа)"
+                            >
+                              <Trash2 className="w-4 h-4 text-current" />
+                            </button>
+                          </>
+                        ) : isAdmin || user?.id === status.userId ? (
                           <>
                             <button
                               onClick={() => onEditStatus(status)}

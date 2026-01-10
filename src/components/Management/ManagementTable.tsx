@@ -4,8 +4,7 @@ import { useThemeStore } from '@/store/themeStore'
 import { useAuthStore } from '@/store/authStore'
 import { useAdminStore } from '@/store/adminStore'
 import { getWorkSlots, getDayStatuses, addApprovalRequest, deleteWorkSlot, updateDayStatus, addDayStatus, deleteDayStatus } from '@/services/firestoreService'
-import { formatDate, calculateHours, getWeekDays, getMoscowTime, countDaysInPeriod, getWeekRange } from '@/utils/dateUtils'
-import { getUserNicknameSync } from '@/utils/userUtils'
+import { formatDate, calculateHours, getWeekDays, getMoscowTime, getWeekRange } from '@/utils/dateUtils'
 import { UserNickname } from '@/components/UserNickname'
 import { WorkSlot, DayStatus, SLOT_CATEGORY_META, SlotCategory } from '@/types'
 import { TEAM_MEMBERS } from '@/types'
@@ -28,6 +27,8 @@ export const ManagementTable = ({ selectedUserId, slotFilter, onEditSlot, onEdit
   const { theme } = useThemeStore()
   const { user } = useAuthStore()
   const { isAdmin } = useAdminStore()
+  // Типы статусов, которые может удалять только админ
+  const adminOnlyTypes = ['truancy', 'absence', 'internship']
   const [slots, setSlots] = useState<WorkSlot[]>([])
   const [statuses, setStatuses] = useState<DayStatus[]>([])
   const [selectedWeek, setSelectedWeek] = useState(() => {
@@ -40,19 +41,6 @@ export const ManagementTable = ({ selectedUserId, slotFilter, onEditSlot, onEdit
   const [loading, setLoading] = useState(true)
   const [breaksExpanded, setBreaksExpanded] = useState<Record<string, boolean>>({})
   const todayStr = formatDate(new Date(), 'yyyy-MM-dd')
-
-  const legacyIdMap: Record<string, string> = {
-    artyom: '1',
-    adel: '2',
-    kseniya: '3',
-    olga: '4',
-    anastasia: '5',
-  }
-
-  const getDisplayName = (userId: string) => {
-    const member = TEAM_MEMBERS.find((u) => u.id === userId) || TEAM_MEMBERS.find((u) => legacyIdMap[userId] === u.id)
-    return getUserNicknameSync(member?.id || userId)
-  }
 
   const weekDays = getWeekDays(selectedWeek)
   const displayUsers = selectedUserId ? TEAM_MEMBERS.filter((u) => u.id === selectedUserId) : TEAM_MEMBERS
@@ -150,7 +138,14 @@ export const ManagementTable = ({ selectedUserId, slotFilter, onEditSlot, onEdit
   }
 
   const handleDeleteStatus = async (status: DayStatus, dateStr?: string) => {
-    if (!isAdmin && user?.id !== status.userId) {
+    // Статусы truancy, absence и internship могут удалять только админы
+    const adminOnlyTypes = ['truancy', 'absence', 'internship']
+    if (adminOnlyTypes.includes(status.type)) {
+      if (!isAdmin) {
+        alert('Только администратор может удалять этот тип статуса')
+        return
+      }
+    } else if (!isAdmin && user?.id !== status.userId) {
       alert('Только администратор может удалять чужие статусы')
       return
     }
@@ -406,22 +401,23 @@ export const ManagementTable = ({ selectedUserId, slotFilter, onEditSlot, onEdit
     const weekSlots = userSlots.filter((s: any) => s.date >= weekStartStr && s.date <= weekEndStr)
     const totalHours = weekSlots.reduce((sum: number, slot: any) => sum + calculateHours(slot.slots), 0)
 
-    const userStatuses = statuses.filter((s) => s.userId === userId)
+    // Calculate total break time
+    const totalBreakMinutes = weekSlots.reduce((sum: number, slot: any) => {
+      return sum + slot.slots.reduce((slotSum: number, s: any) => {
+        if (s.breaks && s.breaks.length > 0) {
+          return slotSum + s.breaks.reduce((breakSum: number, br: any) => {
+            const [startH, startM] = br.start.split(':').map(Number)
+            const [endH, endM] = br.end.split(':').map(Number)
+            return breakSum + (endH * 60 + endM) - (startH * 60 + startM)
+          }, 0)
+        }
+        return slotSum
+      }, 0)
+    }, 0)
 
-    const countStatusDays = (type: string) => {
-      return userStatuses
-        .filter((s) => s.type === type)
-        .reduce((sum, s) => {
-          return sum + countDaysInPeriod(s.date, s.endDate, weekStartStr, weekEndStr)
-        }, 0)
-    }
+    const totalBreakHours = totalBreakMinutes / 60
 
-    const daysOff = countStatusDays('dayoff')
-    const sickDays = countStatusDays('sick')
-    const vacationDays = countStatusDays('vacation')
-    const absenceDays = countStatusDays('absence')
-
-    return { totalHours, daysOff, sickDays, vacationDays, absenceDays }
+    return { totalHours, totalBreakHours }
   }
 
   const navigateWeek = (direction: 'prev' | 'next') => {
@@ -578,7 +574,7 @@ export const ManagementTable = ({ selectedUserId, slotFilter, onEditSlot, onEdit
                           {user.avatar ? (
                             <img
                               src={user.avatar}
-                              alt={getDisplayName(user.id)}
+                              alt={user.name || user.id}
                               className="w-8 h-8 rounded-full object-cover border border-emerald-500/20 shadow-sm"
                               onError={(e) => {
                                 const target = e.target as HTMLImageElement
@@ -703,18 +699,39 @@ export const ManagementTable = ({ selectedUserId, slotFilter, onEditSlot, onEdit
                                 )}
                               </div>
                               <div className="flex items-center gap-2 opacity-0 group-hover/status:opacity-100 transition-opacity duration-200">
-                                <button
-                                  onClick={() => onEditStatus(status)}
-                                  className={`transition-all hover:scale-110 ${theme === 'dark' ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-500'}`}
-                                >
-                                  <Edit className="w-3.5 h-3.5" />
-                                </button>
-                                <button
-                                  onClick={() => handleDeleteStatus(status, dateStr)}
-                                  className={`transition-all hover:scale-110 ${theme === 'dark' ? 'text-rose-500 hover:text-rose-400' : 'text-rose-600 hover:text-rose-500'}`}
-                                >
-                                  <Trash2 className="w-3.5 h-3.5" />
-                                </button>
+                                {isAdmin && adminOnlyTypes.includes(status.type) ? (
+                                  <>
+                                    <button
+                                      onClick={() => onEditStatus(status)}
+                                      className={`transition-all hover:scale-110 ${theme === 'dark' ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-500'}`}
+                                      title="Редактировать (только для админа)"
+                                    >
+                                      <Edit className="w-3.5 h-3.5" />
+                                    </button>
+                                    <button
+                                      onClick={() => handleDeleteStatus(status, dateStr)}
+                                      className={`transition-all hover:scale-110 ${theme === 'dark' ? 'text-rose-500 hover:text-rose-400' : 'text-rose-600 hover:text-rose-500'}`}
+                                      title="Удалить (только для админа)"
+                                    >
+                                      <Trash2 className="w-3.5 h-3.5" />
+                                    </button>
+                                  </>
+                                ) : isAdmin || user?.id === status.userId ? (
+                                  <>
+                                    <button
+                                      onClick={() => onEditStatus(status)}
+                                      className={`transition-all hover:scale-110 ${theme === 'dark' ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-500'}`}
+                                    >
+                                      <Edit className="w-3.5 h-3.5" />
+                                    </button>
+                                    <button
+                                      onClick={() => handleDeleteStatus(status, dateStr)}
+                                      className={`transition-all hover:scale-110 ${theme === 'dark' ? 'text-rose-500 hover:text-rose-400' : 'text-rose-600 hover:text-rose-500'}`}
+                                    >
+                                      <Trash2 className="w-3.5 h-3.5" />
+                                    </button>
+                                  </>
+                                ) : null}
                               </div>
                             </div>
                           ) : (
@@ -729,16 +746,7 @@ export const ManagementTable = ({ selectedUserId, slotFilter, onEditSlot, onEdit
                           Часов: {stats.totalHours.toFixed(1)}
                         </div>
                         <div className={`text-[12px] font-medium leading-tight ${headingColor}`}>
-                          Выходных: {stats.daysOff}
-                        </div>
-                        <div className={`text-[12px] font-medium leading-tight ${headingColor}`}>
-                          Больничных: {stats.sickDays}
-                        </div>
-                        <div className={`text-[12px] font-medium leading-tight ${headingColor}`}>
-                          Отпусков: {stats.vacationDays}
-                        </div>
-                        <div className={`text-[12px] font-medium leading-tight ${headingColor}`}>
-                          Прогулов: {stats.absenceDays}
+                          Перерывов: {stats.totalBreakHours.toFixed(1)} ч
                         </div>
                       </div>
                     </td>

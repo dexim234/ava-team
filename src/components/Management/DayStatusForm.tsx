@@ -3,10 +3,10 @@ import { useState, useEffect } from 'react'
 import { useAuthStore } from '@/store/authStore'
 import { useThemeStore } from '@/store/themeStore'
 import { useAdminStore } from '@/store/adminStore'
-import { addApprovalRequest, getDayStatuses, addDayStatus, updateDayStatus, checkRestriction } from '@/services/firestoreService'
+import { addApprovalRequest, getDayStatuses, addDayStatus, updateDayStatus, checkRestriction, deleteDayStatus } from '@/services/firestoreService'
 import { formatDate, isSameDate, getDatesInRange, normalizeDatesList } from '@/utils/dateUtils'
 import { getUserNicknameSync } from '@/utils/userUtils'
-import { X } from 'lucide-react'
+import { X, Trash2 } from 'lucide-react'
 import { DayStatus, TEAM_MEMBERS } from '@/types'
 import { useScrollLock } from '@/hooks/useScrollLock'
 
@@ -458,6 +458,23 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
   }
 
   const headingTitle = selectedType ? `${status ? 'Редактировать' : 'Добавить'} ${nounByType[selectedType]}` : 'Добавить отсутствие'
+
+  // Типы статусов, которые может удалять только админ
+  const adminOnlyTypes: ('dayoff' | 'sick' | 'vacation' | 'absence' | 'truancy' | 'internship')[] = ['truancy', 'absence', 'internship']
+
+  const handleDelete = async () => {
+    if (!status) return
+
+    if (!confirm('Удалить этот статус?')) return
+
+    try {
+      await deleteDayStatus(status.id)
+      onSave()
+    } catch (err: any) {
+      console.error('Error deleting day status:', err)
+      setError(err.message || 'Ошибка при удалении')
+    }
+  }
 
   return (
     <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-xl flex items-start sm:items-center justify-center z-[70] p-4 sm:p-6 touch-manipulation overflow-y-auto overscroll-contain modal-scroll">
@@ -1047,6 +1064,15 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
               )}
 
               <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-2">
+                {status && isAdmin && adminOnlyTypes.includes(status.type) && (
+                  <button
+                    onClick={handleDelete}
+                    className="px-4 py-2.5 sm:py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg sm:rounded-xl transition-colors text-sm sm:text-base font-medium touch-manipulation active:scale-95 flex items-center justify-center gap-2"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    Удалить
+                  </button>
+                )}
                 <button
                   onClick={handleSave}
                   disabled={loading || !selectedType}
