@@ -105,7 +105,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
   ]
 
   const mobileFuncSubItems = funcsSubItems.filter(item =>
-    item.path !== '/about' && item.path !== '/approvals' &&
+    item.path !== '/about' &&
     (!item.feature || accessibleFeatures.has(item.feature) || isAdmin)
   )
 

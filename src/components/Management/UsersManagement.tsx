@@ -1,10 +1,27 @@
 import React, { useState, useEffect } from 'react'
 import { Plus, Edit2, Trash2, User, X, Image, Save, RefreshCw, Eye, EyeOff, Copy, Check } from 'lucide-react'
-import { User as UserType } from '@/types'
+import { User as UserType, TEAM_MEMBERS, User as UserInterface } from '@/types'
 import { getAllUsers, addUser, updateUser, deleteUser } from '@/services/firestoreService'
 import { useAdminStore } from '@/store/adminStore'
 import { useThemeStore } from '@/store/themeStore'
 import { generateUserCredentials } from '@/utils/userUtils'
+
+// Merge Firestore users with TEAM_MEMBERS (same logic as useUsers hook)
+const mergeUsersWithTeamMembers = (firestoreUsers: UserInterface[]): UserInterface[] => {
+  const usersMap = new Map<string, UserInterface>()
+
+  // Add TEAM_MEMBERS first (as fallback/base)
+  TEAM_MEMBERS.forEach(user => {
+    usersMap.set(user.id, user)
+  })
+
+  // Override with Firestore users (new/updated users)
+  firestoreUsers.forEach(user => {
+    usersMap.set(user.id, user)
+  })
+
+  return Array.from(usersMap.values())
+}
 
 export const UsersManagement: React.FC = () => {
   const { theme } = useThemeStore()
@@ -27,10 +44,13 @@ export const UsersManagement: React.FC = () => {
   const loadUsers = async () => {
     try {
       setLoading(true)
-      const allUsers = await getAllUsers()
+      const firestoreUsers = await getAllUsers()
+      const allUsers = mergeUsersWithTeamMembers(firestoreUsers)
       setUsers(allUsers)
     } catch (error) {
       console.error('Error loading users:', error)
+      // Fallback to TEAM_MEMBERS on error
+      setUsers(TEAM_MEMBERS)
     } finally {
       setLoading(false)
     }
@@ -108,7 +128,9 @@ export const UsersManagement: React.FC = () => {
   }
 
   const regenerateCredentials = () => {
-    const credentials = generateUserCredentials(formData.name || 'user', users)
+    // Get current users list for uniqueness check
+    const currentUsers = users.length > 0 ? users : TEAM_MEMBERS
+    const credentials = generateUserCredentials(formData.name || 'user', currentUsers)
     setFormData({ ...formData, login: credentials.login, password: credentials.password })
     setGeneratedCredentials(credentials)
   }
