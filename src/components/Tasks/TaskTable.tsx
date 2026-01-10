@@ -22,10 +22,10 @@ export const TaskTable = ({ tasks, onEdit, onDelete }: TaskTableProps) => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'in_progress': return 'bg-yellow-500/20 text-yellow-500 border-yellow-500/20'
-      case 'completed': return 'bg-green-500/20 text-green-500 border-green-500/20'
-      case 'closed': return 'bg-slate-500/20 text-slate-400 border-slate-500/20'
-      default: return 'bg-gray-500/20 text-gray-400 border-gray-500/20'
+      case 'in_progress': return 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20'
+      case 'completed': return 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
+      case 'closed': return 'bg-slate-500/10 text-slate-400 border-slate-500/20'
+      default: return 'bg-gray-500/10 text-gray-400 border-gray-500/20'
     }
   }
 
@@ -43,94 +43,112 @@ export const TaskTable = ({ tasks, onEdit, onDelete }: TaskTableProps) => {
 
   if (tasks.length === 0) {
     return (
-      <div className={`text-center py-12 rounded-xl border-2 border-dashed ${theme === 'dark' ? 'border-gray-800 text-gray-400' : 'border-gray-200 text-gray-500'}`}>
-        No tasks found
+      <div className={`text-center py-20 rounded-3xl border-2 border-dashed ${theme === 'dark' ? 'border-white/5 text-gray-500' : 'border-gray-200 text-gray-500'}`}>
+        <div className="flex flex-col items-center gap-3">
+          <div className={`p-4 rounded-full ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-100'}`}>
+            <Clock className="w-8 h-8 opacity-50" />
+          </div>
+          <p>Задач пока нет</p>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className={`w-full overflow-hidden rounded-xl border ${theme === 'dark' ? 'bg-[#151a21]/50 border-white/5' : 'bg-white border-gray-200'}`}>
-      <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead>
-            <tr className={`text-xs uppercase tracking-wider text-left ${theme === 'dark' ? 'text-gray-500 bg-white/5' : 'text-gray-500 bg-gray-50'}`}>
-              <th className="px-6 py-4 font-bold w-20">#ID</th>
-              <th className="px-6 py-4 font-bold">Задача</th>
-              <th className="px-6 py-4 font-bold">Категория</th>
-              <th className="px-6 py-4 font-bold">Исполнитель</th>
-              <th className="px-6 py-4 font-bold text-center">Статус</th>
-              <th className="px-6 py-4 font-bold text-right">Действия</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-white/5">
-            {tasks.map((task) => (
-              <tr
-                key={task.id}
-                className={`group transition-colors ${theme === 'dark' ? 'hover:bg-white/[0.02]' : 'hover:bg-gray-50'}`}
-              >
-                <td className={`px-6 py-4 text-xs font-mono opacity-50 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+    <div className="w-full overflow-x-auto">
+      <table className="w-full border-separate border-spacing-y-3 -mt-3">
+        <thead>
+          <tr className={`text-xs uppercase tracking-wider text-left ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`}>
+            <th className="px-6 py-2 font-medium w-20">#ID</th>
+            <th className="px-6 py-2 font-medium">Задача</th>
+            <th className="px-6 py-2 font-medium">Категория</th>
+            <th className="px-6 py-2 font-medium">Исполнитель</th>
+            <th className="px-6 py-2 font-medium text-center">Статус</th>
+            <th className="px-6 py-2 font-medium text-right">Действия</th>
+          </tr>
+        </thead>
+        <tbody>
+          {tasks.map((task) => (
+            <tr
+              key={task.id}
+              className={`group transition-all duration-200 ${theme === 'dark'
+                  ? 'bg-[#151a21]/80 hover:bg-[#1a2029] hover:shadow-lg hover:shadow-black/20'
+                  : 'bg-white hover:bg-gray-50 hover:shadow-md'
+                }`}
+            >
+              <td className={`px-6 py-5 rounded-l-2xl border-y border-l ${theme === 'dark' ? 'border-white/5' : 'border-gray-100'}`}>
+                <span className={`font-mono text-xs opacity-50 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
                   #{task.id.slice(0, 4)}
-                </td>
-                <td className="px-6 py-4">
-                  <div className="flex flex-col">
-                    <span className={`font-bold text-sm mb-1 ${theme === 'dark' ? 'text-gray-200' : 'text-gray-800'}`}>
-                      {task.title}
-                    </span>
-                    <div className="flex items-center gap-2 text-xs text-gray-500">
-                      <Clock className="w-3 h-3" />
-                      {task.dueDate ? (
-                        <span>
-                          Дедлайн: {formatDate(new Date(task.dueDate), 'd MMM')} {task.dueTime ? `, ${task.dueTime}` : ''}
-                        </span>
-                      ) : (
-                        <span>Без дедлайна</span>
-                      )}
-                    </div>
-                  </div>
-                </td>
-                <td className="px-6 py-4">
-                  <span className={`px-2.5 py-1 rounded-lg text-xs font-medium border ${getCategoryColor(task.category)}`}>
-                    {TASK_CATEGORIES[task.category]?.label || task.category}
+                </span>
+              </td>
+
+              <td className={`px-6 py-5 border-y ${theme === 'dark' ? 'border-white/5' : 'border-gray-100'}`}>
+                <div className="flex flex-col gap-1">
+                  <span className={`font-bold text-[15px] ${theme === 'dark' ? 'text-gray-200' : 'text-gray-800'}`}>
+                    {task.title}
                   </span>
-                </td>
-                <td className="px-6 py-4">
-                  <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-[10px] text-white font-bold">
-                      {getUserName(task.mainExecutor || task.assignedTo[0]).charAt(0)}
-                    </div>
-                    <span className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                  <div className="flex items-center gap-2 text-[11px] text-gray-500 font-medium">
+                    <Clock className="w-3 h-3" />
+                    {task.dueDate ? (
+                      <span className={theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}>
+                        {formatDate(new Date(task.dueDate), 'd MMM')} {task.dueTime ? `, ${task.dueTime}` : ''}
+                      </span>
+                    ) : (
+                      <span>Без срока</span>
+                    )}
+                  </div>
+                </div>
+              </td>
+
+              <td className={`px-6 py-5 border-y ${theme === 'dark' ? 'border-white/5' : 'border-gray-100'}`}>
+                <span className={`px-3 py-1.5 rounded-lg text-[11px] font-bold tracking-wide uppercase border ${getCategoryColor(task.category)}`}>
+                  {TASK_CATEGORIES[task.category]?.label || task.category}
+                </span>
+              </td>
+
+              <td className={`px-6 py-5 border-y ${theme === 'dark' ? 'border-white/5' : 'border-gray-100'}`}>
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#4E6E49] to-[#3d5639] flex items-center justify-center text-[10px] text-white font-bold shadow-inner">
+                    {getUserName(task.mainExecutor || task.assignedTo[0]).charAt(0)}
+                  </div>
+                  <div className="flex flex-col">
+                    <span className={`text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
                       {getUserName(task.mainExecutor || task.assignedTo[0])}
                     </span>
+                    {task.assignedTo.length > 1 && (
+                      <span className="text-[10px] text-gray-500">+{task.assignedTo.length - 1} ещё</span>
+                    )}
                   </div>
-                </td>
-                <td className="px-6 py-4 text-center">
-                  <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border ${getStatusColor(task.status)}`}>
-                    <span className={`w-1.5 h-1.5 rounded-full ${task.status === 'in_progress' ? 'bg-yellow-500 animate-pulse' : task.status === 'completed' ? 'bg-green-500' : 'bg-gray-500'}`} />
-                    {TASK_STATUSES[task.status]?.label || task.status}
-                  </span>
-                </td>
-                <td className="px-6 py-4 text-right">
-                  <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button
-                      onClick={() => onEdit(task)}
-                      className={`p-2 rounded-lg transition-colors ${theme === 'dark' ? 'hover:bg-white/10 text-gray-400 hover:text-white' : 'hover:bg-gray-100 text-gray-500 hover:text-gray-900'}`}
-                    >
-                      <Pencil className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => onDelete(task.id)}
-                      className={`p-2 rounded-lg transition-colors ${theme === 'dark' ? 'hover:bg-red-500/20 text-gray-400 hover:text-red-400' : 'hover:bg-red-50 text-gray-500 hover:text-red-600'}`}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+                </div>
+              </td>
+
+              <td className={`px-6 py-5 border-y text-center ${theme === 'dark' ? 'border-white/5' : 'border-gray-100'}`}>
+                <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wide border ${getStatusColor(task.status)}`}>
+                  <span className={`w-1.5 h-1.5 rounded-full ${task.status === 'in_progress' ? 'bg-yellow-500 animate-pulse' : task.status === 'completed' ? 'bg-emerald-500' : 'bg-slate-400'}`} />
+                  {TASK_STATUSES[task.status]?.label || task.status}
+                </span>
+              </td>
+
+              <td className={`px-6 py-5 rounded-r-2xl border-y border-r text-right ${theme === 'dark' ? 'border-white/5' : 'border-gray-100'}`}>
+                <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-all duration-200 translate-x-2 group-hover:translate-x-0">
+                  <button
+                    onClick={() => onEdit(task)}
+                    className={`p-2 rounded-lg transition-colors ${theme === 'dark' ? 'hover:bg-white/10 text-gray-500 hover:text-white' : 'hover:bg-gray-100 text-gray-400 hover:text-gray-900'}`}
+                  >
+                    <Pencil className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => onDelete(task.id)}
+                    className={`p-2 rounded-lg transition-colors ${theme === 'dark' ? 'hover:bg-red-500/10 text-gray-500 hover:text-red-400' : 'hover:bg-red-50 text-gray-400 hover:text-red-600'}`}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   )
 }
