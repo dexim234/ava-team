@@ -1,14 +1,13 @@
 // Tasks page - task manager
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useThemeStore } from '@/store/themeStore'
 import { useAuthStore } from '@/store/authStore'
 import { TaskForm } from '@/components/Tasks/TaskForm'
-import { TaskCard } from '@/components/Tasks/TaskCard'
 import { TaskFilters } from '@/components/Tasks/TaskFilters'
-import { TaskKanban } from '@/components/Tasks/TaskKanban'
+import { TaskTable } from '@/components/Tasks/TaskTable'
 import { getTasks, deleteTask } from '@/services/firestoreService'
 import { Task, TaskCategory, TaskStatus, TASK_STATUSES } from '@/types'
-import { CheckSquare, LayoutGrid, List, Plus, Sparkles } from 'lucide-react'
+import { CheckSquare, LayoutGrid, Plus, Calendar, Zap, Layers, CheckCircle2, Archive, Timer } from 'lucide-react'
 import { formatDate } from '@/utils/dateUtils'
 import { useUsers } from '@/hooks/useUsers'
 
@@ -23,10 +22,9 @@ export const Tasks = () => {
   const [selectedCategory, setSelectedCategory] = useState<TaskCategory | 'all'>('all')
   const [selectedStatus, setSelectedStatus] = useState<TaskStatus | 'all'>('all')
   const [selectedUsers, setSelectedUsers] = useState<string[]>([])
-  const [viewMode, setViewMode] = useState<'list' | 'kanban'>('kanban')
 
   const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
-  const cardBg = theme === 'dark' ? 'bg-[#1a1a1a]' : 'bg-white'
+  const cardBg = theme === 'dark' ? 'bg-[#151a21]/50' : 'bg-white'
 
   useEffect(() => {
     loadTasks()
@@ -86,12 +84,6 @@ export const Tasks = () => {
     loadTasks()
   }
 
-  const handleClearFilters = () => {
-    setSelectedCategory('all')
-    setSelectedStatus('all')
-    setSelectedUsers([])
-  }
-
   const filteredTasks = tasks.filter(task => {
     if (selectedCategory !== 'all' && task.category !== selectedCategory) return false
     if (selectedStatus !== 'all' && task.status !== selectedStatus) return false
@@ -99,292 +91,181 @@ export const Tasks = () => {
     return true
   })
 
-  const stats = {
-    inProgress: tasks.filter(t => t.status === 'in_progress').length,
-    completed: tasks.filter(t => t.status === 'completed').length,
-    closed: tasks.filter(t => t.status === 'closed').length,
-  }
-
+  // Stats derivation
   const now = new Date()
   const todayStr = formatDate(now, 'yyyy-MM-dd')
-  const weekAgo = new Date(now)
-  weekAgo.setDate(now.getDate() - 7)
-  const monthAgo = new Date(now)
-  monthAgo.setDate(now.getDate() - 30)
+  const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+  const oneMonthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
 
-  const tasksThisWeek = tasks.filter((t) => new Date(t.createdAt) >= weekAgo).length
-  const tasksThisMonth = tasks.filter((t) => new Date(t.createdAt) >= monthAgo).length
-  const tasksDoneToday = tasks.filter((t) => t.completedAt && t.completedAt.startsWith(todayStr)).length
-
-  const myRoleTasks = user
-    ? tasks.filter(
-      (t) =>
-        t.mainExecutor === user.id ||
-        t.leadExecutor === user.id ||
-        (t.assignedTo || []).includes(user.id) ||
-        (t.coExecutors || []).includes(user.id)
-    )
-    : []
-
-  const myTasksCount = myRoleTasks.length
-  const totalTasks = tasks.length
-  const workRate = totalTasks ? Math.round((stats.inProgress / totalTasks) * 100) : 0
-
-  const topExecutorId = (() => {
-    const counter: Record<string, number> = {}
-    tasks.forEach((task) => {
-      const ids = [
-        task.mainExecutor,
-        task.leadExecutor,
-        ...(task.assignedTo || []),
-        ...(task.coExecutors || []),
-      ].filter(Boolean) as string[]
-      ids.forEach((id) => {
-        counter[id] = (counter[id] || 0) + 1
-      })
-    })
-    const sorted = Object.entries(counter).sort((a, b) => b[1] - a[1])
-    return sorted[0]?.[0] || ''
-  })()
-  // Get all users for task executioner names
-  const { users: allMembers } = useUsers()
-  const topExecutorName = topExecutorId ? allMembers.find((m) => m.id === topExecutorId)?.name || topExecutorId : '—'
+  const stats = {
+    totalToday: tasks.filter(t => t.createdAt.startsWith(todayStr)).length,
+    totalWeek: tasks.filter(t => new Date(t.createdAt) >= oneWeekAgo).length,
+    totalMonth: tasks.filter(t => new Date(t.createdAt) >= oneMonthAgo).length,
+    inProgress: tasks.filter(t => t.status === 'in_progress').length,
+    completedToday: tasks.filter(t => t.status === 'completed' && t.completedAt?.startsWith(todayStr)).length,
+    completedWeek: tasks.filter(t => t.status === 'completed' && t.completedAt && new Date(t.completedAt) >= oneWeekAgo).length,
+    closedMonth: tasks.filter(t => t.status === 'closed' && new Date(t.createdAt) >= oneMonthAgo).length // Using createdAt as proxy if closedAt missing
+  }
 
   const upcomingTask = tasks
-    .filter((t) => t.status !== 'completed' && t.status !== 'closed')
+    .filter(t => t.status !== 'completed' && t.status !== 'closed' && t.dueDate)
     .sort((a, b) => new Date(`${a.dueDate}T${a.dueTime}`).getTime() - new Date(`${b.dueDate}T${b.dueTime}`).getTime())[0]
 
-  const statCards = [
-    { label: 'Всего задач на неделе', value: tasksThisWeek, sub: 'последние 7 дней', tone: 'sky' },
-    { label: 'Всего задач на месяце', value: tasksThisMonth, sub: 'последние 30 дней', tone: 'emerald' },
-    { label: 'Задач в работе', value: stats.inProgress, sub: `${workRate}% от всех`, tone: 'blue' },
-    { label: 'Отмечено исполнителями', value: stats.completed, sub: 'ожидают проверки автора', tone: 'amber' },
-    { label: 'Самый активный исполнитель', value: topExecutorName, sub: 'по числу назначений', tone: 'purple' },
-    { label: 'Закрыто автором', value: stats.closed, sub: 'финально подтверждено', tone: 'slate' },
-    { label: 'Ближайший дедлайн', value: upcomingTask ? upcomingTask.title : 'Нет активных', sub: upcomingTask ? `${formatDate(new Date(upcomingTask.dueDate), 'dd.MM.yyyy')} · ${upcomingTask.dueTime}` : 'Свободное окно', tone: 'pink' },
-    { label: 'Сделано задач за сегодня', value: tasksDoneToday, sub: todayStr, tone: 'green' },
-  ]
-
-  const navItems = [
-    { href: '#tasks-board', label: 'Все задачи' },
-    { href: '#my-tasks', label: 'Мои задачи', action: () => user && setSelectedUsers([user.id]) },
-    { href: '#tasks-stats', label: 'Статистика' },
-  ]
+  const StatCard = ({ title, value, sub, icon: Icon, colorClass, delay }: any) => (
+    <div className={`relative overflow-hidden rounded-xl p-6 ${theme === 'dark' ? 'bg-[#151a21]/50 border-white/5' : 'bg-white border-gray-100'} border shadow-sm transition-all hover:-translate-y-1 duration-300`}>
+      <div className="relative z-10 flex flex-col h-full justify-between">
+        <div className="flex justify-between items-start mb-2">
+          <span className={`text-sm font-medium ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>{title}</span>
+          {Icon && <Icon className={`w-5 h-5 ${colorClass}`} />}
+        </div>
+        <div>
+          <div className={`text-3xl font-black tracking-tight ${headingColor}`}>{value}</div>
+          {sub && <div className={`text-xs mt-1 font-medium ${colorClass}`}>{sub}</div>}
+        </div>
+      </div>
+      <div className={`absolute -right-6 -bottom-6 w-24 h-24 rounded-full opacity-5 ${colorClass.replace('text-', 'bg-')}`} />
+    </div>
+  )
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 animate-fade-in pb-12">
       {/* Header */}
-      <div className={`rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8 ${cardBg} shadow-xl border-2 ${theme === 'dark'
-        ? 'border-[#4E6E49]/30 bg-gradient-to-br from-[#1a1a1a] via-[#1a1a1a] to-[#0A0A0A]'
-        : 'border-green-200 bg-gradient-to-br from-white via-green-50/30 to-white'
-        } relative overflow-hidden`}>
-        {/* Decorative elements */}
-        <div className="absolute top-0 right-0 w-32 h-32 sm:w-64 sm:h-64 bg-gradient-to-br from-[#4E6E49]/10 to-emerald-700/10 rounded-full blur-3xl -mr-16 sm:-mr-32 -mt-16 sm:-mt-32" />
-        <div className="absolute bottom-0 left-0 w-24 h-24 sm:w-48 sm:h-48 bg-gradient-to-tr from-yellow-500/10 to-orange-500/10 rounded-full blur-2xl -ml-12 sm:-ml-24 -mb-12 sm:-mb-24" />
-
-        <div className="relative z-10">
-          <div className="flex flex-col gap-4 sm:gap-6 lg:flex-row lg:items-start lg:justify-between mb-4 sm:mb-6">
-            <div className="flex-1">
-              <div className="flex items-center gap-2 sm:gap-3 mb-2">
-                <CheckSquare className={`w-6 h-6 sm:w-8 sm:h-8 ${theme === 'dark' ? 'text-[#4E6E49]' : 'text-[#4E6E49]'}`} />
-                <h1 className={`text-2xl sm:text-3xl md:text-4xl font-extrabold ${headingColor} flex items-center gap-2`}>
-                  Task Team
-                  <Sparkles className={`w-5 h-5 sm:w-6 sm:h-6 ${theme === 'dark' ? 'text-yellow-400' : 'text-yellow-600'}`} />
-                </h1>
-              </div>
-              <p className={`text-sm sm:text-base ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
-                Управление задачами и заданиями команды
-              </p>
-
-              <div className="flex flex-wrap gap-2 mt-2">
-                {navItems.map((item) => (
-                  <a
-                    key={item.href}
-                    href={item.href}
-                    onClick={() => item.action?.()}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition ${theme === 'dark'
-                      ? 'border-white/10 bg-white/5 text-white hover:border-[#4E6E49]/50'
-                      : 'border-gray-200 bg-white text-gray-800 hover:border-[#4E6E49]/50 hover:text-[#4E6E49]'
-                      }`}
-                  >
-                    {item.label}
-                  </a>
-                ))}
-              </div>
+      <div className="flex items-center gap-4">
+        <div className={`p-3 rounded-2xl ${theme === 'dark' ? 'bg-[#4E6E49]/20' : 'bg-green-100'}`}>
+          <CheckSquare className="w-8 h-8 text-[#4E6E49]" />
+        </div>
+        <div>
+          <h1 className={`text-3xl font-black ${headingColor} flex items-center gap-3`}>
+            AVF Tasks <span className="px-3 py-1 bg-green-500/10 border border-green-500/20 text-green-500 text-xs rounded-lg font-bold uppercase">Beta</span>
+          </h1>
+          <p className={theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}>
+            Управление задачами и заданиями команды ApeVault Frontier
+          </p>
+        </div>
+        <div className="ml-auto flex items-center gap-4">
+          {user && (
+            <div className="text-right hidden sm:block">
+              <div className={`text-sm font-bold ${headingColor}`}>{user.name}</div>
+              <div className="text-xs text-[#4E6E49]">{user.role === 'admin' ? 'Admin User' : 'Team Member'}</div>
             </div>
-          </div>
+          )}
+        </div>
+      </div>
 
-          {/* Stats */}
-          <div id="tasks-stats" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-            {statCards.map((card) => {
-              const toneMap: Record<string, { bg: string; text: string; border: string }> = {
-                emerald: { bg: theme === 'dark' ? 'bg-emerald-500/10' : 'bg-emerald-50', text: theme === 'dark' ? 'text-emerald-100' : 'text-emerald-800', border: theme === 'dark' ? 'border-emerald-500/30' : 'border-emerald-200' },
-                sky: { bg: theme === 'dark' ? 'bg-sky-500/10' : 'bg-sky-50', text: theme === 'dark' ? 'text-sky-100' : 'text-sky-800', border: theme === 'dark' ? 'border-sky-500/30' : 'border-sky-200' },
-                amber: { bg: theme === 'dark' ? 'bg-amber-500/10' : 'bg-amber-50', text: theme === 'dark' ? 'text-amber-100' : 'text-amber-800', border: theme === 'dark' ? 'border-amber-500/30' : 'border-amber-200' },
-                blue: { bg: theme === 'dark' ? 'bg-blue-500/10' : 'bg-blue-50', text: theme === 'dark' ? 'text-blue-100' : 'text-blue-800', border: theme === 'dark' ? 'border-blue-500/30' : 'border-blue-200' },
-                purple: { bg: theme === 'dark' ? 'bg-purple-500/10' : 'bg-purple-50', text: theme === 'dark' ? 'text-purple-100' : 'text-purple-800', border: theme === 'dark' ? 'border-purple-500/30' : 'border-purple-200' },
-                slate: { bg: theme === 'dark' ? 'bg-gray-500/10' : 'bg-gray-50', text: theme === 'dark' ? 'text-gray-100' : 'text-gray-800', border: theme === 'dark' ? 'border-gray-500/30' : 'border-gray-200' },
-                pink: { bg: theme === 'dark' ? 'bg-pink-500/10' : 'bg-pink-50', text: theme === 'dark' ? 'text-pink-100' : 'text-pink-800', border: theme === 'dark' ? 'border-pink-500/30' : 'border-pink-200' },
-                green: { bg: theme === 'dark' ? 'bg-green-500/10' : 'bg-green-50', text: theme === 'dark' ? 'text-green-100' : 'text-green-800', border: theme === 'dark' ? 'border-green-500/30' : 'border-green-200' },
-              }
-              const tone = toneMap[card.tone]
-              return (
-                <div key={card.label} className={`p-4 rounded-xl border ${tone.border} ${tone.bg} shadow-sm space-y-1`}>
-                  <p className={`text-xs font-semibold uppercase ${tone.text}`}>{card.label}</p>
-                  <p className={`text-2xl font-extrabold ${headingColor} truncate`}>{card.value}</p>
-                  <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>{card.sub}</p>
-                </div>
-              )
-            })}
+      {/* Top Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard
+          title="Всего задач сегодня"
+          value={stats.totalToday}
+          sub="↗ Активность ↑"
+          icon={Calendar}
+          colorClass="text-blue-400"
+        />
+        <StatCard
+          title="Всего на неделе"
+          value={stats.totalWeek}
+          sub=""
+          icon={LayoutGrid}
+          colorClass="text-purple-400"
+        />
+        <StatCard
+          title="Всего в месяце"
+          value={stats.totalMonth}
+          sub=""
+          icon={Layers}
+          colorClass="text-indigo-400"
+        />
+        <StatCard
+          title="Задач в работе"
+          value={stats.inProgress}
+          sub="Требуют внимания"
+          icon={Zap}
+          colorClass="text-yellow-400"
+        />
+
+        {/* Second Row */}
+        <StatCard
+          title="Закрыто сегодня"
+          value={stats.completedToday}
+          sub="______"
+          icon={CheckCircle2}
+          colorClass="text-emerald-400"
+        />
+        <StatCard
+          title="Закрыто на неделе"
+          value={stats.completedWeek}
+          sub=""
+          icon={CheckCircle2}
+          colorClass="text-emerald-500"
+        />
+        <StatCard
+          title="Закрыто в месяце"
+          value={stats.closedMonth}
+          sub=""
+          icon={Archive}
+          colorClass="text-emerald-600"
+        />
+        <div className={`relative overflow-hidden rounded-xl p-6 border transition-all ${theme === 'dark' ? 'bg-[#1a1a1a] border-red-500/20' : 'bg-red-50 border-red-200'}`}>
+          <div className="flex justify-between items-start mb-2">
+            <span className={`text-sm font-medium ${theme === 'dark' ? 'text-gray-400' : 'text-red-800'}`}>Ближайший дедлайн</span>
+            <Timer className="w-5 h-5 text-red-500" />
+          </div>
+          <div>
+            <div className={`text-xl font-bold ${headingColor}`}>
+              {upcomingTask ? (
+                <>
+                  {upcomingTask.dueDate === todayStr ? 'Сегодня' : formatDate(new Date(upcomingTask.dueDate), 'd MMM')}
+                  {upcomingTask.dueTime && `, ${upcomingTask.dueTime}`}
+                </>
+              ) : 'Нет'}
+            </div>
+            <div className="text-xs mt-1 text-red-400 truncate max-w-full">
+              {upcomingTask ? upcomingTask.title : 'Все сроки соблюдены'}
+            </div>
           </div>
         </div>
       </div>
 
-      {/* My tasks quick view */}
-      {user && (
-        <div
-          id="my-tasks"
-          className={`rounded-xl sm:rounded-2xl p-4 sm:p-6 ${cardBg} border-2 ${theme === 'dark' ? 'border-white/10' : 'border-gray-200'
-            }`}
-        >
-          <div className="flex items-center justify-between gap-3 mb-3">
-            <div>
-              <p className={`text-xs uppercase font-semibold ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                Мои задачи
-              </p>
-              <p className={`text-xl font-bold ${headingColor}`}>{myTasksCount}</p>
-            </div>
-            <a
-              href="#tasks-board"
-              className={`px-3 py-2 rounded-lg text-xs font-semibold border ${theme === 'dark'
-                ? 'border-white/10 bg-white/5 text-white hover:border-[#4E6E49]/50'
-                : 'border-gray-200 bg-white text-gray-800 hover:border-[#4E6E49]/50 hover:text-[#4E6E49]'
-                }`}
+      {/* Main Content Area */}
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h2 className={`text-xl font-bold ${headingColor}`}>Мои задачи <span className="px-2 py-0.5 rounded-md bg-gray-800 text-gray-400 text-xs ml-2">{stats.inProgress} активных</span></h2>
+        </div>
+
+        <div className={`rounded-2xl border ${theme === 'dark' ? 'bg-[#0f1216] border-white/5' : 'bg-gray-50 border-gray-200'} p-4 sm:p-6`}>
+          {/* Action Bar */}
+          <div className="mb-6">
+            <TaskFilters
+              selectedCategory={selectedCategory}
+              selectedStatus={selectedStatus}
+              selectedUsers={selectedUsers}
+              onCategoryChange={setSelectedCategory}
+              onStatusChange={setSelectedStatus}
+              onUsersChange={setSelectedUsers}
             >
-              Перейти на доску
-            </a>
-          </div>
-          {myRoleTasks.length === 0 ? (
-            <p className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>Нет назначенных задач</p>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {myRoleTasks.slice(0, 4).map((task) => (
-                <div
-                  key={task.id}
-                  className={`p-3 rounded-lg border ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-white'}`}
-                >
-                  <p className={`text-sm font-semibold ${headingColor} truncate`}>{task.title}</p>
-                  <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                    {formatDate(new Date(task.dueDate), 'dd.MM.yyyy')} · {task.dueTime}
-                  </p>
-                  <p className="text-xs mt-1">
-                    <span className={`px-2 py-0.5 rounded-full ${theme === 'dark' ? 'bg-gray-800 text-gray-200' : 'bg-gray-100 text-gray-700'}`}>
-                      {TASK_STATUSES[task.status].label}
-                    </span>
-                  </p>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Filters and Add Button */}
-      <div className="flex flex-col lg:flex-row gap-4 sm:gap-6" id="tasks-board">
-        {/* Filters */}
-        <div className="lg:w-80 flex-shrink-0">
-          <TaskFilters
-            selectedCategory={selectedCategory}
-            selectedStatus={selectedStatus}
-            selectedUsers={selectedUsers}
-            onCategoryChange={setSelectedCategory}
-            onStatusChange={setSelectedStatus}
-            onUsersChange={setSelectedUsers}
-            onClear={handleClearFilters}
-          />
-        </div>
-
-        {/* Tasks List/Kanban */}
-        <div className="flex-1">
-          <div className="flex items-center justify-between mb-4 gap-3">
-            <h2 className={`text-xl font-bold ${headingColor}`}>
-              Задачи ({filteredTasks.length})
-            </h2>
-            <div className="flex items-center gap-2">
-              {/* View Mode Toggle */}
-              <div className={`flex rounded-lg border-2 ${theme === 'dark' ? 'border-gray-800' : 'border-gray-300'} overflow-hidden`}>
-                <button
-                  onClick={() => setViewMode('kanban')}
-                  className={`px-3 py-2 transition-colors ${viewMode === 'kanban'
-                    ? 'bg-[#4E6E49] text-white'
-                    : theme === 'dark' ? 'bg-[#1a1a1a] text-gray-300 hover:bg-gray-700' : 'bg-white text-gray-700 hover:bg-gray-50'
-                    }`}
-                  title="Kanban доска"
-                >
-                  <LayoutGrid className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => setViewMode('list')}
-                  className={`px-3 py-2 transition-colors ${viewMode === 'list'
-                    ? 'bg-[#4E6E49] text-white'
-                    : theme === 'dark' ? 'bg-[#1a1a1a] text-gray-300 hover:bg-gray-700' : 'bg-white text-gray-700 hover:bg-gray-50'
-                    }`}
-                  title="Список"
-                >
-                  <List className="w-4 h-4" />
-                </button>
-              </div>
               <button
                 onClick={() => setShowForm(true)}
-                className="px-4 py-2 bg-gradient-to-r from-[#4E6E49] to-emerald-700 hover:from-[#4E6E49] hover:to-emerald-700 text-white rounded-lg font-semibold transition-all shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center gap-2"
+                className="whitespace-nowrap flex items-center gap-2 px-5 py-2.5 bg-[#10B981] hover:bg-[#059669] text-white font-bold rounded-xl transition-transform active:scale-95 shadow-lg shadow-emerald-900/20 ml-auto"
               >
                 <Plus className="w-5 h-5" />
-                <span className="hidden sm:inline">Новая задача</span>
-                <span className="sm:hidden">Добавить</span>
+                <span>Новая задача</span>
               </button>
-            </div>
+            </TaskFilters>
           </div>
 
+          {/* Table */}
           {loading ? (
-            <div className={`${cardBg} rounded-xl p-8 text-center ${headingColor}`}>
-              <div className="animate-pulse">Загрузка...</div>
-            </div>
-          ) : filteredTasks.length === 0 ? (
-            <div className={`${cardBg} rounded-xl p-8 text-center border-2 ${theme === 'dark' ? 'border-gray-800' : 'border-gray-300'}`}>
-              <CheckSquare className={`w-12 h-12 mx-auto mb-4 ${theme === 'dark' ? 'text-gray-600' : 'text-gray-400'}`} />
-              <p className={`text-lg font-medium ${headingColor} mb-2`}>
-                Нет задач
-              </p>
-              <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                {selectedCategory !== 'all' || selectedStatus !== 'all' || selectedUsers.length > 0
-                  ? 'Попробуйте изменить фильтры'
-                  : 'Создайте первую задачу'}
-              </p>
-            </div>
-          ) : viewMode === 'kanban' ? (
-            <TaskKanban
+            <div className="py-20 text-center text-gray-500">Загрузка задач...</div>
+          ) : (
+            <TaskTable
               tasks={filteredTasks}
-              onUpdate={loadTasks}
               onEdit={handleEdit}
               onDelete={handleDelete}
             />
-          ) : (
-            <div className="grid grid-cols-1 gap-4 sm:gap-6">
-              {filteredTasks.map((task) => (
-                <TaskCard
-                  key={task.id}
-                  task={task}
-                  onEdit={handleEdit}
-                  onDelete={handleDelete}
-                  onUpdate={loadTasks}
-                />
-              ))}
-            </div>
           )}
         </div>
       </div>
 
-      {/* Task Form Modal */}
       {showForm && (
         <TaskForm
           onClose={handleCloseForm}
