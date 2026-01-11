@@ -1,324 +1,244 @@
-// About community page (minimalist redesign)
 import { useThemeStore } from '@/store/themeStore'
-import { Info, ArrowUpRight, BookOpen, Mail, Sparkles } from 'lucide-react'
+import { Info, ArrowUpRight, BookOpen, Mail, Sparkles, Users, Calendar, GraduationCap, Target, Shield, Zap, Globe, Lock } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import valuesIllustration from '../../assets/image-779ddbd9-e512-4bda-8983-af1ab9237b7c.png'
 
 export const About = () => {
   const { theme } = useThemeStore()
   const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
-  const subTextColor = theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+  const subTextColor = theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
 
   const principles = [
     {
       title: 'Финансовая грамотность',
-      note: 'Учимся управлять рисками, понимать токеномику и принимать решения на основе анализа, а не эмоций.',
-      accent: 'from-emerald-200 to-teal-200',
+      icon: GraduationCap,
+      note: 'Управление рисками и анализ вместо эмоций.',
+      accent: 'text-emerald-400',
+      bg: 'bg-emerald-500/10 border-emerald-500/20'
     },
     {
-      title: 'Приватность превыше всего',
-      note: 'Уважаем личные границы и используем инструменты, защищающие цифровую идентичность.',
-      accent: 'from-sky-200 to-blue-200',
+      title: 'Приватность',
+      icon: Lock,
+      note: 'Защита цифровой идентичности и личных границ.',
+      accent: 'text-blue-400',
+      bg: 'bg-blue-500/10 border-blue-500/20'
     },
     {
-      title: 'Образование и развитие',
-      note: 'Учимся от основ блокчейна до продвинутых DeFi-стратегий и делимся знаниями.',
-      accent: 'from-amber-200 to-orange-200',
+      title: 'Образование',
+      icon: BookOpen,
+      note: 'От основ блокчейна до  DeFi-стратегий.',
+      accent: 'text-amber-400',
+      bg: 'bg-amber-500/10 border-amber-500/20'
     },
     {
-      title: 'Честность и прозрачность',
-      note: 'Внутри клуба — открытость, честные сделки и уважение. Доверие строим действиями.',
-      accent: 'from-purple-200 to-indigo-200',
+      title: 'Прозрачность',
+      icon: Shield,
+      note: 'Честные сделки и открытость внутри клуба.',
+      accent: 'text-purple-400',
+      bg: 'bg-purple-500/10 border-purple-500/20'
     },
     {
-      title: 'Инновации и эксперименты',
-      note: 'Тестируем новые протоколы, участвуем в DAO, не боимся быть первыми в трендах.',
-      accent: 'from-pink-200 to-rose-200',
+      title: 'Инновации',
+      icon: Zap,
+      note: 'Тестируем новые протоколы и не боимся быть первыми.',
+      accent: 'text-pink-400',
+      bg: 'bg-pink-500/10 border-pink-500/20'
     },
     {
       title: 'Критическое мышление',
-      note: 'Не следуем слепо за хайпом: анализируем, проверяем источники и опираемся на здравый смысл.',
-      accent: 'from-cyan-200 to-teal-200',
+      icon: Target,
+      note: 'Анализируем, проверяем, не следуем за хайпом.',
+      accent: 'text-cyan-400',
+      bg: 'bg-cyan-500/10 border-cyan-500/20'
     },
     {
-      title: 'Глобальное мышление',
-      note: 'Открыты к сотрудничеству с людьми из разных стран ради цифровой и финансовой свободы в рамках закона.',
-      accent: 'from-lime-200 to-green-200',
+      title: 'Глобальность',
+      icon: Globe,
+      note: 'Сотрудничество ради свободы в рамках закона.',
+      accent: 'text-lime-400',
+      bg: 'bg-lime-500/10 border-lime-500/20'
     },
     {
-      title: 'Свобода и ответственность',
-      note: 'Ценим свободу крипты и понимаем её цену: зрелость, самоконтроль и ответственность за решения.',
-      accent: 'from-gray-200 to-slate-200',
+      title: 'Ответственность',
+      icon: Users,
+      note: 'Зрелость и самоконтроль в принятии решений.',
+      accent: 'text-slate-400',
+      bg: 'bg-slate-500/10 border-slate-500/20'
     },
   ]
 
-  const fastFacts = [
-    { label: 'Что такое ApeVault?', value: 'Клуб криптоэнтузиастов, где знания превращаются в действие.' },
-    {
-      label: 'Цель',
-      value: 'Объединить инвесторов и трейдеров ради роста дохода и безопасности входа в рынок.',
-    },
-  ]
+  const glassCard = theme === 'dark'
+    ? 'bg-[#151a21]/60 border-white/5 backdrop-blur-md'
+    : 'bg-white border-gray-100 shadow-sm'
 
   return (
-    <div className="space-y-7 sm:space-y-8">
-      {/* Hero */}
-      <div className="section-card rounded-3xl p-6 sm:p-8 border border-white/60 dark:border-white/10 shadow-2xl relative overflow-hidden">
-        <div className="accent-dots" />
-        <div className="absolute inset-y-0 right-0 w-1/3 pointer-events-none bg-gradient-to-l from-[#4E6E49]/10 to-transparent blur-2xl" />
-        <div className="relative z-10 flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-          <div className="space-y-3 max-w-3xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-white/50 dark:border-white/10 bg-white/70 dark:bg-white/5 text-xs font-semibold uppercase tracking-[0.16em]">
-              <Info className="w-4 h-4 text-[#4E6E49]" />
+    <div className="space-y-8 animate-fade-in pb-12 font-sans">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <div className="p-3 rounded-2xl bg-[#4E6E49]/10 border border-[#4E6E49]/20">
+            <Info className="w-8 h-8 text-[#4E6E49]" />
+          </div>
+          <div>
+            <h1 className={`text-3xl font-black ${headingColor} flex items-center gap-3`}>
+              AVF INFO
+            </h1>
+            <p className={subTextColor}>
+              О нас, наши ценности и правила сообщества
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Grid - Bento Style */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        {/* Main Info Card (Span 2) */}
+        <div className={`col-span-1 lg:col-span-2 rounded-3xl p-8 border relative overflow-hidden group ${glassCard}`}>
+          <div className="absolute top-0 right-0 w-64 h-64 bg-[#4E6E49]/10 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none group-hover:bg-[#4E6E49]/20 transition-all duration-500" />
+
+          <div className="relative z-10 space-y-6">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#4E6E49]/10 border border-[#4E6E49]/20 text-[#4E6E49] text-xs font-bold uppercase tracking-wider">
+              <Sparkles className="w-3 h-3" />
               ApeVault Community
             </div>
-            <h1 className={`text-3xl sm:text-4xl lg:text-5xl font-extrabold leading-tight ${headingColor}`}>
-              О нас и нашем сообществе
-            </h1>
-            <p className={`text-sm sm:text-base ${subTextColor} max-w-2xl`}>
-              ApeVault — это пространство, где опытные криптоэнтузиасты объединяют знания и проверенные стратегии, чтобы
-              безопасно заходить в рынок и расти вместе.
+
+            <h2 className={`text-4xl sm:text-5xl font-black tracking-tight leading-tight ${headingColor}`}>
+              Где знания <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#4E6E49] to-emerald-400">
+                превращаются в действие
+              </span>
+            </h2>
+
+            <p className={`text-lg leading-relaxed max-w-2xl ${subTextColor}`}>
+              ApeVault — это закрытое пространство, где опытные криптоэнтузиасты объединяют знания и проверенные стратегии. Мы строим экосистему для безопасного входа в рынок и совместного роста.
             </p>
-            <div className="flex flex-wrap gap-2">
-              {['Командные сессии', 'Проверенные стратегии', 'Прозрачные регламенты'].map((tag) => (
-                <span
-                  key={tag}
-                  className={`px-3 py-1.5 rounded-full text-xs font-semibold border ${theme === 'dark'
-                    ? 'border-white/10 bg-white/5 text-white'
-                    : 'border-gray-200 bg-white text-gray-900'
-                    }`}
-                >
+
+            <div className="flex flex-wrap gap-3 pt-2">
+              {['Командные сессии', 'Авторские стратегии', 'Smart Money'].map((tag) => (
+                <span key={tag} className={`px-4 py-2 rounded-xl text-sm font-bold border ${theme === 'dark' ? 'bg-white/5 border-white/10 text-gray-300' : 'bg-gray-100/50 border-gray-200 text-gray-700'}`}>
                   {tag}
                 </span>
               ))}
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-3 w-full max-w-xs lg:max-w-sm">
-            {[
-              { label: 'Участников', value: '50+' },
-              { label: 'Сессий / неделю', value: '10+' },
-              { label: 'Уроков', value: '100+' },
-              { label: 'Фокуса', value: '100% качество' },
-            ].map((item) => (
-              <div
-                key={item.label}
-                className={`rounded-2xl border p-3 sm:p-4 shadow-sm ${theme === 'dark' ? 'border-white/10 bg-white/5 text-white' : 'border-gray-200 bg-white text-gray-900'
-                  }`}
-              >
-                <p className="text-[11px] uppercase tracking-wide opacity-70">{item.label}</p>
-                <p className="text-xl font-extrabold leading-tight mt-1">{item.value}</p>
-              </div>
-            ))}
+        </div>
+
+        {/* Stats Column (Span 1) */}
+        <div className="space-y-4">
+          {/* Stat Card 1 */}
+          <div className={`rounded-3xl p-6 border ${glassCard} relative overflow-hidden`}>
+            <div className="flex justify-between items-start mb-2">
+              <span className={`text-xs font-bold uppercase tracking-wider ${subTextColor}`}>Участников</span>
+              <Users className="w-5 h-5 text-indigo-500" />
+            </div>
+            <div className={`text-4xl font-black ${headingColor}`}>50+</div>
+            <div className="text-xs text-indigo-400 mt-2 font-medium">Активное комьюнити</div>
+          </div>
+
+          {/* Stat Card 2 */}
+          <div className={`rounded-3xl p-6 border ${glassCard} relative overflow-hidden`}>
+            <div className="flex justify-between items-start mb-2">
+              <span className={`text-xs font-bold uppercase tracking-wider ${subTextColor}`}>Сессий / Неделю</span>
+              <Calendar className="w-5 h-5 text-emerald-500" />
+            </div>
+            <div className={`text-4xl font-black ${headingColor}`}>10+</div>
+            <div className="text-xs text-emerald-400 mt-2 font-medium">Регулярные созвоны</div>
+          </div>
+
+          {/* Stat Card 3 */}
+          <div className={`rounded-3xl p-6 border ${glassCard} relative overflow-hidden`}>
+            <div className="flex justify-between items-start mb-2">
+              <span className={`text-xs font-bold uppercase tracking-wider ${subTextColor}`}>База знаний</span>
+              <BookOpen className="w-5 h-5 text-amber-500" />
+            </div>
+            <div className={`text-4xl font-black ${headingColor}`}>100+</div>
+            <div className="text-xs text-amber-400 mt-2 font-medium">Уроков и материалов</div>
           </div>
         </div>
       </div>
 
-      {/* What is ApeVault */}
-      <div className="section-card rounded-3xl p-6 sm:p-7 border border-white/60 dark:border-white/10 shadow-xl relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-emerald-500/10 to-blue-500/10 rounded-full blur-3xl -mr-16 -mt-16" />
-        <div className="relative z-10 space-y-4">
-          <h2 className={`text-2xl sm:text-3xl font-extrabold ${headingColor} flex items-center gap-2`}>
-            <Sparkles className="w-6 h-6 text-[#4E6E49]" />
-            Что такое ApeVault?
-          </h2>
-          <div className="grid gap-4 sm:grid-cols-2">
-            {fastFacts.map((item) => (
-              <div
-                key={item.label}
-                className={`rounded-2xl border p-4 sm:p-5 flex gap-3 items-start ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-white'
-                  }`}
-              >
-                <div className="p-2 rounded-xl bg-gradient-to-br from-[#4E6E49] to-emerald-600 text-white shadow-lg">
-                  <ArrowUpRight className="w-4 h-4" />
-                </div>
-                <div className="space-y-1">
-                  <p className="text-xs uppercase tracking-wide text-[#4E6E49] font-semibold">{item.label}</p>
-                  <p className={`text-sm sm:text-base leading-relaxed ${headingColor}`}>{item.value}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Principles */}
-      <div className="section-card rounded-3xl p-6 sm:p-7 border border-white/60 dark:border-white/10 shadow-xl relative overflow-hidden">
-        <div className="absolute -left-10 top-0 w-52 h-52 bg-gradient-to-br from-amber-400/10 to-rose-400/10 rounded-full blur-3xl" />
-        <div className="absolute -right-10 bottom-0 w-52 h-52 bg-gradient-to-br from-blue-400/10 to-emerald-400/10 rounded-full blur-3xl" />
-        <div className="relative z-10 space-y-5">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
-            <h2 className={`text-2xl sm:text-3xl font-extrabold ${headingColor}`}>
-              Принципы, которые держат нас на вершине
-            </h2>
-            <div className="flex gap-2">
-              <Link to="/rules" className="pill justify-center text-center" data-active="false">
-                Ознакомиться с правилами
-                <ArrowUpRight className="w-4 h-4" />
-              </Link>
-              <a
-                href="#contacts"
-                className="pill"
-                data-active="false"
-              >
-                Контакты
-                <ArrowUpRight className="w-4 h-4" />
-              </a>
+      {/* Principles Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {principles.map((item, index) => (
+          <div key={index} className={`rounded-2xl p-5 border group hover:scale-[1.02] transition-all duration-300 ${glassCard}`}>
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-4 ${item.bg}`}>
+              <item.icon className="w-5 h-5" />
             </div>
-          </div>
-
-          <div className="grid lg:grid-cols-[1fr_420px_1fr] gap-6 items-center">
-            <div className="space-y-3">
-              {principles.slice(0, 4).map((item) => (
-                <div
-                  key={item.title}
-                  className={`rounded-2xl border px-4 py-3 flex items-start gap-3 ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-white/90'}`}
-                >
-                  <div className={`p-2 rounded-xl text-gray-900 bg-gradient-to-br ${item.accent}`}>
-                    <ArrowUpRight className="w-4 h-4" />
-                  </div>
-                  <div className="space-y-1">
-                    <p className={`text-sm sm:text-base font-semibold ${headingColor}`}>{item.title}</p>
-                    {item.note && <p className={`text-xs ${subTextColor}`}>{item.note}</p>}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className={`rounded-3xl border shadow-xl overflow-hidden relative ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-white/95'}`}>
-              <img
-                src={valuesIllustration}
-                alt="Принципы ApeVault"
-                className="w-full h-full object-contain"
-              />
-              <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-transparent via-transparent to-white/0" />
-            </div>
-
-            <div className="space-y-3">
-              {principles.slice(4).map((item) => (
-                <div
-                  key={item.title}
-                  className={`rounded-2xl border px-4 py-3 flex items-start gap-3 ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-white/90'}`}
-                >
-                  <div className={`p-2 rounded-xl text-gray-900 bg-gradient-to-br ${item.accent}`}>
-                    <ArrowUpRight className="w-4 h-4" />
-                  </div>
-                  <div className="space-y-1">
-                    <p className={`text-sm sm:text-base font-semibold ${headingColor}`}>{item.title}</p>
-                    {item.note && <p className={`text-xs ${subTextColor}`}>{item.note}</p>}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Rules link */}
-      <div
-        id="rules"
-        className="section-card rounded-3xl p-6 sm:p-7 border border-white/60 dark:border-white/10 shadow-xl relative overflow-hidden"
-      >
-        <div className="absolute inset-0 bg-gradient-to-br from-indigo-100/50 via-white/40 to-purple-100/40 dark:from-indigo-900/30 dark:via-transparent dark:to-purple-900/20" />
-        <div className="relative z-10 grid gap-5 sm:grid-cols-[1.15fr_0.85fr] items-center">
-          <div className="space-y-3">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/80 dark:bg-white/10 border border-white/60 dark:border-white/10 text-xs font-semibold tracking-wide text-indigo-700 dark:text-white">
-              <BookOpen className="w-4 h-4" />
-              Правила сообщества
-            </div>
-            <h2 className={`text-2xl sm:text-3xl font-extrabold ${headingColor}`}>
-              Простой регламент, чтобы оставаться на одной волне
-            </h2>
-            <p className={`text-sm sm:text-base ${subTextColor}`}>
-              Подробно описали процессы, безопасность и взаимодействие, чтобы каждый чувствовал прозрачность и поддержку.
+            <h3 className={`text-lg font-bold mb-2 ${headingColor}`}>{item.title}</h3>
+            <p className={`text-xs leading-relaxed ${subTextColor}`}>
+              {item.note}
             </p>
-            <div className="flex flex-wrap gap-2">
-              {['Безопасность', 'Честные сделки', 'Уважение', 'Прозрачность'].map((tag) => (
-                <span
-                  key={tag}
-                  className={`px-3 py-1 rounded-full text-xs font-semibold border ${theme === 'dark' ? 'border-white/10 bg-white/5 text-white' : 'border-indigo-100 bg-white text-indigo-900'
-                    }`}
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
-            <Link
-              to="/rules"
-              className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 text-white font-semibold shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all"
-            >
-              <BookOpen className="w-5 h-5" />
-              <span>Ознакомиться с правилами</span>
-              <ArrowUpRight className="w-4 h-4" />
-            </Link>
           </div>
-          <div
-            className={`rounded-2xl border p-4 sm:p-5 shadow-lg ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-white/80 bg-white/90'
-              }`}
+        ))}
+      </div>
+
+      {/* Split Section: Image & Rules */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Visual/Image Card */}
+        <div className={`rounded-3xl border p-8 flex items-center justify-center overflow-hidden relative ${glassCard}`}>
+          <img src={valuesIllustration} alt="Values" className="max-h-64 object-contain relative z-10 drop-shadow-2xl" />
+          <div className={`absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-indigo-500/30 via-transparent to-transparent`} />
+        </div>
+
+        {/* Rules CTA */}
+        <div className={`rounded-3xl border p-8 relative overflow-hidden flex flex-col justify-between ${glassCard}`}>
+          <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none" />
+
+          <div className="relative z-10">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-bold uppercase tracking-wider mb-6">
+              <BookOpen className="w-3 h-3" />
+              Регламент
+            </div>
+            <h3 className={`text-3xl font-black mb-4 ${headingColor}`}>Правила сообщества</h3>
+            <p className={`${subTextColor} mb-8 max-w-md`}>
+              Мы подробно описали процессы, безопасность и принципы взаимодействия. Прозрачные правила — залог доверия и эффективности.
+            </p>
+          </div>
+
+          <Link
+            to="/rules"
+            className="relative z-10 w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white font-bold rounded-xl transition-all shadow-lg shadow-indigo-500/20 active:scale-95"
           >
-            <div className="space-y-3">
-              {[
-                'Короткие правила для быстрых решений',
-                'Фокус на безопасности и приватности',
-                'Прозрачные роли и ответственность',
-                'Действуем в рамках законодательства',
-              ].map((rule) => (
-                <div key={rule} className="flex items-start gap-2">
-                  <div className="w-2 h-2 rounded-full bg-indigo-500 mt-2" />
-                  <p className={`text-sm ${headingColor}`}>{rule}</p>
-                </div>
-              ))}
-            </div>
-          </div>
+            <span>Читать правила</span>
+            <ArrowUpRight className="w-4 h-4" />
+          </Link>
         </div>
       </div>
 
-      {/* Contact */}
-      <div
-        id="contacts"
-        className="section-card rounded-3xl p-6 sm:p-7 border border-white/60 dark:border-white/10 shadow-xl relative overflow-hidden"
-      >
-        <div className="absolute inset-0 bg-gradient-to-br from-rose-100/50 via-white/40 to-amber-100/40 dark:from-rose-900/25 dark:via-transparent dark:to-amber-900/20" />
-        <div className="relative z-10 grid gap-5 sm:grid-cols-[0.9fr_1.1fr] items-center">
-          <div
-            className={`p-4 rounded-2xl shadow-lg inline-flex items-center gap-3 ${theme === 'dark' ? 'bg-gradient-to-br from-rose-600 to-amber-600 text-white' : 'bg-gradient-to-br from-rose-500 to-amber-500 text-white'
-              }`}
-          >
+      {/* Contacts Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className={`rounded-3xl p-6 border flex items-center gap-5 ${glassCard} hover:border-[#4E6E49]/30 transition-colors`}>
+          <div className="w-14 h-14 rounded-full bg-gradient-to-br from-rose-500 to-orange-500 flex items-center justify-center text-white shadow-lg">
+            <Users className="w-7 h-7" />
+          </div>
+          <div>
+            <div className="text-xs font-bold uppercase text-rose-500 mb-1">Администратор</div>
+            <div className={`text-xl font-black ${headingColor}`}>@artyommedoed</div>
+            <div className={`text-sm ${subTextColor} mt-1`}>Вопросы доступов и регламентов</div>
+          </div>
+        </div>
+
+        <a
+          href="https://t.me/+vPZdPwPaaKI1MjAy"
+          target="_blank"
+          rel="noopener noreferrer"
+          className={`rounded-3xl p-6 border flex items-center gap-5 group ${glassCard} hover:border-emerald-500/30 transition-colors cursor-pointer`}
+        >
+          <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[#4E6E49] to-emerald-400 flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform">
             <Mail className="w-7 h-7" />
-            <div>
-              <p className="text-xs uppercase tracking-wide">Контакты клуба</p>
-              <p className="text-base font-semibold">Свяжитесь с нами</p>
-            </div>
           </div>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <div
-              className={`rounded-2xl border p-4 shadow-md flex flex-col gap-2 ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-white/80 bg-white/90'
-                }`}
-            >
-              <p className="text-xs uppercase tracking-wide text-rose-600 dark:text-rose-200 font-semibold">Администратор</p>
-              <p className={`text-lg font-extrabold ${headingColor}`}>@artyommedoed</p>
-              <p className={`text-sm ${subTextColor}`}>По вопросам правил, доступов и регламентов.</p>
+          <div>
+            <div className="text-xs font-bold uppercase text-emerald-500 mb-1">Обратная связь</div>
+            <div className={`text-xl font-black ${headingColor} flex items-center gap-2`}>
+              Командный чат
+              <ArrowUpRight className="w-5 h-5 opacity-50 group-hover:opacity-100 group-hover:translate-x-1 group-hover:-translate-y-1 transition-all" />
             </div>
-            <div
-              className={`rounded-2xl border p-4 shadow-md flex flex-col gap-2 ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-white/80 bg-white/90'
-                }`}
-            >
-              <p className="text-xs uppercase tracking-wide text-amber-600 dark:text-amber-200 font-semibold">Обратная связь</p>
-              <p className={`text-lg font-extrabold ${headingColor}`}>Командный чат</p>
-              <p className={`text-sm ${subTextColor}`}>Оперативные вопросы по продуктам и сессиям.</p>
-              <a
-                href="https://t.me/+vPZdPwPaaKI1MjAy"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 text-sm font-semibold text-[#4E6E49] hover:text-emerald-600"
-              >
-                Присоединиться
-                <ArrowUpRight className="w-4 h-4" />
-              </a>
-            </div>
+            <div className={`text-sm ${subTextColor} mt-1`}>Оперативные вопросы и общение</div>
           </div>
-        </div>
+        </a>
       </div>
+
     </div>
   )
 }
-

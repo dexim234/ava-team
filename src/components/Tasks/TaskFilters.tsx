@@ -3,6 +3,7 @@ import React from 'react'
 import { useThemeStore } from '@/store/themeStore'
 import { TaskCategory, TaskStatus, TASK_CATEGORIES } from '@/types'
 import { useUsers } from '@/hooks/useUsers'
+import { MemberSelector } from '@/components/Management/MemberSelector'
 
 interface TaskFiltersProps {
   selectedCategory: TaskCategory | 'all'
@@ -62,24 +63,12 @@ export const TaskFilters = ({
         </div>
 
         <div className="flex items-center gap-4 w-full lg:w-auto">
-          <div className="flex-1 lg:w-64">
+          <div className="flex-1 lg:min-w-[280px]">
             <div className="relative">
-              <div className={`absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none`}>
-                <span className={`text-gray-500 text-xs font-bold uppercase`}>Исполнитель</span>
-              </div>
-              <select
-                value={selectedUsers[0] || ''}
-                onChange={(e) => onUsersChange(e.target.value ? [e.target.value] : [])}
-                className={`block w-full pl-24 pr-10 py-2 sm:text-sm rounded-lg appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#4E6E49] ${theme === 'dark'
-                  ? 'bg-[#1a1a1a] border-white/10 text-white'
-                  : 'bg-white border-gray-300 text-gray-900'
-                  }`}
-              >
-                <option value="">Все</option>
-                {allMembers.map(user => (
-                  <option key={user.id} value={user.id}>{user.name}</option>
-                ))}
-              </select>
+              <MemberSelector
+                selectedUserId={selectedUsers[0] || null}
+                onSelect={(userId) => onUsersChange(userId ? [userId] : [])}
+              />
             </div>
           </div>
           {children}
@@ -116,4 +105,3 @@ export const TaskFilters = ({
     </div>
   )
 }
-

@@ -1,5 +1,4 @@
 // Tasks page - task manager
-// Tasks page - task manager
 import { useState, useEffect } from 'react'
 import { useThemeStore } from '@/store/themeStore'
 import { useAuthStore } from '@/store/authStore'
@@ -130,15 +129,7 @@ export const Tasks = () => {
           </div>
         </div>
         <div className="ml-auto flex items-center gap-4">
-          {user && (
-            <div className="text-right hidden sm:block">
-              <div className={`text-sm font-bold ${headingColor}`}>{user.name}</div>
-              <div className="text-xs text-[#4E6E49]">{user.role === 'admin' ? 'Admin User' : 'Team Member'}</div>
-            </div>
-          )}
-          <div className={`w-10 h-10 rounded-full flex items-center justify-center ${theme === 'dark' ? 'bg-[#2A3441] text-gray-400' : 'bg-gray-200 text-gray-600'}`}>
-            <Users className="w-5 h-5" />
-          </div>
+          {/* User profile removed as requested */}
         </div>
       </div>
 
@@ -277,4 +268,3 @@ export const Tasks = () => {
     </div>
   )
 }
-
