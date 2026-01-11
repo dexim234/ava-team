@@ -1,4 +1,4 @@
-бавь import { useThemeStore } from '@/store/themeStore'
+import { useThemeStore } from '@/store/themeStore'
 import { Info, ArrowUpRight, BookOpen, Mail, Sparkles, Users, Calendar, GraduationCap, Target, Shield, Zap, Globe, Lock, Layers } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
