@@ -169,12 +169,9 @@ export const About = () => {
             }`}
           >
             <div className="flex justify-between items-start mb-3">
-              <span className={`text-[10px] font-bold uppercase tracking-wider ${subTextColor}`}>
+              <span className={`text-xs font-bold uppercase tracking-wider ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
                 {item.title}
               </span>
-              <div className={`p-2 rounded-xl transition-colors ${theme === 'dark' ? 'bg-white/5 group-hover:bg-white/10' : 'bg-gray-100 group-hover:bg-gray-200'}`}>
-                <item.icon className={`w-5 h-5 ${item.accent}`} />
-              </div>
             </div>
             <div className="space-y-1">
               <div className={`text-sm font-medium leading-relaxed ${subTextColor}`}>
