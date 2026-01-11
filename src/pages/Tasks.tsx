@@ -7,7 +7,7 @@ import { TaskFilters } from '@/components/Tasks/TaskFilters'
 import { TaskTable } from '@/components/Tasks/TaskTable'
 import { getTasks, deleteTask } from '@/services/firestoreService'
 import { Task, TaskCategory, TaskStatus } from '@/types'
-import { CheckSquare, LayoutGrid, Plus, Calendar, Zap, Layers, CheckCircle2, Archive, Timer, Users } from 'lucide-react'
+import { CheckSquare, LayoutGrid, Plus, Calendar, Zap, Layers, CheckCircle2, Archive, Timer } from 'lucide-react'
 import { formatDate } from '@/utils/dateUtils'
 
 export const Tasks = () => {

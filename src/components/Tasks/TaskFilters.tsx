@@ -2,7 +2,6 @@
 import React from 'react'
 import { useThemeStore } from '@/store/themeStore'
 import { TaskCategory, TaskStatus, TASK_CATEGORIES } from '@/types'
-import { useUsers } from '@/hooks/useUsers'
 import { MemberSelector } from '@/components/Management/MemberSelector'
 
 interface TaskFiltersProps {
@@ -28,8 +27,6 @@ export const TaskFilters = ({
 
   const cardBg = theme === 'dark' ? 'bg-[#151a21]/50' : 'bg-white'
   const borderColor = theme === 'dark' ? 'border-white/5' : 'border-gray-200'
-
-  const { users: allMembers } = useUsers()
 
   const statusOptions = [
     { value: 'all', label: 'Все' },
