@@ -27,8 +27,10 @@ export const Rating = () => {
 
 
   useEffect(() => {
-    loadRatings()
-  }, [])
+    if (!usersLoading && allMembers.length > 0) {
+      loadRatings()
+    }
+  }, [allMembers, usersLoading])
 
   const loadRatings = async () => {
     setLoading(true)
@@ -52,7 +54,12 @@ export const Rating = () => {
       setReferrals(currentReferrals)
       const allRatings: (RatingData & { breakdown?: ReturnType<typeof getRatingBreakdown> })[] = []
 
+      console.log('Rating.tsx - allMembers:', allMembers)
+      console.log('Rating.tsx - allMembers.length:', allMembers.length)
+      console.log('Rating.tsx - usersLoading:', usersLoading)
+
       for (const member of allMembers) {
+        console.log('Rating.tsx - Processing member:', member.id, member.name)
         // Данные для рейтинга
         const weekEarnings = await getEarnings(member.id, weekStart, weekEnd)
         // Если у записи несколько участников, сумма делится поровну между ними
