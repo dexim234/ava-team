@@ -386,7 +386,6 @@ export const TEAM_MEMBERS: User[] = [
   { id: '2', name: 'Enowk', login: 'adel05', password: '058adeldex', avatar: '/avatars/adel.jpg' },
   { id: '3', name: 'Ксения', login: 'ksen03', password: '907ksendex', avatar: '/avatars/kseniya.jpg' },
   { id: '4', name: 'Ольга', login: 'olga04', password: '638olgadex', avatar: '/avatars/olga.jpg' },
-  { id: '5', name: 'Анастасия', login: 'anastasia05', password: '638anastadex', avatar: '/avatars/anastasia.jpg' },
 ]
 
 export const TASK_CATEGORIES: Record<TaskCategory, { label: string; icon: string; color: string }> = {

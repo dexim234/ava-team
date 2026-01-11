@@ -244,9 +244,9 @@ export const RatingCard = ({ rating, place }: RatingCardProps) => {
 
   // Рассчитываем итоговый рейтинг с учетом штрафов за прогулы
   const basePoints = metrics
-    .filter(m => m.label !== 'Прогулы')
+    .filter(m => !m.label.includes('Прогулы'))
     .reduce((sum, m) => sum + m.points, 0)
-  const absencePenalty = metrics.find(m => m.label === 'Прогулы')?.points || 0
+  const absencePenalty = metrics.find(m => m.label === 'Прогулы (Absence)')?.points || 0
   const totalPoints = Math.max(0, Math.min(100, basePoints + absencePenalty))
   const exclusionStatus = getExclusionStatus(rating.rating)
 
