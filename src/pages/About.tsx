@@ -12,57 +12,57 @@ export const About = () => {
       title: 'Финансовая грамотность',
       icon: GraduationCap,
       note: 'Управление рисками и анализ вместо эмоций.',
-      accent: 'text-white',
-      bg: 'bg-gradient-to-br from-emerald-600 to-emerald-800 border-white/10'
+      accent: 'text-emerald-500',
+      bg: 'bg-emerald-500/10 border-emerald-500/20'
     },
     {
       title: 'Приватность',
       icon: Lock,
       note: 'Защита цифровой идентичности и личных границ.',
-      accent: 'text-white',
-      bg: 'bg-gradient-to-br from-blue-600 to-blue-800 border-white/10'
+      accent: 'text-blue-500',
+      bg: 'bg-blue-500/10 border-blue-500/20'
     },
     {
       title: 'Образование',
       icon: BookOpen,
       note: 'От основ блокчейна до  DeFi-стратегий.',
-      accent: 'text-white',
-      bg: 'bg-gradient-to-br from-amber-600 to-amber-800 border-white/10'
+      accent: 'text-amber-500',
+      bg: 'bg-amber-500/10 border-amber-500/20'
     },
     {
       title: 'Прозрачность',
       icon: Shield,
       note: 'Честные сделки и открытость внутри клуба.',
-      accent: 'text-white',
-      bg: 'bg-gradient-to-br from-purple-600 to-purple-800 border-white/10'
+      accent: 'text-purple-500',
+      bg: 'bg-purple-500/10 border-purple-500/20'
     },
     {
       title: 'Инновации',
       icon: Zap,
       note: 'Тестируем новые протоколы и не боимся быть первыми.',
-      accent: 'text-white',
-      bg: 'bg-gradient-to-br from-pink-600 to-pink-800 border-white/10'
+      accent: 'text-pink-500',
+      bg: 'bg-pink-500/10 border-pink-500/20'
     },
     {
       title: 'Критическое мышление',
       icon: Target,
       note: 'Анализируем, проверяем, не следуем за хайпом.',
-      accent: 'text-white',
-      bg: 'bg-gradient-to-br from-cyan-600 to-cyan-800 border-white/10'
+      accent: 'text-cyan-500',
+      bg: 'bg-cyan-500/10 border-cyan-500/20'
     },
     {
       title: 'Глобальность',
       icon: Globe,
       note: 'Сотрудничество ради свободы в рамках закона.',
-      accent: 'text-white',
-      bg: 'bg-gradient-to-br from-lime-600 to-lime-800 border-white/10'
+      accent: 'text-lime-500',
+      bg: 'bg-lime-500/10 border-lime-500/20'
     },
     {
       title: 'Ответственность',
       icon: Users,
       note: 'Зрелость и самоконтроль в принятии решений.',
-      accent: 'text-white',
-      bg: 'bg-gradient-to-br from-slate-600 to-slate-800 border-white/10'
+      accent: 'text-slate-500',
+      bg: 'bg-slate-500/10 border-slate-500/20'
     },
   ]
 
@@ -160,12 +160,12 @@ export const About = () => {
       {/* Principles Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {principles.map((item, index) => (
-          <div key={index} className={`rounded-2xl p-5 border group hover:scale-[1.02] transition-all duration-300 shadow-lg ${item.bg}`}>
-            <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-4 bg-white/20 backdrop-blur-sm`}>
-              <item.icon className="w-5 h-5 text-white" />
+          <div key={index} className={`rounded-2xl p-5 border group hover:scale-[1.02] transition-all duration-300 shadow-sm ${item.bg}`}>
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-4 bg-white/5`}>
+              <item.icon className={`w-5 h-5 ${item.accent}`} />
             </div>
-            <h3 className={`text-lg font-bold mb-2 text-white`}>{item.title}</h3>
-            <p className={`text-xs leading-relaxed text-white/80`}>
+            <h3 className={`text-lg font-bold mb-2 ${headingColor}`}>{item.title}</h3>
+            <p className={`text-xs leading-relaxed ${subTextColor}`}>
               {item.note}
             </p>
           </div>
