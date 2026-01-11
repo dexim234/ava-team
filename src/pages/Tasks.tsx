@@ -1,4 +1,3 @@
-// Tasks page - task manager
 import { useState, useEffect } from 'react'
 import { useThemeStore } from '@/store/themeStore'
 import { useAuthStore } from '@/store/authStore'
@@ -133,96 +132,198 @@ export const Tasks = () => {
         </div>
       </div>
 
-      {/* Stats Grid - 8 Cards - Strict Schedule Style (900/40) */}
+      {/* Stats Grid - Schedule Card Style */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Row 1 */}
-        <div className={`relative overflow-hidden rounded-xl p-5 border shadow-sm bg-emerald-900/40 border-emerald-700/50 group hover:scale-[1.02] transition-all`}>
+        <div
+          className={`relative overflow-hidden rounded-2xl p-5 border transition-all duration-300 hover:shadow-lg group ${
+            theme === 'dark'
+              ? 'bg-emerald-500/5 border-emerald-500/20 hover:border-emerald-500/50'
+              : 'bg-white border-gray-100 hover:border-emerald-500/20'
+          }`}
+        >
           <div className="flex justify-between items-start mb-4">
-            <span className={`text-xs font-bold uppercase tracking-wider text-emerald-300`}>Всего задач сегодня</span>
-            <Calendar className="w-5 h-5 text-emerald-300" />
+            <span className={`text-[10px] font-bold uppercase tracking-wider ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+              Всего задач сегодня
+            </span>
+            <div className={`p-2 rounded-xl transition-colors ${theme === 'dark' ? 'bg-white/5 group-hover:bg-white/10' : 'bg-gray-100 group-hover:bg-gray-200'}`}>
+              <Calendar className="w-5 h-5 text-emerald-400" />
+            </div>
           </div>
-          <div className={`text-4xl font-black tracking-tight text-white`}>{stats.totalToday}</div>
-          <div className="text-[10px] mt-2 text-emerald-300 flex items-center gap-1 font-medium bg-emerald-900/40 w-fit px-2 py-0.5 rounded-full border border-emerald-700/30">
-            <span>↗ Активность ↑</span>
+          <div className="space-y-1">
+            <div className={`text-2xl font-black tracking-tight ${headingColor}`}>{stats.totalToday}</div>
+            <div className="text-[11px] font-medium text-emerald-400 bg-emerald-500/10 w-fit px-2 py-0.5 rounded-full border border-emerald-500/20">
+              ↗ Активность ↑
+            </div>
           </div>
         </div>
 
-        <div className={`relative overflow-hidden rounded-xl p-5 border shadow-sm bg-blue-900/40 border-blue-700/50 group hover:scale-[1.02] transition-all`}>
+        <div
+          className={`relative overflow-hidden rounded-2xl p-5 border transition-all duration-300 hover:shadow-lg group ${
+            theme === 'dark'
+              ? 'bg-blue-500/5 border-blue-500/20 hover:border-blue-500/50'
+              : 'bg-white border-gray-100 hover:border-blue-500/20'
+          }`}
+        >
           <div className="flex justify-between items-start mb-4">
-            <span className={`text-xs font-bold uppercase tracking-wider text-blue-300`}>Всего на неделе</span>
-            <LayoutGrid className="w-5 h-5 text-blue-300" />
+            <span className={`text-[10px] font-bold uppercase tracking-wider ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+              Всего на неделе
+            </span>
+            <div className={`p-2 rounded-xl transition-colors ${theme === 'dark' ? 'bg-white/5 group-hover:bg-white/10' : 'bg-gray-100 group-hover:bg-gray-200'}`}>
+              <LayoutGrid className="w-5 h-5 text-blue-400" />
+            </div>
           </div>
-          <div className={`text-4xl font-black tracking-tight text-white`}>{stats.totalWeek}</div>
-          <div className="text-[10px] mt-2 text-blue-300 font-medium">Общий объем</div>
+          <div className="space-y-1">
+            <div className={`text-2xl font-black tracking-tight ${headingColor}`}>{stats.totalWeek}</div>
+            <div className={`text-[11px] font-medium ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
+              Общий объем
+            </div>
+          </div>
         </div>
 
-        <div className={`relative overflow-hidden rounded-xl p-5 border shadow-sm bg-indigo-900/40 border-indigo-700/50 group hover:scale-[1.02] transition-all`}>
+        <div
+          className={`relative overflow-hidden rounded-2xl p-5 border transition-all duration-300 hover:shadow-lg group ${
+            theme === 'dark'
+              ? 'bg-indigo-500/5 border-indigo-500/20 hover:border-indigo-500/50'
+              : 'bg-white border-gray-100 hover:border-indigo-500/20'
+          }`}
+        >
           <div className="flex justify-between items-start mb-4">
-            <span className={`text-xs font-bold uppercase tracking-wider text-indigo-300`}>Всего в месяце</span>
-            <Layers className="w-5 h-5 text-indigo-300" />
+            <span className={`text-[10px] font-bold uppercase tracking-wider ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+              Всего в месяце
+            </span>
+            <div className={`p-2 rounded-xl transition-colors ${theme === 'dark' ? 'bg-white/5 group-hover:bg-white/10' : 'bg-gray-100 group-hover:bg-gray-200'}`}>
+              <Layers className="w-5 h-5 text-indigo-400" />
+            </div>
           </div>
-          <div className={`text-4xl font-black tracking-tight text-white`}>{stats.totalMonth}</div>
-          <div className="text-[10px] mt-2 text-indigo-300 font-medium">Накопительный итог</div>
+          <div className="space-y-1">
+            <div className={`text-2xl font-black tracking-tight ${headingColor}`}>{stats.totalMonth}</div>
+            <div className={`text-[11px] font-medium ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
+              Накопительный итог
+            </div>
+          </div>
         </div>
 
-        <div className={`relative overflow-hidden rounded-xl p-5 border shadow-sm bg-amber-900/40 border-amber-700/50 group hover:scale-[1.02] transition-all`}>
+        <div
+          className={`relative overflow-hidden rounded-2xl p-5 border transition-all duration-300 hover:shadow-lg group ${
+            theme === 'dark'
+              ? 'bg-amber-500/5 border-amber-500/20 hover:border-amber-500/50'
+              : 'bg-white border-gray-100 hover:border-amber-500/20'
+          }`}
+        >
           <div className="flex justify-between items-start mb-4">
-            <span className={`text-xs font-bold uppercase tracking-wider text-amber-300`}>Задач в работе</span>
-            <Zap className="w-5 h-5 text-amber-300" />
+            <span className={`text-[10px] font-bold uppercase tracking-wider ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+              Задач в работе
+            </span>
+            <div className={`p-2 rounded-xl transition-colors ${theme === 'dark' ? 'bg-white/5 group-hover:bg-white/10' : 'bg-gray-100 group-hover:bg-gray-200'}`}>
+              <Zap className="w-5 h-5 text-amber-400" />
+            </div>
           </div>
-          <div className={`text-4xl font-black tracking-tight text-white`}>{stats.inProgress}</div>
-          <div className="text-[10px] mt-2 text-amber-300 font-medium bg-amber-900/40 w-fit px-2 py-0.5 rounded-full border border-amber-700/30">Требуют внимания</div>
+          <div className="space-y-1">
+            <div className={`text-2xl font-black tracking-tight ${headingColor}`}>{stats.inProgress}</div>
+            <div className="text-[11px] font-medium text-amber-400 bg-amber-500/10 w-fit px-2 py-0.5 rounded-full border border-amber-500/20">
+              Требуют внимания
+            </div>
+          </div>
         </div>
 
         {/* Row 2 */}
-        <div className={`relative overflow-hidden rounded-xl p-5 border shadow-sm bg-teal-900/40 border-teal-700/50 group hover:scale-[1.02] transition-all`}>
+        <div
+          className={`relative overflow-hidden rounded-2xl p-5 border transition-all duration-300 hover:shadow-lg group ${
+            theme === 'dark'
+              ? 'bg-teal-500/5 border-teal-500/20 hover:border-teal-500/50'
+              : 'bg-white border-gray-100 hover:border-teal-500/20'
+          }`}
+        >
           <div className="flex justify-between items-start mb-4">
-            <span className={`text-xs font-bold uppercase tracking-wider text-teal-300`}>Закрыто сегодня</span>
-            <CheckCircle2 className="w-5 h-5 text-teal-300" />
+            <span className={`text-[10px] font-bold uppercase tracking-wider ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+              Закрыто сегодня
+            </span>
+            <div className={`p-2 rounded-xl transition-colors ${theme === 'dark' ? 'bg-white/5 group-hover:bg-white/10' : 'bg-gray-100 group-hover:bg-gray-200'}`}>
+              <CheckCircle2 className="w-5 h-5 text-teal-400" />
+            </div>
           </div>
-          <div className={`text-4xl font-black tracking-tight text-white`}>{stats.completedToday}</div>
-          <div className="mt-2 h-1 w-full bg-teal-900/50 rounded-full overflow-hidden">
-            <div className="h-full bg-teal-400 w-2/3" />
+          <div className="space-y-2">
+            <div className={`text-2xl font-black tracking-tight ${headingColor}`}>{stats.completedToday}</div>
+            <div className="h-1 w-full bg-teal-500/10 rounded-full overflow-hidden">
+              <div className="h-full bg-teal-400 w-2/3 transition-all duration-500" />
+            </div>
           </div>
         </div>
 
-        <div className={`relative overflow-hidden rounded-xl p-5 border shadow-sm bg-cyan-900/40 border-cyan-700/50 group hover:scale-[1.02] transition-all`}>
+        <div
+          className={`relative overflow-hidden rounded-2xl p-5 border transition-all duration-300 hover:shadow-lg group ${
+            theme === 'dark'
+              ? 'bg-cyan-500/5 border-cyan-500/20 hover:border-cyan-500/50'
+              : 'bg-white border-gray-100 hover:border-cyan-500/20'
+          }`}
+        >
           <div className="flex justify-between items-start mb-4">
-            <span className={`text-xs font-bold uppercase tracking-wider text-cyan-300`}>Закрыто на неделе</span>
-            <CheckCircle2 className="w-5 h-5 text-cyan-300" />
+            <span className={`text-[10px] font-bold uppercase tracking-wider ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+              Закрыто на неделе
+            </span>
+            <div className={`p-2 rounded-xl transition-colors ${theme === 'dark' ? 'bg-white/5 group-hover:bg-white/10' : 'bg-gray-100 group-hover:bg-gray-200'}`}>
+              <CheckCircle2 className="w-5 h-5 text-cyan-400" />
+            </div>
           </div>
-          <div className={`text-4xl font-black tracking-tight text-white`}>{stats.completedWeek}</div>
-          <div className="mt-2 h-1 w-full bg-cyan-900/50 rounded-full overflow-hidden">
-            <div className="h-full bg-cyan-400 w-1/2" />
+          <div className="space-y-2">
+            <div className={`text-2xl font-black tracking-tight ${headingColor}`}>{stats.completedWeek}</div>
+            <div className="h-1 w-full bg-cyan-500/10 rounded-full overflow-hidden">
+              <div className="h-full bg-cyan-400 w-1/2 transition-all duration-500" />
+            </div>
           </div>
         </div>
 
-        <div className={`relative overflow-hidden rounded-xl p-5 border shadow-sm bg-sky-900/40 border-sky-700/50 group hover:scale-[1.02] transition-all`}>
+        <div
+          className={`relative overflow-hidden rounded-2xl p-5 border transition-all duration-300 hover:shadow-lg group ${
+            theme === 'dark'
+              ? 'bg-sky-500/5 border-sky-500/20 hover:border-sky-500/50'
+              : 'bg-white border-gray-100 hover:border-sky-500/20'
+          }`}
+        >
           <div className="flex justify-between items-start mb-4">
-            <span className={`text-xs font-bold uppercase tracking-wider text-sky-300`}>Закрыто в месяце</span>
-            <Archive className="w-5 h-5 text-sky-300" />
+            <span className={`text-[10px] font-bold uppercase tracking-wider ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+              Закрыто в месяце
+            </span>
+            <div className={`p-2 rounded-xl transition-colors ${theme === 'dark' ? 'bg-white/5 group-hover:bg-white/10' : 'bg-gray-100 group-hover:bg-gray-200'}`}>
+              <Archive className="w-5 h-5 text-sky-400" />
+            </div>
           </div>
-          <div className={`text-4xl font-black tracking-tight text-white`}>{stats.closedMonth}</div>
-          <div className="mt-2 h-1 w-full bg-sky-900/50 rounded-full overflow-hidden">
-            <div className="h-full bg-sky-400 w-3/4" />
+          <div className="space-y-2">
+            <div className={`text-2xl font-black tracking-tight ${headingColor}`}>{stats.closedMonth}</div>
+            <div className="h-1 w-full bg-sky-500/10 rounded-full overflow-hidden">
+              <div className="h-full bg-sky-400 w-3/4 transition-all duration-500" />
+            </div>
           </div>
         </div>
 
-        <div className={`relative overflow-hidden rounded-xl p-5 border shadow-sm bg-rose-900/40 border-rose-700/50 group hover:scale-[1.02] transition-all`}>
+        <div
+          className={`relative overflow-hidden rounded-2xl p-5 border transition-all duration-300 hover:shadow-lg group ${
+            theme === 'dark'
+              ? 'bg-rose-500/5 border-rose-500/20 hover:border-rose-500/50'
+              : 'bg-white border-gray-100 hover:border-rose-500/20'
+          }`}
+        >
           <div className="flex justify-between items-start mb-4">
-            <span className={`text-xs font-bold uppercase tracking-wider text-rose-300`}>Ближайший дедлайн</span>
-            <Timer className="w-5 h-5 text-rose-300" />
+            <span className={`text-[10px] font-bold uppercase tracking-wider ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+              Ближайший дедлайн
+            </span>
+            <div className={`p-2 rounded-xl transition-colors ${theme === 'dark' ? 'bg-white/5 group-hover:bg-white/10' : 'bg-gray-100 group-hover:bg-gray-200'}`}>
+              <Timer className="w-5 h-5 text-rose-400" />
+            </div>
           </div>
-          <div className={`text-xl font-bold text-white truncate`}>
-            {upcomingTask ? (
-              <>
-                {upcomingTask.dueDate === todayStr ? 'Сегодня' : formatDate(new Date(upcomingTask.dueDate), 'd MMM')}
-                {upcomingTask.dueTime && `, ${upcomingTask.dueTime}`}
-              </>
-            ) : 'Нет'}
-          </div>
-          <div className="text-[10px] mt-1 text-rose-300 truncate max-w-full font-medium">
-            {upcomingTask ? upcomingTask.title : 'Все сроки соблюдены'}
+          <div className="space-y-1">
+            <div className={`text-2xl font-black tracking-tight ${headingColor}`}>
+              {upcomingTask ? (
+                <>
+                  {upcomingTask.dueDate === todayStr ? 'Сегодня' : formatDate(new Date(upcomingTask.dueDate), 'd MMM')}
+                  {upcomingTask.dueTime && `, ${upcomingTask.dueTime}`}
+                </>
+              ) : 'Нет'}
+            </div>
+            <div className={`text-[11px] font-medium truncate ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
+              {upcomingTask ? upcomingTask.title : 'Все сроки соблюдены'}
+            </div>
           </div>
         </div>
       </div>

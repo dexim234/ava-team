@@ -160,14 +160,27 @@ export const About = () => {
       {/* Principles Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {principles.map((item, index) => (
-          <div key={index} className={`rounded-2xl p-5 border group hover:scale-[1.02] transition-all duration-300 shadow-sm ${item.bg}`}>
-            <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-4 bg-white/5`}>
-              <item.icon className={`w-5 h-5 ${item.accent}`} />
+          <div
+            key={index}
+            className={`relative overflow-hidden rounded-2xl p-5 border transition-all duration-300 hover:shadow-lg group ${
+              theme === 'dark'
+                ? `${item.bg} hover:border-opacity-50`
+                : 'bg-white border-gray-100 hover:border-emerald-500/20'
+            }`}
+          >
+            <div className="flex justify-between items-start mb-4">
+              <span className={`text-[10px] font-bold uppercase tracking-wider ${subTextColor}`}>
+                {item.title}
+              </span>
+              <div className={`p-2 rounded-xl transition-colors ${theme === 'dark' ? 'bg-white/5 group-hover:bg-white/10' : 'bg-gray-100 group-hover:bg-gray-200'}`}>
+                <item.icon className={`w-5 h-5 ${item.accent}`} />
+              </div>
             </div>
-            <h3 className={`text-lg font-bold mb-2 ${headingColor}`}>{item.title}</h3>
-            <p className={`text-xs leading-relaxed ${subTextColor}`}>
-              {item.note}
-            </p>
+            <div className="space-y-1">
+              <div className={`text-2xl font-black tracking-tight ${headingColor}`}>
+                {item.note}
+              </div>
+            </div>
           </div>
         ))}
       </div>
