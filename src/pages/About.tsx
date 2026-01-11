@@ -1,7 +1,6 @@
 import { useThemeStore } from '@/store/themeStore'
 import { Info, ArrowUpRight, BookOpen, Mail, Sparkles, Users, Calendar, GraduationCap, Target, Shield, Zap, Globe, Lock, Layers } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import valuesIllustration from '../../assets/image-779ddbd9-e512-4bda-8983-af1ab9237b7c.png'
 
 export const About = () => {
   const { theme } = useThemeStore()
