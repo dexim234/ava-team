@@ -133,87 +133,87 @@ export const Tasks = () => {
         </div>
       </div>
 
-      {/* Stats Grid - 8 Cards - Subtler Management Style */}
+      {/* Stats Grid - 8 Cards - Strict Schedule Style (900/40) */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Row 1 */}
-        <div className={`relative overflow-hidden rounded-xl p-5 border shadow-sm bg-emerald-500/10 border-emerald-500/20 group hover:scale-[1.02] transition-all`}>
+        <div className={`relative overflow-hidden rounded-xl p-5 border shadow-sm bg-emerald-900/40 border-emerald-700/50 group hover:scale-[1.02] transition-all`}>
           <div className="flex justify-between items-start mb-4">
-            <span className={`text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400`}>Всего задач сегодня</span>
-            <Calendar className="w-5 h-5 text-emerald-500" />
+            <span className={`text-xs font-bold uppercase tracking-wider text-emerald-300`}>Всего задач сегодня</span>
+            <Calendar className="w-5 h-5 text-emerald-300" />
           </div>
-          <div className={`text-4xl font-black tracking-tight ${headingColor}`}>{stats.totalToday}</div>
-          <div className="text-[10px] mt-2 text-emerald-600 dark:text-emerald-400 flex items-center gap-1 font-medium bg-emerald-500/10 w-fit px-2 py-0.5 rounded-full">
+          <div className={`text-4xl font-black tracking-tight text-white`}>{stats.totalToday}</div>
+          <div className="text-[10px] mt-2 text-emerald-300 flex items-center gap-1 font-medium bg-emerald-900/40 w-fit px-2 py-0.5 rounded-full border border-emerald-700/30">
             <span>↗ Активность ↑</span>
           </div>
         </div>
 
-        <div className={`relative overflow-hidden rounded-xl p-5 border shadow-sm bg-blue-500/10 border-blue-500/20 group hover:scale-[1.02] transition-all`}>
+        <div className={`relative overflow-hidden rounded-xl p-5 border shadow-sm bg-blue-900/40 border-blue-700/50 group hover:scale-[1.02] transition-all`}>
           <div className="flex justify-between items-start mb-4">
-            <span className={`text-xs font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400`}>Всего на неделе</span>
-            <LayoutGrid className="w-5 h-5 text-blue-500" />
+            <span className={`text-xs font-bold uppercase tracking-wider text-blue-300`}>Всего на неделе</span>
+            <LayoutGrid className="w-5 h-5 text-blue-300" />
           </div>
-          <div className={`text-4xl font-black tracking-tight ${headingColor}`}>{stats.totalWeek}</div>
-          <div className="text-[10px] mt-2 text-blue-600 dark:text-blue-400 font-medium">Общий объем</div>
+          <div className={`text-4xl font-black tracking-tight text-white`}>{stats.totalWeek}</div>
+          <div className="text-[10px] mt-2 text-blue-300 font-medium">Общий объем</div>
         </div>
 
-        <div className={`relative overflow-hidden rounded-xl p-5 border shadow-sm bg-indigo-500/10 border-indigo-500/20 group hover:scale-[1.02] transition-all`}>
+        <div className={`relative overflow-hidden rounded-xl p-5 border shadow-sm bg-indigo-900/40 border-indigo-700/50 group hover:scale-[1.02] transition-all`}>
           <div className="flex justify-between items-start mb-4">
-            <span className={`text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400`}>Всего в месяце</span>
-            <Layers className="w-5 h-5 text-indigo-500" />
+            <span className={`text-xs font-bold uppercase tracking-wider text-indigo-300`}>Всего в месяце</span>
+            <Layers className="w-5 h-5 text-indigo-300" />
           </div>
-          <div className={`text-4xl font-black tracking-tight ${headingColor}`}>{stats.totalMonth}</div>
-          <div className="text-[10px] mt-2 text-indigo-600 dark:text-indigo-400 font-medium">Накопительный итог</div>
+          <div className={`text-4xl font-black tracking-tight text-white`}>{stats.totalMonth}</div>
+          <div className="text-[10px] mt-2 text-indigo-300 font-medium">Накопительный итог</div>
         </div>
 
-        <div className={`relative overflow-hidden rounded-xl p-5 border shadow-sm bg-amber-500/10 border-amber-500/20 group hover:scale-[1.02] transition-all`}>
+        <div className={`relative overflow-hidden rounded-xl p-5 border shadow-sm bg-amber-900/40 border-amber-700/50 group hover:scale-[1.02] transition-all`}>
           <div className="flex justify-between items-start mb-4">
-            <span className={`text-xs font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400`}>Задач в работе</span>
-            <Zap className="w-5 h-5 text-amber-500" />
+            <span className={`text-xs font-bold uppercase tracking-wider text-amber-300`}>Задач в работе</span>
+            <Zap className="w-5 h-5 text-amber-300" />
           </div>
-          <div className={`text-4xl font-black tracking-tight ${headingColor}`}>{stats.inProgress}</div>
-          <div className="text-[10px] mt-2 text-amber-600 dark:text-amber-400 font-medium bg-amber-500/10 w-fit px-2 py-0.5 rounded-full">Требуют внимания</div>
+          <div className={`text-4xl font-black tracking-tight text-white`}>{stats.inProgress}</div>
+          <div className="text-[10px] mt-2 text-amber-300 font-medium bg-amber-900/40 w-fit px-2 py-0.5 rounded-full border border-amber-700/30">Требуют внимания</div>
         </div>
 
         {/* Row 2 */}
-        <div className={`relative overflow-hidden rounded-xl p-5 border shadow-sm bg-teal-500/10 border-teal-500/20 group hover:scale-[1.02] transition-all`}>
+        <div className={`relative overflow-hidden rounded-xl p-5 border shadow-sm bg-teal-900/40 border-teal-700/50 group hover:scale-[1.02] transition-all`}>
           <div className="flex justify-between items-start mb-4">
-            <span className={`text-xs font-bold uppercase tracking-wider text-teal-600 dark:text-teal-400`}>Закрыто сегодня</span>
-            <CheckCircle2 className="w-5 h-5 text-teal-500" />
+            <span className={`text-xs font-bold uppercase tracking-wider text-teal-300`}>Закрыто сегодня</span>
+            <CheckCircle2 className="w-5 h-5 text-teal-300" />
           </div>
-          <div className={`text-4xl font-black tracking-tight ${headingColor}`}>{stats.completedToday}</div>
-          <div className="mt-2 h-1 w-full bg-teal-500/10 rounded-full overflow-hidden">
-            <div className="h-full bg-teal-500 w-2/3" />
+          <div className={`text-4xl font-black tracking-tight text-white`}>{stats.completedToday}</div>
+          <div className="mt-2 h-1 w-full bg-teal-900/50 rounded-full overflow-hidden">
+            <div className="h-full bg-teal-400 w-2/3" />
           </div>
         </div>
 
-        <div className={`relative overflow-hidden rounded-xl p-5 border shadow-sm bg-cyan-500/10 border-cyan-500/20 group hover:scale-[1.02] transition-all`}>
+        <div className={`relative overflow-hidden rounded-xl p-5 border shadow-sm bg-cyan-900/40 border-cyan-700/50 group hover:scale-[1.02] transition-all`}>
           <div className="flex justify-between items-start mb-4">
-            <span className={`text-xs font-bold uppercase tracking-wider text-cyan-600 dark:text-cyan-400`}>Закрыто на неделе</span>
-            <CheckCircle2 className="w-5 h-5 text-cyan-500" />
+            <span className={`text-xs font-bold uppercase tracking-wider text-cyan-300`}>Закрыто на неделе</span>
+            <CheckCircle2 className="w-5 h-5 text-cyan-300" />
           </div>
-          <div className={`text-4xl font-black tracking-tight ${headingColor}`}>{stats.completedWeek}</div>
-          <div className="mt-2 h-1 w-full bg-cyan-500/10 rounded-full overflow-hidden">
-            <div className="h-full bg-cyan-500 w-1/2" />
+          <div className={`text-4xl font-black tracking-tight text-white`}>{stats.completedWeek}</div>
+          <div className="mt-2 h-1 w-full bg-cyan-900/50 rounded-full overflow-hidden">
+            <div className="h-full bg-cyan-400 w-1/2" />
           </div>
         </div>
 
-        <div className={`relative overflow-hidden rounded-xl p-5 border shadow-sm bg-sky-500/10 border-sky-500/20 group hover:scale-[1.02] transition-all`}>
+        <div className={`relative overflow-hidden rounded-xl p-5 border shadow-sm bg-sky-900/40 border-sky-700/50 group hover:scale-[1.02] transition-all`}>
           <div className="flex justify-between items-start mb-4">
-            <span className={`text-xs font-bold uppercase tracking-wider text-sky-600 dark:text-sky-400`}>Закрыто в месяце</span>
-            <Archive className="w-5 h-5 text-sky-500" />
+            <span className={`text-xs font-bold uppercase tracking-wider text-sky-300`}>Закрыто в месяце</span>
+            <Archive className="w-5 h-5 text-sky-300" />
           </div>
-          <div className={`text-4xl font-black tracking-tight ${headingColor}`}>{stats.closedMonth}</div>
-          <div className="mt-2 h-1 w-full bg-sky-500/10 rounded-full overflow-hidden">
-            <div className="h-full bg-sky-500 w-3/4" />
+          <div className={`text-4xl font-black tracking-tight text-white`}>{stats.closedMonth}</div>
+          <div className="mt-2 h-1 w-full bg-sky-900/50 rounded-full overflow-hidden">
+            <div className="h-full bg-sky-400 w-3/4" />
           </div>
         </div>
 
-        <div className={`relative overflow-hidden rounded-xl p-5 border shadow-sm bg-red-500/10 border-red-500/20 group hover:scale-[1.02] transition-all`}>
+        <div className={`relative overflow-hidden rounded-xl p-5 border shadow-sm bg-rose-900/40 border-rose-700/50 group hover:scale-[1.02] transition-all`}>
           <div className="flex justify-between items-start mb-4">
-            <span className={`text-xs font-bold uppercase tracking-wider text-red-600 dark:text-red-400`}>Ближайший дедлайн</span>
-            <Timer className="w-5 h-5 text-red-500" />
+            <span className={`text-xs font-bold uppercase tracking-wider text-rose-300`}>Ближайший дедлайн</span>
+            <Timer className="w-5 h-5 text-rose-300" />
           </div>
-          <div className={`text-xl font-bold ${headingColor} truncate`}>
+          <div className={`text-xl font-bold text-white truncate`}>
             {upcomingTask ? (
               <>
                 {upcomingTask.dueDate === todayStr ? 'Сегодня' : formatDate(new Date(upcomingTask.dueDate), 'd MMM')}
@@ -221,7 +221,7 @@ export const Tasks = () => {
               </>
             ) : 'Нет'}
           </div>
-          <div className="text-[10px] mt-1 text-red-600 dark:text-red-400 truncate max-w-full font-medium">
+          <div className="text-[10px] mt-1 text-rose-300 truncate max-w-full font-medium">
             {upcomingTask ? upcomingTask.title : 'Все сроки соблюдены'}
           </div>
         </div>
