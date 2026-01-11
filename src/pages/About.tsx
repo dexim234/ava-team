@@ -152,31 +152,34 @@ export const About = () => {
       </div>
 
       {/* Principles Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {principles.map((item, index) => (
-          <div
-            key={index}
-            className={`relative overflow-hidden rounded-2xl p-5 border transition-all duration-300 hover:shadow-lg group ${
-              theme === 'dark'
-                ? `${item.bg} hover:border-opacity-50`
-                : 'bg-white border-gray-100 hover:border-emerald-500/20'
-            }`}
-          >
-            <div className="flex justify-between items-start mb-3">
-              <div className="flex items-center gap-2">
-                <item.icon className={`w-4 h-4 ${item.accent}`} />
-                <span className={`text-xs font-bold uppercase tracking-wider ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
-                  {item.title}
-                </span>
+      <div className="space-y-4">
+        <h2 className={`text-2xl font-black ${headingColor}`}>Наши принципы</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {principles.map((item, index) => (
+            <div
+              key={index}
+              className={`relative overflow-hidden rounded-2xl p-5 border transition-all duration-300 hover:shadow-lg group ${
+                theme === 'dark'
+                  ? `${item.bg} hover:border-opacity-50`
+                  : 'bg-white border-gray-100 hover:border-emerald-500/20'
+              }`}
+            >
+              <div className="flex justify-between items-start mb-3">
+                <div className="flex items-center gap-2">
+                  <item.icon className={`w-4 h-4 ${item.accent}`} />
+                  <span className={`text-xs font-bold uppercase tracking-wider ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+                    {item.title}
+                  </span>
+                </div>
+              </div>
+              <div className="space-y-1">
+                <div className={`text-sm font-medium leading-relaxed ${subTextColor}`}>
+                  {item.note}
+                </div>
               </div>
             </div>
-            <div className="space-y-1">
-              <div className={`text-sm font-medium leading-relaxed ${subTextColor}`}>
-                {item.note}
-              </div>
-            </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
 
       {/* Split Section: Strategies & Rules */}
