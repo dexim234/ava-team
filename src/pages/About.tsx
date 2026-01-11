@@ -1,4 +1,4 @@
-import { useThemeStore } from '@/store/themeStore'
+бавь import { useThemeStore } from '@/store/themeStore'
 import { Info, ArrowUpRight, BookOpen, Mail, Sparkles, Users, Calendar, GraduationCap, Target, Shield, Zap, Globe, Lock, Layers } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
@@ -12,57 +12,57 @@ export const About = () => {
       title: 'Финансовая грамотность',
       icon: GraduationCap,
       note: 'Управление рисками и анализ вместо эмоций.',
-      accent: 'text-emerald-300',
-      bg: 'bg-emerald-900/40 border-emerald-700/50'
+      accent: 'text-emerald-400',
+      bg: 'bg-emerald-500/5 border-emerald-500/20'
     },
     {
       title: 'Приватность',
       icon: Lock,
       note: 'Защита цифровой идентичности и личных границ.',
-      accent: 'text-blue-300',
-      bg: 'bg-blue-900/40 border-blue-700/50'
+      accent: 'text-blue-400',
+      bg: 'bg-blue-500/5 border-blue-500/20'
     },
     {
       title: 'Образование',
       icon: BookOpen,
       note: 'От основ блокчейна до  DeFi-стратегий.',
-      accent: 'text-amber-300',
-      bg: 'bg-amber-900/40 border-amber-700/50'
+      accent: 'text-amber-400',
+      bg: 'bg-amber-500/5 border-amber-500/20'
     },
     {
       title: 'Прозрачность',
       icon: Shield,
       note: 'Честные сделки и открытость внутри клуба.',
-      accent: 'text-purple-300',
-      bg: 'bg-purple-900/40 border-purple-700/50'
+      accent: 'text-purple-400',
+      bg: 'bg-purple-500/5 border-purple-500/20'
     },
     {
       title: 'Инновации',
       icon: Zap,
       note: 'Тестируем новые протоколы и не боимся быть первыми.',
-      accent: 'text-pink-300',
-      bg: 'bg-pink-900/40 border-pink-700/50'
+      accent: 'text-pink-400',
+      bg: 'bg-pink-500/5 border-pink-500/20'
     },
     {
       title: 'Критическое мышление',
       icon: Target,
       note: 'Анализируем, проверяем, не следуем за хайпом.',
-      accent: 'text-cyan-300',
-      bg: 'bg-cyan-900/40 border-cyan-700/50'
+      accent: 'text-cyan-400',
+      bg: 'bg-cyan-500/5 border-cyan-500/20'
     },
     {
       title: 'Глобальность',
       icon: Globe,
       note: 'Сотрудничество ради свободы в рамках закона.',
-      accent: 'text-lime-300',
-      bg: 'bg-lime-900/40 border-lime-700/50'
+      accent: 'text-lime-400',
+      bg: 'bg-lime-500/5 border-lime-500/20'
     },
     {
       title: 'Ответственность',
       icon: Users,
       note: 'Зрелость и самоконтроль в принятии решений.',
-      accent: 'text-slate-300',
-      bg: 'bg-slate-900/40 border-slate-700/50'
+      accent: 'text-slate-400',
+      bg: 'bg-slate-500/5 border-slate-500/20'
     },
   ]
 
@@ -168,7 +168,7 @@ export const About = () => {
                 : 'bg-white border-gray-100 hover:border-emerald-500/20'
             }`}
           >
-            <div className="flex justify-between items-start mb-4">
+            <div className="flex justify-between items-start mb-3">
               <span className={`text-[10px] font-bold uppercase tracking-wider ${subTextColor}`}>
                 {item.title}
               </span>
@@ -177,7 +177,7 @@ export const About = () => {
               </div>
             </div>
             <div className="space-y-1">
-              <div className={`text-2xl font-black tracking-tight ${headingColor}`}>
+              <div className={`text-sm font-medium leading-relaxed ${subTextColor}`}>
                 {item.note}
               </div>
             </div>

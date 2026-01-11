@@ -105,7 +105,6 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
   ]
 
   const mobileFuncSubItems = funcsSubItems.filter(item =>
-    item.path !== '/about' &&
     (!item.feature || accessibleFeatures.has(item.feature) || isAdmin)
   )
 
@@ -185,7 +184,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
 
           return isNew || isDueInHour || isOverdue
         })
-        .map((task) => {
+        .map(task => {
           const createdAt = Date.parse(task.createdAt)
           const isNew = !Number.isNaN(createdAt) && createdAt >= cutoff && !viewedIds.includes(`task_new_${task.id}`)
 
