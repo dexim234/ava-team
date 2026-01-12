@@ -53,151 +53,24 @@ const mockStrategies: Strategy[] = [
 ]
 
 export const FasolSignalsStrategy = () => {
-  const [searchQuery, setSearchQuery] = useState('')
-  const [sortConfig, setSortConfig] = useState<SortField>({ field: 'pnl', order: 'desc' })
-  const [selectedStrategy, setSelectedStrategy] = useState<string | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [strategies, setStrategies] = useState<Strategy[]>([])
-
-  // Initialize on mount
-  useEffect(() => {
-    const init = async () => {
-      // Simulate loading
-      await new Promise(resolve => setTimeout(resolve, 500))
-      setStrategies(mockStrategies)
-      setLoading(false)
-    }
-    init()
-  }, [])
-
-  const handleSort = (field: SortField['field']) => {
-    setSortConfig(prev => ({
-      field,
-      order: prev.field === field && prev.order === 'desc' ? 'asc' : 'desc'
-    }))
-  }
-
-  const sortedStrategies = [...strategies].sort((a, b) => {
-    const { field, order } = sortConfig
-    const modifier = order === 'asc' ? 1 : -1
-    
-    if (field === 'name') {
-      return a.name.localeCompare(b.name) * modifier
-    }
-    
-    const aVal = a[field] ?? (field === 'trades' ? 0 : -Infinity)
-    const bVal = b[field] ?? (field === 'trades' ? 0 : -Infinity)
-    
-    if (typeof aVal === 'number' && typeof bVal === 'number') {
-      return (aVal - bVal) * modifier
-    }
-    
-    return 0
-  })
-
-  const filteredStrategies = sortedStrategies.filter(strategy =>
-    strategy.name.toLowerCase().includes(searchQuery.toLowerCase())
-  )
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#4E6E49]"></div>
-      </div>
-    )
-  }
-
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-black text-[#4E6E49] dark:text-white uppercase tracking-wider">Fasol Signals</h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Стратегии сигналов Fasol</p>
+          <h1 className="text-2xl font-black text-[#4E6E49] dark:text-white uppercase tracking-wider">
+            Анализ наших сделок
+          </h1>
         </div>
-        <div className="flex items-center gap-3">
-          <button 
-            onClick={() => setStrategies(mockStrategies)}
-            className={cn(
-              "px-4 py-2 rounded-xl font-bold text-sm transition-all",
-              "bg-[#4E6E49]/10 text-[#4E6E49] hover:bg-[#4E6E49]/20",
-              "border border-[#4E6E49]/20"
-            )}
-          >
-            Обновить
-          </button>
-        </div>
-      </div>
-
-      <div className="flex flex-col sm:flex-row gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Поиск стратегий..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className={cn(
-              "w-full pl-11 pr-4 py-3 rounded-xl font-medium text-sm",
-              "bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10",
-              "placeholder:text-gray-400",
-              "focus:outline-none focus:ring-2 focus:ring-[#4E6E49]/50"
-            )}
-          />
-        </div>
-      </div>
-
-      <div className="grid gap-4">
-        <div className={cn(
-          "grid grid-cols-12 gap-4 px-4 py-3 rounded-xl text-xs font-bold uppercase tracking-wider",
-          "bg-gray-50 dark:bg-white/5 text-gray-500 dark:text-gray-400"
-        )}>
-          <div className="col-span-4" onClick={() => handleSort('name')}>
-            <button className="flex items-center gap-1 hover:text-[#4E6E49] transition-colors">
-              Стратегия
-              <ArrowUpDown className="w-3 h-3" />
-            </button>
-          </div>
-          <div className="col-span-2 text-right" onClick={() => handleSort('pnl')}>
-            <button className="flex items-center justify-end gap-1 ml-auto hover:text-[#4E6E49] transition-colors">
-              PNL
-              <ArrowUpDown className="w-3 h-3" />
-            </button>
-          </div>
-          <div className="col-span-2 text-right" onClick={() => handleSort('winRate')}>
-            <button className="flex items-center justify-end gap-1 ml-auto hover:text-[#4E6E49] transition-colors">
-              Win Rate
-              <ArrowUpDown className="w-3 h-3" />
-            </button>
-          </div>
-          <div className="col-span-2 text-right" onClick={() => handleSort('trades')}>
-            <button className="flex items-center justify-end gap-1 ml-auto hover:text-[#4E6E49] transition-colors">
-              Трейды
-              <ArrowUpDown className="w-3 h-3" />
-            </button>
-          </div>
-          <div className="col-span-2 text-right">
-            Действия
-          </div>
-        </div>
-
-        <div className="space-y-3">
-          {filteredStrategies.map((strategy) => (
-            <StrategyCard 
-              key={strategy.id}
-              strategy={strategy}
-              isSelected={selectedStrategy === strategy.id}
-              onSelect={() => setSelectedStrategy(selectedStrategy === strategy.id ? null : strategy.id)}
-            />
-          ))}
-
-          {filteredStrategies.length === 0 && (
-            <div className="text-center py-12">
-              <Search className="w-12 h-12 mx-auto text-gray-300 dark:text-gray-600 mb-4" />
-              <p className="text-lg font-bold text-gray-500 dark:text-gray-400">Стратегии не найдены</p>
-              <p className="text-sm text-gray-400 dark:text-gray-500">Попробуйте изменить параметры поиска</p>
-            </div>
-          )}
-        </div>
+        <button
+          className={`
+            px-4 py-2 rounded-xl font-bold text-sm transition-all
+            bg-[#4E6E49]/10 text-[#4E6E49] hover:bg-[#4E6E49]/20
+            border border-[#4E6E49]/20
+            cursor-default
+          `}
+        >
+          Учебная платформа (в разработке)
+        </button>
       </div>
     </div>
   )
