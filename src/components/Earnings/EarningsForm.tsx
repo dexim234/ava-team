@@ -1,12 +1,12 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useAuthStore } from '@/store/authStore'
 import { useAdminStore } from '@/store/adminStore'
 import { useThemeStore } from '@/store/themeStore'
-import { addEarnings, getWorkSlots, updateEarnings, addApprovalRequest } from '@/services/firestoreService'
-import { canAddEarnings, formatDate, getMoscowTime } from '@/utils/dateUtils'
+import { addEarnings, getWorkSlots, updateEarnings } from '@/services/firestoreService'
+import { canAddEarnings, formatDate } from '@/utils/dateUtils'
 import { getUserNicknameSync } from '@/utils/userUtils'
 import { EARNINGS_CATEGORY_META, Earnings, EarningsCategory, TEAM_MEMBERS } from '@/types'
-import { X, Rocket, LineChart, Image, Coins, BarChart3, ShieldCheck, Sparkles, Trash2, PlusCircle, Gift } from 'lucide-react'
+import { X, Rocket, LineChart, Image, Coins, BarChart3, ShieldCheck, Sparkles, Gift } from 'lucide-react'
 import { useScrollLock } from '@/hooks/useScrollLock'
 import { SaveProgressIndicator } from '@/components/UI/SaveProgressIndicator'
 
@@ -14,15 +14,6 @@ interface EarningsFormProps {
   onClose: () => void
   onSave: () => void
   editingEarning?: Earnings | null
-}
-
-type DraftEntry = {
-  id: string
-  category: EarningsCategory
-  amount: number
-  extraWalletsCount: number
-  extraWalletsAmount: number
-  participants: string[]
 }
 
 const POOL_RATE = 0.45
@@ -43,7 +34,6 @@ export const EarningsForm = ({ onClose, onSave, editingEarning }: EarningsFormPr
   const [multipleParticipants, setMultipleParticipants] = useState(editingEarning ? editingEarning.participants.length > 1 : false)
   const [selectedParticipants, setSelectedParticipants] = useState<string[]>(editingEarning ? editingEarning.participants.filter(id => id !== editingEarning.userId) : [])
   const [availableSlots, setAvailableSlots] = useState<any[]>([])
-  const [draftEntries, setDraftEntries] = useState<DraftEntry[]>([])
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -121,9 +111,9 @@ export const EarningsForm = ({ onClose, onSave, editingEarning }: EarningsFormPr
         category,
         participants,
         userId: user?.id || '',
-        status: (isAdmin && isEditing) ? 'approved' : 'pending',
+        status: ((isAdmin && isEditing) ? 'approved' : 'pending') as 'pending' | 'approved' | 'rejected',
         perParticipant: calculatePerParticipant(),
-        poolShare: parseFloat(amount) * POOL_RATE
+        poolAmount: parseFloat(amount) * POOL_RATE
       }
 
       if (isEditing && editingEarning?.id) {
@@ -152,16 +142,15 @@ export const EarningsForm = ({ onClose, onSave, editingEarning }: EarningsFormPr
   useEffect(() => {
     const loadAvailableSlots = async () => {
       try {
-        const snapshot = await getWorkSlots()
-        const slots = snapshot.docs
-          .map(doc => ({ id: doc.id, ...doc.data() }))
+        const slots = await getWorkSlots()
+        const filteredSlots = slots
           .filter((slot: any) => slot.status === 'approved')
           .sort((a: any, b: any) => {
             const dateA = new Date(a.date.split('.').reverse().join('-'))
             const dateB = new Date(b.date.split('.').reverse().join('-'))
             return dateB.getTime() - dateA.getTime()
           })
-        setAvailableSlots(slots)
+        setAvailableSlots(filteredSlots)
       } catch (error) {
         console.error('Error loading slots:', error)
       }
@@ -170,7 +159,6 @@ export const EarningsForm = ({ onClose, onSave, editingEarning }: EarningsFormPr
     loadAvailableSlots()
   }, [])
 
-  const participants = resolveParticipants()
   const perParticipant = calculatePerParticipant()
   const poolShare = parseFloat(amount) * POOL_RATE
   const extraWalletsTotal = parseFloat(extraWalletsCount || '0') * parseFloat(extraWalletsAmount || '0')

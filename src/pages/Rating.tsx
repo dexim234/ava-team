@@ -11,7 +11,7 @@ import { calculateRating, getRatingBreakdown } from '@/utils/ratingUtils'
 import { getUserNicknameAsync, clearAllNicknameCache, getUserNicknameSync } from '@/utils/userUtils'
 import { RatingData, Referral, Earnings, DayStatus } from '@/types'
 import { useUsers } from '@/hooks/useUsers'
-import { TrendingUp, Award, Target, UserPlus } from 'lucide-react'
+import { TrendingUp, Award, Target, UserPlus, BarChart3 } from 'lucide-react'
 
 export const Rating = () => {
   const { theme } = useThemeStore()

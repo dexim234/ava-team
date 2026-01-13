@@ -7,7 +7,7 @@ import { useAdminStore } from '@/store/adminStore'
 import { getWorkSlots, getDayStatuses, addApprovalRequest, deleteWorkSlot, updateDayStatus, addDayStatus, deleteDayStatus } from '@/services/firestoreService'
 import { formatDate, getWeekDays, isSameDate, getMoscowTime } from '@/utils/dateUtils'
 import { getUserNicknameSync } from '@/utils/userUtils'
-import { WorkSlot, DayStatus, SLOT_CATEGORY_META, SlotCategory } from '@/types'
+import { WorkSlot, DayStatus, SLOT_CATEGORY_META, SlotCategory, DayStatusType } from '@/types'
 import { Edit, Trash2, CheckCircle2, Calendar as CalendarIcon, ChevronDown, ChevronUp, Info, ChevronLeft, ChevronRight, RotateCcw } from 'lucide-react'
 import { startOfWeek } from 'date-fns'
 import { useUsers } from '@/hooks/useUsers'
@@ -457,7 +457,9 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
     absence: { label: 'Отсутствие', tone: 'bg-orange-500/10 text-orange-500 border border-orange-500/20' },
     truancy: { label: 'Прогул', tone: 'bg-red-500/10 text-red-500 border border-red-500/20' },
     internship: { label: 'Стажировка', tone: 'bg-yellow-500/10 text-yellow-500 border border-yellow-500/20' },
-  } as const
+    working: { label: 'Рабочий', tone: 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' },
+    weekend: { label: 'Выходной', tone: 'bg-green-500/10 text-green-500 border border-green-500/20' },
+  } as const satisfies Record<DayStatusType, { label: string; tone: string }>
 
   const SLOT_CATEGORY_COLORS: Record<SlotCategory, { bg: string; text: string; border: string }> = {
     memecoins: { bg: 'bg-emerald-100 dark:bg-emerald-900/40', text: 'text-emerald-700 dark:text-emerald-300', border: 'border-emerald-300 dark:border-emerald-700' },

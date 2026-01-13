@@ -12,17 +12,25 @@ import { SaveProgressIndicator } from '@/components/UI/SaveProgressIndicator'
 interface DayStatusFormProps {
   onClose: () => void
   onSave: () => void
+  type?: 'working' | 'vacation' | 'sick' | 'weekend' | 'dayoff' | 'absence' | 'internship' | 'truancy' | null
+  status?: DayStatus | null
   editingStatus?: DayStatus | null
 }
 
 const STATUS_TYPES = [
-  { key: 'working', label: 'Рабочий', icon: '💼', color: 'from-emerald-500 to-teal-600', bgColor: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600' },
-  { key: 'vacation', label: 'Отпуск', icon: '🏖️', color: 'from-blue-500 to-indigo-600', bgColor: 'bg-blue-500/10 border-blue-500/20 text-blue-600' },
-  { key: 'sick', label: 'Больничный', icon: '🤒', color: 'from-orange-500 to-red-600', bgColor: 'bg-orange-500/10 border-orange-500/20 text-orange-600' },
-  { key: 'weekend', label: 'Выходной', icon: '🎉', color: 'from-purple-500 to-pink-600', bgColor: 'bg-purple-500/10 border-purple-500/20 text-purple-600' },
+  { key: 'working' as const, label: 'Рабочий', icon: '💼', color: 'from-emerald-500 to-teal-600', bgColor: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600' },
+  { key: 'vacation' as const, label: 'Отпуск', icon: '🏖️', color: 'from-blue-500 to-indigo-600', bgColor: 'bg-blue-500/10 border-blue-500/20 text-blue-600' },
+  { key: 'sick' as const, label: 'Больничный', icon: '🤒', color: 'from-orange-500 to-red-600', bgColor: 'bg-orange-500/10 border-orange-500/20 text-orange-600' },
+  { key: 'weekend' as const, label: 'Выходной', icon: '🎉', color: 'from-purple-500 to-pink-600', bgColor: 'bg-purple-500/10 border-purple-500/20 text-purple-600' },
+  { key: 'dayoff' as const, label: 'День отдыха', icon: '🌴', color: 'from-green-500 to-emerald-600', bgColor: 'bg-green-500/10 border-green-500/20 text-green-600' },
+  { key: 'absence' as const, label: 'Отсутствие', icon: '❓', color: 'from-amber-500 to-orange-600', bgColor: 'bg-amber-500/10 border-amber-500/20 text-amber-600' },
+  { key: 'internship' as const, label: 'Стажировка', icon: '🎓', color: 'from-yellow-500 to-amber-600', bgColor: 'bg-yellow-500/10 border-yellow-500/20 text-yellow-600' },
+  { key: 'truancy' as const, label: 'Прогул', icon: '🚫', color: 'from-red-500 to-rose-600', bgColor: 'bg-red-500/10 border-red-500/20 text-red-600' },
 ] as const
 
-export const DayStatusForm = ({ onClose, onSave, editingStatus }: DayStatusFormProps) => {
+type FormStatusType = typeof STATUS_TYPES[number]['key']
+
+export const DayStatusForm = ({ onClose, onSave, status: editingStatus, editingStatus: _editingStatus }: DayStatusFormProps) => {
   const { user } = useAuthStore()
   const { isAdmin } = useAdminStore()
   const { theme } = useThemeStore()
@@ -32,7 +40,7 @@ export const DayStatusForm = ({ onClose, onSave, editingStatus }: DayStatusFormP
   const isEditing = !!editingStatus
 
   const [date, setDate] = useState(editingStatus?.date || formatDate(new Date(), 'yyyy-MM-dd'))
-  const [selectedType, setSelectedType] = useState<typeof STATUS_TYPES[number]['key'] | null>(editingStatus?.type || null)
+  const [selectedType, setSelectedType] = useState<FormStatusType | null>((editingStatus?.type as FormStatusType) || null)
   const [note, setNote] = useState(editingStatus?.comment || '')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -60,10 +68,10 @@ export const DayStatusForm = ({ onClose, onSave, editingStatus }: DayStatusFormP
     try {
       const statusData = {
         date,
-        type: selectedType,
+        type: selectedType as FormStatusType,
         comment: note,
         userId: user?.id || '',
-        status: (isAdmin && isEditing) ? 'approved' : 'pending'
+        status: ((isAdmin && isEditing) ? 'approved' : 'pending') as 'pending' | 'approved' | 'rejected'
       }
 
       if (isEditing && editingStatus?.id) {

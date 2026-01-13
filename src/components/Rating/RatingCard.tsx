@@ -1,7 +1,7 @@
 // Rating card component
 import { useThemeStore } from '@/store/themeStore'
 import { getRatingBreakdown, getExclusionStatus } from '@/utils/ratingUtils'
-import { RatingData, TEAM_MEMBERS } from '@/types'
+import { RatingData } from '@/types'
 import { formatHours } from '@/utils/dateUtils'
 import { UserNickname } from '@/components/UserNickname'
 import { Calendar, Heart, Plane, Clock, DollarSign, Users, TrendingUp, Info, AlertTriangle, Zap, Lightbulb } from 'lucide-react'
@@ -28,7 +28,6 @@ export const RatingCard = ({ rating, place }: RatingCardProps) => {
   console.log('RatingCard render - userId:', rating.userId, 'breakdown:', rating.breakdown)
   const { theme } = useThemeStore()
   const [expandedMetric, setExpandedMetric] = useState<number | null>(null)
-  const member = TEAM_MEMBERS.find((m) => m.id === rating.userId)
   const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
   const mutedColor = theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
   const cardBg = theme === 'dark' ? 'bg-[#0f0f0f]' : 'bg-white'
@@ -44,56 +43,6 @@ export const RatingCard = ({ rating, place }: RatingCardProps) => {
         : rating.rating >= 40
           ? 'bg-amber-500'
           : 'bg-rose-500'
-
-  const accentPalette: Record<
-    string,
-    { bg: string; border: string; text: string; icon: string; soft: string }
-  > = {
-    '1': {
-      bg: theme === 'dark' ? 'bg-emerald-500/10' : 'bg-emerald-50',
-      border: theme === 'dark' ? 'border-emerald-400/30' : 'border-emerald-200',
-      text: theme === 'dark' ? 'text-emerald-100' : 'text-emerald-900',
-      icon: theme === 'dark' ? 'text-emerald-200' : 'text-emerald-600',
-      soft: theme === 'dark' ? 'bg-emerald-500/8' : 'bg-emerald-50',
-    },
-    '2': {
-      bg: theme === 'dark' ? 'bg-sky-500/10' : 'bg-sky-50',
-      border: theme === 'dark' ? 'border-sky-400/30' : 'border-sky-200',
-      text: theme === 'dark' ? 'text-sky-100' : 'text-sky-900',
-      icon: theme === 'dark' ? 'text-sky-200' : 'text-sky-600',
-      soft: theme === 'dark' ? 'bg-sky-500/8' : 'bg-sky-50',
-    },
-    '3': {
-      bg: theme === 'dark' ? 'bg-purple-500/10' : 'bg-purple-50',
-      border: theme === 'dark' ? 'border-purple-400/30' : 'border-purple-200',
-      text: theme === 'dark' ? 'text-purple-100' : 'text-purple-900',
-      icon: theme === 'dark' ? 'text-purple-200' : 'text-purple-600',
-      soft: theme === 'dark' ? 'bg-purple-500/8' : 'bg-purple-50',
-    },
-    '4': {
-      bg: theme === 'dark' ? 'bg-amber-500/10' : 'bg-amber-50',
-      border: theme === 'dark' ? 'border-amber-400/30' : 'border-amber-200',
-      text: theme === 'dark' ? 'text-amber-100' : 'text-amber-900',
-      icon: theme === 'dark' ? 'text-amber-200' : 'text-amber-600',
-      soft: theme === 'dark' ? 'bg-amber-500/8' : 'bg-amber-50',
-    },
-    '5': {
-      bg: theme === 'dark' ? 'bg-rose-500/10' : 'bg-rose-50',
-      border: theme === 'dark' ? 'border-rose-400/30' : 'border-rose-200',
-      text: theme === 'dark' ? 'text-rose-100' : 'text-rose-900',
-      icon: theme === 'dark' ? 'text-rose-200' : 'text-rose-600',
-      soft: theme === 'dark' ? 'bg-rose-500/8' : 'bg-rose-50',
-    },
-    default: {
-      bg: theme === 'dark' ? 'bg-white/5' : 'bg-gray-50',
-      border: theme === 'dark' ? 'border-white/10' : 'border-gray-200',
-      text: theme === 'dark' ? 'text-white' : 'text-gray-900',
-      icon: theme === 'dark' ? 'text-white' : 'text-gray-700',
-      soft: theme === 'dark' ? 'bg-white/5' : 'bg-gray-50',
-    },
-  }
-
-  const accent = accentPalette[member?.id || 'default']
 
   const metrics: MetricInfo[] = rating.breakdown ? [
     {

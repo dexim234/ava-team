@@ -6,6 +6,7 @@ export interface User {
   password: string
   avatar?: string // Путь к изображению аватара
   role?: string
+  nickname?: string
 }
 
 // Slot types
@@ -42,11 +43,14 @@ export interface WorkSlot {
 }
 
 // Day status types
+export type DayStatusType = 'dayoff' | 'sick' | 'vacation' | 'absence' | 'truancy' | 'internship' | 'working' | 'weekend'
+
 export interface DayStatus {
   id: string
   userId: string
   date: string
-  type: 'dayoff' | 'sick' | 'vacation' | 'absence' | 'truancy' | 'internship'
+  type: DayStatusType
+  status?: 'pending' | 'approved' | 'rejected'
   comment?: string
   endDate?: string // for multi-day statuses
 }
@@ -110,6 +114,7 @@ export interface Earnings {
   poolAmount: number
   slotId: string
   category: EarningsCategory
+  status?: 'pending' | 'approved' | 'rejected'
   // Доп. кошельки
   extraWalletsCount?: number
   extraWalletsAmount?: number
