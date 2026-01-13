@@ -245,9 +245,6 @@ export const Tasks = () => {
           </div>
           <div className="space-y-2">
             <div className={`text-2xl font-black tracking-tight ${headingColor}`}>{stats.completedToday}</div>
-            <div className="h-1 w-full bg-teal-500/10 rounded-full overflow-hidden">
-              <div className="h-full bg-teal-400 w-2/3 transition-all duration-500" />
-            </div>
           </div>
         </div>
 
@@ -268,9 +265,6 @@ export const Tasks = () => {
           </div>
           <div className="space-y-2">
             <div className={`text-2xl font-black tracking-tight ${headingColor}`}>{stats.completedWeek}</div>
-            <div className="h-1 w-full bg-cyan-500/10 rounded-full overflow-hidden">
-              <div className="h-full bg-cyan-400 w-1/2 transition-all duration-500" />
-            </div>
           </div>
         </div>
 
@@ -291,9 +285,6 @@ export const Tasks = () => {
           </div>
           <div className="space-y-2">
             <div className={`text-2xl font-black tracking-tight ${headingColor}`}>{stats.closedMonth}</div>
-            <div className="h-1 w-full bg-sky-500/10 rounded-full overflow-hidden">
-              <div className="h-full bg-sky-400 w-3/4 transition-all duration-500" />
-            </div>
           </div>
         </div>
 

@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useThemeStore } from '@/store/themeStore'
 import { TaskCategory, TaskStatus, TASK_CATEGORIES } from '@/types'
 import { MemberSelector } from '@/components/Management/MemberSelector'
-import { Filter, ChevronDown, X } from 'lucide-react'
+import { Filter, ChevronDown, X, Plus } from 'lucide-react'
 
 interface TaskFiltersProps {
   selectedCategory: TaskCategory | 'all'
@@ -25,12 +25,15 @@ export const TaskFilters = ({
 }: TaskFiltersProps) => {
   const { theme } = useThemeStore()
   const [showMobileFilters, setShowMobileFilters] = useState(false)
+  const [showCategoryDropdown, setShowCategoryDropdown] = useState(false)
 
   const cardBg = theme === 'dark' ? 'bg-[#151a21]/50' : 'bg-white'
   const borderColor = theme === 'dark' ? 'border-white/5' : 'border-gray-200'
   const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
   const mutedColor = theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
   const inputBg = theme === 'dark' ? 'bg-[#0f1216]' : 'bg-gray-100'
+  const dropdownBg = theme === 'dark' ? 'bg-[#1a1f26]' : 'bg-white'
+  const hoverBg = theme === 'dark' ? 'hover:bg-white/10' : 'hover:bg-gray-100'
 
   const statusOptions = [
     { value: 'all', label: 'Все' },
@@ -43,6 +46,16 @@ export const TaskFilters = ({
     key: key as TaskCategory,
     label
   }))
+
+  const selectedCategoryLabel = selectedCategory === 'all' 
+    ? 'Все' 
+    : TASK_CATEGORIES[selectedCategory]?.label || 'Категория'
+
+  // Get category icon
+  const getCategoryIcon = (key: TaskCategory | 'all') => {
+    if (key === 'all') return '🏷️'
+    return TASK_CATEGORIES[key]?.icon || '📁'
+  }
 
   return (
     <div className="space-y-3">
@@ -67,10 +80,14 @@ export const TaskFilters = ({
         
         <button
           onClick={onAddTask}
-          className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white font-bold rounded-xl transition-all shadow-lg shadow-emerald-900/20 active:scale-95 flex-1 justify-center"
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border font-medium transition-all flex-1 justify-center ${
+            theme === 'dark' 
+              ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20' 
+              : 'bg-emerald-50 border-emerald-200 text-emerald-600 hover:bg-emerald-100'
+          }`}
         >
-          <span className="text-lg">+</span>
-          <span>Новая задача</span>
+          <Plus className="w-4 h-4" />
+          <span>Новая</span>
         </button>
       </div>
 
@@ -99,19 +116,53 @@ export const TaskFilters = ({
 
         {/* Category & User filters row */}
         <div className="px-2 sm:px-3 pb-3 flex flex-col sm:flex-row gap-3">
-          {/* Category dropdown (mobile-friendly) */}
+          {/* Custom Category dropdown */}
           <div className="relative flex-1">
-            <select
-              value={selectedCategory}
-              onChange={(e) => onCategoryChange(e.target.value as TaskCategory | 'all')}
-              className={`w-full appearance-none px-3 py-2 rounded-lg text-sm font-medium border ${borderColor} ${inputBg} ${headingColor} cursor-pointer focus:outline-none focus:ring-2 focus:ring-emerald-500/50`}
+            <button
+              onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
+              className={`w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-sm font-medium border ${borderColor} ${inputBg} ${headingColor} cursor-pointer focus:outline-none focus:ring-2 focus:ring-emerald-500/50`}
             >
-              <option value="all">🏷️ Все категории</option>
-              {categories.map(({ key, label }) => (
-                <option key={key} value={key}>{label}</option>
-              ))}
-            </select>
-            <ChevronDown className={`absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none ${mutedColor}`} />
+              <span className="flex items-center gap-2">
+                <span>{getCategoryIcon(selectedCategory)}</span>
+                <span>{selectedCategoryLabel}</span>
+              </span>
+              <ChevronDown className={`w-4 h-4 ${mutedColor} transition-transform ${showCategoryDropdown ? 'rotate-180' : ''}`} />
+            </button>
+            
+            {/* Dropdown menu */}
+            {showCategoryDropdown && (
+              <>
+                <div 
+                  className="fixed inset-0 z-10" 
+                  onClick={() => setShowCategoryDropdown(false)} 
+                />
+                <div className={`absolute top-full left-0 right-0 mt-1 ${dropdownBg} border ${borderColor} rounded-lg shadow-xl z-20 overflow-hidden`}>
+                  <button
+                    onClick={() => {
+                      onCategoryChange('all')
+                      setShowCategoryDropdown(false)
+                    }}
+                    className={`w-full flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors ${hoverBg} ${selectedCategory === 'all' ? theme === 'dark' ? 'bg-white/10 text-white' : 'bg-gray-100 text-gray-900' : mutedColor}`}
+                  >
+                    <span>🏷️</span>
+                    <span>Все категории</span>
+                  </button>
+                  {categories.map(({ key, label }) => (
+                    <button
+                      key={key}
+                      onClick={() => {
+                        onCategoryChange(key)
+                        setShowCategoryDropdown(false)
+                      }}
+                      className={`w-full flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors ${hoverBg} ${selectedCategory === key ? theme === 'dark' ? 'bg-white/10 text-white' : 'bg-gray-100 text-gray-900' : mutedColor}`}
+                    >
+                      <span>{TASK_CATEGORIES[key]?.icon || '📁'}</span>
+                      <span>{label}</span>
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
 
           {/* Member selector */}
@@ -156,9 +207,13 @@ export const TaskFilters = ({
       <div className="hidden lg:block">
         <button
           onClick={onAddTask}
-          className="whitespace-nowrap flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white font-bold rounded-xl transition-all shadow-lg shadow-emerald-900/20 active:scale-95"
+          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl border font-medium transition-all ${
+            theme === 'dark' 
+              ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20' 
+              : 'bg-emerald-50 border-emerald-200 text-emerald-600 hover:bg-emerald-100'
+          }`}
         >
-          <span className="text-lg">+</span>
+          <Plus className="w-4 h-4" />
           <span>Новая задача</span>
         </button>
       </div>
