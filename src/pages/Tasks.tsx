@@ -6,7 +6,7 @@ import { TaskFilters } from '@/components/Tasks/TaskFilters'
 import { TaskTable } from '@/components/Tasks/TaskTable'
 import { getTasks, deleteTask } from '@/services/firestoreService'
 import { Task, TaskCategory, TaskStatus } from '@/types'
-import { CheckSquare, LayoutGrid, Plus, Calendar, Zap, Layers, CheckCircle2, Archive, Timer } from 'lucide-react'
+import { CheckSquare, LayoutGrid, Calendar, Zap, Layers, CheckCircle2, Archive, Timer } from 'lucide-react'
 import { formatDate } from '@/utils/dateUtils'
 
 export const Tasks = () => {
@@ -335,9 +335,9 @@ export const Tasks = () => {
           <span className="px-2.5 py-1 rounded-md bg-gray-800/80 text-gray-400 text-xs font-medium border border-white/5 shadow-sm">{stats.inProgress} активных</span>
         </div>
 
-        <div className={`rounded-3xl border p-6 ${theme === 'dark' ? 'bg-[#0f1216] border-white/5' : 'bg-gray-50 border-gray-200'}`}>
-          {/* Action Bar */}
-          <div className="mb-8">
+        <div className={`rounded-3xl border p-4 sm:p-6 ${theme === 'dark' ? 'bg-[#0f1216] border-white/5' : 'bg-gray-50 border-gray-200'}`}>
+          {/* Filters & Action Bar */}
+          <div className="mb-6">
             <TaskFilters
               selectedCategory={selectedCategory}
               selectedStatus={selectedStatus}
@@ -345,15 +345,8 @@ export const Tasks = () => {
               onCategoryChange={setSelectedCategory}
               onStatusChange={setSelectedStatus}
               onUsersChange={setSelectedUsers}
-            >
-              <button
-                onClick={() => setShowForm(true)}
-                className="whitespace-nowrap flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white font-bold rounded-xl transition-all shadow-lg shadow-emerald-900/20 active:scale-95"
-              >
-                <Plus className="w-5 h-5" />
-                <span>Новая задача</span>
-              </button>
-            </TaskFilters>
+              onAddTask={() => setShowForm(true)}
+            />
           </div>
 
           {/* Table */}
