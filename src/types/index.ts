@@ -526,7 +526,7 @@ export interface FasolTriggerAlert {
   signalTime: string // HH:mm
   marketCap?: string
   address: string
-  strategies: TriggerStrategy[]
+  strategies?: TriggerStrategy[]
   maxDropFromSignal?: string
   maxDropFromLevel07?: string
   maxProfit?: string

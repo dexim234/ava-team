@@ -1,8 +1,9 @@
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo, useEffect } from 'react'
 import { useThemeStore } from '@/store/themeStore'
 import { useAuthStore } from '@/store/authStore'
 import { useAdminStore } from '@/store/adminStore'
 import { Plus, X, Copy, TrendingUp, DollarSign, TrendingDown, Calculator, Image as ImageIcon, Eye, User, Edit2, Trash2 } from 'lucide-react'
+import { getFasolTriggerAlerts, addFasolTriggerAlert, updateFasolTriggerAlert, deleteFasolTriggerAlert } from '@/services/firestoreService'
 
 // Types
 interface OurDealSignal {
@@ -16,14 +17,31 @@ interface OurDealSignal {
   createdBy: string
 }
 
-// Mock API functions (replace with real API calls)
-const mockDeals: OurDealSignal[] = []
+// Get current Moscow time (UTC+3)
+const getMoscowDate = () => {
+  const now = new Date()
+  const moscowTime = new Date(now.getTime() + 3 * 60 * 60 * 1000)
+  return moscowTime.toISOString().split('T')[0]
+}
+
+const getMoscowDateTime = (date: string, time: string) => {
+  // Combine date and time in Moscow timezone
+  // date is already in YYYY-MM-DD format (Moscow date)
+  // time is in HH:mm format
+  return `${date}T${time}:00`
+}
+
+// Format Moscow date for display
+const formatMoscowDate = (dateStr: string) => {
+  const date = new Date(dateStr)
+  return date.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' })
+}
 
 export const FasolSignalsStrategy = () => {
   const { theme } = useThemeStore()
   const { user } = useAuthStore()
   const { isAdmin } = useAdminStore()
-  const [deals, setDeals] = useState<OurDealSignal[]>(mockDeals)
+  const [deals, setDeals] = useState<OurDealSignal[]>([])
   const [showModal, setShowModal] = useState(false)
   const [copiedId, setCopiedId] = useState<string | null>(null)
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -37,25 +55,66 @@ export const FasolSignalsStrategy = () => {
     screenshot: ''
   })
   
-  // Time input state
-  const [timeValue, setTimeValue] = useState('12:00')
+  // Date and time input state (Moscow timezone)
+  const [dateValue, setDateValue] = useState(getMoscowDate())
+  const [timeValue, setTimeValue] = useState(() => {
+    const now = new Date()
+    const moscowTime = new Date(now.getTime() + 3 * 60 * 60 * 1000)
+    return `${String(moscowTime.getHours()).padStart(2, '0')}:${String(moscowTime.getMinutes()).padStart(2, '0')}`
+  })
   
   // Delete confirmation modal state
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [copyFeedback, setCopyFeedback] = useState(false)
 
+  // Theme-based styles
+  const cardBorder = theme === 'dark' ? 'border-white/10' : 'border-gray-200'
+  const cardBg = theme === 'dark' ? 'bg-[#0a0a0a]' : 'bg-white'
+  const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
+  const mutedColor = theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+  const hoverBg = theme === 'dark' ? 'hover:bg-white/5' : 'hover:bg-gray-50'
+
   // Screenshot preview modal state
   const [showScreenshotModal, setShowScreenshotModal] = useState(false)
   const [currentScreenshot, setCurrentScreenshot] = useState<string | null>(null)
   const [currentDealInfo, setCurrentDealInfo] = useState<{ date: string; time: string; contract: string } | null>(null)
 
+  // Load deals from Firebase on mount
+  useEffect(() => {
+    loadDeals()
+  }, [])
+
+  const loadDeals = async () => {
+    try {
+      const alerts = await getFasolTriggerAlerts()
+      // Convert FasolTriggerAlert to OurDealSignal format
+      const convertedDeals: OurDealSignal[] = alerts.map(alert => ({
+        id: alert.id,
+        contract: alert.address,
+        marketCap: alert.marketCap || '',
+        drop07: alert.maxDropFromLevel07 || '-',
+        profit: alert.maxProfit || '-',
+        screenshot: alert.screenshot,
+        createdAt: getMoscowDateTime(alert.signalDate, alert.signalTime),
+        createdBy: alert.createdBy
+      }))
+      setDeals(convertedDeals)
+    } catch (error) {
+      console.error('Error loading deals:', error)
+    }
+  }
+
   const resetForm = () => {
     setNewDeal({ contract: '', marketCap: '', drop07: '', profit: '', screenshot: '' })
-    setTimeValue(`${String(new Date().getHours()).padStart(2, '0')}:${String(new Date().getMinutes()).padStart(2, '0')}`)
+    const now = new Date()
+    const moscowTime = new Date(now.getTime() + 3 * 60 * 60 * 1000)
+    setDateValue(getMoscowDate())
+    setTimeValue(`${String(moscowTime.getHours()).padStart(2, '0')}:${String(moscowTime.getMinutes()).padStart(2, '0')}`)
     setEditingId(null)
   }
 
+  // Screenshot upload handlers
   const handleScreenshotUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
@@ -99,51 +158,83 @@ export const FasolSignalsStrategy = () => {
       : [deal.createdAt, deal.createdAt.split(' ')[1] || '00:00']
     setCurrentScreenshot(screenshot)
     setCurrentDealInfo({
-      date: formatDate(dateTime[0]),
+      date: formatMoscowDate(dateTime[0]),
       time: deal.createdAt.includes('T') ? deal.createdAt.split('T')[1].substring(0, 5) : deal.createdAt.split(' ')[1] || '',
       contract: deal.contract
     })
     setShowScreenshotModal(true)
   }
 
-  // Updated handleAddDeal with timestamp and username fallback
-  const handleAddDeal = () => {
+  // Add Deal
+  const handleAddDeal = async () => {
     if (!newDeal.contract || !newDeal.marketCap) return
 
-    const deal: OurDealSignal = {
-      id: Date.now().toString(),
-      contract: newDeal.contract,
+    const dealData = {
+      signalDate: dateValue,
+      signalTime: timeValue,
+      address: newDeal.contract,
       marketCap: newDeal.marketCap,
-      drop07: newDeal.drop07 || '-',
-      profit: newDeal.profit || '-',
+      maxDropFromLevel07: newDeal.drop07 || '-',
+      maxProfit: newDeal.profit || '-',
       screenshot: newDeal.screenshot || undefined,
-      createdAt: `${new Date().toISOString().split('T')[0]}T${timeValue}`,
-      createdBy: user?.name || user?.nickname || user?.id || 'admin'
+      createdBy: user?.name || user?.nickname || user?.id || 'admin',
+      createdAt: new Date().toISOString()
     }
 
-    setDeals([deal, ...deals])
-    resetForm()
-    setShowModal(false)
+    try {
+      const docRef = await addFasolTriggerAlert(dealData)
+      
+      const newDealObj: OurDealSignal = {
+        id: docRef.id,
+        contract: newDeal.contract,
+        marketCap: newDeal.marketCap,
+        drop07: newDeal.drop07 || '-',
+        profit: newDeal.profit || '-',
+        screenshot: newDeal.screenshot || undefined,
+        createdAt: getMoscowDateTime(dateValue, timeValue),
+        createdBy: user?.name || user?.nickname || user?.id || 'admin'
+      }
+
+      setDeals([newDealObj, ...deals])
+      resetForm()
+      setShowModal(false)
+    } catch (error) {
+      console.error('Error adding deal:', error)
+    }
   }
 
-  const handleEditDeal = () => {
+  const handleEditDeal = async () => {
     if (!editingId || !newDeal.contract || !newDeal.marketCap) return
 
-    setDeals(deals.map(deal =>
-      deal.id === editingId
-        ? {
-            ...deal,
-            contract: newDeal.contract,
-            marketCap: newDeal.marketCap,
-            drop07: newDeal.drop07 || '-',
-            profit: newDeal.profit || '-',
-            screenshot: newDeal.screenshot || undefined,
-            createdAt: `${deal.createdAt.split('T')[0]}T${timeValue}`
-          }
-        : deal
-    ))
-    resetForm()
-    setShowModal(false)
+    try {
+      await updateFasolTriggerAlert(editingId, {
+        signalDate: dateValue,
+        signalTime: timeValue,
+        address: newDeal.contract,
+        marketCap: newDeal.marketCap,
+        maxDropFromLevel07: newDeal.drop07 || '-',
+        maxProfit: newDeal.profit || '-',
+        screenshot: newDeal.screenshot || undefined
+      })
+
+      setDeals(deals.map(deal =>
+        deal.id === editingId
+          ? {
+              ...deal,
+              contract: newDeal.contract,
+              marketCap: newDeal.marketCap,
+              drop07: newDeal.drop07 || '-',
+              profit: newDeal.profit || '-',
+              screenshot: newDeal.screenshot || undefined,
+              createdAt: getMoscowDateTime(dateValue, timeValue)
+            }
+          : deal
+      ))
+      resetForm()
+      setShowModal(false)
+    } catch (error) {
+      console.error('Error updating deal:', error)
+    }
   }
 
   const openAddModal = () => {
@@ -152,6 +243,7 @@ export const FasolSignalsStrategy = () => {
   }
 
   const openEditModal = (deal: OurDealSignal) => {
+    const datePart = deal.createdAt.includes('T') ? deal.createdAt.split('T')[0] : getMoscowDate()
     const timePart = deal.createdAt.includes('T') ? deal.createdAt.split('T')[1].substring(0, 5) : '12:00'
     setNewDeal({
       contract: deal.contract,
@@ -160,16 +252,24 @@ export const FasolSignalsStrategy = () => {
       profit: deal.profit,
       screenshot: deal.screenshot || ''
     })
+    setDateValue(datePart)
     setTimeValue(timePart)
     setEditingId(deal.id)
     setShowModal(true)
   }
 
-  const handleDeleteDeal = () => {
+  const handleDeleteDeal = async () => {
     if (!deletingId) return
-    setDeals(deals.filter(deal => deal.id !== deletingId))
-    setDeletingId(null)
-    setShowDeleteModal(false)
+
+    try {
+      await deleteFasolTriggerAlert(deletingId)
+      setDeals(deals.filter(deal => deal.id !== deletingId))
+    } catch (error) {
+      console.error('Error deleting deal:', error)
+    } finally {
+      setDeletingId(null)
+      setShowDeleteModal(false)
+    }
   }
 
   const confirmDelete = (id: string) => {
@@ -199,12 +299,6 @@ export const FasolSignalsStrategy = () => {
     setCopyFeedback(true)
     setTimeout(() => setCopyFeedback(false), 2000)
   }
-
-  const cardBg = theme === 'dark' ? 'bg-[#151a21]/80 backdrop-blur-xl' : 'bg-white/80 backdrop-blur-xl'
-  const cardBorder = theme === 'dark' ? 'border-white/10' : 'border-gray-200'
-  const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
-  const mutedColor = theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
-  const hoverBg = theme === 'dark' ? 'hover:bg-white/10' : 'hover:bg-gray-100'
 
   const copyToClipboard = async (text: string, id: string) => {
     await navigator.clipboard.writeText(text)
@@ -617,10 +711,9 @@ export const FasolSignalsStrategy = () => {
                   </label>
                   <input
                     type="date"
-                    value={new Date().toISOString().split('T')[0]}
-                    onChange={() => {}}
+                    value={dateValue}
+                    onChange={(e) => setDateValue(e.target.value)}
                     className={`w-full px-4 py-3 rounded-xl border outline-none transition-all font-mono text-sm ${theme === 'dark' ? 'bg-white/5 border-white/10 text-white' : 'bg-gray-50 border-gray-200 text-gray-900'}`}
-                    disabled
                   />
                 </div>
                 <div>
@@ -631,7 +724,7 @@ export const FasolSignalsStrategy = () => {
                     type="time"
                     value={timeValue}
                     onChange={(e) => setTimeValue(e.target.value)}
-                    className={`w-full px-4 py-3 rounded-xl border outline-none transition-all font-mono text-sm ${theme === 'dark' ? 'bg-white/5 border-white/10 text-white focus:border-emerald-500/50' : 'bg-gray-50 border-gray-200 text-gray-900 focus:border-emerald-500/30'}`}
+                    className={`w-full px-4 py-3 rounded-xl border outline-none transition-all font-mono text-sm ${theme === 'dark' ? 'bg-white/5 border-white/10 text-white focus:border-emerald-500/50' : 'bg-gray-50 border-gray-200 text-gray-900'}`}
                   />
                 </div>
               </div>
