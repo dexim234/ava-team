@@ -26,7 +26,7 @@ export const SlotForm = ({ slot, onClose, onSave }: SlotFormProps) => {
   const initialDate = slot?.date || formatDate(new Date(), 'yyyy-MM-dd')
   const [date, setDate] = useState(initialDate)
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>(
-    slot?.userId ? [slot.userId] : user?.id ? [user.id] : []
+    slot?.userId ? [slot.userId] : []
   )
   const [slots, setSlots] = useState<TimeSlot[]>(
     slot?.slots?.map(s => {

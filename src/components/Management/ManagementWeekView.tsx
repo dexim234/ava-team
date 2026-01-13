@@ -144,7 +144,9 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
     if (isAdmin) {
       if (confirm('Удалить слот?')) {
         await deleteWorkSlot(slot.id)
-        loadData()
+        // Small delay to allow Firestore to propagate changes
+        await new Promise(resolve => setTimeout(resolve, 100))
+        await loadData()
       }
       return
     }
@@ -159,7 +161,7 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
         after: null,
         comment: slot.comment,
       })
-      loadData()
+      await loadData()
     }
   }
 
@@ -303,7 +305,9 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
     if (isAdmin) {
       if (confirm('Удалить статус?')) {
         await deleteDayStatus(status.id)
-        loadData()
+        // Small delay to allow Firestore to propagate changes
+        await new Promise(resolve => setTimeout(resolve, 100))
+        await loadData()
       }
     } else if (confirm('Отправить на согласование удаление статуса?')) {
       await addApprovalRequest({
@@ -315,7 +319,7 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
         after: null,
         comment: status.comment,
       })
-      loadData()
+      await loadData()
     }
   }
 
@@ -591,7 +595,7 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
                               onClick={() => onEditStatus(status)}
                               className={`p-1 rounded transition-colors ${theme === 'dark' ? 'bg-white/10 hover:bg-white/20 text-white' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-100'}`}
                             >
-                              <Edit className="w-4 h-4 text-current" />
+                              <Edit className="w-4 h-4 text-white" />
                             </button>
                             <button
                               onClick={() => handleDeleteStatus(status, dateStr)}
@@ -764,7 +768,10 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
                               <div className="space-y-1 w-full">
                                 <div className={`text-[10px] ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} font-medium text-center sm:text-left`}>Перерывы:</div>
                                 {s.breaks.map((breakItem, breakIdx) => (
-                                  <div key={breakIdx} className={`${theme === 'dark' ? 'bg-gray-700/95' : 'bg-white'} ${theme === 'dark' ? 'text-gray-200' : 'text-gray-900'} border-2 ${theme === 'dark' ? 'border-orange-500/60' : 'border-orange-300'} rounded-md sm:rounded-lg px-2 sm:px-3 py-1 sm:py-1.5 text-[10px] sm:text-xs font-semibold shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl ${theme === 'dark'
+                                  <div key={breakIdx} className={`${theme === 'dark'
+                                    ? 'bg-gray-700/95'
+                                    : 'bg-white'
+                                    } ${theme === 'dark' ? 'text-gray-200' : 'text-gray-900'} border-2 ${theme === 'dark' ? 'border-orange-500/60' : 'border-orange-300'} rounded-md sm:rounded-lg px-2 sm:px-3 py-1 sm:py-1.5 text-[10px] sm:text-xs font-semibold shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl ${theme === 'dark'
                                     ? 'hover:border-orange-400/80 hover:shadow-orange-500/30 ring-2 ring-orange-500/20 hover:ring-4 hover:ring-orange-400/40'
                                     : 'hover:border-orange-400 hover:shadow-orange-400/30 ring-2 ring-orange-300/20 hover:ring-4 hover:ring-orange-300/40'
                                     } w-full`}>
@@ -801,4 +808,3 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
     </div>
   )
 }
-

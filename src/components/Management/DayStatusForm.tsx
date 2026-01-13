@@ -24,7 +24,7 @@ export const DayStatusForm = ({ type, status, onClose, onSave }: DayStatusFormPr
   const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
   const initialDate = status?.date || formatDate(new Date(), 'yyyy-MM-dd')
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>(
-    status?.userId ? [status.userId] : user?.id ? [user.id] : []
+    status?.userId ? [status.userId] : []
   )
   const [date, setDate] = useState(initialDate)
   const [endDate, setEndDate] = useState(status?.endDate || initialDate)

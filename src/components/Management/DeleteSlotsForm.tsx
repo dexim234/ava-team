@@ -1,4 +1,3 @@
-// Form for bulk deleting slots and statuses
 import { useState } from 'react'
 import { useAuthStore } from '@/store/authStore'
 import { useThemeStore } from '@/store/themeStore'
@@ -207,6 +206,8 @@ export const DeleteSlotsForm = ({ onClose, onSave }: DeleteSlotsFormProps) => {
         } else {
           for (const id of idsToDelete) await deleteDayStatus(id)
         }
+        // Small delay to allow Firestore to propagate changes
+        await new Promise(resolve => setTimeout(resolve, 100))
       } else {
         // Не-админ отправляет запросы на согласование
         if (deleteType === 'slots') {
