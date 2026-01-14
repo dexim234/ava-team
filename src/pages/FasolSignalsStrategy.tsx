@@ -10,6 +10,9 @@ interface OurDealSignal {
   id: string
   contract: string
   marketCap: string
+  liq: string
+  hold: string
+  top10: string
   drop07: string
   profit: string
   screenshot?: string
@@ -50,6 +53,9 @@ export const FasolSignalsStrategy = () => {
   const [newDeal, setNewDeal] = useState({
     contract: '',
     marketCap: '',
+    liq: '',
+    hold: '',
+    top10: '',
     drop07: '',
     profit: '',
     screenshot: ''
@@ -93,6 +99,9 @@ export const FasolSignalsStrategy = () => {
         id: alert.id,
         contract: alert.address,
         marketCap: alert.marketCap || '',
+        liq: alert.liq || '-',
+        hold: alert.hold || '-',
+        top10: alert.top10 || '-',
         drop07: alert.maxDropFromLevel07 || '-',
         profit: alert.maxProfit || '-',
         screenshot: alert.screenshot,
@@ -106,7 +115,7 @@ export const FasolSignalsStrategy = () => {
   }
 
   const resetForm = () => {
-    setNewDeal({ contract: '', marketCap: '', drop07: '', profit: '', screenshot: '' })
+    setNewDeal({ contract: '', marketCap: '', liq: '', hold: '', top10: '', drop07: '', profit: '', screenshot: '' })
     const now = new Date()
     const moscowTime = new Date(now.getTime() + 3 * 60 * 60 * 1000)
     setDateValue(getMoscowDate())
@@ -153,13 +162,12 @@ export const FasolSignalsStrategy = () => {
   }
 
   const openScreenshotModal = (screenshot: string, deal: OurDealSignal) => {
-    const dateTime = deal.createdAt.includes('T') 
-      ? deal.createdAt.split('T') 
-      : [deal.createdAt, deal.createdAt.split(' ')[1] || '00:00']
+    const dateTime = deal.createdAt
+    const dateTimeParts = dateTime.includes('T') ? dateTime.split('T') : [dateTime, '00:00']
     setCurrentScreenshot(screenshot)
     setCurrentDealInfo({
-      date: formatMoscowDate(dateTime[0]),
-      time: deal.createdAt.includes('T') ? deal.createdAt.split('T')[1].substring(0, 5) : deal.createdAt.split(' ')[1] || '',
+      date: formatMoscowDate(dateTimeParts[0]),
+      time: dateTimeParts[1].substring(0, 5),
       contract: deal.contract
     })
     setShowScreenshotModal(true)
@@ -174,6 +182,9 @@ export const FasolSignalsStrategy = () => {
       signalTime: timeValue,
       address: newDeal.contract,
       marketCap: newDeal.marketCap,
+      liq: newDeal.liq || '-',
+      hold: newDeal.hold || '-',
+      top10: newDeal.top10 || '-',
       maxDropFromLevel07: newDeal.drop07 || '-',
       maxProfit: newDeal.profit || '-',
       screenshot: newDeal.screenshot || undefined,
@@ -188,6 +199,9 @@ export const FasolSignalsStrategy = () => {
         id: docRef.id,
         contract: newDeal.contract,
         marketCap: newDeal.marketCap,
+        liq: newDeal.liq || '-',
+        hold: newDeal.hold || '-',
+        top10: newDeal.top10 || '-',
         drop07: newDeal.drop07 || '-',
         profit: newDeal.profit || '-',
         screenshot: newDeal.screenshot || undefined,
@@ -212,6 +226,9 @@ export const FasolSignalsStrategy = () => {
         signalTime: timeValue,
         address: newDeal.contract,
         marketCap: newDeal.marketCap,
+        liq: newDeal.liq || '-',
+        hold: newDeal.hold || '-',
+        top10: newDeal.top10 || '-',
         maxDropFromLevel07: newDeal.drop07 || '-',
         maxProfit: newDeal.profit || '-',
         screenshot: newDeal.screenshot || undefined
@@ -223,6 +240,9 @@ export const FasolSignalsStrategy = () => {
               ...deal,
               contract: newDeal.contract,
               marketCap: newDeal.marketCap,
+              liq: newDeal.liq || '-',
+              hold: newDeal.hold || '-',
+              top10: newDeal.top10 || '-',
               drop07: newDeal.drop07 || '-',
               profit: newDeal.profit || '-',
               screenshot: newDeal.screenshot || undefined,
@@ -248,6 +268,9 @@ export const FasolSignalsStrategy = () => {
     setNewDeal({
       contract: deal.contract,
       marketCap: deal.marketCap,
+      liq: deal.liq,
+      hold: deal.hold,
+      top10: deal.top10,
       drop07: deal.drop07,
       profit: deal.profit,
       screenshot: deal.screenshot || ''
@@ -281,13 +304,16 @@ export const FasolSignalsStrategy = () => {
     if (deals.length === 0) return
 
     // Create tab-separated content for analysis
-    const headers = ['№', 'Дата', 'Контракт', 'MC', 'DROP 0,7', 'Профит', 'Автор']
+    const headers = ['№', 'Дата', 'Контракт', 'MC', 'Liq', 'Hold', 'Top-10', 'DROP 0,7', 'Профит', 'Автор']
     const rows = deals.map((deal, index) => {
       return [
         String(index + 1),
         deal.createdAt,
         deal.contract,
         deal.marketCap,
+        deal.liq,
+        deal.hold,
+        deal.top10,
         deal.drop07,
         deal.profit,
         deal.createdBy
@@ -410,6 +436,9 @@ export const FasolSignalsStrategy = () => {
                 <th className={`p-4 text-xs uppercase tracking-wider font-semibold text-center ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Дата</th>
                 <th className={`p-4 text-xs uppercase tracking-wider font-semibold text-center ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Контракт</th>
                 <th className={`p-4 text-xs uppercase tracking-wider font-semibold text-center ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>MC</th>
+                <th className={`p-4 text-xs uppercase tracking-wider font-semibold text-center ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Liq</th>
+                <th className={`p-4 text-xs uppercase tracking-wider font-semibold text-center ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Hold</th>
+                <th className={`p-4 text-xs uppercase tracking-wider font-semibold text-center ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Top-10</th>
                 <th className={`p-4 text-xs uppercase tracking-wider font-semibold text-center ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>DROP 0,7</th>
                 <th className={`p-4 text-xs uppercase tracking-wider font-semibold text-center ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Профит</th>
                 <th className={`p-4 text-xs uppercase tracking-wider font-semibold text-center w-20 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Скрин</th>
@@ -439,7 +468,7 @@ export const FasolSignalsStrategy = () => {
                   if (dateIndex > 0) {
                     rows.push(
                       <tr key={`separator-${dateKey}`}>
-                        <td colSpan={9} className="py-2 px-4">
+                        <td colSpan={12} className="py-2 px-4">
                           <div className={`h-px ${theme === 'dark' ? 'bg-white/10' : 'bg-gray-200'}`} />
                         </td>
                       </tr>
@@ -449,7 +478,7 @@ export const FasolSignalsStrategy = () => {
                   // Date header row
                   rows.push(
                     <tr key={`header-${dateKey}`} className={`${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'}`}>
-                      <td colSpan={9} className="p-3 px-4">
+                      <td colSpan={12} className="p-3 px-4">
                         <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
                           {formatDate(dateKey)}
                         </span>
@@ -503,6 +532,21 @@ export const FasolSignalsStrategy = () => {
                         <td className={`p-4 text-center border-r ${theme === 'dark' ? 'border-white/5' : 'border-gray-100'}`}>
                           <span className={`font-mono text-sm font-bold text-emerald-500`}>
                             {deal.marketCap || '-'}
+                          </span>
+                        </td>
+                        <td className={`p-4 text-center border-r ${theme === 'dark' ? 'border-white/5' : 'border-gray-100'}`}>
+                          <span className={`font-mono text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                            {deal.liq || '-'}
+                          </span>
+                        </td>
+                        <td className={`p-4 text-center border-r ${theme === 'dark' ? 'border-white/5' : 'border-gray-100'}`}>
+                          <span className={`font-mono text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                            {deal.hold || '-'}
+                          </span>
+                        </td>
+                        <td className={`p-4 text-center border-r ${theme === 'dark' ? 'border-white/5' : 'border-gray-100'}`}>
+                          <span className={`font-mono text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                            {deal.top10 || '-'}
                           </span>
                         </td>
                         <td className={`p-4 text-center border-r ${theme === 'dark' ? 'border-white/5' : 'border-gray-100'}`}>
@@ -561,7 +605,7 @@ export const FasolSignalsStrategy = () => {
 
                 return rows.length > 0 ? rows : (
                   <tr>
-                    <td colSpan={9} className="p-16 text-center">
+                    <td colSpan={12} className="p-16 text-center">
                       <TrendingUp className={`w-12 h-12 mx-auto mb-3 opacity-20 ${mutedColor}`} />
                       <p className={`text-sm ${mutedColor}`}>No records</p>
                     </td>
@@ -675,6 +719,45 @@ export const FasolSignalsStrategy = () => {
                   onChange={(e) => setNewDeal({ ...newDeal, marketCap: e.target.value })}
                   className={`w-full px-4 py-3 rounded-xl border outline-none transition-all font-mono text-sm ${theme === 'dark' ? 'bg-white/5 border-white/10 text-white focus:border-emerald-500/50' : 'bg-gray-50 border-gray-200 text-gray-900 focus:border-emerald-500/30'}`}
                 />
+              </div>
+
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <label className={`block text-xs font-bold uppercase tracking-wider mb-2 ${mutedColor}`}>
+                    Liq
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="$100K"
+                    value={newDeal.liq}
+                    onChange={(e) => setNewDeal({ ...newDeal, liq: e.target.value })}
+                    className={`w-full px-4 py-3 rounded-xl border outline-none transition-all font-mono text-sm ${theme === 'dark' ? 'bg-white/5 border-white/10 text-white focus:border-emerald-500/50' : 'bg-gray-50 border-gray-200 text-gray-900 focus:border-emerald-500/30'}`}
+                  />
+                </div>
+                <div>
+                  <label className={`block text-xs font-bold uppercase tracking-wider mb-2 ${mutedColor}`}>
+                    Hold
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="10%"
+                    value={newDeal.hold}
+                    onChange={(e) => setNewDeal({ ...newDeal, hold: e.target.value })}
+                    className={`w-full px-4 py-3 rounded-xl border outline-none transition-all font-mono text-sm ${theme === 'dark' ? 'bg-white/5 border-white/10 text-white focus:border-emerald-500/50' : 'bg-gray-50 border-gray-200 text-gray-900 focus:border-emerald-500/30'}`}
+                  />
+                </div>
+                <div>
+                  <label className={`block text-xs font-bold uppercase tracking-wider mb-2 ${mutedColor}`}>
+                    Top-10
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="5%"
+                    value={newDeal.top10}
+                    onChange={(e) => setNewDeal({ ...newDeal, top10: e.target.value })}
+                    className={`w-full px-4 py-3 rounded-xl border outline-none transition-all font-mono text-sm ${theme === 'dark' ? 'bg-white/5 border-white/10 text-white focus:border-emerald-500/50' : 'bg-gray-50 border-gray-200 text-gray-900 focus:border-emerald-500/30'}`}
+                  />
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
