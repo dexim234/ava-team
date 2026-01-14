@@ -439,7 +439,7 @@ export const AiAoAlerts = () => {
                                 </button>
                             )}
 
-                            {isAdmin && (
+                            {user && (
                                 <button onClick={() => { setEditingAlert(null); setAlertsToAdd([]); setFormData({ signalDate: new Date().toISOString().split('T')[0], signalTime: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }), marketCap: '', address: '', strategies: [], maxDrop: '', maxProfit: '', comment: '', isScam: false }); setScreenshotPreview(null); setProfitsInput([]); setShowModal(true) }} className="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-semibold transition-colors flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20">
                                     <Plus className="w-4 h-4" /><span>Добавить</span>
                                 </button>

@@ -16,6 +16,8 @@ interface OurDealSignal {
   drop07: string
   profit: string
   screenshot?: string
+  signalDate: string
+  signalTime: string
   createdAt: string
   createdBy: string
 }
@@ -28,9 +30,6 @@ const getMoscowDate = () => {
 }
 
 const getMoscowDateTime = (date: string, time: string) => {
-  // Combine date and time in Moscow timezone
-  // date is already in YYYY-MM-DD format (Moscow date)
-  // time is in HH:mm format
   return `${date}T${time}:00`
 }
 
@@ -44,49 +43,38 @@ export const FasolSignalsStrategy = () => {
   const { theme } = useThemeStore()
   const { user } = useAuthStore()
   const { isAdmin } = useAdminStore()
-  const [deals, setDeals] = useState<OurDealSignal[]>([])
-  const [showModal, setShowModal] = useState(false)
-  const [copiedId, setCopiedId] = useState<string | null>(null)
-  const [editingId, setEditingId] = useState<string | null>(null)
 
-  // Form state
-  const [newDeal, setNewDeal] = useState({
+  const [deals, setDeals] = useState<OurDealSignal[]>([])
+  const [copiedId, setCopiedId] = useState<string | null>(null)
+  const [copyFeedback, setCopyFeedback] = useState(false)
+  const [showModal, setShowModal] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [showScreenshotModal, setShowScreenshotModal] = useState(false)
+  const [currentScreenshot, setCurrentScreenshot] = useState<string | null>(null)
+  const [currentDealInfo, setCurrentDealInfo] = useState<{ date: string; time: string; contract: string } | null>(null)
+
+  const [newDeal, setNewDeal] = useState<Partial<OurDealSignal>>({
     contract: '',
     marketCap: '',
     liq: '',
     hold: '',
     top10: '',
     drop07: '',
-    profit: '',
-    screenshot: ''
+    profit: ''
   })
-  
-  // Date and time input state (Moscow timezone)
-  const [dateValue, setDateValue] = useState(getMoscowDate())
-  const [timeValue, setTimeValue] = useState(() => {
-    const now = new Date()
-    const moscowTime = new Date(now.getTime() + 3 * 60 * 60 * 1000)
-    return `${String(moscowTime.getHours()).padStart(2, '0')}:${String(moscowTime.getMinutes()).padStart(2, '0')}`
-  })
-  
-  // Delete confirmation modal state
-  const [showDeleteModal, setShowDeleteModal] = useState(false)
-  const [deletingId, setDeletingId] = useState<string | null>(null)
-  const [copyFeedback, setCopyFeedback] = useState(false)
 
-  // Theme-based styles
-  const cardBorder = theme === 'dark' ? 'border-white/10' : 'border-gray-200'
-  const cardBg = theme === 'dark' ? 'bg-[#0a0a0a]' : 'bg-white'
-  const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
+  const dateValue = getMoscowDate()
+  const timeValue = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', hour12: false })
+
   const mutedColor = theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+  const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
   const hoverBg = theme === 'dark' ? 'hover:bg-white/5' : 'hover:bg-gray-50'
+  const cardBg = theme === 'dark' ? 'bg-[#151a21]/80 backdrop-blur-xl' : 'bg-white/80 backdrop-blur-xl'
+  const cardBorder = theme === 'dark' ? 'border-emerald-500/30' : 'border-emerald-500/20'
+  const cardShadow = theme === 'dark' ? 'shadow-[0_8px_32px_rgba(0,0,0,0.4)]' : 'shadow-[0_8px_32px_rgba(0,0,0,0.08)]'
 
-  // Screenshot preview modal state
-  const [showScreenshotModal, setShowScreenshotModal] = useState(false)
-  const [currentScreenshot, setCurrentScreenshot] = useState<string | null>(null)
-  const [currentDealInfo, setCurrentDealInfo] = useState<{ date: string; time: string; contract: string } | null>(null)
-
-  // Load deals from Firebase on mount
   useEffect(() => {
     loadDeals()
   }, [])
@@ -94,7 +82,6 @@ export const FasolSignalsStrategy = () => {
   const loadDeals = async () => {
     try {
       const alerts = await getFasolTriggerAlerts()
-      // Convert FasolTriggerAlert to OurDealSignal format
       const convertedDeals: OurDealSignal[] = alerts.map(alert => ({
         id: alert.id,
         contract: alert.address,
@@ -105,6 +92,8 @@ export const FasolSignalsStrategy = () => {
         drop07: alert.maxDropFromLevel07 || '-',
         profit: alert.maxProfit || '-',
         screenshot: alert.screenshot,
+        signalDate: alert.signalDate,
+        signalTime: alert.signalTime,
         createdAt: getMoscowDateTime(alert.signalDate, alert.signalTime),
         createdBy: alert.createdBy
       }))
@@ -114,103 +103,115 @@ export const FasolSignalsStrategy = () => {
     }
   }
 
-  const resetForm = () => {
-    setNewDeal({ contract: '', marketCap: '', liq: '', hold: '', top10: '', drop07: '', profit: '', screenshot: '' })
-    const now = new Date()
-    const moscowTime = new Date(now.getTime() + 3 * 60 * 60 * 1000)
-    setDateValue(getMoscowDate())
-    setTimeValue(`${String(moscowTime.getHours()).padStart(2, '0')}:${String(moscowTime.getMinutes()).padStart(2, '0')}`)
+  const stats = useMemo(() => {
+    const total = deals.length
+    const avgProfit = total > 0 ? deals.reduce((sum, d) => sum + parseFloat(d.profit.replace(/[^0-9.-]/g, '') || '0'), 0) / total : 0
+    const avgDrop = total > 0 ? deals.reduce((sum, d) => sum + Math.abs(parseFloat(d.drop07.replace(/[^0-9.-]/g, '') || '0')), 0) / total : 0
+    return { total, avgProfit, avgDrop }
+  }, [deals])
+
+  const truncateAddress = (address: string) => {
+    if (!address) return '-'
+    if (address.length <= 7) return address
+    return `${address.slice(0, 3)}...${address.slice(-3)}`
+  }
+
+  const copyToClipboard = async (text: string, id: string) => {
+    try {
+      await navigator.clipboard.writeText(text)
+      setCopiedId(id)
+      setTimeout(() => setCopiedId(null), 2000)
+    } catch (err) {
+      console.error('Failed to copy:', err)
+    }
+  }
+
+  const copyTableToClipboard = async () => {
+    try {
+      const header = `№\tДата\tВремя\tКонтракт\tMC\tLiq\tHold\tTop-10\tDROP 0.7\tПрофит\n`
+      const rows = deals.map((deal, idx) =>
+        `${idx + 1}\t${formatMoscowDate(deal.signalDate)}\t${deal.signalTime}\t${deal.contract}\t${deal.marketCap}\t${deal.liq}\t${deal.hold}\t${deal.top10}\t${deal.drop07}\t${deal.profit}`
+      ).join('\n')
+      await navigator.clipboard.writeText(header + rows)
+      setCopyFeedback(true)
+      setTimeout(() => setCopyFeedback(false), 2000)
+    } catch (err) {
+      console.error('Failed to copy table:', err)
+    }
+  }
+
+  const openAddModal = () => {
     setEditingId(null)
+    setNewDeal({
+      contract: '',
+      marketCap: '',
+      liq: '',
+      hold: '',
+      top10: '',
+      drop07: '',
+      profit: ''
+    })
+    setShowModal(true)
   }
 
-  // Screenshot upload handlers
-  const handleScreenshotUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      processImageFile(file)
-    }
+  const openEditModal = (deal: OurDealSignal) => {
+    setEditingId(deal.id)
+    setNewDeal({
+      contract: deal.contract,
+      marketCap: deal.marketCap,
+      liq: deal.liq,
+      hold: deal.hold,
+      top10: deal.top10,
+      drop07: deal.drop07,
+      profit: deal.profit,
+      screenshot: deal.screenshot
+    })
+    setShowModal(true)
   }
 
-  const processImageFile = (file: File) => {
-    if (!file.type.startsWith('image/')) return
-    const reader = new FileReader()
-    reader.onloadend = () => {
-      setNewDeal({ ...newDeal, screenshot: reader.result as string })
-    }
-    reader.readAsDataURL(file)
+  const confirmDelete = (id: string) => {
+    setDeletingId(id)
+    setShowDeleteModal(true)
   }
 
-  const handleScreenshotPaste = async (e: React.ClipboardEvent) => {
-    const items = e.clipboardData.items
-    for (let i = 0; i < items.length; i++) {
-      if (items[i].type.startsWith('image/')) {
-        const file = items[i].getAsFile()
-        if (file) {
-          processImageFile(file)
-          break
-        }
-      }
-    }
-  }
-
-  const handleScreenshotDrop = (e: React.DragEvent) => {
-    e.preventDefault()
-    const files = e.dataTransfer.files
-    if (files.length > 0 && files[0].type.startsWith('image/')) {
-      processImageFile(files[0])
+  const handleDeleteDeal = async () => {
+    if (deletingId) {
+      await deleteFasolTriggerAlert(deletingId)
+      await loadDeals()
+      setShowDeleteModal(false)
+      setDeletingId(null)
     }
   }
 
   const openScreenshotModal = (screenshot: string, deal: OurDealSignal) => {
-    const dateTime = deal.createdAt
-    const dateTimeParts = dateTime.includes('T') ? dateTime.split('T') : [dateTime, '00:00']
     setCurrentScreenshot(screenshot)
     setCurrentDealInfo({
-      date: formatMoscowDate(dateTimeParts[0]),
-      time: dateTimeParts[1].substring(0, 5),
+      date: formatMoscowDate(deal.signalDate),
+      time: deal.signalTime,
       contract: deal.contract
     })
     setShowScreenshotModal(true)
   }
 
-  // Add Deal
   const handleAddDeal = async () => {
     if (!newDeal.contract || !newDeal.marketCap) return
 
-    const dealData = {
-      signalDate: dateValue,
-      signalTime: timeValue,
-      address: newDeal.contract,
-      marketCap: newDeal.marketCap,
-      liq: newDeal.liq || '-',
-      hold: newDeal.hold || '-',
-      top10: newDeal.top10 || '-',
-      maxDropFromLevel07: newDeal.drop07 || '-',
-      maxProfit: newDeal.profit || '-',
-      screenshot: newDeal.screenshot || undefined,
-      createdBy: user?.name || user?.nickname || user?.id || 'admin',
-      createdAt: new Date().toISOString()
-    }
-
     try {
-      const docRef = await addFasolTriggerAlert(dealData)
-      
-      const newDealObj: OurDealSignal = {
-        id: docRef.id,
-        contract: newDeal.contract,
+      await addFasolTriggerAlert({
+        address: newDeal.contract,
         marketCap: newDeal.marketCap,
-        liq: newDeal.liq || '-',
-        hold: newDeal.hold || '-',
-        top10: newDeal.top10 || '-',
-        drop07: newDeal.drop07 || '-',
-        profit: newDeal.profit || '-',
+        liq: newDeal.liq || undefined,
+        hold: newDeal.hold || undefined,
+        top10: newDeal.top10 || undefined,
+        maxDropFromLevel07: newDeal.drop07 || undefined,
+        maxProfit: newDeal.profit || undefined,
         screenshot: newDeal.screenshot || undefined,
-        createdAt: getMoscowDateTime(dateValue, timeValue),
-        createdBy: user?.name || user?.nickname || user?.id || 'admin'
-      }
-
-      setDeals([newDealObj, ...deals])
-      resetForm()
+        signalDate: dateValue,
+        signalTime: timeValue,
+        createdAt: new Date().toISOString(),
+        createdBy: user?.id || 'admin'
+      })
+      await loadDeals()
       setShowModal(false)
     } catch (error) {
       console.error('Error adding deal:', error)
@@ -222,171 +223,104 @@ export const FasolSignalsStrategy = () => {
 
     try {
       await updateFasolTriggerAlert(editingId, {
-        signalDate: dateValue,
-        signalTime: timeValue,
         address: newDeal.contract,
         marketCap: newDeal.marketCap,
-        liq: newDeal.liq || '-',
-        hold: newDeal.hold || '-',
-        top10: newDeal.top10 || '-',
-        maxDropFromLevel07: newDeal.drop07 || '-',
-        maxProfit: newDeal.profit || '-',
-        screenshot: newDeal.screenshot || undefined
+        liq: newDeal.liq || undefined,
+        hold: newDeal.hold || undefined,
+        top10: newDeal.top10 || undefined,
+        maxDropFromLevel07: newDeal.drop07 || undefined,
+        maxProfit: newDeal.profit || undefined,
+        screenshot: newDeal.screenshot || undefined,
+        signalDate: dateValue,
+        signalTime: timeValue
       })
-
-      setDeals(deals.map(deal =>
-        deal.id === editingId
-          ? {
-              ...deal,
-              contract: newDeal.contract,
-              marketCap: newDeal.marketCap,
-              liq: newDeal.liq || '-',
-              hold: newDeal.hold || '-',
-              top10: newDeal.top10 || '-',
-              drop07: newDeal.drop07 || '-',
-              profit: newDeal.profit || '-',
-              screenshot: newDeal.screenshot || undefined,
-              createdAt: getMoscowDateTime(dateValue, timeValue)
-            }
-          : deal
-      ))
-      resetForm()
+      await loadDeals()
       setShowModal(false)
+      setEditingId(null)
     } catch (error) {
-      console.error('Error updating deal:', error)
+      console.error('Error editing deal:', error)
     }
   }
 
-  const openAddModal = () => {
-    resetForm()
-    setShowModal(true)
-  }
-
-  const openEditModal = (deal: OurDealSignal) => {
-    const datePart = deal.createdAt.includes('T') ? deal.createdAt.split('T')[0] : getMoscowDate()
-    const timePart = deal.createdAt.includes('T') ? deal.createdAt.split('T')[1].substring(0, 5) : '12:00'
+  const resetForm = () => {
     setNewDeal({
-      contract: deal.contract,
-      marketCap: deal.marketCap,
-      liq: deal.liq,
-      hold: deal.hold,
-      top10: deal.top10,
-      drop07: deal.drop07,
-      profit: deal.profit,
-      screenshot: deal.screenshot || ''
+      contract: '',
+      marketCap: '',
+      liq: '',
+      hold: '',
+      top10: '',
+      drop07: '',
+      profit: ''
     })
-    setDateValue(datePart)
-    setTimeValue(timePart)
-    setEditingId(deal.id)
-    setShowModal(true)
   }
 
-  const handleDeleteDeal = async () => {
-    if (!deletingId) return
-
-    try {
-      await deleteFasolTriggerAlert(deletingId)
-      setDeals(deals.filter(deal => deal.id !== deletingId))
-    } catch (error) {
-      console.error('Error deleting deal:', error)
-    } finally {
-      setDeletingId(null)
-      setShowDeleteModal(false)
+  const handleScreenshotUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      const reader = new FileReader()
+      reader.onloadend = () => setNewDeal({ ...newDeal, screenshot: reader.result as string })
+      reader.readAsDataURL(file)
     }
   }
 
-  const confirmDelete = (id: string) => {
-    setDeletingId(id)
-    setShowDeleteModal(true)
-  }
-
-  const handleCopyTable = () => {
-    if (deals.length === 0) return
-
-    // Create tab-separated content for analysis
-    const headers = ['№', 'Дата', 'Контракт', 'MC', 'Liq', 'Hold', 'Top-10', 'DROP 0,7', 'Профит', 'Автор']
-    const rows = deals.map((deal, index) => {
-      return [
-        String(index + 1),
-        deal.createdAt,
-        deal.contract,
-        deal.marketCap,
-        deal.liq,
-        deal.hold,
-        deal.top10,
-        deal.drop07,
-        deal.profit,
-        deal.createdBy
-      ].join('\t')
-    })
-
-    const clipboardText = [headers.join('\t'), ...rows].join('\n')
-    navigator.clipboard.writeText(clipboardText)
-    setCopyFeedback(true)
-    setTimeout(() => setCopyFeedback(false), 2000)
-  }
-
-  const copyToClipboard = async (text: string, id: string) => {
-    await navigator.clipboard.writeText(text)
-    setCopiedId(id)
-    setTimeout(() => setCopiedId(null), 2000)
-  }
-
-  const stats = useMemo(() => {
-    const total = deals.length
-    const avgProfit = deals.reduce((acc, d) => {
-      const val = parseFloat(d.profit.replace(/[^0-9.-]/g, '') || '0')
-      return acc + (d.profit.includes('-') ? 0 : val)
-    }, 0)
-    const avgDrop = deals.reduce((acc, d) => {
-      const val = parseFloat(d.drop07.replace(/[^0-9.-]/g, '') || '0')
-      return acc + val
-    }, 0)
-
-    return {
-      total,
-      avgProfit: total > 0 ? avgProfit / total : 0,
-      avgDrop: total > 0 ? avgDrop / total : 0
+  const handleScreenshotPaste = (e: React.ClipboardEvent) => {
+    const file = e.clipboardData.files[0]
+    if (file && file.type.startsWith('image/')) {
+      const reader = new FileReader()
+      reader.onloadend = () => setNewDeal({ ...newDeal, screenshot: reader.result as string })
+      reader.readAsDataURL(file)
     }
+  }
+
+  const handleScreenshotDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    const file = e.dataTransfer.files[0]
+    if (file && file.type.startsWith('image/')) {
+      const reader = new FileReader()
+      reader.onloadend = () => setNewDeal({ ...newDeal, screenshot: reader.result as string })
+      reader.readAsDataURL(file)
+    }
+  }
+
+  // Group deals by signalDate, sort by signalTime within each group
+  const groupedDeals = useMemo(() => {
+    const groups: { [key: string]: OurDealSignal[] } = {}
+    deals.forEach(deal => {
+      const dateKey = deal.signalDate
+      if (!groups[dateKey]) groups[dateKey] = []
+      groups[dateKey].push(deal)
+    })
+    // Sort dates descending (newest first)
+    const sortedDates = Object.keys(groups).sort().reverse()
+    // Within each date, sort by time ascending (00:00 → 23:59)
+    sortedDates.forEach(date => {
+      groups[date].sort((a, b) => a.signalTime.localeCompare(b.signalTime))
+    })
+    return { groups, dates: sortedDates }
   }, [deals])
-
-  const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr)
-    return date.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' })
-  }
-
-  const truncateAddress = (addr: string) => {
-    if (!addr) return '-'
-    return addr.length > 10 ? addr.slice(0, 4) + '...' + addr.slice(-4) : addr
-  }
 
   return (
     <div className="space-y-6">
-      {/* Beautiful Header */}
-      <div className={`relative overflow-hidden rounded-3xl border ${cardBorder} ${cardBg} shadow-lg`}>
-        {/* Decorative elements */}
+      {/* Header */}
+      <div className={`relative overflow-hidden rounded-3xl border ${cardBorder} ${cardShadow} ${cardBg}`}>
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute -left-16 -bottom-10 w-80 h-80 bg-emerald-500/10 blur-3xl" />
-          <div className={`absolute inset-0 ${theme === 'dark' ? 'bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.05),transparent_45%)]' : 'bg-[radial-gradient(circle_at_50%_0%,rgba(78,110,73,0.05),transparent_45%)]'}`} />
+          <div className="absolute -left-16 -bottom-10 w-80 h-80 bg-emerald-500/10 blur-3xl"></div>
+          <div className={`absolute inset-0 ${theme === 'dark' ? 'bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.05),transparent_45%)]' : 'bg-[radial-gradient(circle_at_50%_0%,rgba(16,185,129,0.05),transparent_45%)]'}`}></div>
         </div>
 
         <div className="relative p-6 sm:p-8 flex flex-col lg:flex-row items-center justify-between gap-6">
-          {/* Left: Title */}
+          {/* Left: Icon + Title */}
           <div className="flex items-center gap-4">
-            <div className={`p-3 rounded-2xl ${theme === 'dark' ? 'bg-white/10 border-white/20' : 'bg-[#4E6E49]/10 border-[#4E6E49]/30'}`}>
-              <TrendingUp className={`w-8 h-8 ${theme === 'dark' ? 'text-white' : 'text-[#4E6E49]'}`} />
+            <div className={`p-3 rounded-2xl ${theme === 'dark' ? 'bg-white/10 border-white/20' : 'bg-emerald-500/10 border-emerald-500/30'} shadow-inner`}>
+              <TrendingUp className={`w-8 h-8 ${theme === 'dark' ? 'text-white' : 'text-emerald-500'}`} />
             </div>
-            <div>
-              <h1 className={`text-3xl font-black tracking-tight ${headingColor} whitespace-nowrap`}>
-                Deal Analysis
-              </h1>
-            </div>
+            <h1 className={`text-3xl font-black ${headingColor} whitespace-nowrap`}>DEAL ANALYSIS</h1>
           </div>
 
-          {/* Center: Action Buttons */}
-          <div className="flex items-center gap-3">
+          {/* Center: Buttons */}
+          <div className="flex flex-wrap items-center justify-center gap-3">
             <button
-              onClick={handleCopyTable}
+              onClick={copyTableToClipboard}
               disabled={deals.length === 0}
               className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold transition-all ${copyFeedback ? 'bg-green-500 text-white' : theme === 'dark' ? 'bg-white/10 hover:bg-white/20 text-white border border-white/10' : 'bg-gray-100 hover:bg-gray-200 text-gray-900 border border-gray-200'} ${deals.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
@@ -434,6 +368,7 @@ export const FasolSignalsStrategy = () => {
               <tr className={`border-b ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-gray-50'}`}>
                 <th className={`p-4 text-xs uppercase tracking-wider font-semibold text-center w-12 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>№</th>
                 <th className={`p-4 text-xs uppercase tracking-wider font-semibold text-center ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Дата</th>
+                <th className={`p-4 text-xs uppercase tracking-wider font-semibold text-center ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Время</th>
                 <th className={`p-4 text-xs uppercase tracking-wider font-semibold text-center ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Контракт</th>
                 <th className={`p-4 text-xs uppercase tracking-wider font-semibold text-center ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>MC</th>
                 <th className={`p-4 text-xs uppercase tracking-wider font-semibold text-center ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Liq</th>
@@ -447,180 +382,170 @@ export const FasolSignalsStrategy = () => {
               </tr>
             </thead>
             <tbody className={`divide-y ${theme === 'dark' ? 'divide-white/5' : 'divide-gray-100'}`}>
-              {(() => {
-                // Group deals by date
-                const groupedDeals: { [key: string]: typeof deals } = {}
-                deals.forEach(deal => {
-                  const dateKey = deal.createdAt
-                  if (!groupedDeals[dateKey]) {
-                    groupedDeals[dateKey] = []
-                  }
-                  groupedDeals[dateKey].push(deal)
-                })
+              {deals.length === 0 ? (
+                <tr>
+                  <td colSpan={13} className="p-16 text-center">
+                    <TrendingUp className={`w-12 h-12 mx-auto mb-3 opacity-20 ${mutedColor}`} />
+                    <p className={`text-sm ${mutedColor}`}>Нет записей</p>
+                  </td>
+                </tr>
+              ) : (
+                (() => {
+                  const rows: React.ReactNode[] = []
+                  let globalIndex = 0
 
-                const dates = Object.keys(groupedDeals).sort().reverse()
-                const rows: React.ReactNode[] = []
+                  groupedDeals.dates.forEach((dateKey, dateIndex) => {
+                    const dateDeals = groupedDeals.groups[dateKey]
 
-                dates.forEach((dateKey, dateIndex) => {
-                  const dateDeals = groupedDeals[dateKey]
+                    // Date separator row (horizontal line before each date group except first)
+                    if (dateIndex > 0) {
+                      rows.push(
+                        <tr key={`separator-${dateKey}`}>
+                          <td colSpan={13} className="py-2 px-4">
+                            <div className={`h-px ${theme === 'dark' ? 'bg-white/10' : 'bg-gray-200'}`} />
+                          </td>
+                        </tr>
+                      )
+                    }
 
-                  // Date separator row (horizontal line before each date group except first)
-                  if (dateIndex > 0) {
+                    // Date header row
                     rows.push(
-                      <tr key={`separator-${dateKey}`}>
-                        <td colSpan={12} className="py-2 px-4">
-                          <div className={`h-px ${theme === 'dark' ? 'bg-white/10' : 'bg-gray-200'}`} />
+                      <tr key={`header-${dateKey}`} className={`${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'}`}>
+                        <td colSpan={13} className="p-3 px-4">
+                          <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                            {formatMoscowDate(dateKey)}
+                          </span>
                         </td>
                       </tr>
                     )
-                  }
 
-                  // Date header row
-                  rows.push(
-                    <tr key={`header-${dateKey}`} className={`${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'}`}>
-                      <td colSpan={12} className="p-3 px-4">
-                        <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                          {formatDate(dateKey)}
-                        </span>
-                      </td>
-                    </tr>
-                  )
-
-                  // Deal rows
-                  dateDeals.forEach((deal) => {
-                    const globalIndex = deals.findIndex(d => d.id === deal.id)
-                    rows.push(
-                      <tr key={deal.id} className={`${hoverBg} transition-colors`}>
-                        <td className={`p-4 text-center border-r ${theme === 'dark' ? 'border-white/5' : 'border-gray-100'}`}>
-                          <span className={`font-mono text-sm font-bold ${mutedColor}`}>
-                            {globalIndex + 1}
-                          </span>
-                        </td>
-                        <td className={`p-4 text-center border-r ${theme === 'dark' ? 'border-white/5' : 'border-gray-100'}`}>
-                          <span className={`font-mono text-sm ${mutedColor}`}>
-                            {formatDate(deal.createdAt)}
-                          </span>
-                        </td>
-                        <td className={`p-4 text-center border-r ${theme === 'dark' ? 'border-white/5' : 'border-gray-100'}`}>
-                          <div className="flex items-center justify-center gap-2">
-                            {deal.contract ? (
-                              <a
-                                href={`https://gmgn.ai/sol/token/${deal.contract}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className={`font-mono text-sm text-blue-400 hover:text-blue-300 underline cursor-pointer`}
-                                title="Open in GMGN"
-                              >
-                                {truncateAddress(deal.contract)}
-                              </a>
-                            ) : (
-                              <span className={`font-mono text-sm ${mutedColor}`}>-</span>
-                            )}
-                            <button
-                              onClick={() => copyToClipboard(deal.contract, deal.id)}
-                              className={`p-1 rounded transition-colors ${copiedId === deal.id ? 'text-green-500' : mutedColor} hover:bg-white/10`}
-                              title="Copy"
-                            >
-                              {copiedId === deal.id ? (
-                                <Calculator className="w-4 h-4" />
+                    // Deal rows (already sorted by signalTime ascending: night → evening)
+                    dateDeals.forEach((deal) => {
+                      globalIndex++
+                      rows.push(
+                        <tr key={deal.id} className={`${hoverBg} transition-colors`}>
+                          <td className={`p-4 text-center border-r ${theme === 'dark' ? 'border-white/5' : 'border-gray-100'}`}>
+                            <span className={`font-mono text-sm font-bold ${mutedColor}`}>
+                              {globalIndex}
+                            </span>
+                          </td>
+                          <td className={`p-4 text-center border-r ${theme === 'dark' ? 'border-white/5' : 'border-gray-100'}`}>
+                            <span className={`font-mono text-sm ${mutedColor}`}>
+                              {formatMoscowDate(deal.signalDate)}
+                            </span>
+                          </td>
+                          <td className={`p-4 text-center border-r ${theme === 'dark' ? 'border-white/5' : 'border-gray-100'}`}>
+                            <span className={`font-mono text-sm ${mutedColor}`}>
+                              {deal.signalTime}
+                            </span>
+                          </td>
+                          <td className={`p-4 text-center border-r ${theme === 'dark' ? 'border-white/5' : 'border-gray-100'}`}>
+                            <div className="flex items-center justify-center gap-2">
+                              {deal.contract ? (
+                                <a
+                                  href={`https://gmgn.ai/sol/token/${deal.contract}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className={`font-mono text-sm text-blue-400 hover:text-blue-300 underline cursor-pointer`}
+                                  title="Open in GMGN"
+                                >
+                                  {truncateAddress(deal.contract)}
+                                </a>
                               ) : (
-                                <Copy className="w-4 h-4" />
+                                <span className={`font-mono text-sm ${mutedColor}`}>-</span>
                               )}
-                            </button>
-                          </div>
-                        </td>
-                        <td className={`p-4 text-center border-r ${theme === 'dark' ? 'border-white/5' : 'border-gray-100'}`}>
-                          <span className={`font-mono text-sm font-bold text-emerald-500`}>
-                            {deal.marketCap || '-'}
-                          </span>
-                        </td>
-                        <td className={`p-4 text-center border-r ${theme === 'dark' ? 'border-white/5' : 'border-gray-100'}`}>
-                          <span className={`font-mono text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                            {deal.liq || '-'}
-                          </span>
-                        </td>
-                        <td className={`p-4 text-center border-r ${theme === 'dark' ? 'border-white/5' : 'border-gray-100'}`}>
-                          <span className={`font-mono text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                            {deal.hold || '-'}
-                          </span>
-                        </td>
-                        <td className={`p-4 text-center border-r ${theme === 'dark' ? 'border-white/5' : 'border-gray-100'}`}>
-                          <span className={`font-mono text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                            {deal.top10 || '-'}
-                          </span>
-                        </td>
-                        <td className={`p-4 text-center border-r ${theme === 'dark' ? 'border-white/5' : 'border-gray-100'}`}>
-                          <span className={`font-mono text-sm ${deal.drop07.startsWith('-') ? 'text-rose-500' : headingColor}`}>
-                            {deal.drop07 || '-'}
-                          </span>
-                        </td>
-                        <td className={`p-4 text-center border-r ${theme === 'dark' ? 'border-white/5' : 'border-gray-100'}`}>
-                          <span className="font-mono text-sm font-bold text-green-500">
-                            {deal.profit || '-'}
-                          </span>
-                        </td>
-                        <td className={`p-4 text-center border-r ${theme === 'dark' ? 'border-white/5' : 'border-gray-100'}`}>
-                          {deal.screenshot ? (
-                            <button
-                              onClick={() => deal.screenshot && openScreenshotModal(deal.screenshot, deal)}
-                              className={`p-2 rounded-lg ${hoverBg} transition-colors`}
-                              title="View screenshot"
-                            >
-                              <Eye className="w-4 h-4 text-emerald-500" />
-                            </button>
-                          ) : (
-                            <span className={`text-xs ${mutedColor}`}>-</span>
-                          )}
-                        </td>
-                        <td className={`p-4 text-center border-r ${theme === 'dark' ? 'border-white/5' : 'border-gray-100'}`}>
-                          <div className="flex items-center justify-center gap-1">
-                            <User className={`w-3 h-3 ${mutedColor}`} />
-                            <span className={`text-xs ${mutedColor}`}>{deal.createdBy}</span>
-                          </div>
-                        </td>
-                        <td className="p-4 text-center">
-                          <div className="flex items-center justify-center gap-1">
-                            <button
-                              onClick={() => openEditModal(deal)}
-                              className={`p-2 rounded-lg ${hoverBg} transition-colors`}
-                              title="Edit"
-                            >
-                              <Edit2 className="w-4 h-4 text-blue-500" />
-                            </button>
-                            {isAdmin && (
                               <button
-                                onClick={() => confirmDelete(deal.id)}
-                                className={`p-2 rounded-lg ${hoverBg} transition-colors`}
-                                title="Delete"
+                                onClick={() => deal.contract && copyToClipboard(deal.contract, deal.id)}
+                                className={`p-1 rounded transition-colors ${copiedId === deal.id ? 'text-green-500' : mutedColor} hover:bg-white/10`}
+                                title="Copy"
                               >
-                                <Trash2 className="w-4 h-4 text-rose-500" />
+                                {copiedId === deal.id ? (
+                                  <Calculator className="w-4 h-4" />
+                                ) : (
+                                  <Copy className="w-4 h-4" />
+                                )}
                               </button>
+                            </div>
+                          </td>
+                          <td className={`p-4 text-center border-r ${theme === 'dark' ? 'border-white/5' : 'border-gray-100'}`}>
+                            <span className={`font-mono text-sm font-bold text-emerald-500`}>
+                              {deal.marketCap || '-'}
+                            </span>
+                          </td>
+                          <td className={`p-4 text-center border-r ${theme === 'dark' ? 'border-white/5' : 'border-gray-100'}`}>
+                            <span className={`font-mono text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                              {deal.liq || '-'}
+                            </span>
+                          </td>
+                          <td className={`p-4 text-center border-r ${theme === 'dark' ? 'border-white/5' : 'border-gray-100'}`}>
+                            <span className={`font-mono text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                              {deal.hold || '-'}
+                            </span>
+                          </td>
+                          <td className={`p-4 text-center border-r ${theme === 'dark' ? 'border-white/5' : 'border-gray-100'}`}>
+                            <span className={`font-mono text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                              {deal.top10 || '-'}
+                            </span>
+                          </td>
+                          <td className={`p-4 text-center border-r ${theme === 'dark' ? 'border-white/5' : 'border-gray-100'}`}>
+                            <span className={`font-mono text-sm ${deal.drop07.startsWith('-') ? 'text-rose-500' : headingColor}`}>
+                              {deal.drop07 || '-'}
+                            </span>
+                          </td>
+                          <td className={`p-4 text-center border-r ${theme === 'dark' ? 'border-white/5' : 'border-gray-100'}`}>
+                            <span className="font-mono text-sm font-bold text-green-500">
+                              {deal.profit || '-'}
+                            </span>
+                          </td>
+                          <td className={`p-4 text-center border-r ${theme === 'dark' ? 'border-white/5' : 'border-gray-100'}`}>
+                            {deal.screenshot ? (
+                              <button
+                                onClick={() => deal.screenshot && openScreenshotModal(deal.screenshot, deal)}
+                                className={`p-2 rounded-lg ${hoverBg} transition-colors`}
+                                title="View screenshot"
+                              >
+                                <Eye className="w-4 h-4 text-emerald-500" />
+                              </button>
+                            ) : (
+                              <span className={`text-xs ${mutedColor}`}>-</span>
                             )}
-                          </div>
-                        </td>
-                      </tr>
-                    )
+                          </td>
+                          <td className={`p-4 text-center border-r ${theme === 'dark' ? 'border-white/5' : 'border-gray-100'}`}>
+                            <div className="flex items-center justify-center gap-1">
+                              <User className={`w-3 h-3 ${mutedColor}`} />
+                              <span className={`text-xs ${mutedColor}`}>{deal.createdBy}</span>
+                            </div>
+                          </td>
+                          <td className="p-4 text-center">
+                            <div className="flex items-center justify-center gap-1">
+                              <button
+                                onClick={() => openEditModal(deal)}
+                                className={`p-2 rounded-lg ${hoverBg} transition-colors`}
+                                title="Edit"
+                              >
+                                <Edit2 className="w-4 h-4 text-blue-500" />
+                              </button>
+                              {isAdmin && (
+                                <button
+                                  onClick={() => confirmDelete(deal.id)}
+                                  className={`p-2 rounded-lg ${hoverBg} transition-colors`}
+                                  title="Delete"
+                                >
+                                  <Trash2 className="w-4 h-4 text-rose-500" />
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      )
+                    })
                   })
-                })
 
-                return rows.length > 0 ? rows : (
-                  <tr>
-                    <td colSpan={12} className="p-16 text-center">
-                      <TrendingUp className={`w-12 h-12 mx-auto mb-3 opacity-20 ${mutedColor}`} />
-                      <p className={`text-sm ${mutedColor}`}>No records</p>
-                    </td>
-                  </tr>
-                )
-              })()}
+                  return rows
+                })()
+              )}
             </tbody>
           </table>
-
-          {deals.length === 0 && (
-            <div className="p-16 text-center">
-              <TrendingUp className={`w-12 h-12 mx-auto mb-4 opacity-20 ${mutedColor}`} />
-              <p className={`text-sm ${mutedColor}`}>Нет записей</p>
-            </div>
-          )}
         </div>
       </div>
 
@@ -795,7 +720,7 @@ export const FasolSignalsStrategy = () => {
                   <input
                     type="date"
                     value={dateValue}
-                    onChange={(e) => setDateValue(e.target.value)}
+                    onChange={() => {}}
                     className={`w-full px-4 py-3 rounded-xl border outline-none transition-all font-mono text-sm ${theme === 'dark' ? 'bg-white/5 border-white/10 text-white' : 'bg-gray-50 border-gray-200 text-gray-900'}`}
                   />
                 </div>
@@ -806,7 +731,7 @@ export const FasolSignalsStrategy = () => {
                   <input
                     type="time"
                     value={timeValue}
-                    onChange={(e) => setTimeValue(e.target.value)}
+                    onChange={() => {}}
                     className={`w-full px-4 py-3 rounded-xl border outline-none transition-all font-mono text-sm ${theme === 'dark' ? 'bg-white/5 border-white/10 text-white focus:border-emerald-500/50' : 'bg-gray-50 border-gray-200 text-gray-900'}`}
                   />
                 </div>
@@ -922,3 +847,5 @@ export const FasolSignalsStrategy = () => {
     </div>
   )
 }
+
+export default FasolSignalsStrategy
