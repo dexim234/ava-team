@@ -44,6 +44,10 @@ export const FasolSignalsStrategy = () => {
   const { user } = useAuthStore()
   const { isAdmin } = useAdminStore()
 
+  // Moscow date/time helpers - must be declared before useState
+  const dateValue = getMoscowDate()
+  const timeValue = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', hour12: false })
+
   const [deals, setDeals] = useState<OurDealSignal[]>([])
   const [copiedId, setCopiedId] = useState<string | null>(null)
   const [copyFeedback, setCopyFeedback] = useState(false)
@@ -62,11 +66,10 @@ export const FasolSignalsStrategy = () => {
     hold: '',
     top10: '',
     drop07: '',
-    profit: ''
+    profit: '',
+    signalDate: dateValue,
+    signalTime: timeValue
   })
-
-  const dateValue = getMoscowDate()
-  const timeValue = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', hour12: false })
 
   const mutedColor = theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
   const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
@@ -149,7 +152,9 @@ export const FasolSignalsStrategy = () => {
       hold: '',
       top10: '',
       drop07: '',
-      profit: ''
+      profit: '',
+      signalDate: dateValue,
+      signalTime: timeValue
     })
     setShowModal(true)
   }
@@ -164,7 +169,9 @@ export const FasolSignalsStrategy = () => {
       top10: deal.top10,
       drop07: deal.drop07,
       profit: deal.profit,
-      screenshot: deal.screenshot
+      screenshot: deal.screenshot,
+      signalDate: deal.signalDate,
+      signalTime: deal.signalTime
     })
     setShowModal(true)
   }
@@ -206,8 +213,8 @@ export const FasolSignalsStrategy = () => {
         maxDropFromLevel07: newDeal.drop07 || undefined,
         maxProfit: newDeal.profit || undefined,
         screenshot: newDeal.screenshot || undefined,
-        signalDate: dateValue,
-        signalTime: timeValue,
+        signalDate: newDeal.signalDate || dateValue,
+        signalTime: newDeal.signalTime || timeValue,
         createdAt: new Date().toISOString(),
         createdBy: user?.id || 'admin'
       })
@@ -231,8 +238,8 @@ export const FasolSignalsStrategy = () => {
         maxDropFromLevel07: newDeal.drop07 || undefined,
         maxProfit: newDeal.profit || undefined,
         screenshot: newDeal.screenshot || undefined,
-        signalDate: dateValue,
-        signalTime: timeValue
+        signalDate: newDeal.signalDate || dateValue,
+        signalTime: newDeal.signalTime || timeValue
       })
       await loadDeals()
       setShowModal(false)
@@ -250,7 +257,9 @@ export const FasolSignalsStrategy = () => {
       hold: '',
       top10: '',
       drop07: '',
-      profit: ''
+      profit: '',
+      signalDate: dateValue,
+      signalTime: timeValue
     })
   }
 
@@ -719,9 +728,9 @@ export const FasolSignalsStrategy = () => {
                   </label>
                   <input
                     type="date"
-                    value={dateValue}
-                    onChange={() => {}}
-                    className={`w-full px-4 py-3 rounded-xl border outline-none transition-all font-mono text-sm ${theme === 'dark' ? 'bg-white/5 border-white/10 text-white' : 'bg-gray-50 border-gray-200 text-gray-900'}`}
+                    value={newDeal.signalDate || dateValue}
+                    onChange={(e) => setNewDeal({ ...newDeal, signalDate: e.target.value })}
+                    className={`w-full px-4 py-3 rounded-xl border outline-none transition-all font-mono text-sm ${theme === 'dark' ? 'bg-white/5 border-white/10 text-white focus:border-emerald-500/50' : 'bg-gray-50 border-gray-200 text-gray-900 focus:border-emerald-500/30'}`}
                   />
                 </div>
                 <div>
@@ -730,9 +739,9 @@ export const FasolSignalsStrategy = () => {
                   </label>
                   <input
                     type="time"
-                    value={timeValue}
-                    onChange={() => {}}
-                    className={`w-full px-4 py-3 rounded-xl border outline-none transition-all font-mono text-sm ${theme === 'dark' ? 'bg-white/5 border-white/10 text-white focus:border-emerald-500/50' : 'bg-gray-50 border-gray-200 text-gray-900'}`}
+                    value={newDeal.signalTime || timeValue}
+                    onChange={(e) => setNewDeal({ ...newDeal, signalTime: e.target.value })}
+                    className={`w-full px-4 py-3 rounded-xl border outline-none transition-all font-mono text-sm ${theme === 'dark' ? 'bg-white/5 border-white/10 text-white focus:border-emerald-500/50' : 'bg-gray-50 border-gray-200 text-gray-900 focus:border-emerald-500/30'}`}
                   />
                 </div>
               </div>
