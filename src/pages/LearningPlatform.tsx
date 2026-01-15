@@ -140,7 +140,7 @@ const ResourceForm: React.FC<{
 const LessonModal: React.FC<{
   isOpen: boolean
   onClose: () => void
-  onSave: (lesson: Partial<Lesson> & { videoFile?: File; file?: File }) => void
+  onSave: (lesson: Partial<Lesson> & { newVideoFiles?: File[]; newFileFiles?: File[] }) => void
   editingLesson?: Lesson | null
   topics: typeof TOPICS
   theme: string
@@ -151,10 +151,13 @@ const LessonModal: React.FC<{
     title: '',
     comment: '',
     resources: [],
-    youtubeUrl: '',
+    youtubeUrls: [],
+    videos: [],
+    files: [],
   })
-  const [videoFile, setVideoFile] = useState<File | null>(null)
-  const [fileFile, setFileFile] = useState<File | null>(null)
+  const [youtubeUrls, setYoutubeUrls] = useState<string[]>([''])
+  const [videoFiles, setVideoFiles] = useState<File[]>([])
+  const [fileFiles, setFileFiles] = useState<File[]>([])
   const [showResourceForm, setShowResourceForm] = useState(false)
 
   useEffect(() => {
@@ -165,10 +168,13 @@ const LessonModal: React.FC<{
         title: editingLesson.title,
         comment: editingLesson.comment,
         resources: editingLesson.resources,
-        youtubeUrl: editingLesson.youtubeUrl || '',
+        videos: editingLesson.videos || [],
+        files: editingLesson.files || [],
+        youtubeUrls: editingLesson.youtubeUrls || (editingLesson.youtubeUrl ? [editingLesson.youtubeUrl] : []),
       })
-      setVideoFile(null)
-      setFileFile(null)
+      setYoutubeUrls(editingLesson.youtubeUrls?.length ? editingLesson.youtubeUrls : (editingLesson.youtubeUrl ? [editingLesson.youtubeUrl] : ['']))
+      setVideoFiles([])
+      setFileFiles([])
     } else {
       setFormData({
         topicId: topics[0].id,
@@ -176,10 +182,13 @@ const LessonModal: React.FC<{
         title: '',
         comment: '',
         resources: [],
-        youtubeUrl: '',
+        youtubeUrls: [],
+        videos: [],
+        files: [],
       })
-      setVideoFile(null)
-      setFileFile(null)
+      setYoutubeUrls([''])
+      setVideoFiles([])
+      setFileFiles([])
     }
   }, [editingLesson, isOpen, topics])
 
@@ -187,11 +196,13 @@ const LessonModal: React.FC<{
     if (!formData.title || !formData.topicId) return
     onSave({
       ...formData,
-      videoFile: videoFile || undefined,
-      file: fileFile || undefined,
+      youtubeUrls: youtubeUrls.filter(url => url.trim() !== ''),
+      newVideoFiles: videoFiles,
+      newFileFiles: fileFiles,
     })
-    setVideoFile(null)
-    setFileFile(null)
+    setVideoFiles([])
+    setFileFiles([])
+    setYoutubeUrls([''])
     onClose()
   }
 
@@ -211,6 +222,42 @@ const LessonModal: React.FC<{
     setFormData(prev => ({
       ...prev,
       resources: prev.resources?.filter(r => r.id !== id) || [],
+    }))
+  }
+
+  const addYoutubeField = () => setYoutubeUrls(prev => [...prev, ''])
+  const removeYoutubeField = (index: number) => setYoutubeUrls(prev => prev.filter((_, i) => i !== index))
+  const updateYoutubeUrl = (index: number, val: string) => {
+    const newUrls = [...youtubeUrls]
+    newUrls[index] = val
+    setYoutubeUrls(newUrls)
+  }
+
+  const handleVideoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      setVideoFiles(prev => [...prev, ...Array.from(e.target.files!)])
+    }
+  }
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      setFileFiles(prev => [...prev, ...Array.from(e.target.files!)])
+    }
+  }
+
+  const removeNewVideo = (index: number) => setVideoFiles(prev => prev.filter((_, i) => i !== index))
+  const removeNewFile = (index: number) => setFileFiles(prev => prev.filter((_, i) => i !== index))
+
+  const removeExistingVideo = (url: string) => {
+    setFormData(prev => ({
+      ...prev,
+      videos: prev.videos?.filter(v => v.url !== url) || []
+    }))
+  }
+  const removeExistingFile = (url: string) => {
+    setFormData(prev => ({
+      ...prev,
+      files: prev.files?.filter(f => f.url !== url) || []
     }))
   }
 
@@ -366,34 +413,58 @@ const LessonModal: React.FC<{
             />
           </div>
 
-          {/* YouTube Link */}
+          {/* YouTube Links */}
           <div>
-            <label className={cn(
-              "block text-sm font-medium mb-2",
-              theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
-            )}>
-              <div className="flex items-center gap-2">
-                <Youtube className="w-4 h-4 text-red-500" />
-                Ссылка на YouTube
-              </div>
-            </label>
-            <input
-              type="url"
-              placeholder="https://www.youtube.com/watch?v=..."
-              value={formData.youtubeUrl}
-              onChange={(e) => setFormData(prev => ({ ...prev, youtubeUrl: e.target.value }))}
-              className={cn(
-                "w-full px-4 py-2.5 rounded-xl border font-medium",
-                theme === 'dark'
-                  ? 'bg-white/5 border-white/10 text-white placeholder-gray-500 focus-emerald-500/50'
-                  : 'bg-gray-50 border-gray-200 text-gray-900 placeholder-gray-400 focus-emerald-500'
-              )}
-            />
+            <div className="flex items-center justify-between mb-2">
+              <label className={cn(
+                "block text-sm font-medium",
+                theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+              )}>
+                <div className="flex items-center gap-2">
+                  <Youtube className="w-4 h-4 text-red-500" />
+                  Ссылки на YouTube
+                </div>
+              </label>
+              <button
+                type="button"
+                onClick={addYoutubeField}
+                className="p-1.5 rounded-lg hover:bg-red-500/10 text-red-500 transition-colors"
+              >
+                <Plus className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="space-y-2">
+              {youtubeUrls.map((url, index) => (
+                <div key={index} className="flex gap-2">
+                  <input
+                    type="url"
+                    placeholder="https://www.youtube.com/watch?v=..."
+                    value={url}
+                    onChange={(e) => updateYoutubeUrl(index, e.target.value)}
+                    className={cn(
+                      "flex-1 px-4 py-2.5 rounded-xl border font-medium text-sm",
+                      theme === 'dark'
+                        ? 'bg-white/5 border-white/10 text-white placeholder-gray-500 focus-emerald-500/50'
+                        : 'bg-gray-50 border-gray-200 text-gray-900 placeholder-gray-400 focus-emerald-500'
+                    )}
+                  />
+                  {youtubeUrls.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => removeYoutubeField(index)}
+                      className="p-2.5 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-colors"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
 
           {/* Video & File Upload */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {/* Video File */}
+            {/* Video Files */}
             <div>
               <label className={cn(
                 "block text-sm font-medium mb-2",
@@ -401,57 +472,54 @@ const LessonModal: React.FC<{
               )}>
                 <div className="flex items-center gap-2">
                   <Video className="w-4 h-4 text-emerald-500" />
-                  Видео файл
+                  Видео файлы
                 </div>
               </label>
+
+              <div className="space-y-2 mb-2">
+                {/* Existing Videos */}
+                {formData.videos?.map((vid, idx) => (
+                  <div key={`exist-vid-${idx}`} className="flex items-center justify-between p-2 rounded-lg bg-emerald-500/5 border border-emerald-500/20">
+                    <span className="text-xs font-medium text-emerald-500 truncate max-w-[150px]">{vid.name}</span>
+                    <button type="button" onClick={() => removeExistingVideo(vid.url)} className="text-red-500 p-1"><X className="w-3.5 h-3.5" /></button>
+                  </div>
+                ))}
+                {/* New Videos */}
+                {videoFiles.map((f, idx) => (
+                  <div key={`new-vid-${idx}`} className="flex items-center justify-between p-2 rounded-lg bg-gray-500/5 border border-dashed border-gray-500/20">
+                    <span className="text-xs font-medium text-gray-500 truncate max-w-[150px]">{f.name}</span>
+                    <button type="button" onClick={() => removeNewVideo(idx)} className="text-red-500 p-1"><X className="w-3.5 h-3.5" /></button>
+                  </div>
+                ))}
+              </div>
+
               <div className="relative group">
                 <input
                   type="file"
                   accept="video/*"
-                  onChange={(e) => setVideoFile(e.target.files?.[0] || null)}
+                  multiple
+                  onChange={handleVideoSelect}
                   className="hidden"
                   id="video-upload"
                 />
                 <label
                   htmlFor="video-upload"
                   className={cn(
-                    "flex flex-col items-center justify-center w-full h-24 rounded-xl border-2 border-dashed transition-all cursor-pointer",
-                    videoFile
-                      ? 'border-emerald-500 bg-emerald-500/5'
-                      : theme === 'dark'
-                        ? 'border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/10'
-                        : 'border-gray-200 bg-gray-50 hover:border-gray-300 hover:bg-gray-100'
+                    "flex flex-col items-center justify-center w-full h-20 rounded-xl border-2 border-dashed transition-all cursor-pointer",
+                    theme === 'dark'
+                      ? 'border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/10'
+                      : 'border-gray-200 bg-gray-50 hover:border-gray-300 hover:bg-gray-100'
                   )}
                 >
-                  {videoFile ? (
-                    <div className="flex flex-col items-center gap-1 p-2 text-center">
-                      <div className="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center">
-                        <Video className="w-4 h-4 text-emerald-500" />
-                      </div>
-                      <span className="text-xs font-medium text-emerald-500 truncate max-w-full">
-                        {videoFile.name}
-                      </span>
-                    </div>
-                  ) : (
-                    <div className="flex flex-col items-center gap-1">
-                      <Upload className="w-5 h-5 text-gray-400" />
-                      <span className="text-xs text-gray-400 font-medium">Загрузить видео</span>
-                    </div>
-                  )}
+                  <div className="flex flex-col items-center gap-1">
+                    <Upload className="w-5 h-5 text-gray-400" />
+                    <span className="text-xs text-gray-400 font-medium">Добавить видео</span>
+                  </div>
                 </label>
-                {videoFile && (
-                  <button
-                    type="button"
-                    onClick={() => setVideoFile(null)}
-                    className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center shadow-lg hover:bg-red-600 transition-colors"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
-                )}
               </div>
             </div>
 
-            {/* General File */}
+            {/* General Files */}
             <div>
               <label className={cn(
                 "block text-sm font-medium mb-2",
@@ -459,52 +527,49 @@ const LessonModal: React.FC<{
               )}>
                 <div className="flex items-center gap-2">
                   <FileText className="w-4 h-4 text-blue-500" />
-                  Файл
+                  Файлы
                 </div>
               </label>
+
+              <div className="space-y-2 mb-2">
+                {/* Existing Files */}
+                {formData.files?.map((file, idx) => (
+                  <div key={`exist-file-${idx}`} className="flex items-center justify-between p-2 rounded-lg bg-blue-500/5 border border-blue-500/20">
+                    <span className="text-xs font-medium text-blue-500 truncate max-w-[150px]">{file.name}</span>
+                    <button type="button" onClick={() => removeExistingFile(file.url)} className="text-red-500 p-1"><X className="w-3.5 h-3.5" /></button>
+                  </div>
+                ))}
+                {/* New Files */}
+                {fileFiles.map((f, idx) => (
+                  <div key={`new-file-${idx}`} className="flex items-center justify-between p-2 rounded-lg bg-gray-500/5 border border-dashed border-gray-500/20">
+                    <span className="text-xs font-medium text-gray-500 truncate max-w-[150px]">{f.name}</span>
+                    <button type="button" onClick={() => removeNewFile(idx)} className="text-red-500 p-1"><X className="w-3.5 h-3.5" /></button>
+                  </div>
+                ))}
+              </div>
+
               <div className="relative group">
                 <input
                   type="file"
-                  onChange={(e) => setFileFile(e.target.files?.[0] || null)}
+                  multiple
+                  onChange={handleFileSelect}
                   className="hidden"
                   id="file-upload"
                 />
                 <label
                   htmlFor="file-upload"
                   className={cn(
-                    "flex flex-col items-center justify-center w-full h-24 rounded-xl border-2 border-dashed transition-all cursor-pointer",
-                    fileFile
-                      ? 'border-blue-500 bg-blue-500/5'
-                      : theme === 'dark'
-                        ? 'border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/10'
-                        : 'border-gray-200 bg-gray-50 hover:border-gray-300 hover:bg-gray-100'
+                    "flex flex-col items-center justify-center w-full h-20 rounded-xl border-2 border-dashed transition-all cursor-pointer",
+                    theme === 'dark'
+                      ? 'border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/10'
+                      : 'border-gray-200 bg-gray-50 hover:border-gray-300 hover:bg-gray-100'
                   )}
                 >
-                  {fileFile ? (
-                    <div className="flex flex-col items-center gap-1 p-2 text-center">
-                      <div className="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center">
-                        <FileText className="w-4 h-4 text-blue-500" />
-                      </div>
-                      <span className="text-xs font-medium text-blue-500 truncate max-w-full">
-                        {fileFile.name}
-                      </span>
-                    </div>
-                  ) : (
-                    <div className="flex flex-col items-center gap-1">
-                      <Upload className="w-5 h-5 text-gray-400" />
-                      <span className="text-xs text-gray-400 font-medium">Загрузить файл</span>
-                    </div>
-                  )}
+                  <div className="flex flex-col items-center gap-1">
+                    <Upload className="w-5 h-5 text-gray-400" />
+                    <span className="text-xs text-gray-400 font-medium">Добавить файлы</span>
+                  </div>
                 </label>
-                {fileFile && (
-                  <button
-                    type="button"
-                    onClick={() => setFileFile(null)}
-                    className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center shadow-lg hover:bg-red-600 transition-colors"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
-                )}
               </div>
             </div>
           </div>
@@ -652,9 +717,46 @@ const LessonCard: React.FC<{
 
       <div className="relative p-5">
         {/* Preview image/video if available */}
-        {(lesson.youtubeUrl || lesson.videoUrl) && (
+        {(lesson.youtubeUrls?.length || lesson.videos?.length || lesson.youtubeUrl || lesson.videoUrl) && (
           <div className="mb-4 aspect-video rounded-xl overflow-hidden bg-black/20 group-preview">
-            {lesson.youtubeUrl ? (
+            {lesson.youtubeUrls?.length ? (
+              <div className="relative w-full h-full">
+                <img
+                  src={getYoutubeThumbnail(lesson.youtubeUrls[0]) || ''}
+                  alt={lesson.title}
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                />
+                <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/40 transition-colors">
+                  <div className="w-12 h-12 rounded-full bg-red-600 flex items-center justify-center shadow-lg transform group-hover:scale-110 transition-transform">
+                    <Youtube className="w-6 h-6 text-white fill-current" />
+                  </div>
+                </div>
+                <a
+                  href={lesson.youtubeUrls[0]}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="absolute inset-0"
+                />
+              </div>
+            ) : lesson.videos?.length ? (
+              <div className="relative w-full h-full">
+                <video
+                  src={lesson.videos[0].url}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/40 transition-colors">
+                  <div className="w-12 h-12 rounded-full bg-emerald-500 flex items-center justify-center shadow-lg transform group-hover:scale-110 transition-transform">
+                    <Video className="w-6 h-6 text-white" />
+                  </div>
+                </div>
+                <a
+                  href={lesson.videos[0].url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="absolute inset-0"
+                />
+              </div>
+            ) : lesson.youtubeUrl ? (
               <div className="relative w-full h-full">
                 <img
                   src={getYoutubeThumbnail(lesson.youtubeUrl) || ''}
@@ -751,9 +853,11 @@ const LessonCard: React.FC<{
 
         {/* Resources */}
         <div className="flex flex-wrap gap-2 mb-4">
-          {lesson.youtubeUrl && (
+          {/* YouTube Links */}
+          {(lesson.youtubeUrls || (lesson.youtubeUrl ? [lesson.youtubeUrl] : [])).map((url, idx) => (
             <a
-              href={lesson.youtubeUrl}
+              key={`yt-${idx}`}
+              href={url}
               target="_blank"
               rel="noopener noreferrer"
               className={cn(
@@ -764,12 +868,15 @@ const LessonCard: React.FC<{
               )}
             >
               <Youtube className="w-3 h-3" />
-              YouTube
+              YouTube {lesson.youtubeUrls && lesson.youtubeUrls.length > 1 ? `#${idx + 1}` : ''}
             </a>
-          )}
-          {lesson.videoUrl && (
+          ))}
+
+          {/* Video Files */}
+          {(lesson.videos || (lesson.videoUrl ? [{ url: lesson.videoUrl, name: lesson.videoFileName || 'Видео' }] : [])).map((vid, idx) => (
             <a
-              href={lesson.videoUrl}
+              key={`vid-${idx}`}
+              href={vid.url}
               target="_blank"
               rel="noopener noreferrer"
               className={cn(
@@ -780,12 +887,15 @@ const LessonCard: React.FC<{
               )}
             >
               <Video className="w-3 h-3" />
-              {lesson.videoFileName || 'Видео'}
+              {vid.name}
             </a>
-          )}
-          {lesson.fileUrl && (
+          ))}
+
+          {/* Files */}
+          {(lesson.files || (lesson.fileUrl ? [{ url: lesson.fileUrl, name: lesson.fileName || 'Файл' }] : [])).map((file, idx) => (
             <a
-              href={lesson.fileUrl}
+              key={`file-${idx}`}
+              href={file.url}
               target="_blank"
               rel="noopener noreferrer"
               className={cn(
@@ -796,9 +906,11 @@ const LessonCard: React.FC<{
               )}
             >
               <FileText className="w-3 h-3" />
-              {lesson.fileName || 'Файл'}
+              {file.name}
             </a>
-          )}
+          ))}
+
+          {/* External Resources */}
           {lesson.resources.slice(0, 3).map((resource) => (
             <a
               key={resource.id}
@@ -832,16 +944,16 @@ const LessonCard: React.FC<{
           theme === 'dark' ? 'border-white/10' : 'border-gray-200'
         )}>
           <div className="flex items-center gap-3">
-            {(lesson.videoUrl || lesson.youtubeUrl) && (
+            {(lesson.videos?.length || lesson.youtubeUrls?.length || lesson.videoUrl || lesson.youtubeUrl) && (
               <div className="flex items-center gap-1.5 text-xs text-emerald-500">
                 <Video className="w-3.5 h-3.5" />
-                Видео
+                Видео ({(lesson.videos?.length || 0) + (lesson.youtubeUrls?.length || 0) || 1})
               </div>
             )}
-            {lesson.fileUrl && (
+            {(lesson.files?.length || lesson.fileUrl) && (
               <div className="flex items-center gap-1.5 text-xs text-blue-500">
                 <FileText className="w-3.5 h-3.5" />
-                Файл
+                Файлы ({(lesson.files?.length || 0) || 1})
               </div>
             )}
             {lesson.resources.length > 0 && (
@@ -909,21 +1021,40 @@ export const LearningPlatform = () => {
   ) || []
 
   // Добавление/редактирование урока
-  const handleSaveLesson = async (lessonData: Partial<Lesson> & { videoFile?: File; file?: File }) => {
+  const handleSaveLesson = async (lessonData: Partial<Lesson> & { newVideoFiles?: File[]; newFileFiles?: File[] }) => {
     try {
       setLoading(true)
-      const { videoFile, file, ...updates } = lessonData
+      const { newVideoFiles, newFileFiles, ...updates } = lessonData
 
-      // Загрузка файлов если они есть
-      if (videoFile) {
-        const { url, fileName } = await uploadFile(videoFile, 'lessons/videos')
-        updates.videoUrl = url
-        updates.videoFileName = fileName
+      // Загрузка новых видео если они есть
+      if (newVideoFiles?.length) {
+        const uploadedVideos = await Promise.all(
+          newVideoFiles.map(f => uploadFile(f, 'lessons/videos'))
+        )
+        const videoObjects = uploadedVideos.map(v => ({ url: v.url, name: v.fileName }))
+        updates.videos = [...(updates.videos || []), ...videoObjects]
       }
-      if (file) {
-        const { url, fileName } = await uploadFile(file, 'lessons/files')
-        updates.fileUrl = url
-        updates.fileName = fileName
+
+      // Загрузка новых файлов если они есть
+      if (newFileFiles?.length) {
+        const uploadedFiles = await Promise.all(
+          newFileFiles.map(f => uploadFile(f, 'lessons/files'))
+        )
+        const fileObjects = uploadedFiles.map(f => ({ url: f.url, name: f.fileName }))
+        updates.files = [...(updates.files || []), ...fileObjects]
+      }
+
+      // Для обратной совместимости сохраняем первый элемент в старые поля
+      if (updates.videos?.length) {
+        updates.videoUrl = updates.videos[0].url
+        updates.videoFileName = updates.videos[0].name
+      }
+      if (updates.files?.length) {
+        updates.fileUrl = updates.files[0].url
+        updates.fileName = updates.files[0].name
+      }
+      if (updates.youtubeUrls?.length) {
+        updates.youtubeUrl = updates.youtubeUrls[0]
       }
 
       if (editingLesson) {
@@ -932,16 +1063,11 @@ export const LearningPlatform = () => {
       } else {
         // Добавление нового урока
         await addLesson({
+          ...updates,
           topicId: updates.topicId as LessonTopic,
           lessonNumber: updates.lessonNumber || 1,
           title: updates.title || '',
-          comment: updates.comment || '',
           resources: updates.resources || [],
-          videoUrl: updates.videoUrl,
-          videoFileName: updates.videoFileName,
-          youtubeUrl: updates.youtubeUrl,
-          fileUrl: updates.fileUrl,
-          fileName: updates.fileName,
         } as Omit<Lesson, 'id' | 'createdAt' | 'updatedAt'>)
       }
 
@@ -951,7 +1077,8 @@ export const LearningPlatform = () => {
       setEditingLesson(null)
     } catch (err: any) {
       console.error('Error saving lesson:', err)
-      setError(`Не удалось сохранить урок: ${err.message || 'Неизвестная ошибка'}`)
+      const isStorageError = err.message?.includes('CORS') || err.message?.includes('Preflight')
+      setError(`Не удалось сохранить урок: ${err.message || 'Неизвестная ошибка'}.${isStorageError ? ' Ошибка CORS в Firebase Storage. Убедитесь, что настроены правила доступа.' : ''}`)
     } finally {
       setLoading(false)
     }
@@ -966,13 +1093,21 @@ export const LearningPlatform = () => {
     try {
       setLoading(true)
       // Удаление файлов из хранилища если они есть
-      if (lesson.videoUrl) {
-        try { await deleteFile(lesson.videoUrl) } catch (e) { console.error('Error deleting video file:', e) }
-      }
-      if (lesson.fileUrl) {
-        try { await deleteFile(lesson.fileUrl) } catch (e) { console.error('Error deleting generic file:', e) }
+      const deletePromises: Promise<void>[] = []
+
+      if (lesson.videos?.length) {
+        lesson.videos.forEach(v => deletePromises.push(deleteFile(v.url).catch(e => console.error('Error deleting video:', e))))
+      } else if (lesson.videoUrl) {
+        deletePromises.push(deleteFile(lesson.videoUrl).catch(e => console.error('Error deleting legacy video:', e)))
       }
 
+      if (lesson.files?.length) {
+        lesson.files.forEach(f => deletePromises.push(deleteFile(f.url).catch(e => console.error('Error deleting file:', e))))
+      } else if (lesson.fileUrl) {
+        deletePromises.push(deleteFile(lesson.fileUrl).catch(e => console.error('Error deleting legacy file:', e)))
+      }
+
+      await Promise.all(deletePromises)
       await deleteLesson(lesson.id)
       await loadLessons()
     } catch (err: any) {

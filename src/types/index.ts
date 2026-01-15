@@ -560,16 +560,24 @@ export interface LessonResource {
   description: string
 }
 
+export interface LessonFile {
+  url: string
+  name: string
+}
+
 export interface Lesson {
   id: string
   topicId: LessonTopic
   lessonNumber: number
   title: string
-  videoUrl?: string
-  videoFileName?: string // Имя файла видео для отображения
-  youtubeUrl?: string // Ссылка на YouTube
-  fileUrl?: string
-  fileName?: string // Имя файла для отображения
+  videoUrl?: string // legacy
+  videoFileName?: string // legacy
+  youtubeUrl?: string // legacy
+  fileUrl?: string // legacy
+  fileName?: string // legacy
+  videos?: LessonFile[] // Multiple videos
+  files?: LessonFile[] // Multiple files
+  youtubeUrls?: string[] // Multiple YouTube links
   comment?: string
   resources: LessonResource[]
   createdAt: string
