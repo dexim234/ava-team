@@ -1,5 +1,13 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useThemeStore } from '@/store/themeStore'
+import { useAdminStore } from '@/store/adminStore'
+import { Lesson, LessonTopic } from '@/types'
+import {
+  getAllLessons,
+  addLesson,
+  updateLesson,
+  deleteLesson,
+} from '@/services/firestoreService'
 import {
   BookOpen,
   FileText,
@@ -9,18 +17,11 @@ import {
   ChevronRight,
   GraduationCap,
   Video,
-  FolderOpen,
   ExternalLink,
-  Upload,
   Trash2,
   Edit3,
-  TrendingUp,
-  Coins,
-  Image,
-  Gift,
-  Shield,
-  BarChart3,
   Search,
+  Loader2,
 } from 'lucide-react'
 
 // Simple cn utility inline
@@ -41,143 +42,106 @@ const TOPICS = [
 
 type TopicId = typeof TOPICS[number]['id']
 
-// Типы данных урока
-interface Lesson {
-  id: string
-  topicId: TopicId
-  lessonNumber: number
-  title: string
-  videoUrl?: string
-  videoFile?: File
-  fileUrl?: string
-  file?: File
-  comment?: string
-  resources: Resource[]
-  createdAt: string
-  updatedAt: string
-}
+// Форма добавления ресурса
+const ResourceForm: React.FC<{
+  onAdd: (resource: { title: string; url: string; description: string }) => void
+  onCancel: () => void
+  theme: string
+}> = ({ onAdd, onCancel, theme }) => {
+  const [title, setTitle] = useState('')
+  const [url, setUrl] = useState('')
+  const [description, setDescription] = useState('')
 
-interface Resource {
-  id: string
-  title: string
-  url: string
-  description: string
-}
+  const handleSubmit = () => {
+    if (!title || !url) return
+    onAdd({ title, url, description })
+    setTitle('')
+    setUrl('')
+    setDescription('')
+  }
 
-// Демо-данные уроков
-const demoLessons: Record<TopicId, Lesson[]> = {
-  memecoins: [
-    {
-      id: '1',
-      topicId: 'memecoins',
-      lessonNumber: 1,
-      title: 'Введение в мемкоины: что это и как работает',
-      comment: 'Базовый курс для начинающих. Изучаем основы мемкоинов, их историю и принципы работы.',
-      resources: [
-        { id: '1', title: 'CoinGecko - криптовалютный трекер', url: 'https://www.coingecko.com', description: 'Лучший агрегатор данных о криптовалютах и мемкоинах' },
-        { id: '2', title: 'DexScreener - аналитика DEX', url: 'https://dexscreener.com', description: 'Аналитика децентрализованных бирж и торговых пар' },
-      ],
-      createdAt: '2025-01-01',
-      updatedAt: '2025-01-01',
-    },
-    {
-      id: '2',
-      topicId: 'memecoins',
-      lessonNumber: 2,
-      title: 'Анализ токеномики и ликвидности',
-      comment: 'Учимся читать токеномику проектов и оценивать риски ликвидности.',
-      resources: [
-        { id: '3', title: 'Dextools', url: 'https://www.dextools.io', description: 'Инструменты для анализа DEX-пар и графиков' },
-      ],
-      createdAt: '2025-01-02',
-      updatedAt: '2025-01-02',
-    },
-  ],
-  polymarket: [
-    {
-      id: '3',
-      topicId: 'polymarket',
-      lessonNumber: 1,
-      title: 'Polymarket: основы и первые шаги',
-      comment: 'Знакомство с платформой прогнозных рынков.',
-      resources: [
-        { id: '4', title: 'Polymarket', url: 'https://polymarket.com', description: 'Официальный сайт платформы' },
-      ],
-      createdAt: '2025-01-03',
-      updatedAt: '2025-01-03',
-    },
-  ],
-  nft: [
-    {
-      id: '4',
-      topicId: 'nft',
-      lessonNumber: 1,
-      title: 'NFT: мир невзаимозаменяемых токенов',
-      comment: 'Введение в NFT и их применение.',
-      resources: [],
-      createdAt: '2025-01-04',
-      updatedAt: '2025-01-04',
-    },
-  ],
-  staking: [
-    {
-      id: '5',
-      topicId: 'staking',
-      lessonNumber: 1,
-      title: 'Стейкинг: пассивный доход в криптовалютах',
-      comment: 'Основы стейкинга и типы размещения.',
-      resources: [],
-      createdAt: '2025-01-05',
-      updatedAt: '2025-01-05',
-    },
-  ],
-  spot: [
-    {
-      id: '6',
-      topicId: 'spot',
-      lessonNumber: 1,
-      title: 'Спотовая торговля: базовые понятия',
-      comment: 'Учимся торговать на спотовом рынке.',
-      resources: [],
-      createdAt: '2025-01-06',
-      updatedAt: '2025-01-06',
-    },
-  ],
-  futures: [
-    {
-      id: '7',
-      topicId: 'futures',
-      lessonNumber: 1,
-      title: 'Фьючерсы: торговля с плечом',
-      comment: 'Введение в фьючерсную торговлю.',
-      resources: [],
-      createdAt: '2025-01-07',
-      updatedAt: '2025-01-07',
-    },
-  ],
-  airdrop: [
-    {
-      id: '8',
-      topicId: 'airdrop',
-      lessonNumber: 1,
-      title: 'AirDrop: как находить и участвовать',
-      comment: 'Стратегии поиска перспективных airdrop.',
-      resources: [],
-      createdAt: '2025-01-08',
-      updatedAt: '2025-01-08',
-    },
-  ],
+  return (
+    <div className={cn(
+      "p-4 rounded-xl border mb-4",
+      theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'
+    )}>
+      <div className="grid gap-3">
+        <div>
+          <input
+            type="text"
+            placeholder="Название ресурса *"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            className={cn(
+              "w-full px-3 py-2 rounded-lg border text-sm",
+              theme === 'dark' 
+                ? 'bg-white/5 border-white/10 text-white placeholder-gray-500' 
+                : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400'
+            )}
+          />
+        </div>
+        <div>
+          <input
+            type="url"
+            placeholder="Ссылка *"
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+            className={cn(
+              "w-full px-3 py-2 rounded-lg border text-sm",
+              theme === 'dark' 
+                ? 'bg-white/5 border-white/10 text-white placeholder-gray-500' 
+                : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400'
+            )}
+          />
+        </div>
+        <div>
+          <input
+            type="text"
+            placeholder="Описание (необязательно)"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            className={cn(
+              "w-full px-3 py-2 rounded-lg border text-sm",
+              theme === 'dark' 
+                ? 'bg-white/5 border-white/10 text-white placeholder-gray-500' 
+                : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400'
+            )}
+          />
+        </div>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={handleSubmit}
+            disabled={!url || !title}
+            className="px-4 py-2 rounded-lg text-sm font-medium bg-emerald-500 text-white hover:bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Добавить
+          </button>
+          <button
+            type="button"
+            onClick={onCancel}
+            className={cn(
+              "px-4 py-2 rounded-lg text-sm font-medium",
+              theme === 'dark' ? 'bg-white/10 text-white hover:bg-white/20' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+            )}
+          >
+            Отмена
+          </button>
+        </div>
+      </div>
+    </div>
+  )
 }
 
 // Модальное окно добавления/редактирования урока
 const LessonModal: React.FC<{
   isOpen: boolean
   onClose: () => void
-  onSave: (lesson: Partial<Lesson>) => void
+  onSave: (lesson: Partial<Lesson> & { videoFile?: File; file?: File }) => void
   editingLesson?: Lesson | null
   topics: typeof TOPICS
-}> = ({ isOpen, onClose, onSave, editingLesson, topics }) => {
-  const { theme } = useThemeStore()
+  theme: string
+}> = ({ isOpen, onClose, onSave, editingLesson, topics, theme }) => {
   const [formData, setFormData] = useState<Partial<Lesson>>({
     topicId: topics[0].id,
     lessonNumber: 1,
@@ -187,13 +151,7 @@ const LessonModal: React.FC<{
   })
   const [videoFile, setVideoFile] = useState<File | null>(null)
   const [fileFile, setFileFile] = useState<File | null>(null)
-  const [resourceUrl, setResourceUrl] = useState('')
-  const [resourceTitle, setResourceTitle] = useState('')
-  const [resourceDesc, setResourceDesc] = useState('')
   const [showResourceForm, setShowResourceForm] = useState(false)
-
-  const videoInputRef = useRef<HTMLInputElement>(null)
-  const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     if (editingLesson) {
@@ -204,6 +162,8 @@ const LessonModal: React.FC<{
         comment: editingLesson.comment,
         resources: editingLesson.resources,
       })
+      setVideoFile(null)
+      setFileFile(null)
     } else {
       setFormData({
         topicId: topics[0].id,
@@ -212,6 +172,8 @@ const LessonModal: React.FC<{
         comment: '',
         resources: [],
       })
+      setVideoFile(null)
+      setFileFile(null)
     }
   }, [editingLesson, isOpen, topics])
 
@@ -227,21 +189,15 @@ const LessonModal: React.FC<{
     onClose()
   }
 
-  const addResource = () => {
-    if (!resourceUrl || !resourceTitle) return
-    const newResource: Resource = {
+  const addResource = (resource: { title: string; url: string; description: string }) => {
+    const newResource = {
       id: Date.now().toString(),
-      title: resourceTitle,
-      url: resourceUrl,
-      description: resourceDesc,
+      ...resource,
     }
     setFormData(prev => ({
       ...prev,
       resources: [...(prev.resources || []), newResource],
     }))
-    setResourceUrl('')
-    setResourceTitle('')
-    setResourceDesc('')
     setShowResourceForm(false)
   }
 
@@ -319,7 +275,7 @@ const LessonModal: React.FC<{
                   <button
                     key={topic.id}
                     type="button"
-                    onClick={() => setFormData(prev => ({ ...prev, topicId: topic.id }))}
+                    onClick={() => setFormData(prev => ({ ...prev, topicId: topic.id as LessonTopic }))}
                     className={cn(
                       "px-3 py-2 rounded-xl text-sm font-medium transition-all",
                       formData.topicId === topic.id
@@ -355,8 +311,8 @@ const LessonModal: React.FC<{
                 className={cn(
                   "w-full px-4 py-2.5 rounded-xl border font-medium",
                   theme === 'dark' 
-                    ? 'bg-white/5 border-white/10 text-white focus:border-blue-500/50' 
-                    : 'bg-gray-50 border-gray-200 text-gray-900 focus:border-blue-500'
+                    ? 'bg-white/5 border-white/10 text-white focus-emerald-500/50' 
+                    : 'bg-gray-50 border-gray-200 text-gray-900 focus-emerald-500'
                 )}
               />
             </div>
@@ -375,126 +331,10 @@ const LessonModal: React.FC<{
                 className={cn(
                   "w-full px-4 py-2.5 rounded-xl border font-medium",
                   theme === 'dark' 
-                    ? 'bg-white/5 border-white/10 text-white placeholder-gray-500 focus:border-blue-500/50' 
-                    : 'bg-gray-50 border-gray-200 text-gray-900 placeholder-gray-400 focus:border-blue-500'
+                    ? 'bg-white/5 border-white/10 text-white placeholder-gray-500 focus-emerald-500/50' 
+                    : 'bg-gray-100 border-gray-200 text-gray-900 placeholder-gray-400 focus-emerald-500'
                 )}
               />
-            </div>
-          </div>
-
-          {/* Видео */}
-          <div>
-            <label className={cn(
-              "block text-sm font-medium mb-2",
-              theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
-            )}>
-              Видео (загрузить файл)
-            </label>
-            <div 
-              onClick={() => videoInputRef.current?.click()}
-              className={cn(
-                "relative border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all",
-                theme === 'dark' 
-                  ? 'border-white/10 hover:border-white/20' 
-                  : 'border-gray-300 hover:border-gray-400'
-              )}
-            >
-              <input
-                ref={videoInputRef}
-                type="file"
-                accept="video/*"
-                onChange={(e) => {
-                  const file = e.target.files?.[0]
-                  if (file) setVideoFile(file)
-                }}
-                className="hidden"
-              />
-              {videoFile ? (
-                <div className="flex items-center justify-center gap-3">
-                  <Video className="w-5 h-5 text-emerald-500" />
-                  <span className={theme === 'dark' ? 'text-white' : 'text-gray-900'}>
-                    {videoFile.name}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      setVideoFile(null)
-                    }}
-                    className="p-1 rounded-lg hover:bg-red-500/10"
-                  >
-                    <X className="w-4 h-4 text-red-500" />
-                  </button>
-                </div>
-              ) : (
-                <div className="flex flex-col items-center gap-2">
-                  <Upload className="w-8 h-8 text-gray-400" />
-                  <span className={theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}>
-                    Нажмите или перетащите файл видео
-                  </span>
-                  <span className="text-xs text-gray-500">
-                    MP4, WebM (макс. 500 МБ)
-                  </span>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Файл */}
-          <div>
-            <label className={cn(
-              "block text-sm font-medium mb-2",
-              theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
-            )}>
-              Файл (загрузить файл)
-            </label>
-            <div 
-              onClick={() => fileInputRef.current?.click()}
-              className={cn(
-                "relative border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all",
-                theme === 'dark' 
-                  ? 'border-white/10 hover:border-white/20' 
-                  : 'border-gray-300 hover:border-gray-400'
-              )}
-            >
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".pdf,.doc,.docx,.txt,.zip"
-                onChange={(e) => {
-                  const file = e.target.files?.[0]
-                  if (file) setFileFile(file)
-                }}
-                className="hidden"
-              />
-              {fileFile ? (
-                <div className="flex items-center justify-center gap-3">
-                  <FileText className="w-5 h-5 text-blue-500" />
-                  <span className={theme === 'dark' ? 'text-white' : 'text-gray-900'}>
-                    {fileFile.name}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      setFileFile(null)
-                    }}
-                    className="p-1 rounded-lg hover:bg-red-500/10"
-                  >
-                    <X className="w-4 h-4 text-red-500" />
-                  </button>
-                </div>
-              ) : (
-                <div className="flex flex-col items-center gap-2">
-                  <FolderOpen className="w-8 h-8 text-gray-400" />
-                  <span className={theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}>
-                    Нажмите или перетащите файл
-                  </span>
-                  <span className="text-xs text-gray-500">
-                    PDF, DOC, TXT, ZIP (макс. 100 МБ)
-                  </span>
-                </div>
-              )}
             </div>
           </div>
 
@@ -514,8 +354,8 @@ const LessonModal: React.FC<{
               className={cn(
                 "w-full px-4 py-2.5 rounded-xl border font-medium resize-none",
                 theme === 'dark' 
-                  ? 'bg-white/5 border-white/10 text-white placeholder-gray-500 focus:border-blue-500/50 focus:outline-none' 
-                  : 'bg-gray-50 border-gray-200 text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none'
+                  ? 'bg-white/5 border-white/10 text-white placeholder-gray-500 focus-emerald-500/50' 
+                  : 'bg-gray-50 border-gray-200 text-gray-900 placeholder-gray-400 focus-emerald-500'
               )}
             />
           </div>
@@ -532,7 +372,7 @@ const LessonModal: React.FC<{
               <button
                 type="button"
                 onClick={() => setShowResourceForm(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 transition-colors"
               >
                 <Plus className="w-3.5 h-3.5" />
                 Добавить
@@ -542,7 +382,7 @@ const LessonModal: React.FC<{
             {/* Список ресурсов */}
             {formData.resources && formData.resources.length > 0 && (
               <div className="space-y-2 mb-4">
-                {formData.resources.map((resource) => (
+                {formData.resources.slice(0, 3).map((resource) => (
                   <div
                     key={resource.id}
                     className={cn(
@@ -552,7 +392,7 @@ const LessonModal: React.FC<{
                   >
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <Link2 className="w-4 h-4 text-blue-500 shrink-0" />
+                        <Link2 className="w-4 h-4 text-emerald-500 shrink-0" />
                         <span className={cn(
                           "font-medium truncate",
                           theme === 'dark' ? 'text-white' : 'text-gray-900'
@@ -572,7 +412,7 @@ const LessonModal: React.FC<{
                         href={resource.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-xs text-blue-500 hover:underline mt-1 inline-flex items-center gap-1"
+                        className="text-xs text-emerald-500 hover:underline mt-1 inline-flex items-center gap-1"
                       >
                         {resource.url.slice(0, 40)}...
                         <ExternalLink className="w-3 h-3" />
@@ -592,80 +432,11 @@ const LessonModal: React.FC<{
 
             {/* Форма добавления ресурса */}
             {showResourceForm && (
-              <div className={cn(
-                "p-4 rounded-xl border mb-4",
-                theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'
-              )}>
-                <div className="grid gap-3">
-                  <div>
-                    <input
-                      type="text"
-                      placeholder="Название ресурса *"
-                      value={resourceTitle}
-                      onChange={(e) => setResourceTitle(e.target.value)}
-                      className={cn(
-                        "w-full px-3 py-2 rounded-lg border text-sm",
-                        theme === 'dark' 
-                          ? 'bg-white/5 border-white/10 text-white placeholder-gray-500' 
-                          : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400'
-                      )}
-                    />
-                  </div>
-                  <div>
-                    <input
-                      type="url"
-                      placeholder="Ссылка *"
-                      value={resourceUrl}
-                      onChange={(e) => setResourceUrl(e.target.value)}
-                      className={cn(
-                        "w-full px-3 py-2 rounded-lg border text-sm",
-                        theme === 'dark' 
-                          ? 'bg-white/5 border-white/10 text-white placeholder-gray-500' 
-                          : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400'
-                      )}
-                    />
-                  </div>
-                  <div>
-                    <input
-                      type="text"
-                      placeholder="Описание (необязательно)"
-                      value={resourceDesc}
-                      onChange={(e) => setResourceDesc(e.target.value)}
-                      className={cn(
-                        "w-full px-3 py-2 rounded-lg border text-sm",
-                        theme === 'dark' 
-                          ? 'bg-white/5 border-white/10 text-white placeholder-gray-500' 
-                          : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400'
-                      )}
-                    />
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      type="button"
-                      onClick={addResource}
-                      disabled={!resourceUrl || !resourceTitle}
-                      className="px-4 py-2 rounded-lg text-sm font-medium bg-blue-500 text-white hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      Добавить
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowResourceForm(false)
-                        setResourceUrl('')
-                        setResourceTitle('')
-                        setResourceDesc('')
-                      }}
-                      className={cn(
-                        "px-4 py-2 rounded-lg text-sm font-medium",
-                        theme === 'dark' ? 'bg-white/10 text-white hover:bg-white/20' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                      )}
-                    >
-                      Отмена
-                    </button>
-                  </div>
-                </div>
-              </div>
+              <ResourceForm
+                onAdd={addResource}
+                onCancel={() => setShowResourceForm(false)}
+                theme={theme}
+              />
             )}
           </div>
         </div>
@@ -689,7 +460,7 @@ const LessonModal: React.FC<{
             type="button"
             onClick={handleSubmit}
             disabled={!formData.title || !formData.topicId}
-            className="px-5 py-2.5 rounded-xl font-medium bg-blue-500 text-white hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="px-5 py-2.5 rounded-xl font-medium bg-emerald-500 text-white hover:bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {editingLesson ? 'Сохранить' : 'Добавить урок'}
           </button>
@@ -705,9 +476,9 @@ const LessonCard: React.FC<{
   topicColor: { bg: string; text: string; border: string; gradient: string }
   onEdit: () => void
   onDelete: () => void
-}> = ({ lesson, topicColor, onEdit, onDelete }) => {
-  const { theme } = useThemeStore()
-
+  canEdit: boolean
+  theme: string
+}> = ({ lesson, topicColor, onEdit, onDelete, canEdit, theme }) => {
   return (
     <div className={cn(
       "group relative overflow-hidden rounded-2xl border transition-all duration-300 hover:shadow-xl",
@@ -746,20 +517,24 @@ const LessonCard: React.FC<{
             </div>
           </div>
           
-          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-            <button
-              onClick={onEdit}
-              className="p-2 rounded-lg hover:bg-blue-500/10 transition-colors"
-            >
-              <Edit3 className="w-4 h-4 text-blue-500" />
-            </button>
-            <button
-              onClick={onDelete}
-              className="p-2 rounded-lg hover:bg-red-500/10 transition-colors"
-            >
-              <Trash2 className="w-4 h-4 text-red-500" />
-            </button>
-          </div>
+          {canEdit && (
+            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              <button
+                onClick={onEdit}
+                className="p-2 rounded-lg hover:bg-emerald-500/10 transition-colors"
+                title="Редактировать"
+              >
+                <Edit3 className="w-4 h-4 text-emerald-500" />
+              </button>
+              <button
+                onClick={onDelete}
+                className="p-2 rounded-lg hover:bg-red-500/10 transition-colors"
+                title="Удалить"
+              >
+                <Trash2 className="w-4 h-4 text-red-500" />
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Comment */}
@@ -795,7 +570,7 @@ const LessonCard: React.FC<{
             {lesson.resources.length > 3 && (
               <span className={cn(
                 "px-2.5 py-1 rounded-lg text-xs font-medium",
-                theme === 'dark' ? 'bg-white/5 text-gray-500' : 'bg-gray-100 text-gray-400'
+                theme === 'dark' ? 'bg-white/20 text-white' : 'bg-gray-200 text-gray-600'
               )}>
                 +{lesson.resources.length - 3}
               </span>
@@ -804,15 +579,18 @@ const LessonCard: React.FC<{
         )}
 
         {/* Footer */}
-        <div className="flex items-center justify-between pt-4 border-t border-dashed border-opacity-20 border-gray-500">
+        <div className={cn(
+          "flex items-center justify-between pt-4 border-t border-dashed border-opacity-20 border-gray-500",
+          theme === 'dark' ? 'border-white/10' : 'border-gray-200'
+        )}>
           <div className="flex items-center gap-3">
-            {lesson.videoFile && (
+            {lesson.videoUrl && (
               <div className="flex items-center gap-1.5 text-xs text-emerald-500">
                 <Video className="w-3.5 h-3.5" />
                 Видео
               </div>
             )}
-            {lesson.file && (
+            {lesson.fileUrl && (
               <div className="flex items-center gap-1.5 text-xs text-blue-500">
                 <FileText className="w-3.5 h-3.5" />
                 Файл
@@ -838,252 +616,292 @@ const LessonCard: React.FC<{
 
 export const LearningPlatform = () => {
   const { theme } = useThemeStore()
+  const { isAdmin } = useAdminStore()
   const [selectedTopic, setSelectedTopic] = useState<TopicId>('memecoins')
-  const [lessons, setLessons] = useState<Record<TopicId, Lesson[]>>(demoLessons as unknown as Record<TopicId, Lesson[]>)
+  const [lessons, setLessons] = useState<Record<TopicId, Lesson[]>>({} as Record<TopicId, Lesson[]>)
   const [showModal, setShowModal] = useState(false)
   const [editingLesson, setEditingLesson] = useState<Lesson | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
-  const subTextColor = theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-
-  const getTopicColor = (color: string) => {
-    const colors: Record<string, { bg: string; text: string; border: string; gradient: string }> = {
-      emerald: { bg: 'bg-emerald-500/10', text: 'text-emerald-500', border: 'border-emerald-500/20', gradient: 'from-emerald-500 to-teal-600' },
-      pink: { bg: 'bg-pink-500/10', text: 'text-pink-500', border: 'border-pink-500/20', gradient: 'from-pink-500 to-rose-600' },
-      purple: { bg: 'bg-purple-500/10', text: 'text-purple-500', border: 'border-purple-500/20', gradient: 'from-purple-500 to-pink-600' },
-      indigo: { bg: 'bg-indigo-500/10', text: 'text-indigo-500', border: 'border-indigo-500/20', gradient: 'from-indigo-500 to-violet-600' },
-      amber: { bg: 'bg-amber-500/10', text: 'text-amber-500', border: 'border-amber-500/20', gradient: 'from-amber-500 to-orange-600' },
-      blue: { bg: 'bg-blue-500/10', text: 'text-blue-500', border: 'border-blue-500/20', gradient: 'from-blue-500 to-indigo-600' },
-      cyan: { bg: 'bg-cyan-500/10', text: 'text-cyan-500', border: 'border-cyan-500/20', gradient: 'from-cyan-500 to-blue-600' },
+  // Загрузка уроков из Firebase
+  const loadLessons = useCallback(async () => {
+    try {
+      setLoading(true)
+      setError(null)
+      const lessonsData = await getAllLessons()
+      
+      // Группировка по темам
+      const grouped: Record<TopicId, Lesson[]> = {} as Record<TopicId, Lesson[]>
+      TOPICS.forEach(topic => {
+        grouped[topic.id as TopicId] = lessonsData
+          .filter(l => l.topicId === topic.id)
+          .sort((a, b) => a.lessonNumber - b.lessonNumber)
+      })
+      setLessons(grouped)
+    } catch (err) {
+      console.error('Error loading lessons:', err)
+      setError('Не удалось загрузить уроки из Firebase')
+    } finally {
+      setLoading(false)
     }
-    return colors[color] || colors.emerald
-  }
+  }, [])
 
-  const currentTopic = TOPICS.find(t => t.id === selectedTopic) || TOPICS[0]
-  const topicColor = getTopicColor(currentTopic.color)
-  const currentLessons = lessons[selectedTopic] || []
+  useEffect(() => {
+    loadLessons()
+  }, [loadLessons])
 
-  const filteredLessons = currentLessons.filter(lesson =>
+  // Фильтрация уроков по поиску
+  const filteredLessons = lessons[selectedTopic]?.filter(lesson =>
     lesson.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
     lesson.comment?.toLowerCase().includes(searchQuery.toLowerCase())
-  )
+  ) || []
 
-  const handleSaveLesson = (lessonData: Partial<Lesson>) => {
-    if (editingLesson) {
-      setLessons(prev => ({
-        ...prev,
-        [selectedTopic]: prev[selectedTopic].map(l =>
-          l.id === editingLesson.id
-            ? { ...l, ...lessonData, updatedAt: new Date().toISOString().split('T')[0] } as Lesson
-            : l
-        )
-      }))
-    } else {
-      const newLesson: Lesson = {
-        id: Date.now().toString(),
-        topicId: selectedTopic as TopicId,
-        lessonNumber: lessonData.lessonNumber || 1,
-        title: lessonData.title || '',
-        comment: lessonData.comment,
-        resources: lessonData.resources || [],
-        createdAt: new Date().toISOString().split('T')[0],
-        updatedAt: new Date().toISOString().split('T')[0],
+  // Добавление/редактирование урока
+  const handleSaveLesson = async (lessonData: Partial<Lesson> & { videoFile?: File; file?: File }) => {
+    try {
+      if (editingLesson) {
+        // Редактирование существующего урока
+        const { videoFile, file, ...updates } = lessonData
+        await updateLesson(editingLesson.id, updates)
+      } else {
+        // Добавление нового урока
+        await addLesson({
+          topicId: lessonData.topicId as LessonTopic,
+          lessonNumber: lessonData.lessonNumber || 1,
+          title: lessonData.title || '',
+          comment: lessonData.comment || '',
+          resources: lessonData.resources || [],
+          videoUrl: lessonData.videoUrl,
+          fileUrl: lessonData.fileUrl,
+        } as Omit<Lesson, 'id' | 'createdAt' | 'updatedAt'>)
       }
-      setLessons(prev => ({
-        ...prev,
-        [selectedTopic]: [...prev[selectedTopic], newLesson].sort((a, b) => a.lessonNumber - b.lessonNumber)
-      }))
-    }
-    setEditingLesson(null)
-  }
-
-  const handleDeleteLesson = (lessonId: string) => {
-    if (confirm('Вы уверены, что хотите удалить этот урок?')) {
-      setLessons(prev => ({
-        ...prev,
-        [selectedTopic]: prev[selectedTopic].filter(l => l.id !== lessonId)
-      }))
+      
+      // Перезагрузка уроков
+      await loadLessons()
+      setShowModal(false)
+      setEditingLesson(null)
+    } catch (err) {
+      console.error('Error saving lesson:', err)
+      setError('Не удалось сохранить урок')
     }
   }
 
-  const openAddModal = () => {
-    setEditingLesson(null)
-    setShowModal(true)
+  // Удаление урока
+  const handleDeleteLesson = async (lesson: Lesson) => {
+    if (!confirm(`Вы уверены, что хотите удалить урок "${lesson.title}"?`)) {
+      return
+    }
+    
+    try {
+      await deleteLesson(lesson.id)
+      await loadLessons()
+    } catch (err) {
+      console.error('Error deleting lesson:', err)
+      setError('Не удалось удалить урок')
+    }
   }
 
-  const openEditModal = (lesson: Lesson) => {
+  // Открытие модального окна для редактирования
+  const handleEdit = (lesson: Lesson) => {
     setEditingLesson(lesson)
     setShowModal(true)
   }
 
-  // Иконки для тем
-  const getTopicIcon = (icon: string) => {
-    const icons: Record<string, React.ReactNode> = {
-      coins: <Coins className="w-5 h-5" />,
-      barchart: <BarChart3 className="w-5 h-5" />,
-      image: <Image className="w-5 h-5" />,
-      shield: <Shield className="w-5 h-5" />,
-      trending: <TrendingUp className="w-5 h-5" />,
-      bar_chart: <BarChart3 className="w-5 h-5" />,
-      gift: <Gift className="w-5 h-5" />,
+  // Открытие модального окна для добавления
+  const handleAddNew = () => {
+    setEditingLesson(null)
+    setShowModal(true)
+  }
+
+  const getTopicColor = (color: string) => {
+    const colors: Record<string, { bg: string; text: string; border: string; gradient: string }> = {
+      emerald: { bg: 'bg-emerald-500/10', text: 'text-emerald-500', border: 'border-emerald-500/20', gradient: 'from-emerald-500 to-teal-500' },
+      pink: { bg: 'bg-pink-500/10', text: 'text-pink-500', border: 'border-pink-500/20', gradient: 'from-pink-500 to-rose-500' },
+      purple: { bg: 'bg-purple-500/10', text: 'text-purple-500', border: 'border-purple-500/20', gradient: 'from-purple-500 to-violet-500' },
+      indigo: { bg: 'bg-indigo-500/10', text: 'text-indigo-500', border: 'border-indigo-500/20', gradient: 'from-indigo-500 to-blue-500' },
+      amber: { bg: 'bg-amber-500/10', text: 'text-amber-500', border: 'border-amber-500/20', gradient: 'from-amber-500 to-yellow-500' },
+      blue: { bg: 'bg-blue-500/10', text: 'text-blue-500', border: 'border-blue-500/20', gradient: 'from-blue-500 to-cyan-500' },
+      cyan: { bg: 'bg-cyan-500/10', text: 'text-cyan-500', border: 'border-cyan-500/20', gradient: 'from-cyan-500 to-sky-500' },
     }
-    return icons[icon] || <BookOpen className="w-5 h-5" />
+    return colors[color] || colors.emerald
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header - Красивая шапка в стиле Strategies */}
-      <div className={`relative overflow-hidden rounded-3xl border ${theme === 'dark' ? 'border-blue-500/30 bg-[#151a21]/80 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.4)]' : 'border-blue-500/20 bg-white/80 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.08)]'}`}>
-        {/* Decorative elements */}
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute -left-16 -bottom-10 w-80 h-80 bg-blue-500/10 blur-3xl"></div>
-          <div className={`absolute inset-0 ${theme === 'dark' ? 'bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.05),transparent_45%)]' : 'bg-[radial-gradient(circle_at_50%_0%,rgba(59,130,246,0.05),transparent_45%)]'}`}></div>
-        </div>
-
-        <div className="relative p-6 sm:p-8 flex flex-col lg:flex-row items-center justify-between gap-6">
-          {/* Left: Icon + Title */}
-          <div className="flex items-center gap-4">
-            <div className={`p-3 rounded-2xl ${theme === 'dark' ? 'bg-white/10 border-white/20' : 'bg-blue-500/10 border-blue-500/30'}`}>
-              <GraduationCap className={`w-8 h-8 ${theme === 'dark' ? 'text-white' : 'text-blue-500'}`} />
-            </div>
-            <div>
-              <h1 className={`text-3xl font-black ${headingColor} whitespace-nowrap`}>
-                Учебная платформа
-              </h1>
-              <p className={`text-sm ${subTextColor} mt-1`}>
-                {currentLessons.length} урок{currentLessons.length === 1 ? '' : currentLessons.length < 5 ? 'а' : 'ов'} в разделе «{currentTopic.label}»
-              </p>
-            </div>
-          </div>
-
-          {/* Right: Actions */}
-          <div className="flex items-center gap-3">
-            {/* Search */}
-            <div className="relative">
-              <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`} />
-              <input
-                type="text"
-                placeholder="Поиск уроков..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className={cn(
-                  "pl-10 pr-4 py-2.5 rounded-xl border font-medium w-48 transition-all",
-                  theme === 'dark' 
-                    ? 'bg-white/5 border-white/10 text-white focus:border-blue-500/50 focus:outline-none' 
-                    : 'bg-gray-50 border-gray-200 text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none'
-                )}
-              />
-            </div>
-
-            {/* Add Button */}
-            <button
-              onClick={openAddModal}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-bold text-sm transition-all shadow-lg shadow-blue-500/20 hover:scale-105 active:scale-95"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Добавить урок</span>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Topic Navigation */}
+    <div className={cn(
+      "min-h-screen transition-colors duration-300",
+      theme === 'dark' ? 'bg-[#0a0a0a]' : 'bg-gray-50'
+    )}>
+      {/* Header */}
       <div className={cn(
-        "rounded-2xl p-4 border overflow-x-auto",
-        theme === 'dark' ? 'bg-[#1a1a1a] border-white/10' : 'bg-white border-gray-200'
+        "sticky top-0 z-40 backdrop-blur-xl border-b",
+        theme === 'dark' ? 'bg-[#0a0a0a]/80 border-white/10' : 'bg-white/80 border-gray-200'
       )}>
-        <div className="flex items-center gap-2 min-w-max">
-          {TOPICS.map((topic) => {
-            const color = getTopicColor(topic.color)
-            const isActive = selectedTopic === topic.id
-            const lessonCount = lessons[topic.id]?.length || 0
-
-            return (
-              <button
-                key={topic.id}
-                onClick={() => {
-                  setSelectedTopic(topic.id)
-                  setSearchQuery('')
-                }}
-                className={cn(
-                  "flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium transition-all whitespace-nowrap",
-                  isActive
-                    ? color.bg
-                    : theme === 'dark' 
-                      ? 'hover:bg-white/5 text-gray-400 hover:text-white' 
-                      : 'hover:bg-gray-100 text-gray-600 hover:text-gray-900'
-                )}
-              >
-                <span className={isActive ? color.text : ''}>
-                  {getTopicIcon(topic.icon)}
-                </span>
-                <span className={isActive ? color.text : ''}>
-                  {topic.label}
-                </span>
-                <span className={cn(
-                  "px-2 py-0.5 rounded-full text-xs font-bold",
-                  isActive
-                    ? 'bg-white/20 text-white'
-                    : theme === 'dark' ? 'bg-white/10 text-gray-500' : 'bg-gray-200 text-gray-600'
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 py-4">
+            {/* Title */}
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center">
+                <GraduationCap className="w-6 h-6 text-emerald-500" />
+              </div>
+              <div>
+                <h1 className={cn(
+                  "text-2xl font-bold",
+                  theme === 'dark' ? 'text-white' : 'text-gray-900'
                 )}>
-                  {lessonCount}
-                </span>
-              </button>
-            )
-          })}
+                  Учебная платформа
+                </h1>
+                <p className={cn(
+                  "text-sm",
+                  theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+                )}>
+                  {TOPICS.find(t => t.id === selectedTopic)?.label || 'Все темы'}
+                </p>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex items-center gap-3">
+              {/* Search */}
+              <div className="relative">
+                <Search className={cn(
+                  "absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4",
+                  theme === 'dark' ? 'text-gray-500' : 'text-gray-400'
+                )} />
+                <input
+                  type="text"
+                  placeholder="Поиск уроков..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className={cn(
+                    "w-64 pl-10 pr-4 py-2.5 rounded-xl border text-sm font-medium transition-all",
+                    theme === 'dark' 
+                      ? 'bg-white/5 border-white/10 text-white placeholder-gray-500 focus-emerald-500/50' 
+                      : 'bg-gray-100 border-gray-200 text-gray-900 placeholder-gray-400 focus-emerald-500'
+                  )}
+                />
+              </div>
+
+              {/* Add Lesson Button - Только для админа */}
+              {isAdmin && (
+                <button
+                  onClick={handleAddNew}
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium bg-emerald-500 text-white hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-500/25"
+                >
+                  <Plus className="w-5 h-5" />
+                  <span className="hidden sm:inline">Добавить урок</span>
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Topics */}
+          <div className="flex gap-2 pb-4 overflow-x-auto scrollbar-hide">
+            {TOPICS.map((topic) => {
+              const color = getTopicColor(topic.color)
+              const isSelected = selectedTopic === topic.id
+              const count = lessons[topic.id as TopicId]?.length || 0
+
+              return (
+                <button
+                  key={topic.id}
+                  onClick={() => setSelectedTopic(topic.id)}
+                  className={cn(
+                    "flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-all",
+                    isSelected
+                      ? color.bg
+                      : theme === 'dark' 
+                        ? 'bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white' 
+                        : 'bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-900'
+                  )}
+                >
+                  <span className={isSelected ? color.text : ''}>
+                    {topic.label}
+                  </span>
+                  <span className={cn(
+                    "px-1.5 py-0.5 rounded text-xs",
+                    isSelected 
+                      ? color.bg.replace('/10', '/20')
+                      : theme === 'dark' ? 'bg-white/10 text-gray-400' : 'bg-gray-200 text-gray-600'
+                  )}>
+                    {count}
+                  </span>
+                </button>
+              )
+            })}
+          </div>
         </div>
       </div>
 
-      {/* Lessons Grid */}
-      <div className="space-y-4">
-        {filteredLessons.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-            {filteredLessons.map((lesson) => (
-              <LessonCard
-                key={lesson.id}
-                lesson={lesson}
-                topicColor={topicColor}
-                onEdit={() => openEditModal(lesson)}
-                onDelete={() => handleDeleteLesson(lesson.id)}
-              />
-            ))}
+      {/* Content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Error */}
+        {error && (
+          <div className="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500">
+            {error}
           </div>
-        ) : (
+        )}
+
+        {/* Loading */}
+        {loading ? (
+          <div className="flex items-center justify-center py-20">
+            <Loader2 className={cn(
+              "w-8 h-8 animate-spin",
+              theme === 'dark' ? 'text-gray-500' : 'text-gray-400'
+            )} />
+          </div>
+        ) : filteredLessons.length === 0 ? (
+          // Empty state
           <div className={cn(
-            "rounded-2xl p-12 text-center border",
-            theme === 'dark' ? 'bg-[#1a1a1a] border-white/10' : 'bg-white border-gray-200'
+            "flex flex-col items-center justify-center py-20 rounded-3xl border-2 border-dashed",
+            theme === 'dark' ? 'border-white/10' : 'border-gray-200'
           )}>
             <div className={cn(
-              "w-16 h-16 mx-auto rounded-2xl flex items-center justify-center mb-4",
+              "w-20 h-20 rounded-2xl flex items-center justify-center mb-4",
               theme === 'dark' ? 'bg-white/5' : 'bg-gray-100'
             )}>
-              <BookOpen className={`w-8 h-8 ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`} />
+              <BookOpen className={cn(
+                "w-10 h-10",
+                theme === 'dark' ? 'text-gray-500' : 'text-gray-400'
+              )} />
             </div>
             <h3 className={cn(
-              "text-lg font-bold mb-2",
+              "text-xl font-bold mb-2",
               theme === 'dark' ? 'text-white' : 'text-gray-900'
             )}>
-              {searchQuery ? 'Уроки не найдены' : 'Уроки пока не добавлены'}
+              {searchQuery ? 'Уроки не найдены' : 'Пока нет уроков'}
             </h3>
             <p className={cn(
-              "text-sm mb-6",
+              "text-center max-w-md",
               theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
             )}>
               {searchQuery 
-                ? 'Попробуйте изменить запрос поиска'
-                : 'Начните добавлять уроки для темы «' + currentTopic.label + '»'
-              }
+                ? 'Попробуйте изменить поисковый запрос'
+                : isAdmin 
+                  ? 'Добавьте первый урок, нажав на кнопку выше'
+                  : 'Скоро здесь появятся новые уроки'}
             </p>
-            {!searchQuery && (
-              <button
-                onClick={openAddModal}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-bold text-sm transition-all"
-              >
-                <Plus className="w-4 h-4" />
-                Добавить первый урок
-              </button>
-            )}
+          </div>
+        ) : (
+          // Lessons Grid
+          <div className="grid gap-4">
+            {filteredLessons.map((lesson) => {
+              const topic = TOPICS.find(t => t.id === lesson.topicId)
+              const topicColor = topic ? getTopicColor(topic.color) : getTopicColor('emerald')
+
+              return (
+                <LessonCard
+                  key={lesson.id}
+                  lesson={lesson}
+                  topicColor={topicColor}
+                  onEdit={() => handleEdit(lesson)}
+                  onDelete={() => handleDeleteLesson(lesson)}
+                  canEdit={isAdmin}
+                  theme={theme}
+                />
+              )
+            })}
           </div>
         )}
       </div>
@@ -1098,6 +916,7 @@ export const LearningPlatform = () => {
         onSave={handleSaveLesson}
         editingLesson={editingLesson}
         topics={TOPICS}
+        theme={theme}
       />
     </div>
   )

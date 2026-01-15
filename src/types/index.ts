@@ -550,3 +550,29 @@ export interface ActivityLog {
   createdAt: string
 }
 
+// Learning Platform types
+export type LessonTopic = 'memecoins' | 'polymarket' | 'nft' | 'staking' | 'spot' | 'futures' | 'airdrop'
+
+export interface LessonResource {
+  id: string
+  title: string
+  url: string
+  description: string
+}
+
+export interface Lesson {
+  id: string
+  topicId: LessonTopic
+  lessonNumber: number
+  title: string
+  videoUrl?: string
+  videoFileName?: string // Имя файла видео для отображения
+  fileUrl?: string
+  fileName?: string // Имя файла для отображения
+  comment?: string
+  resources: LessonResource[]
+  createdAt: string
+  updatedAt: string
+  createdBy?: string // user ID who created the lesson
+}
+

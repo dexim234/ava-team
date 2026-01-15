@@ -14,7 +14,7 @@ import {
   DocumentSnapshot,
 } from 'firebase/firestore'
 import { db } from '@/firebase/config' // Keep original path for db
-import { WorkSlot, DayStatus, Earnings, RatingData, Referral, Call, Task, TaskStatus, Note, TaskPriority, StageAssignee, ApprovalRequest, ApprovalStatus, UserActivity, UserNickname, Restriction, RestrictionType, UserConflict, AccessBlock, AiAlert, User, TriggerAlert, FasolTriggerAlert } from '@/types' // Add User to existing types
+import { WorkSlot, DayStatus, Earnings, RatingData, Referral, Call, Task, TaskStatus, Note, TaskPriority, StageAssignee, ApprovalRequest, ApprovalStatus, UserActivity, UserNickname, Restriction, RestrictionType, UserConflict, AccessBlock, AiAlert, User, TriggerAlert, FasolTriggerAlert, Lesson, LessonTopic } from '@/types'
 import { clearNicknameCache, getUserNicknameAsync } from '@/utils/userUtils'
 import { formatDate } from '@/utils/dateUtils'
 
@@ -1906,4 +1906,93 @@ export const updateFasolTriggerAlert = async (id: string, updates: Partial<Fasol
 export const deleteFasolTriggerAlert = async (id: string) => {
   const alertRef = doc(db, 'fasolTriggerAlerts', id)
   await deleteDoc(alertRef)
+}
+
+// ================================
+// Learning Platform - Lessons
+// ================================
+
+const LESSONS_COLLECTION = 'lessons'
+
+// Map Firestore document to Lesson type
+const mapLessonSnapshot = (docSnap: any): Lesson => {
+  const data = docSnap.data() as any
+  return {
+    id: docSnap.id,
+    topicId: data.topicId || 'memecoins',
+    lessonNumber: data.lessonNumber || 1,
+    title: data.title || '',
+    videoUrl: data.videoUrl,
+    videoFileName: data.videoFileName,
+    fileUrl: data.fileUrl,
+    fileName: data.fileName,
+    comment: data.comment,
+    resources: data.resources || [],
+    createdAt: data.createdAt || new Date().toISOString(),
+    updatedAt: data.updatedAt || new Date().toISOString(),
+    createdBy: data.createdBy,
+  }
+}
+
+// Get all lessons
+export const getAllLessons = async (): Promise<Lesson[]> => {
+  const lessonsRef = collection(db, LESSONS_COLLECTION)
+  const q = query(lessonsRef, orderBy('topicId'), orderBy('lessonNumber', 'asc'))
+  const snapshot = await getDocs(q)
+  
+  return snapshot.docs.map(mapLessonSnapshot)
+}
+
+// Get lessons by topic
+export const getLessonsByTopic = async (topicId: LessonTopic): Promise<Lesson[]> => {
+  // First filter by topic, then sort by lessonNumber
+  const allLessons = await getAllLessons()
+  return allLessons.filter(lesson => lesson.topicId === topicId)
+    .sort((a, b) => a.lessonNumber - b.lessonNumber)
+}
+
+// Get a single lesson by ID
+export const getLessonById = async (id: string): Promise<Lesson | null> => {
+  const lessonRef = doc(db, LESSONS_COLLECTION, id)
+  const docSnap = await getDoc(lessonRef)
+  
+  if (!docSnap.exists()) return null
+  return mapLessonSnapshot(docSnap)
+}
+
+// Add a new lesson
+export const addLesson = async (lesson: Omit<Lesson, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> => {
+  const lessonsRef = collection(db, LESSONS_COLLECTION)
+  const now = new Date().toISOString()
+  
+  const cleanLesson = Object.fromEntries(
+    Object.entries({
+      ...lesson,
+      createdAt: now,
+      updatedAt: now,
+    }).filter(([_, value]: [string, any]) => value !== undefined)
+  )
+  
+  const result = await addDoc(lessonsRef, cleanLesson)
+  return result.id
+}
+
+// Update a lesson
+export const updateLesson = async (id: string, updates: Partial<Omit<Lesson, 'id'>>): Promise<void> => {
+  const lessonRef = doc(db, LESSONS_COLLECTION, id)
+  
+  const cleanUpdates = Object.fromEntries(
+    Object.entries({
+      ...updates,
+      updatedAt: new Date().toISOString(),
+    }).filter(([_, value]: [string, any]) => value !== undefined)
+  )
+  
+  await updateDoc(lessonRef, cleanUpdates)
+}
+
+// Delete a lesson
+export const deleteLesson = async (id: string): Promise<void> => {
+  const lessonRef = doc(db, LESSONS_COLLECTION, id)
+  await deleteDoc(lessonRef)
 }
