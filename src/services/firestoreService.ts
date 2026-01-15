@@ -1916,14 +1916,15 @@ const LESSONS_COLLECTION = 'lessons'
 
 // Map Firestore document to Lesson type
 const mapLessonSnapshot = (docSnap: any): Lesson => {
-  const data = docSnap.data() as any
+  const data = docSnap.data() || {}
   return {
     id: docSnap.id,
     topicId: data.topicId || 'memecoins',
     lessonNumber: data.lessonNumber || 1,
-    title: data.title || '',
+    title: data.title || 'Без названия',
     videoUrl: data.videoUrl,
     videoFileName: data.videoFileName,
+    youtubeUrl: data.youtubeUrl,
     fileUrl: data.fileUrl,
     fileName: data.fileName,
     comment: data.comment,
@@ -1937,10 +1938,19 @@ const mapLessonSnapshot = (docSnap: any): Lesson => {
 // Get all lessons
 export const getAllLessons = async (): Promise<Lesson[]> => {
   const lessonsRef = collection(db, LESSONS_COLLECTION)
-  const q = query(lessonsRef, orderBy('topicId'), orderBy('lessonNumber', 'asc'))
-  const snapshot = await getDocs(q)
-  
-  return snapshot.docs.map(mapLessonSnapshot)
+  // Get all lessons without ordering to avoid composite index requirement
+  // We'll sort in memory instead
+  const snapshot = await getDocs(lessonsRef)
+
+  const lessons = snapshot.docs.map(mapLessonSnapshot)
+
+  // Sort by topicId, then by lessonNumber
+  return lessons.sort((a, b) => {
+    if (a.topicId !== b.topicId) {
+      return a.topicId.localeCompare(b.topicId)
+    }
+    return a.lessonNumber - b.lessonNumber
+  })
 }
 
 // Get lessons by topic
@@ -1955,7 +1965,7 @@ export const getLessonsByTopic = async (topicId: LessonTopic): Promise<Lesson[]>
 export const getLessonById = async (id: string): Promise<Lesson | null> => {
   const lessonRef = doc(db, LESSONS_COLLECTION, id)
   const docSnap = await getDoc(lessonRef)
-  
+
   if (!docSnap.exists()) return null
   return mapLessonSnapshot(docSnap)
 }
@@ -1964,7 +1974,7 @@ export const getLessonById = async (id: string): Promise<Lesson | null> => {
 export const addLesson = async (lesson: Omit<Lesson, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> => {
   const lessonsRef = collection(db, LESSONS_COLLECTION)
   const now = new Date().toISOString()
-  
+
   const cleanLesson = Object.fromEntries(
     Object.entries({
       ...lesson,
@@ -1972,7 +1982,7 @@ export const addLesson = async (lesson: Omit<Lesson, 'id' | 'createdAt' | 'updat
       updatedAt: now,
     }).filter(([_, value]: [string, any]) => value !== undefined)
   )
-  
+
   const result = await addDoc(lessonsRef, cleanLesson)
   return result.id
 }
@@ -1980,14 +1990,14 @@ export const addLesson = async (lesson: Omit<Lesson, 'id' | 'createdAt' | 'updat
 // Update a lesson
 export const updateLesson = async (id: string, updates: Partial<Omit<Lesson, 'id'>>): Promise<void> => {
   const lessonRef = doc(db, LESSONS_COLLECTION, id)
-  
+
   const cleanUpdates = Object.fromEntries(
     Object.entries({
       ...updates,
       updatedAt: new Date().toISOString(),
     }).filter(([_, value]: [string, any]) => value !== undefined)
   )
-  
+
   await updateDoc(lessonRef, cleanUpdates)
 }
 

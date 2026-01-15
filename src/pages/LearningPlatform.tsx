@@ -8,6 +8,7 @@ import {
   updateLesson,
   deleteLesson,
 } from '@/services/firestoreService'
+import { uploadFile, deleteFile } from '@/services/storageService'
 import {
   BookOpen,
   FileText,
@@ -22,6 +23,8 @@ import {
   Edit3,
   Search,
   Loader2,
+  Youtube,
+  Upload,
 } from 'lucide-react'
 
 // Simple cn utility inline
@@ -74,8 +77,8 @@ const ResourceForm: React.FC<{
             onChange={(e) => setTitle(e.target.value)}
             className={cn(
               "w-full px-3 py-2 rounded-lg border text-sm",
-              theme === 'dark' 
-                ? 'bg-white/5 border-white/10 text-white placeholder-gray-500' 
+              theme === 'dark'
+                ? 'bg-white/5 border-white/10 text-white placeholder-gray-500'
                 : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400'
             )}
           />
@@ -88,8 +91,8 @@ const ResourceForm: React.FC<{
             onChange={(e) => setUrl(e.target.value)}
             className={cn(
               "w-full px-3 py-2 rounded-lg border text-sm",
-              theme === 'dark' 
-                ? 'bg-white/5 border-white/10 text-white placeholder-gray-500' 
+              theme === 'dark'
+                ? 'bg-white/5 border-white/10 text-white placeholder-gray-500'
                 : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400'
             )}
           />
@@ -102,8 +105,8 @@ const ResourceForm: React.FC<{
             onChange={(e) => setDescription(e.target.value)}
             className={cn(
               "w-full px-3 py-2 rounded-lg border text-sm",
-              theme === 'dark' 
-                ? 'bg-white/5 border-white/10 text-white placeholder-gray-500' 
+              theme === 'dark'
+                ? 'bg-white/5 border-white/10 text-white placeholder-gray-500'
                 : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400'
             )}
           />
@@ -148,6 +151,7 @@ const LessonModal: React.FC<{
     title: '',
     comment: '',
     resources: [],
+    youtubeUrl: '',
   })
   const [videoFile, setVideoFile] = useState<File | null>(null)
   const [fileFile, setFileFile] = useState<File | null>(null)
@@ -161,6 +165,7 @@ const LessonModal: React.FC<{
         title: editingLesson.title,
         comment: editingLesson.comment,
         resources: editingLesson.resources,
+        youtubeUrl: editingLesson.youtubeUrl || '',
       })
       setVideoFile(null)
       setFileFile(null)
@@ -171,6 +176,7 @@ const LessonModal: React.FC<{
         title: '',
         comment: '',
         resources: [],
+        youtubeUrl: '',
       })
       setVideoFile(null)
       setFileFile(null)
@@ -226,11 +232,11 @@ const LessonModal: React.FC<{
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
-      <div 
+      <div
         className="absolute inset-0 bg-black/60 backdrop-blur-sm"
         onClick={onClose}
       />
-      
+
       {/* Modal */}
       <div className={cn(
         "relative w-full max-w-2xl max-h-[90vh] overflow-hidden rounded-2xl shadow-2xl",
@@ -310,8 +316,8 @@ const LessonModal: React.FC<{
                 onChange={(e) => setFormData(prev => ({ ...prev, lessonNumber: parseInt(e.target.value) || 1 }))}
                 className={cn(
                   "w-full px-4 py-2.5 rounded-xl border font-medium",
-                  theme === 'dark' 
-                    ? 'bg-white/5 border-white/10 text-white focus-emerald-500/50' 
+                  theme === 'dark'
+                    ? 'bg-white/5 border-white/10 text-white focus-emerald-500/50'
                     : 'bg-gray-50 border-gray-200 text-gray-900 focus-emerald-500'
                 )}
               />
@@ -330,8 +336,8 @@ const LessonModal: React.FC<{
                 onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
                 className={cn(
                   "w-full px-4 py-2.5 rounded-xl border font-medium",
-                  theme === 'dark' 
-                    ? 'bg-white/5 border-white/10 text-white placeholder-gray-500 focus-emerald-500/50' 
+                  theme === 'dark'
+                    ? 'bg-white/5 border-white/10 text-white placeholder-gray-500 focus-emerald-500/50'
                     : 'bg-gray-100 border-gray-200 text-gray-900 placeholder-gray-400 focus-emerald-500'
                 )}
               />
@@ -353,11 +359,154 @@ const LessonModal: React.FC<{
               onChange={(e) => setFormData(prev => ({ ...prev, comment: e.target.value }))}
               className={cn(
                 "w-full px-4 py-2.5 rounded-xl border font-medium resize-none",
-                theme === 'dark' 
-                  ? 'bg-white/5 border-white/10 text-white placeholder-gray-500 focus-emerald-500/50' 
+                theme === 'dark'
+                  ? 'bg-white/5 border-white/10 text-white placeholder-gray-500 focus-emerald-500/50'
                   : 'bg-gray-50 border-gray-200 text-gray-900 placeholder-gray-400 focus-emerald-500'
               )}
             />
+          </div>
+
+          {/* YouTube Link */}
+          <div>
+            <label className={cn(
+              "block text-sm font-medium mb-2",
+              theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+            )}>
+              <div className="flex items-center gap-2">
+                <Youtube className="w-4 h-4 text-red-500" />
+                Ссылка на YouTube
+              </div>
+            </label>
+            <input
+              type="url"
+              placeholder="https://www.youtube.com/watch?v=..."
+              value={formData.youtubeUrl}
+              onChange={(e) => setFormData(prev => ({ ...prev, youtubeUrl: e.target.value }))}
+              className={cn(
+                "w-full px-4 py-2.5 rounded-xl border font-medium",
+                theme === 'dark'
+                  ? 'bg-white/5 border-white/10 text-white placeholder-gray-500 focus-emerald-500/50'
+                  : 'bg-gray-50 border-gray-200 text-gray-900 placeholder-gray-400 focus-emerald-500'
+              )}
+            />
+          </div>
+
+          {/* Video & File Upload */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Video File */}
+            <div>
+              <label className={cn(
+                "block text-sm font-medium mb-2",
+                theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+              )}>
+                <div className="flex items-center gap-2">
+                  <Video className="w-4 h-4 text-emerald-500" />
+                  Видео файл
+                </div>
+              </label>
+              <div className="relative group">
+                <input
+                  type="file"
+                  accept="video/*"
+                  onChange={(e) => setVideoFile(e.target.files?.[0] || null)}
+                  className="hidden"
+                  id="video-upload"
+                />
+                <label
+                  htmlFor="video-upload"
+                  className={cn(
+                    "flex flex-col items-center justify-center w-full h-24 rounded-xl border-2 border-dashed transition-all cursor-pointer",
+                    videoFile
+                      ? 'border-emerald-500 bg-emerald-500/5'
+                      : theme === 'dark'
+                        ? 'border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/10'
+                        : 'border-gray-200 bg-gray-50 hover:border-gray-300 hover:bg-gray-100'
+                  )}
+                >
+                  {videoFile ? (
+                    <div className="flex flex-col items-center gap-1 p-2 text-center">
+                      <div className="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center">
+                        <Video className="w-4 h-4 text-emerald-500" />
+                      </div>
+                      <span className="text-xs font-medium text-emerald-500 truncate max-w-full">
+                        {videoFile.name}
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center gap-1">
+                      <Upload className="w-5 h-5 text-gray-400" />
+                      <span className="text-xs text-gray-400 font-medium">Загрузить видео</span>
+                    </div>
+                  )}
+                </label>
+                {videoFile && (
+                  <button
+                    type="button"
+                    onClick={() => setVideoFile(null)}
+                    className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center shadow-lg hover:bg-red-600 transition-colors"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* General File */}
+            <div>
+              <label className={cn(
+                "block text-sm font-medium mb-2",
+                theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+              )}>
+                <div className="flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-blue-500" />
+                  Файл
+                </div>
+              </label>
+              <div className="relative group">
+                <input
+                  type="file"
+                  onChange={(e) => setFileFile(e.target.files?.[0] || null)}
+                  className="hidden"
+                  id="file-upload"
+                />
+                <label
+                  htmlFor="file-upload"
+                  className={cn(
+                    "flex flex-col items-center justify-center w-full h-24 rounded-xl border-2 border-dashed transition-all cursor-pointer",
+                    fileFile
+                      ? 'border-blue-500 bg-blue-500/5'
+                      : theme === 'dark'
+                        ? 'border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/10'
+                        : 'border-gray-200 bg-gray-50 hover:border-gray-300 hover:bg-gray-100'
+                  )}
+                >
+                  {fileFile ? (
+                    <div className="flex flex-col items-center gap-1 p-2 text-center">
+                      <div className="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center">
+                        <FileText className="w-4 h-4 text-blue-500" />
+                      </div>
+                      <span className="text-xs font-medium text-blue-500 truncate max-w-full">
+                        {fileFile.name}
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center gap-1">
+                      <Upload className="w-5 h-5 text-gray-400" />
+                      <span className="text-xs text-gray-400 font-medium">Загрузить файл</span>
+                    </div>
+                  )}
+                </label>
+                {fileFile && (
+                  <button
+                    type="button"
+                    onClick={() => setFileFile(null)}
+                    className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center shadow-lg hover:bg-red-600 transition-colors"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+            </div>
           </div>
 
           {/* Полезные ресурсы */}
@@ -470,6 +619,15 @@ const LessonModal: React.FC<{
   )
 }
 
+const getYoutubeThumbnail = (url: string) => {
+  const regExp = /^.*(youtu\.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/
+  const match = url.match(regExp)
+  if (match && match[2].length === 11) {
+    return `https://img.youtube.com/vi/${match[2]}/mqdefault.jpg`
+  }
+  return null
+}
+
 // Компонент карточки урока
 const LessonCard: React.FC<{
   lesson: Lesson
@@ -482,8 +640,8 @@ const LessonCard: React.FC<{
   return (
     <div className={cn(
       "group relative overflow-hidden rounded-2xl border transition-all duration-300 hover:shadow-xl",
-      theme === 'dark' 
-        ? 'bg-[#1a1a1a] border-white/10 hover:border-white/20' 
+      theme === 'dark'
+        ? 'bg-[#1a1a1a] border-white/10 hover:border-white/20'
         : 'bg-white border-gray-200 hover:border-gray-300'
     )}>
       {/* Decorative gradient */}
@@ -493,6 +651,50 @@ const LessonCard: React.FC<{
       )} />
 
       <div className="relative p-5">
+        {/* Preview image/video if available */}
+        {(lesson.youtubeUrl || lesson.videoUrl) && (
+          <div className="mb-4 aspect-video rounded-xl overflow-hidden bg-black/20 group-preview">
+            {lesson.youtubeUrl ? (
+              <div className="relative w-full h-full">
+                <img
+                  src={getYoutubeThumbnail(lesson.youtubeUrl) || ''}
+                  alt={lesson.title}
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                />
+                <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/40 transition-colors">
+                  <div className="w-12 h-12 rounded-full bg-red-600 flex items-center justify-center shadow-lg transform group-hover:scale-110 transition-transform">
+                    <Youtube className="w-6 h-6 text-white fill-current" />
+                  </div>
+                </div>
+                <a
+                  href={lesson.youtubeUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="absolute inset-0"
+                />
+              </div>
+            ) : lesson.videoUrl ? (
+              <div className="relative w-full h-full">
+                <video
+                  src={lesson.videoUrl}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/40 transition-colors">
+                  <div className="w-12 h-12 rounded-full bg-emerald-500 flex items-center justify-center shadow-lg transform group-hover:scale-110 transition-transform">
+                    <Video className="w-6 h-6 text-white" />
+                  </div>
+                </div>
+                <a
+                  href={lesson.videoUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="absolute inset-0"
+                />
+              </div>
+            ) : null}
+          </div>
+        )}
+
         {/* Header */}
         <div className="flex items-start justify-between gap-4 mb-4">
           <div className="flex items-center gap-3">
@@ -516,7 +718,7 @@ const LessonCard: React.FC<{
               </p>
             </div>
           </div>
-          
+
           {canEdit && (
             <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
               <button
@@ -548,35 +750,81 @@ const LessonCard: React.FC<{
         )}
 
         {/* Resources */}
-        {lesson.resources.length > 0 && (
-          <div className="flex flex-wrap gap-2 mb-4">
-            {lesson.resources.slice(0, 3).map((resource) => (
-              <a
-                key={resource.id}
-                href={resource.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={cn(
-                  "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-colors",
-                  theme === 'dark' 
-                    ? 'bg-white/5 text-gray-300 hover:bg-white/10' 
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                )}
-              >
-                <Link2 className="w-3 h-3" />
-                {resource.title}
-              </a>
-            ))}
-            {lesson.resources.length > 3 && (
-              <span className={cn(
-                "px-2.5 py-1 rounded-lg text-xs font-medium",
-                theme === 'dark' ? 'bg-white/20 text-white' : 'bg-gray-200 text-gray-600'
-              )}>
-                +{lesson.resources.length - 3}
-              </span>
-            )}
-          </div>
-        )}
+        <div className="flex flex-wrap gap-2 mb-4">
+          {lesson.youtubeUrl && (
+            <a
+              href={lesson.youtubeUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={cn(
+                "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-colors",
+                theme === 'dark'
+                  ? 'bg-red-500/10 text-red-500 hover:bg-red-500/20'
+                  : 'bg-red-50 text-red-600 hover:bg-red-100'
+              )}
+            >
+              <Youtube className="w-3 h-3" />
+              YouTube
+            </a>
+          )}
+          {lesson.videoUrl && (
+            <a
+              href={lesson.videoUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={cn(
+                "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-colors",
+                theme === 'dark'
+                  ? 'bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20'
+                  : 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100'
+              )}
+            >
+              <Video className="w-3 h-3" />
+              {lesson.videoFileName || 'Видео'}
+            </a>
+          )}
+          {lesson.fileUrl && (
+            <a
+              href={lesson.fileUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={cn(
+                "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-colors",
+                theme === 'dark'
+                  ? 'bg-blue-500/10 text-blue-500 hover:bg-blue-500/20'
+                  : 'bg-blue-50 text-blue-600 hover:bg-blue-100'
+              )}
+            >
+              <FileText className="w-3 h-3" />
+              {lesson.fileName || 'Файл'}
+            </a>
+          )}
+          {lesson.resources.slice(0, 3).map((resource) => (
+            <a
+              key={resource.id}
+              href={resource.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={cn(
+                "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-colors",
+                theme === 'dark'
+                  ? 'bg-white/5 text-gray-300 hover:bg-white/10'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              )}
+            >
+              <Link2 className="w-3 h-3" />
+              {resource.title}
+            </a>
+          ))}
+          {lesson.resources.length > 3 && (
+            <span className={cn(
+              "px-2.5 py-1 rounded-lg text-xs font-medium",
+              theme === 'dark' ? 'bg-white/20 text-white' : 'bg-gray-200 text-gray-600'
+            )}>
+              +{lesson.resources.length - 3}
+            </span>
+          )}
+        </div>
 
         {/* Footer */}
         <div className={cn(
@@ -584,7 +832,7 @@ const LessonCard: React.FC<{
           theme === 'dark' ? 'border-white/10' : 'border-gray-200'
         )}>
           <div className="flex items-center gap-3">
-            {lesson.videoUrl && (
+            {(lesson.videoUrl || lesson.youtubeUrl) && (
               <div className="flex items-center gap-1.5 text-xs text-emerald-500">
                 <Video className="w-3.5 h-3.5" />
                 Видео
@@ -603,7 +851,7 @@ const LessonCard: React.FC<{
               </div>
             )}
           </div>
-          
+
           <ChevronRight className={cn(
             "w-5 h-5 transition-transform group-hover:translate-x-1",
             theme === 'dark' ? 'text-gray-500' : 'text-gray-400'
@@ -630,8 +878,10 @@ export const LearningPlatform = () => {
     try {
       setLoading(true)
       setError(null)
+      console.log('Fetching lessons from Firebase...')
       const lessonsData = await getAllLessons()
-      
+      console.log('Fetched lessons:', lessonsData.length)
+
       // Группировка по темам
       const grouped: Record<TopicId, Lesson[]> = {} as Record<TopicId, Lesson[]>
       TOPICS.forEach(topic => {
@@ -640,9 +890,9 @@ export const LearningPlatform = () => {
           .sort((a, b) => a.lessonNumber - b.lessonNumber)
       })
       setLessons(grouped)
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error loading lessons:', err)
-      setError('Не удалось загрузить уроки из Firebase')
+      setError(`Не удалось загрузить уроки: ${err.message || 'Ошибка сети или прав доступа'}`)
     } finally {
       setLoading(false)
     }
@@ -661,30 +911,49 @@ export const LearningPlatform = () => {
   // Добавление/редактирование урока
   const handleSaveLesson = async (lessonData: Partial<Lesson> & { videoFile?: File; file?: File }) => {
     try {
+      setLoading(true)
+      const { videoFile, file, ...updates } = lessonData
+
+      // Загрузка файлов если они есть
+      if (videoFile) {
+        const { url, fileName } = await uploadFile(videoFile, 'lessons/videos')
+        updates.videoUrl = url
+        updates.videoFileName = fileName
+      }
+      if (file) {
+        const { url, fileName } = await uploadFile(file, 'lessons/files')
+        updates.fileUrl = url
+        updates.fileName = fileName
+      }
+
       if (editingLesson) {
         // Редактирование существующего урока
-        const { videoFile, file, ...updates } = lessonData
         await updateLesson(editingLesson.id, updates)
       } else {
         // Добавление нового урока
         await addLesson({
-          topicId: lessonData.topicId as LessonTopic,
-          lessonNumber: lessonData.lessonNumber || 1,
-          title: lessonData.title || '',
-          comment: lessonData.comment || '',
-          resources: lessonData.resources || [],
-          videoUrl: lessonData.videoUrl,
-          fileUrl: lessonData.fileUrl,
+          topicId: updates.topicId as LessonTopic,
+          lessonNumber: updates.lessonNumber || 1,
+          title: updates.title || '',
+          comment: updates.comment || '',
+          resources: updates.resources || [],
+          videoUrl: updates.videoUrl,
+          videoFileName: updates.videoFileName,
+          youtubeUrl: updates.youtubeUrl,
+          fileUrl: updates.fileUrl,
+          fileName: updates.fileName,
         } as Omit<Lesson, 'id' | 'createdAt' | 'updatedAt'>)
       }
-      
+
       // Перезагрузка уроков
       await loadLessons()
       setShowModal(false)
       setEditingLesson(null)
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error saving lesson:', err)
-      setError('Не удалось сохранить урок')
+      setError(`Не удалось сохранить урок: ${err.message || 'Неизвестная ошибка'}`)
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -693,13 +962,24 @@ export const LearningPlatform = () => {
     if (!confirm(`Вы уверены, что хотите удалить урок "${lesson.title}"?`)) {
       return
     }
-    
+
     try {
+      setLoading(true)
+      // Удаление файлов из хранилища если они есть
+      if (lesson.videoUrl) {
+        try { await deleteFile(lesson.videoUrl) } catch (e) { console.error('Error deleting video file:', e) }
+      }
+      if (lesson.fileUrl) {
+        try { await deleteFile(lesson.fileUrl) } catch (e) { console.error('Error deleting generic file:', e) }
+      }
+
       await deleteLesson(lesson.id)
       await loadLessons()
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error deleting lesson:', err)
-      setError('Не удалось удалить урок')
+      setError(`Не удалось удалить урок: ${err.message || 'Неизвестная ошибка'}`)
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -776,8 +1056,8 @@ export const LearningPlatform = () => {
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className={cn(
                     "w-64 pl-10 pr-4 py-2.5 rounded-xl border text-sm font-medium transition-all",
-                    theme === 'dark' 
-                      ? 'bg-white/5 border-white/10 text-white placeholder-gray-500 focus-emerald-500/50' 
+                    theme === 'dark'
+                      ? 'bg-white/5 border-white/10 text-white placeholder-gray-500 focus-emerald-500/50'
                       : 'bg-gray-100 border-gray-200 text-gray-900 placeholder-gray-400 focus-emerald-500'
                   )}
                 />
@@ -811,8 +1091,8 @@ export const LearningPlatform = () => {
                     "flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-all",
                     isSelected
                       ? color.bg
-                      : theme === 'dark' 
-                        ? 'bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white' 
+                      : theme === 'dark'
+                        ? 'bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white'
                         : 'bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-900'
                   )}
                 >
@@ -821,7 +1101,7 @@ export const LearningPlatform = () => {
                   </span>
                   <span className={cn(
                     "px-1.5 py-0.5 rounded text-xs",
-                    isSelected 
+                    isSelected
                       ? color.bg.replace('/10', '/20')
                       : theme === 'dark' ? 'bg-white/10 text-gray-400' : 'bg-gray-200 text-gray-600'
                   )}>
@@ -876,9 +1156,9 @@ export const LearningPlatform = () => {
               "text-center max-w-md",
               theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
             )}>
-              {searchQuery 
+              {searchQuery
                 ? 'Попробуйте изменить поисковый запрос'
-                : isAdmin 
+                : isAdmin
                   ? 'Добавьте первый урок, нажав на кнопку выше'
                   : 'Скоро здесь появятся новые уроки'}
             </p>

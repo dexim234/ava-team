@@ -567,6 +567,7 @@ export interface Lesson {
   title: string
   videoUrl?: string
   videoFileName?: string // Имя файла видео для отображения
+  youtubeUrl?: string // Ссылка на YouTube
   fileUrl?: string
   fileName?: string // Имя файла для отображения
   comment?: string
