@@ -195,18 +195,26 @@ export const EventCard = memo(({ event, isAdmin, onEdit, onDelete, expanded, onT
               </div>
             )}
 
-            {/* Link */}
-            {event.link && (
+            {/* Links */}
+            {event.links.length > 0 && (
               <div className="mb-4">
-                <a
-                  href={event.link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all ${theme === 'dark' ? 'bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20' : 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100'}`}
-                >
-                  <ExternalLink size={14} />
-                  Открыть ссылку
-                </a>
+                <p className={`text-xs font-bold uppercase tracking-wider ${subtleColor} mb-2`}>
+                  {event.links.length === 1 ? 'Ссылка' : 'Ссылки'}
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {event.links.map((link, index) => (
+                    <a
+                      key={index}
+                      href={link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all ${theme === 'dark' ? 'bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20' : 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100'}`}
+                    >
+                      <ExternalLink size={14} />
+                      Ссылка {index + 1}
+                    </a>
+                  ))}
+                </div>
               </div>
             )}
 

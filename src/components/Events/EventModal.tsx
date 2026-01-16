@@ -59,12 +59,14 @@ export const EventModal = ({ event, onClose }: EventModalProps) => {
   const [category, setCategory] = useState<EventCategory>(event?.category || 'memecoins')
   const [dates, setDates] = useState<string[]>(event?.dates || [])
   const [time, setTime] = useState(event?.time || '12:00')
-  const [link, setLink] = useState(event?.link || '')
+  const [links, setLinks] = useState<string[]>(event?.links || [])
   const [requiredParticipants, setRequiredParticipants] = useState<string[]>(event?.requiredParticipants || [])
   const [files, setFiles] = useState<EventFile[]>(event?.files || [])
 
   // New date input
   const [newDate, setNewDate] = useState('')
+  // New link input
+  const [newLink, setNewLink] = useState('')
 
   // File upload
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -88,6 +90,17 @@ export const EventModal = ({ event, onClose }: EventModalProps) => {
 
   const handleRemoveDate = (date: string) => {
     setDates(prev => prev.filter(d => d !== date))
+  }
+
+  const handleAddLink = () => {
+    if (newLink && !links.includes(newLink)) {
+      setLinks(prev => [...prev, newLink.trim()])
+      setNewLink('')
+    }
+  }
+
+  const handleRemoveLink = (link: string) => {
+    setLinks(prev => prev.filter(l => l !== link))
   }
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -154,7 +167,7 @@ export const EventModal = ({ event, onClose }: EventModalProps) => {
           category,
           dates,
           time,
-          link: link || undefined,
+          links: links.filter(l => l.trim()),
           requiredParticipants,
           files,
         })
@@ -166,7 +179,7 @@ export const EventModal = ({ event, onClose }: EventModalProps) => {
           category,
           dates,
           time,
-          link: link || undefined,
+          links: links.filter(l => l.trim()),
           requiredParticipants,
           files: [],
           createdBy: user?.id || '',
@@ -342,20 +355,61 @@ export const EventModal = ({ event, onClose }: EventModalProps) => {
             </div>
           </div>
 
-          {/* Link */}
+          {/* Links */}
           <div>
             <label className={`block text-sm font-medium mb-2 ${textColor}`}>
-              Ссылка
+              Ссылки
             </label>
-            <div className="relative">
-              <LinkIcon size={18} className={`absolute left-4 top-1/2 -translate-y-1/2 ${subtleColor}`} />
-              <input
-                type="url"
-                value={link}
-                onChange={(e) => setLink(e.target.value)}
-                placeholder="https://..."
-                className={`w-full pl-12 pr-4 py-3 rounded-xl border ${borderColor} ${inputBg} ${textColor} placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-emerald-500`}
-              />
+
+            {/* Existing links */}
+            {links.length > 0 && (
+              <div className="space-y-2 mb-4">
+                {links.map((link, index) => (
+                  <div
+                    key={index}
+                    className={`flex items-center gap-3 p-3 rounded-lg border ${borderColor}`}
+                  >
+                    <LinkIcon size={16} className={subtleColor} />
+                    <a
+                      href={link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={`flex-1 text-sm truncate ${theme === 'dark' ? 'text-emerald-400 hover:text-emerald-300' : 'text-emerald-600 hover:text-emerald-500'}`}
+                    >
+                      {link}
+                    </a>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveLink(link)}
+                      className={`p-1.5 rounded-lg transition-all ${theme === 'dark' ? 'hover:bg-red-500/20 text-red-400' : 'hover:bg-red-50 text-red-600'}`}
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Add link input */}
+            <div className="flex gap-2">
+              <div className="relative flex-1">
+                <LinkIcon size={18} className={`absolute left-4 top-1/2 -translate-y-1/2 ${subtleColor}`} />
+                <input
+                  type="url"
+                  value={newLink}
+                  onChange={(e) => setNewLink(e.target.value)}
+                  placeholder="https://..."
+                  className={`w-full pl-12 pr-4 py-3 rounded-xl border ${borderColor} ${inputBg} ${textColor} placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-emerald-500`}
+                />
+              </div>
+              <button
+                type="button"
+                onClick={handleAddLink}
+                disabled={!newLink.trim()}
+                className="px-4 py-3 rounded-xl bg-emerald-500 text-white font-medium hover:bg-emerald-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <Plus size={18} />
+              </button>
             </div>
           </div>
 

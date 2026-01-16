@@ -654,7 +654,7 @@ export interface Event {
   category: EventCategory
   dates: string[] // Array of dates YYYY-MM-DD
   time: string // HH:mm format
-  link?: string
+  links: string[] // Array of URLs
   requiredParticipants: string[] // User IDs
   files: EventFile[]
   createdBy: string
