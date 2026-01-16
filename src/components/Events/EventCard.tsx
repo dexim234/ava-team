@@ -1,4 +1,4 @@
-import { memo } from 'react'
+import { memo, useState, useEffect } from 'react'
 import { useThemeStore } from '@/store/themeStore'
 import { useAuthStore } from '@/store/authStore'
 import { useUsers } from '@/hooks/useUsers'
@@ -57,31 +57,45 @@ export const EventCard = memo(({ event, isAdmin, onEdit, onDelete }: EventCardPr
   const borderColor = theme === 'dark' ? 'border-white/10' : 'border-gray-100'
   const cardBg = theme === 'dark' ? 'bg-white/5 backdrop-blur-md' : 'bg-white'
 
-  // Calculate event status and timer
-  const now = new Date()
-  const currentDate = now.toISOString().split('T')[0]
-  const currentTime = now.toTimeString().slice(0, 5)
+  const [currentTime, setCurrentTime] = useState(new Date())
 
-  const isActive = event.dates.includes(currentDate) && event.time <= currentTime
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date())
+    }, 1000)
+
+    return () => clearInterval(timer)
+  }, [])
+
+  // Calculate event status and timer
+  const currentDateStr = currentTime.toISOString().split('T')[0]
+  const currentTimeStr = currentTime.toTimeString().slice(0, 5)
+
+  const isActive = event.dates.includes(currentDateStr) && event.time <= currentTimeStr
 
   // Get next occurrence date
-  const upcomingDates = event.dates.filter(date => date >= currentDate).sort()
+  const upcomingDates = event.dates.filter(date => date >= currentDateStr).sort()
   const nextDate = upcomingDates[0]
 
   // Calculate time until event
   const getTimeUntilEvent = (): string | null => {
     if (!nextDate) return null
     const eventDateTime = new Date(`${nextDate}T${event.time}`)
-    const diff = eventDateTime.getTime() - now.getTime()
+    const diff = eventDateTime.getTime() - currentTime.getTime()
     if (diff < 0) return null
 
     const days = Math.floor(diff / (1000 * 60 * 60 * 24))
     const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
     const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
+    const seconds = Math.floor((diff % (1000 * 60)) / 1000)
 
-    if (days > 0) return `${days}д ${hours}ч`
-    if (hours > 0) return `${hours}ч ${minutes}м`
-    return `${minutes}м`
+    const parts = []
+    if (days > 0) parts.push(`${days}д`)
+    if (hours > 0) parts.push(`${hours}ч`)
+    if (minutes > 0 || (hours > 0)) parts.push(`${minutes}м`)
+    parts.push(`${seconds}с`)
+
+    return parts.join(' ')
   }
 
   const timeUntil = getTimeUntilEvent()
@@ -226,25 +240,25 @@ export const EventCard = memo(({ event, isAdmin, onEdit, onDelete }: EventCardPr
 
           {/* RSVP Actions */}
           {user && (
-            <div className="mt-8 flex flex-col sm:flex-row gap-3">
+            <div className="mt-6 flex flex-col sm:flex-row gap-2">
               <button
                 onClick={() => handleRSVP(true)}
-                className={`flex-1 flex items-center justify-center gap-3 px-6 py-4 rounded-2xl font-black transition-all shadow-lg ${isUserGoing
-                  ? 'bg-emerald-500 text-white shadow-emerald-500/30 ring-2 ring-emerald-500 ring-offset-2 ring-offset-transparent'
+                className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all shadow-md ${isUserGoing
+                  ? 'bg-emerald-500 text-white shadow-emerald-500/20 ring-1 ring-emerald-500 ring-offset-1 ring-offset-transparent'
                   : 'bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 shadow-none'
                   }`}
               >
-                <CheckCircle2 size={20} />
+                <CheckCircle2 size={16} />
                 <span>Я буду</span>
               </button>
               <button
                 onClick={() => handleRSVP(false)}
-                className={`flex-1 flex items-center justify-center gap-3 px-6 py-4 rounded-2xl font-black transition-all shadow-lg ${isUserNotGoing
-                  ? 'bg-rose-500 text-white shadow-rose-500/30 ring-2 ring-rose-500 ring-offset-2 ring-offset-transparent'
+                className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all shadow-md ${isUserNotGoing
+                  ? 'bg-rose-500 text-white shadow-rose-500/20 ring-1 ring-rose-500 ring-offset-1 ring-offset-transparent'
                   : 'bg-rose-500/10 text-rose-500 hover:bg-rose-500/20 shadow-none'
                   }`}
               >
-                <XCircle size={20} />
+                <XCircle size={16} />
                 <span>Меня не будет</span>
               </button>
             </div>
