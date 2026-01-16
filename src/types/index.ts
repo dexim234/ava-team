@@ -661,6 +661,8 @@ export interface Event {
   time: string // HH:mm format
   links: EventLink[] // Array of named URLs
   requiredParticipants: string[] // User IDs
+  going: string[] // User IDs
+  notGoing: string[] // User IDs
   files: EventFile[]
   createdBy: string
   createdAt: string

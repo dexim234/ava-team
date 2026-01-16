@@ -20,7 +20,10 @@ import {
   Coins,
   TrendingUp,
   Gift,
+  CheckCircle2,
+  XCircle,
 } from 'lucide-react'
+import { updateEvent } from '@/services/eventService'
 import { format, parseISO } from 'date-fns'
 
 interface EventCardProps {
@@ -96,6 +99,43 @@ export const EventCard = memo(({ event, isAdmin, onEdit, onDelete }: EventCardPr
     return format(parseISO(dateStr), 'dd.MM.yyyy')
   }
 
+  const handleRSVP = async (going: boolean) => {
+    if (!user) return
+
+    const currentGoing = [...event.going]
+    const currentNotGoing = [...event.notGoing]
+
+    if (going) {
+      if (currentGoing.includes(user.id)) {
+        // Already going - remove
+        const updatedGoing = currentGoing.filter(id => id !== user.id)
+        await updateEvent(event.id, { going: updatedGoing })
+      } else {
+        // Not going yet - add to going, remove from notGoing
+        const updatedGoing = [...currentGoing, user.id]
+        const updatedNotGoing = currentNotGoing.filter(id => id !== user.id)
+        await updateEvent(event.id, { going: updatedGoing, notGoing: updatedNotGoing })
+      }
+    } else {
+      if (currentNotGoing.includes(user.id)) {
+        // Already not going - remove
+        const updatedNotGoing = currentNotGoing.filter(id => id !== user.id)
+        await updateEvent(event.id, { notGoing: updatedNotGoing })
+      } else {
+        // Add to notGoing, remove from going
+        const updatedNotGoing = [...currentNotGoing, user.id]
+        const updatedGoing = currentGoing.filter(id => id !== user.id)
+        await updateEvent(event.id, { going: updatedGoing, notGoing: updatedNotGoing })
+      }
+    }
+  }
+
+  const goingUsers = event.going.map(id => allMembers.find(m => m.id === id)?.name).filter(Boolean)
+  const notGoingUsers = event.notGoing.map(id => allMembers.find(m => m.id === id)?.name).filter(Boolean)
+
+  const isUserGoing = user && event.going.includes(user.id)
+  const isUserNotGoing = user && event.notGoing.includes(user.id)
+
   return (
     <div
       className={`relative p-5 rounded-2xl border ${borderColor} ${cardBg} shadow-sm hover:shadow-xl transition-all group overflow-hidden`}
@@ -112,32 +152,32 @@ export const EventCard = memo(({ event, isAdmin, onEdit, onDelete }: EventCardPr
             </div>
 
             <div className="flex-1 min-w-0">
-              <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-3">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                 <h3 className={`text-xl sm:text-2xl font-black ${textColor} tracking-tight leading-tight`}>{event.title}</h3>
                 <span className={`w-fit px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-gradient-to-r ${meta.gradient} text-white shadow-sm ring-1 ring-white/20`}>
                   {meta.label}
                 </span>
               </div>
+            </div>
+          </div>
 
-              <div className="flex flex-wrap items-center gap-5 text-sm sm:text-base">
-                <div className="flex items-center gap-2.5">
-                  <div className={`p-2 rounded-xl ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-100'}`}>
-                    <Calendar size={16} className="text-emerald-500" />
-                  </div>
-                  <span className={`font-bold ${subtleColor}`}>
-                    {event.dates.length === 1
-                      ? formatDate(event.dates[0])
-                      : `${formatDate(event.dates[0])} — ${formatDate(event.dates[event.dates.length - 1])}`
-                    }
-                  </span>
-                </div>
-                <div className="flex items-center gap-2.5">
-                  <div className={`p-2 rounded-xl ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-100'}`}>
-                    <Clock size={16} className="text-emerald-500" />
-                  </div>
-                  <span className={`font-bold ${subtleColor}`}>{event.time}</span>
-                </div>
+          <div className="flex flex-wrap items-center gap-5 text-sm sm:text-base mt-4 pl-1">
+            <div className="flex items-center gap-2.5">
+              <div className={`p-2 rounded-xl ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-100'}`}>
+                <Calendar size={16} className="text-emerald-500" />
               </div>
+              <span className={`font-bold ${subtleColor}`}>
+                {event.dates.length === 1
+                  ? formatDate(event.dates[0])
+                  : `${formatDate(event.dates[0])} — ${formatDate(event.dates[event.dates.length - 1])}`
+                }
+              </span>
+            </div>
+            <div className="flex items-center gap-2.5">
+              <div className={`p-2 rounded-xl ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-100'}`}>
+                <Clock size={16} className="text-emerald-500" />
+              </div>
+              <span className={`font-bold ${subtleColor}`}>{event.time}</span>
             </div>
           </div>
 
@@ -177,6 +217,32 @@ export const EventCard = memo(({ event, isAdmin, onEdit, onDelete }: EventCardPr
               </a>
             ))}
           </div>
+
+          {/* RSVP Actions */}
+          {user && (
+            <div className="mt-8 flex flex-col sm:flex-row gap-3">
+              <button
+                onClick={() => handleRSVP(true)}
+                className={`flex-1 flex items-center justify-center gap-3 px-6 py-4 rounded-2xl font-black transition-all shadow-lg ${isUserGoing
+                  ? 'bg-emerald-500 text-white shadow-emerald-500/30 ring-2 ring-emerald-500 ring-offset-2 ring-offset-transparent'
+                  : 'bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 shadow-none'
+                  }`}
+              >
+                <CheckCircle2 size={20} />
+                <span>Я буду</span>
+              </button>
+              <button
+                onClick={() => handleRSVP(false)}
+                className={`flex-1 flex items-center justify-center gap-3 px-6 py-4 rounded-2xl font-black transition-all shadow-lg ${isUserNotGoing
+                  ? 'bg-rose-500 text-white shadow-rose-500/30 ring-2 ring-rose-500 ring-offset-2 ring-offset-transparent'
+                  : 'bg-rose-500/10 text-rose-500 hover:bg-rose-500/20 shadow-none'
+                  }`}
+              >
+                <XCircle size={20} />
+                <span>Меня не будет</span>
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Right Section: Participants and Status */}
@@ -206,10 +272,53 @@ export const EventCard = memo(({ event, isAdmin, onEdit, onDelete }: EventCardPr
             )}
           </div>
 
-          {/* Participants - only scrollable container on mobile if many */}
+          {/* Going List */}
+          {goingUsers.length > 0 && (
+            <div className={`p-5 rounded-2xl ${theme === 'dark' ? 'bg-emerald-500/5 shadow-inner' : 'bg-emerald-50/50'} border ${theme === 'dark' ? 'border-emerald-500/20' : 'border-emerald-100'}`}>
+              <div className="flex items-center gap-2 mb-3.5">
+                <CheckCircle2 size={14} className="text-emerald-500" />
+                <p className={`text-[10px] font-black uppercase tracking-widest text-emerald-500`}>Будут ({goingUsers.length})</p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {goingUsers.map((name, idx) => (
+                  <span
+                    key={idx}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold ${theme === 'dark' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-white text-emerald-700 shadow-sm border border-emerald-100'}`}
+                  >
+                    {name}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Not Going List */}
+          {notGoingUsers.length > 0 && (
+            <div className={`p-5 rounded-2xl ${theme === 'dark' ? 'bg-rose-500/5 shadow-inner' : 'bg-rose-50/50'} border ${theme === 'dark' ? 'border-rose-500/20' : 'border-rose-100'}`}>
+              <div className="flex items-center gap-2 mb-3.5">
+                <XCircle size={14} className="text-rose-500" />
+                <p className={`text-[10px] font-black uppercase tracking-widest text-rose-500`}>Не смогут ({notGoingUsers.length})</p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {notGoingUsers.map((name, idx) => (
+                  <span
+                    key={idx}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold ${theme === 'dark' ? 'bg-rose-500/10 text-rose-400' : 'bg-white text-rose-700 shadow-sm border border-rose-100'}`}
+                  >
+                    {name}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Participants */}
           {participants.length > 0 && (
             <div className={`p-5 rounded-2xl ${theme === 'dark' ? 'bg-white/5 shadow-inner' : 'bg-gray-50'} border ${borderColor}`}>
-              <p className={`text-[10px] font-black uppercase tracking-widest ${subtleColor} mb-3.5`}>Участники</p>
+              <div className="flex items-center gap-2 mb-3.5">
+                <Users size={14} className={subtleColor} />
+                <p className={`text-[10px] font-black uppercase tracking-widest ${subtleColor}`}>Обязательные</p>
+              </div>
               <div className="flex flex-wrap gap-2">
                 {participants.map((name, idx) => (
                   <span

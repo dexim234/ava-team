@@ -61,6 +61,8 @@ export const EventModal = ({ event, onClose }: EventModalProps) => {
   const [time, setTime] = useState(event?.time || '12:00')
   const [links, setLinks] = useState<Event['links']>(event?.links || [])
   const [requiredParticipants, setRequiredParticipants] = useState<string[]>(event?.requiredParticipants || [])
+  const [going] = useState<string[]>(event?.going || [])
+  const [notGoing] = useState<string[]>(event?.notGoing || [])
   const [files, setFiles] = useState<EventFile[]>(event?.files || [])
 
   // New date input
@@ -174,6 +176,8 @@ export const EventModal = ({ event, onClose }: EventModalProps) => {
           time,
           links: links.map(l => ({ ...l, url: l.url.trim() })),
           requiredParticipants,
+          going,
+          notGoing,
           files,
         })
       } else {
@@ -186,6 +190,8 @@ export const EventModal = ({ event, onClose }: EventModalProps) => {
           time,
           links: links.map(l => ({ ...l, url: l.url.trim() })),
           requiredParticipants,
+          going: [],
+          notGoing: [],
           files: [],
           createdBy: user?.id || '',
         })

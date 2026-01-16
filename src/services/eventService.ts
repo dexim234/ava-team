@@ -37,6 +37,8 @@ export const getEvents = async (filters?: {
       time: data.time || '',
       links: data.links || [],
       requiredParticipants: data.requiredParticipants || [],
+      going: data.going || [],
+      notGoing: data.notGoing || [],
       files: data.files || [],
       createdBy: data.createdBy || '',
       createdAt: data.createdAt || new Date().toISOString(),
@@ -83,6 +85,8 @@ export const getEvent = async (id: string): Promise<Event | null> => {
     time: data.time || '',
     links: data.links || [],
     requiredParticipants: data.requiredParticipants || [],
+    going: data.going || [],
+    notGoing: data.notGoing || [],
     files: data.files || [],
     createdBy: data.createdBy || '',
     createdAt: data.createdAt || new Date().toISOString(),
@@ -95,6 +99,8 @@ export const addEvent = async (event: Omit<Event, 'id' | 'createdAt' | 'updatedA
   const now = new Date().toISOString()
   const cleanEvent = {
     ...event,
+    going: [],
+    notGoing: [],
     createdAt: now,
     updatedAt: now,
   }
