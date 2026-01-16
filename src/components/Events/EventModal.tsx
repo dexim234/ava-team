@@ -118,11 +118,11 @@ export const EventModal = ({ event, onClose }: EventModalProps) => {
     try {
       for (const file of selectedFiles) {
         const path = `events/${eventId}/${Date.now()}_${file.name}`
-        const url = await uploadFile(file, path)
+        const result = await uploadFile(file, path)
         uploadedFiles.push({
           id: Date.now().toString() + Math.random().toString(36).slice(2),
-          name: file.name,
-          url,
+          name: result.fileName,
+          url: result.url,
           type: file.type,
           size: file.size,
         })

@@ -2,7 +2,6 @@ import { useState, useEffect, useMemo } from 'react'
 import { useAuthStore } from '@/store/authStore'
 import { useAdminStore } from '@/store/adminStore'
 import { useThemeStore } from '@/store/themeStore'
-import { useUsers } from '@/hooks/useUsers'
 import { EventCard } from '@/components/Events/EventCard'
 import { EventModal } from '@/components/Events/EventModal'
 import { getEvents, deleteEvent } from '@/services/eventService'
@@ -12,8 +11,6 @@ import {
   Calendar,
   Plus,
   Filter,
-  X,
-  ChevronDown,
   Clock,
   Users,
   TrendingUp,
@@ -39,7 +36,8 @@ export const EventsPage = () => {
   const { user } = useAuthStore()
   const { isAdmin } = useAdminStore()
   const { theme } = useThemeStore()
-  const { users: allMembers } = useUsers()
+  // allMembers is available via useUsers but not used directly in this component
+  // const { users: allMembers } = useUsers()
 
   const [events, setEvents] = useState<Event[]>([])
   const [loading, setLoading] = useState(true)

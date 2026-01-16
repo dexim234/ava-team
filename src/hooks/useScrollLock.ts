@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 
 const SCROLL_LOCK_CLASS = 'modal-open'
 let scrollLockCount = 0
@@ -24,34 +24,25 @@ const unlockScroll = () => {
 }
 
 export const useScrollLock = (enabled: boolean = true) => {
+  const [isLocked, setIsLocked] = useState(false)
+
+  const lock = useCallback(() => {
+    lockScroll()
+    setIsLocked(true)
+  }, [])
+
+  const unlock = useCallback(() => {
+    unlockScroll()
+    setIsLocked(false)
+  }, [])
+
   useEffect(() => {
     if (!enabled) return
-    lockScroll()
+    lock()
     return () => {
-      unlockScroll()
+      unlock()
     }
-  }, [enabled])
+  }, [enabled, lock, unlock])
+
+  return { lockScroll: lock, unlockScroll: unlock, isLocked }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -1,43 +1,30 @@
-import { useState, useEffect, type JSX } from 'react'
+import { memo } from 'react'
 import { useThemeStore } from '@/store/themeStore'
 import { useAuthStore } from '@/store/authStore'
-import { formatDate, getRelativeTime, isToday, isTomorrow, formatTime } from '@/utils/dateUtils'
-import type { Event } from '@/types'
 import { useUsers } from '@/hooks/useUsers'
+import type { Event } from '@/types'
+import { EVENT_CATEGORY_META } from '@/types'
 import {
-  X,
   Edit,
   Trash2,
   Calendar,
   Clock,
-  Link as LinkIcon,
   Users,
   FileText,
   Download,
   ExternalLink,
   ChevronDown,
   ChevronUp,
+  Timer,
   Rocket,
-  Gauge,
-  Image,
+  BarChart3,
+  Image as ImageIcon,
   Shield,
   Coins,
-  LineChart,
+  TrendingUp,
   Gift,
-  Sparkles,
-  Timer,
 } from 'lucide-react'
-import { EVENT_CATEGORY_META } from '@/types'
-
-const categoryIcons: Record<string, (props: any) => JSX.Element> = {
-  rocket: Rocket,
-  barchart: Gauge,
-  image: Image,
-  shield: Shield,
-  coins: Coins,
-  trending: LineChart,
-  gift: Gift,
-}
+import { format, parseISO } from 'date-fns'
 
 interface EventCardProps {
   event: Event
@@ -48,13 +35,23 @@ interface EventCardProps {
   onToggleExpand: () => void
 }
 
-export const EventCard = ({ event, isAdmin, onEdit, onDelete, expanded, onToggleExpand }: EventCardProps) => {
+const categoryIcons: Record<string, any> = {
+  memecoins: Rocket,
+  polymarket: BarChart3,
+  nft: ImageIcon,
+  staking: Shield,
+  spot: Coins,
+  futures: TrendingUp,
+  airdrop: Gift,
+}
+
+export const EventCard = memo(({ event, isAdmin, onEdit, onDelete, expanded, onToggleExpand }: EventCardProps) => {
   const { theme } = useThemeStore()
   const { user } = useAuthStore()
   const { users: allMembers } = useUsers()
 
   const meta = EVENT_CATEGORY_META[event.category]
-  const IconComponent = categoryIcons[meta.icon] || Sparkles
+  const IconComponent = categoryIcons[event.category] || Rocket
 
   const textColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
   const subtleColor = theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
@@ -66,9 +63,6 @@ export const EventCard = ({ event, isAdmin, onEdit, onDelete, expanded, onToggle
   const currentDate = now.toISOString().split('T')[0]
   const currentTime = now.toTimeString().slice(0, 5)
 
-  const isPast = event.dates.every(date => date < currentDate) ||
-    (event.dates.includes(currentDate) && event.time < currentTime)
-  const isUpcoming = event.dates.some(date => date >= currentDate)
   const isActive = event.dates.includes(currentDate) && event.time <= currentTime
 
   // Get next occurrence date
@@ -76,7 +70,7 @@ export const EventCard = ({ event, isAdmin, onEdit, onDelete, expanded, onToggle
   const nextDate = upcomingDates[0]
 
   // Calculate time until event
-  const getTimeUntilEvent = () => {
+  const getTimeUntilEvent = (): string | null => {
     if (!nextDate) return null
     const eventDateTime = new Date(`${nextDate}T${event.time}`)
     const diff = eventDateTime.getTime() - now.getTime()
@@ -102,12 +96,9 @@ export const EventCard = ({ event, isAdmin, onEdit, onDelete, expanded, onToggle
   // Check if current user is required
   const isUserRequired = user && event.requiredParticipants.includes(user.id)
 
-  // Get date label
-  const getDateLabel = () => {
-    if (!nextDate) return 'Завершено'
-    if (isToday(nextDate)) return 'Сегодня'
-    if (isTomorrow(nextDate)) return 'Завтра'
-    return formatDate(nextDate, 'dd MMMM')
+  // Format date helper
+  const formatDate = (dateStr: string) => {
+    return format(parseISO(dateStr), 'dd.MM.yyyy')
   }
 
   return (
@@ -141,8 +132,8 @@ export const EventCard = ({ event, isAdmin, onEdit, onDelete, expanded, onToggle
                   <Calendar size={14} className={subtleColor} />
                   <span className={`font-medium ${subtleColor}`}>
                     {event.dates.length === 1
-                      ? formatDate(event.dates[0], 'dd.MM.yyyy')
-                      : `${formatDate(event.dates[0], 'dd.MM')} - ${formatDate(event.dates[event.dates.length - 1], 'dd.MM.yyyy')}`
+                      ? formatDate(event.dates[0])
+                      : `${formatDate(event.dates[0])} - ${formatDate(event.dates[event.dates.length - 1])}`
                     }
                   </span>
                 </div>
@@ -274,4 +265,4 @@ export const EventCard = ({ event, isAdmin, onEdit, onDelete, expanded, onToggle
       </div>
     </div>
   )
-}
+})

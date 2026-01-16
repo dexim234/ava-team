@@ -7,7 +7,6 @@ import {
   updateDoc,
   deleteDoc,
   query,
-  where,
   orderBy,
 } from 'firebase/firestore'
 import { db } from '@/firebase/config'
@@ -50,15 +49,20 @@ export const getEvents = async (filters?: {
     results = results.filter((e: Event) => e.category === filters.category)
   }
 
-  if (filters?.startDate && filters?.endDate) {
+  const startDate = filters?.startDate || ''
+  const endDate = filters?.endDate || ''
+  if (startDate && endDate) {
+    const sDate = startDate
+    const eDate = endDate
     results = results.filter((e: Event) => {
       // Check if any date in the event falls within the range
-      return e.dates.some(date => date >= filters.startDate! && date <= filters.endDate!)
+      return e.dates.some(date => date >= sDate && date <= eDate)
     })
   }
 
   if (filters?.userId) {
-    results = results.filter((e: Event) => e.requiredParticipants.includes(filters.userId))
+    const userId = filters.userId
+    results = results.filter((e: Event) => e.requiredParticipants.includes(userId))
   }
 
   return results
