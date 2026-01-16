@@ -11,10 +11,7 @@ import {
   Clock,
   Users,
   FileText,
-  Download,
   ExternalLink,
-  ChevronDown,
-  ChevronUp,
   Timer,
   Rocket,
   BarChart3,
@@ -31,8 +28,6 @@ interface EventCardProps {
   isAdmin: boolean
   onEdit: (event: Event) => void
   onDelete: (eventId: string) => void
-  expanded: boolean
-  onToggleExpand: () => void
 }
 
 const categoryIcons: Record<string, any> = {
@@ -45,7 +40,7 @@ const categoryIcons: Record<string, any> = {
   airdrop: Gift,
 }
 
-export const EventCard = memo(({ event, isAdmin, onEdit, onDelete, expanded, onToggleExpand }: EventCardProps) => {
+export const EventCard = memo(({ event, isAdmin, onEdit, onDelete }: EventCardProps) => {
   const { theme } = useThemeStore()
   const { user } = useAuthStore()
   const { users: allMembers } = useUsers()
@@ -103,171 +98,145 @@ export const EventCard = memo(({ event, isAdmin, onEdit, onDelete, expanded, onT
 
   return (
     <div
-      className={`p-4 rounded-xl border ${borderColor} ${cardBg} shadow-lg hover:shadow-xl transition-all group overflow-hidden`}
+      className={`relative p-5 rounded-2xl border ${borderColor} ${cardBg} shadow-sm hover:shadow-xl transition-all group overflow-hidden`}
     >
-      {/* Gradient accent */}
-      <div className={`absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b ${meta.gradientDark}`} />
+      {/* Background Gradient Glow */}
+      <div className={`absolute -right-20 -top-20 w-64 h-64 bg-gradient-to-br ${meta.cardGradient} blur-3xl opacity-50 group-hover:opacity-100 transition-opacity duration-500`} />
 
-      <div className="flex items-start gap-4 pl-4">
-        {/* Left: Icon */}
-        <div className={`p-2.5 rounded-xl bg-gradient-to-br ${meta.gradient} bg-opacity-10 text-white shrink-0`}>
-          <IconComponent className="w-5 h-5" />
-        </div>
-
-        {/* Center: Content */}
+      <div className="relative flex flex-col md:flex-row gap-6">
+        {/* Left Section: Icon and Basics */}
         <div className="flex-1 min-w-0">
-          {/* Header row */}
-          <div className="flex items-start justify-between gap-2">
+          <div className="flex items-start gap-4">
+            <div className={`p-3 rounded-2xl bg-gradient-to-br ${meta.gradient} shadow-lg shadow-emerald-500/10 text-white shrink-0`}>
+              <IconComponent className="w-6 h-6" />
+            </div>
+
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 flex-wrap mb-1">
-                <h3 className={`font-bold ${textColor} truncate`}>{event.title}</h3>
-                <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-gradient-to-r ${meta.gradient} text-white`}>
+              <div className="flex items-center gap-2 flex-wrap mb-2">
+                <h3 className={`text-xl font-black ${textColor} tracking-tight`}>{event.title}</h3>
+                <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-gradient-to-r ${meta.gradient} text-white shadow-sm`}>
                   {meta.label}
                 </span>
               </div>
 
-              {/* Date and time */}
-              <div className="flex items-center gap-4 text-sm">
-                <div className="flex items-center gap-1.5">
-                  <Calendar size={14} className={subtleColor} />
-                  <span className={`font-medium ${subtleColor}`}>
+              <div className="flex items-center gap-5 text-sm">
+                <div className="flex items-center gap-2">
+                  <div className={`p-1.5 rounded-lg ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-100'}`}>
+                    <Calendar size={14} className="text-emerald-500" />
+                  </div>
+                  <span className={`font-semibold ${subtleColor}`}>
                     {event.dates.length === 1
                       ? formatDate(event.dates[0])
                       : `${formatDate(event.dates[0])} - ${formatDate(event.dates[event.dates.length - 1])}`
                     }
                   </span>
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <Clock size={14} className={subtleColor} />
-                  <span className={`font-medium ${subtleColor}`}>{event.time}</span>
+                <div className="flex items-center gap-2">
+                  <div className={`p-1.5 rounded-lg ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-100'}`}>
+                    <Clock size={14} className="text-emerald-500" />
+                  </div>
+                  <span className={`font-semibold ${subtleColor}`}>{event.time}</span>
                 </div>
               </div>
-            </div>
-
-            {/* Status badges */}
-            <div className="flex items-center gap-2">
-              {isActive && (
-                <span className="flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
-                  <Timer size={12} />
-                  Идет сейчас
-                </span>
-              )}
-              {timeUntil && !isActive && (
-                <span className="flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-500 border border-amber-500/20">
-                  <Timer size={12} />
-                  {timeUntil}
-                </span>
-              )}
-              {isUserRequired && (
-                <span className="flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-bold bg-blue-500/10 text-blue-500 border border-blue-500/20">
-                  <Users size={12} />
-                  Вы участвуете
-                </span>
-              )}
             </div>
           </div>
 
-          {/* Expandable content */}
-          <div className={`transition-all duration-300 ${expanded ? 'mt-4 max-h-96 opacity-100' : 'mt-0 max-h-0 opacity-0 overflow-hidden'}`}>
-            {/* Description */}
-            {event.description && (
-              <div className="mb-4">
-                <p className={`text-sm ${subtleColor} leading-relaxed`}>{event.description}</p>
-              </div>
-            )}
+          {/* Description */}
+          {event.description && (
+            <div className="mt-5 pl-1">
+              <p className={`text-[15px] ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'} leading-relaxed`}>
+                {event.description}
+              </p>
+            </div>
+          )}
 
-            {/* Participants */}
-            {participants.length > 0 && (
-              <div className="mb-4">
-                <p className={`text-xs font-bold uppercase tracking-wider ${subtleColor} mb-2`}>
-                  Обязательные участники
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {participants.map((name, idx) => (
-                    <span
-                      key={idx}
-                      className={`px-3 py-1 rounded-full text-xs font-medium ${theme === 'dark' ? 'bg-white/10 text-gray-300' : 'bg-gray-100 text-gray-700'}`}
-                    >
-                      {name}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Links */}
-            {event.links.length > 0 && (
-              <div className="mb-4">
-                <p className={`text-xs font-bold uppercase tracking-wider ${subtleColor} mb-2`}>
-                  {event.links.length === 1 ? 'Ссылка' : 'Ссылки'}
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {event.links.map((link, index) => (
-                    <a
-                      key={index}
-                      href={link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all ${theme === 'dark' ? 'bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20' : 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100'}`}
-                    >
-                      <ExternalLink size={14} />
-                      Ссылка {index + 1}
-                    </a>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Files */}
-            {event.files.length > 0 && (
-              <div>
-                <p className={`text-xs font-bold uppercase tracking-wider ${subtleColor} mb-2`}>
-                  Полезные материалы
-                </p>
-                <div className="space-y-2">
-                  {event.files.map((file) => (
-                    <a
-                      key={file.id}
-                      href={file.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={`flex items-center gap-3 p-3 rounded-lg border ${borderColor} transition-all ${theme === 'dark' ? 'hover:bg-white/5' : 'hover:bg-gray-50'}`}
-                    >
-                      <FileText size={18} className={subtleColor} />
-                      <span className={`flex-1 text-sm font-medium truncate ${textColor}`}>{file.name}</span>
-                      <Download size={14} className={subtleColor} />
-                    </a>
-                  ))}
-                </div>
-              </div>
-            )}
+          {/* Links and Files */}
+          <div className="mt-6 flex flex-wrap gap-3">
+            {event.links.map((link, index) => (
+              <a
+                key={index}
+                href={link.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${theme === 'dark' ? 'bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/20' : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-100'}`}
+              >
+                <ExternalLink size={14} />
+                {link.name}
+              </a>
+            ))}
+            {event.files.map((file) => (
+              <a
+                key={file.id}
+                href={file.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${theme === 'dark' ? 'bg-white/5 text-gray-300 hover:bg-white/10 border border-white/5' : 'bg-gray-50 text-gray-700 hover:bg-gray-100 border border-gray-100'}`}
+              >
+                <FileText size={14} />
+                {file.name}
+              </a>
+            ))}
           </div>
         </div>
 
-        {/* Right: Actions */}
-        <div className="flex items-center gap-1">
-          <button
-            onClick={onToggleExpand}
-            className={`p-2 rounded-lg transition-all ${theme === 'dark' ? 'hover:bg-white/10 text-gray-400' : 'hover:bg-gray-100 text-gray-500'}`}
-          >
-            {expanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
-          </button>
+        {/* Right Section: Participants and Status */}
+        <div className="md:w-64 flex flex-col gap-4">
+          {/* Status highlight */}
+          <div className="flex flex-col gap-2">
+            {isActive && (
+              <div className="flex items-center justify-between p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 animate-pulse">
+                <span className="text-[10px] font-black uppercase text-emerald-500 tracking-wider">Идет сейчас</span>
+                <Timer size={14} className="text-emerald-500" />
+              </div>
+            )}
+            {timeUntil && !isActive && (
+              <div className="flex items-center justify-between p-3 rounded-xl bg-amber-500/10 border border-amber-500/20">
+                <span className="text-[10px] font-black uppercase text-amber-500 tracking-wider">Начнется через</span>
+                <span className="text-xs font-bold text-amber-500">{timeUntil}</span>
+              </div>
+            )}
+            {isUserRequired && (
+              <div className="flex items-center justify-between p-3 rounded-xl bg-blue-500/10 border border-blue-500/20">
+                <span className="text-[10px] font-black uppercase text-blue-500 tracking-wider">Вы участвуете</span>
+                <Users size={14} className="text-blue-500" />
+              </div>
+            )}
+          </div>
 
+          {/* Participants */}
+          {participants.length > 0 && (
+            <div className={`p-4 rounded-xl ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'} border ${borderColor}`}>
+              <p className={`text-[10px] font-black uppercase tracking-widest ${subtleColor} mb-2.5`}>Участники</p>
+              <div className="flex flex-wrap gap-1.5">
+                {participants.map((name, idx) => (
+                  <span
+                    key={idx}
+                    className={`px-2 py-1 rounded-lg text-[11px] font-bold ${theme === 'dark' ? 'bg-white/10 text-gray-300' : 'bg-white text-gray-700 shadow-sm'}`}
+                  >
+                    {name}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Admin Actions */}
           {isAdmin && (
-            <>
+            <div className="flex items-center gap-2 mt-auto pt-2">
               <button
                 onClick={() => onEdit(event)}
-                className={`p-2 rounded-lg transition-all ${theme === 'dark' ? 'hover:bg-white/10 text-gray-400 hover:text-white' : 'hover:bg-gray-100 text-gray-500 hover:text-gray-900'}`}
+                className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${theme === 'dark' ? 'bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white' : 'bg-gray-50 hover:bg-gray-100 text-gray-500 hover:text-gray-900'}`}
               >
-                <Edit size={16} />
+                <Edit size={14} />
+                Изменить
               </button>
               <button
                 onClick={() => onDelete(event.id)}
-                className={`p-2 rounded-lg transition-all ${theme === 'dark' ? 'hover:bg-red-500/20 text-red-400' : 'hover:bg-red-50 text-red-600'}`}
+                className={`p-2.5 rounded-xl transition-all ${theme === 'dark' ? 'bg-red-500/10 hover:bg-red-500/20 text-red-400' : 'bg-red-50 hover:bg-red-100 text-red-600'}`}
               >
                 <Trash2 size={16} />
               </button>
-            </>
+            </div>
           )}
         </div>
       </div>

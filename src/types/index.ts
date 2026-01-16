@@ -639,6 +639,11 @@ export const EVENT_CATEGORY_META: Record<EventCategory, { label: string; gradien
   },
 }
 
+export interface EventLink {
+  url: string
+  name: string
+}
+
 export interface EventFile {
   id: string
   name: string
@@ -654,7 +659,7 @@ export interface Event {
   category: EventCategory
   dates: string[] // Array of dates YYYY-MM-DD
   time: string // HH:mm format
-  links: string[] // Array of URLs
+  links: EventLink[] // Array of named URLs
   requiredParticipants: string[] // User IDs
   files: EventFile[]
   createdBy: string

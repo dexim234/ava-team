@@ -43,10 +43,10 @@ export const EventsPage = () => {
   const [loading, setLoading] = useState(true)
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [expandedId, setExpandedId] = useState<string | null>(null)
 
   // Filters
   const [categoryFilter, setCategoryFilter] = useState<EventCategory | 'all'>('all')
+  const [statusFilter, setStatusFilter] = useState<'all' | 'upcoming' | 'ongoing' | 'past'>('all')
   const [showFilters, setShowFilters] = useState(false)
   const [showMyOnly, setShowMyOnly] = useState(false)
   const [sortBy, setSortBy] = useState<'date' | 'created'>('date')
@@ -77,6 +77,30 @@ export const EventsPage = () => {
     // Filter by user's participation
     if (showMyOnly && user) {
       result = result.filter(e => e.requiredParticipants.includes(user.id))
+    }
+
+    // Filter by status
+    const now = new Date()
+    const currentDate = now.toISOString().split('T')[0]
+    const currentTime = now.toTimeString().slice(0, 5)
+
+    if (statusFilter !== 'all') {
+      result = result.filter(e => {
+        const isOngoing = e.dates.includes(currentDate) && e.time <= currentTime
+
+        // Refined past logic: if all dates are in the past, OR it's today but the time has passed and it's not "ongoing"
+        const allDatesPast = e.dates.every(d => d < currentDate)
+        const isToday = e.dates.includes(currentDate)
+        const isPastToday = isToday && e.time < currentTime
+
+        const upcomingDates = e.dates.filter(d => d > currentDate)
+        const isUpcoming = upcomingDates.length > 0 || (isToday && e.time > currentTime)
+
+        if (statusFilter === 'ongoing') return isOngoing
+        if (statusFilter === 'past') return allDatesPast || (isPastToday && !isOngoing)
+        if (statusFilter === 'upcoming') return isUpcoming
+        return true
+      })
     }
 
     // Sort
@@ -163,11 +187,10 @@ export const EventsPage = () => {
               <div className="flex flex-wrap gap-2">
                 <button
                   onClick={() => setCategoryFilter('all')}
-                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
-                    categoryFilter === 'all'
-                      ? 'bg-emerald-500 text-white'
-                      : theme === 'dark' ? 'bg-white/10 text-gray-300 hover:bg-white/20' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
+                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${categoryFilter === 'all'
+                    ? 'bg-emerald-500 text-white'
+                    : theme === 'dark' ? 'bg-white/10 text-gray-300 hover:bg-white/20' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
                 >
                   Все
                 </button>
@@ -178,17 +201,40 @@ export const EventsPage = () => {
                     <button
                       key={cat}
                       onClick={() => setCategoryFilter(cat)}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
-                        categoryFilter === cat
-                          ? `bg-gradient-to-r ${meta.gradient} text-white`
-                          : theme === 'dark' ? 'bg-white/10 text-gray-300 hover:bg-white/20' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                      }`}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${categoryFilter === cat
+                        ? `bg-gradient-to-r ${meta.gradient} text-white`
+                        : theme === 'dark' ? 'bg-white/10 text-gray-300 hover:bg-white/20' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        }`}
                     >
                       <IconComponent size={14} />
                       {meta.label}
                     </button>
                   )
                 })}
+              </div>
+            </div>
+
+            {/* Status filter */}
+            <div className="flex items-center gap-2">
+              <span className={`text-sm font-medium ${subtleColor}`}>Статус:</span>
+              <div className="flex flex-wrap gap-2">
+                {[
+                  { id: 'all', label: 'Все' },
+                  { id: 'upcoming', label: 'Предстоящие' },
+                  { id: 'ongoing', label: 'Идущие' },
+                  { id: 'past', label: 'Прошедшие' },
+                ].map((s) => (
+                  <button
+                    key={s.id}
+                    onClick={() => setStatusFilter(s.id as any)}
+                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${statusFilter === s.id
+                      ? 'bg-emerald-500 text-white'
+                      : theme === 'dark' ? 'bg-white/10 text-gray-300 hover:bg-white/20' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                  >
+                    {s.label}
+                  </button>
+                ))}
               </div>
             </div>
 
@@ -211,9 +257,8 @@ export const EventsPage = () => {
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as 'date' | 'created')}
-                className={`px-3 py-1.5 rounded-lg text-sm font-medium border ${borderColor} ${
-                  theme === 'dark' ? 'bg-white/5 text-white' : 'bg-gray-50 text-gray-900'
-                }`}
+                className={`px-3 py-1.5 rounded-lg text-sm font-medium border ${borderColor} ${theme === 'dark' ? 'bg-white/5 text-white' : 'bg-gray-50 text-gray-900'
+                  }`}
               >
                 <option value="date">По дате</option>
                 <option value="created">По созданию</option>
@@ -284,8 +329,6 @@ export const EventsPage = () => {
                   setIsModalOpen(true)
                 }}
                 onDelete={handleDelete}
-                expanded={expandedId === event.id}
-                onToggleExpand={() => setExpandedId(expandedId === event.id ? null : event.id)}
               />
             ))}
           </div>

@@ -59,14 +59,15 @@ export const EventModal = ({ event, onClose }: EventModalProps) => {
   const [category, setCategory] = useState<EventCategory>(event?.category || 'memecoins')
   const [dates, setDates] = useState<string[]>(event?.dates || [])
   const [time, setTime] = useState(event?.time || '12:00')
-  const [links, setLinks] = useState<string[]>(event?.links || [])
+  const [links, setLinks] = useState<Event['links']>(event?.links || [])
   const [requiredParticipants, setRequiredParticipants] = useState<string[]>(event?.requiredParticipants || [])
   const [files, setFiles] = useState<EventFile[]>(event?.files || [])
 
   // New date input
   const [newDate, setNewDate] = useState('')
   // New link input
-  const [newLink, setNewLink] = useState('')
+  const [newLinkUrl, setNewLinkUrl] = useState('')
+  const [newLinkName, setNewLinkName] = useState('')
 
   // File upload
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -93,14 +94,18 @@ export const EventModal = ({ event, onClose }: EventModalProps) => {
   }
 
   const handleAddLink = () => {
-    if (newLink && !links.includes(newLink)) {
-      setLinks(prev => [...prev, newLink.trim()])
-      setNewLink('')
+    if (newLinkUrl && !links.find(l => l.url === newLinkUrl)) {
+      setLinks(prev => [...prev, {
+        url: newLinkUrl.trim(),
+        name: newLinkName.trim() || `Ссылка ${prev.length + 1}`
+      }])
+      setNewLinkUrl('')
+      setNewLinkName('')
     }
   }
 
-  const handleRemoveLink = (link: string) => {
-    setLinks(prev => prev.filter(l => l !== link))
+  const handleRemoveLink = (url: string) => {
+    setLinks(prev => prev.filter(l => l.url !== url))
   }
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -167,7 +172,7 @@ export const EventModal = ({ event, onClose }: EventModalProps) => {
           category,
           dates,
           time,
-          links: links.filter(l => l.trim()),
+          links: links.map(l => ({ ...l, url: l.url.trim() })),
           requiredParticipants,
           files,
         })
@@ -179,7 +184,7 @@ export const EventModal = ({ event, onClose }: EventModalProps) => {
           category,
           dates,
           time,
-          links: links.filter(l => l.trim()),
+          links: links.map(l => ({ ...l, url: l.url.trim() })),
           requiredParticipants,
           files: [],
           createdBy: user?.id || '',
@@ -268,11 +273,10 @@ export const EventModal = ({ event, onClose }: EventModalProps) => {
                     key={cat}
                     type="button"
                     onClick={() => setCategory(cat)}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                      category === cat
-                        ? `bg-gradient-to-r ${catMeta.gradient} text-white`
-                        : theme === 'dark' ? 'bg-white/10 text-gray-300 hover:bg-white/20' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${category === cat
+                      ? `bg-gradient-to-r ${catMeta.gradient} text-white`
+                      : theme === 'dark' ? 'bg-white/10 text-gray-300 hover:bg-white/20' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
                   >
                     <CatIcon size={16} />
                     {catMeta.label}
@@ -371,16 +375,16 @@ export const EventModal = ({ event, onClose }: EventModalProps) => {
                   >
                     <LinkIcon size={16} className={subtleColor} />
                     <a
-                      href={link}
+                      href={link.url}
                       target="_blank"
                       rel="noopener noreferrer"
                       className={`flex-1 text-sm truncate ${theme === 'dark' ? 'text-emerald-400 hover:text-emerald-300' : 'text-emerald-600 hover:text-emerald-500'}`}
                     >
-                      {link}
+                      {link.name} <span className="text-[10px] opacity-50 ml-1">({link.url})</span>
                     </a>
                     <button
                       type="button"
-                      onClick={() => handleRemoveLink(link)}
+                      onClick={() => handleRemoveLink(link.url)}
                       className={`p-1.5 rounded-lg transition-all ${theme === 'dark' ? 'hover:bg-red-500/20 text-red-400' : 'hover:bg-red-50 text-red-600'}`}
                     >
                       <X size={14} />
@@ -391,25 +395,36 @@ export const EventModal = ({ event, onClose }: EventModalProps) => {
             )}
 
             {/* Add link input */}
-            <div className="flex gap-2">
-              <div className="relative flex-1">
-                <LinkIcon size={18} className={`absolute left-4 top-1/2 -translate-y-1/2 ${subtleColor}`} />
-                <input
-                  type="url"
-                  value={newLink}
-                  onChange={(e) => setNewLink(e.target.value)}
-                  placeholder="https://..."
-                  className={`w-full pl-12 pr-4 py-3 rounded-xl border ${borderColor} ${inputBg} ${textColor} placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-emerald-500`}
-                />
+            <div className="space-y-2">
+              <div className="flex gap-2">
+                <div className="relative flex-[2]">
+                  <LinkIcon size={18} className={`absolute left-4 top-1/2 -translate-y-1/2 ${subtleColor}`} />
+                  <input
+                    type="url"
+                    value={newLinkUrl}
+                    onChange={(e) => setNewLinkUrl(e.target.value)}
+                    placeholder="https://..."
+                    className={`w-full pl-12 pr-4 py-3 rounded-xl border ${borderColor} ${inputBg} ${textColor} placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-emerald-500`}
+                  />
+                </div>
+                <div className="relative flex-1">
+                  <input
+                    type="text"
+                    value={newLinkName}
+                    onChange={(e) => setNewLinkName(e.target.value)}
+                    placeholder="Название"
+                    className={`w-full px-4 py-3 rounded-xl border ${borderColor} ${inputBg} ${textColor} placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-emerald-500`}
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={handleAddLink}
+                  disabled={!newLinkUrl.trim()}
+                  className="px-4 py-3 rounded-xl bg-emerald-500 text-white font-medium hover:bg-emerald-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Plus size={18} />
+                </button>
               </div>
-              <button
-                type="button"
-                onClick={handleAddLink}
-                disabled={!newLink.trim()}
-                className="px-4 py-3 rounded-xl bg-emerald-500 text-white font-medium hover:bg-emerald-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <Plus size={18} />
-              </button>
             </div>
           </div>
 
@@ -424,11 +439,10 @@ export const EventModal = ({ event, onClose }: EventModalProps) => {
                   key={member.id}
                   type="button"
                   onClick={() => toggleParticipant(member.id)}
-                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
-                    requiredParticipants.includes(member.id)
-                      ? 'bg-emerald-500 text-white'
-                      : theme === 'dark' ? 'bg-white/10 text-gray-300 hover:bg-white/20' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
+                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${requiredParticipants.includes(member.id)
+                    ? 'bg-emerald-500 text-white'
+                    : theme === 'dark' ? 'bg-white/10 text-gray-300 hover:bg-white/20' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
                 >
                   {member.name}
                 </button>
@@ -513,9 +527,8 @@ export const EventModal = ({ event, onClose }: EventModalProps) => {
             <button
               type="button"
               onClick={onClose}
-              className={`px-6 py-3 rounded-xl font-medium transition-all ${
-                theme === 'dark' ? 'hover:bg-white/10 text-gray-300' : 'hover:bg-gray-100 text-gray-700'
-              }`}
+              className={`px-6 py-3 rounded-xl font-medium transition-all ${theme === 'dark' ? 'hover:bg-white/10 text-gray-300' : 'hover:bg-gray-100 text-gray-700'
+                }`}
             >
               Отмена
             </button>
