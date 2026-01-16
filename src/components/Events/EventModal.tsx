@@ -61,6 +61,7 @@ export const EventModal = ({ event, onClose }: EventModalProps) => {
   const [time, setTime] = useState(event?.time || '12:00')
   const [links, setLinks] = useState<Event['links']>(event?.links || [])
   const [requiredParticipants, setRequiredParticipants] = useState<string[]>(event?.requiredParticipants || [])
+  const [recommendedParticipants, setRecommendedParticipants] = useState<string[]>(event?.recommendedParticipants || [])
   const [going] = useState<string[]>(event?.going || [])
   const [notGoing] = useState<string[]>(event?.notGoing || [])
   const [files, setFiles] = useState<EventFile[]>(event?.files || [])
@@ -176,6 +177,7 @@ export const EventModal = ({ event, onClose }: EventModalProps) => {
           time,
           links: links.map(l => ({ ...l, url: l.url.trim() })),
           requiredParticipants,
+          recommendedParticipants,
           going,
           notGoing,
           files,
@@ -190,6 +192,7 @@ export const EventModal = ({ event, onClose }: EventModalProps) => {
           time,
           links: links.map(l => ({ ...l, url: l.url.trim() })),
           requiredParticipants,
+          recommendedParticipants,
           going: [],
           notGoing: [],
           files: [],
@@ -212,12 +215,27 @@ export const EventModal = ({ event, onClose }: EventModalProps) => {
     }
   }
 
-  const toggleParticipant = (userId: string) => {
-    setRequiredParticipants(prev =>
-      prev.includes(userId)
-        ? prev.filter(id => id !== userId)
-        : [...prev, userId]
-    )
+  const toggleRecommendedParticipant = (userId: string) => {
+    setRecommendedParticipants(prev => {
+      if (prev.includes(userId)) {
+        return prev.filter(id => id !== userId)
+      }
+      // If adding to recommended, remove from required
+      setRequiredParticipants(r => r.filter(id => id !== userId))
+      return [...prev, userId]
+    })
+  }
+
+  // Update toggleParticipant to also remove from recommended if added to required
+  const toggleRequiredParticipant = (userId: string) => {
+    setRequiredParticipants(prev => {
+      if (prev.includes(userId)) {
+        return prev.filter(id => id !== userId)
+      }
+      // If adding to required, remove from recommended
+      setRecommendedParticipants(r => r.filter(id => id !== userId))
+      return [...prev, userId]
+    })
   }
 
   return (
@@ -449,9 +467,31 @@ export const EventModal = ({ event, onClose }: EventModalProps) => {
                 <button
                   key={member.id}
                   type="button"
-                  onClick={() => toggleParticipant(member.id)}
+                  onClick={() => toggleRequiredParticipant(member.id)}
                   className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${requiredParticipants.includes(member.id)
                     ? 'bg-emerald-500 text-white'
+                    : theme === 'dark' ? 'bg-white/10 text-gray-300 hover:bg-white/20' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                >
+                  {member.name}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Recommended Participants */}
+          <div>
+            <label className={`block text-sm font-medium mb-2 ${textColor}`}>
+              Рекомендованные участники
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {allMembers.map((member) => (
+                <button
+                  key={member.id}
+                  type="button"
+                  onClick={() => toggleRecommendedParticipant(member.id)}
+                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${recommendedParticipants.includes(member.id)
+                    ? 'bg-blue-500 text-white'
                     : theme === 'dark' ? 'bg-white/10 text-gray-300 hover:bg-white/20' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
                 >

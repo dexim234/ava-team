@@ -106,8 +106,14 @@ export const EventCard = memo(({ event, isAdmin, onEdit, onDelete }: EventCardPr
     return member?.name || 'Unknown'
   }).filter(Boolean)
 
-  // Check if current user is required
+  const recommendedNames = (event.recommendedParticipants || []).map(id => {
+    const member = allMembers.find(m => m.id === id)
+    return member?.name || 'Unknown'
+  }).filter(Boolean)
+
+  // Check if current user is involved
   const isUserRequired = user && event.requiredParticipants.includes(user.id)
+  const isUserRecommended = user && (event.recommendedParticipants || []).includes(user.id)
 
   // Format date helper
   const formatDate = (dateStr: string) => {
@@ -238,9 +244,9 @@ export const EventCard = memo(({ event, isAdmin, onEdit, onDelete }: EventCardPr
             ))}
           </div>
 
-          {/* RSVP Actions */}
+          {/* RSVP Actions - Desktop only */}
           {user && (
-            <div className="mt-6 flex flex-col sm:flex-row gap-2">
+            <div className="hidden lg:flex mt-6 flex-col sm:flex-row gap-2">
               <button
                 onClick={() => handleRSVP(true)}
                 className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all shadow-md ${isUserGoing
@@ -284,9 +290,23 @@ export const EventCard = memo(({ event, isAdmin, onEdit, onDelete }: EventCardPr
                 <span className="text-sm font-black text-amber-500">{timeUntil}</span>
               </div>
             )}
-            {isUserRequired && (
+            {isUserGoing && (
+              <div className="flex items-center justify-between p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 shadow-inner">
+                <span className="text-[10px] font-black uppercase text-emerald-500 tracking-wider">Вы идете</span>
+                <CheckCircle2 size={16} className="text-emerald-500" />
+              </div>
+            )}
+            {isUserNotGoing && (
+              <div className="flex items-center justify-between p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 shadow-inner">
+                <span className="text-[10px] font-black uppercase text-rose-500 tracking-wider">Вы не идете</span>
+                <XCircle size={16} className="text-rose-500" />
+              </div>
+            )}
+            {!isUserGoing && !isUserNotGoing && (isUserRequired || isUserRecommended) && (
               <div className="flex items-center justify-between p-4 rounded-2xl bg-blue-500/10 border border-blue-500/20 shadow-inner">
-                <span className="text-[10px] font-black uppercase text-blue-500 tracking-wider">Вы участвуете</span>
+                <span className="text-[10px] font-black uppercase text-blue-500 tracking-wider">
+                  {isUserRequired ? 'Вы участвуете' : 'Рекомендовано вам'}
+                </span>
                 <Users size={16} className="text-blue-500" />
               </div>
             )}
@@ -352,6 +372,26 @@ export const EventCard = memo(({ event, isAdmin, onEdit, onDelete }: EventCardPr
             </div>
           )}
 
+          {/* Recommended Participants */}
+          {recommendedNames.length > 0 && (
+            <div className={`p-5 rounded-2xl ${theme === 'dark' ? 'bg-white/5 shadow-inner' : 'bg-gray-50'} border ${borderColor}`}>
+              <div className="flex items-center gap-2 mb-3.5">
+                <Users size={14} className={subtleColor} />
+                <p className={`text-[10px] font-black uppercase tracking-widest ${subtleColor}`}>Рекомендованные</p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {recommendedNames.map((name, idx) => (
+                  <span
+                    key={idx}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold ${theme === 'dark' ? 'bg-white/10 text-gray-300' : 'bg-white text-gray-700 shadow-sm'}`}
+                  >
+                    {name}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Admin Actions */}
           {isAdmin && (
             <div className="flex items-center gap-3 mt-auto pt-4 border-t border-white/5 lg:border-none">
@@ -372,6 +412,32 @@ export const EventCard = memo(({ event, isAdmin, onEdit, onDelete }: EventCardPr
           )}
         </div>
       </div>
+
+      {/* RSVP Actions - Mobile ONLY - at the very bottom */}
+      {user && (
+        <div className="lg:hidden mt-6 flex flex-col sm:flex-row gap-2">
+          <button
+            onClick={() => handleRSVP(true)}
+            className={`flex-1 flex items-center justify-center gap-2 px-4 py-3.5 rounded-xl text-sm font-bold transition-all shadow-md ${isUserGoing
+              ? 'bg-emerald-500 text-white shadow-emerald-500/20 ring-1 ring-emerald-500 ring-offset-1 ring-offset-transparent'
+              : 'bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 shadow-none'
+              }`}
+          >
+            <CheckCircle2 size={18} />
+            <span>Я буду</span>
+          </button>
+          <button
+            onClick={() => handleRSVP(false)}
+            className={`flex-1 flex items-center justify-center gap-2 px-4 py-3.5 rounded-xl text-sm font-bold transition-all shadow-md ${isUserNotGoing
+              ? 'bg-rose-500 text-white shadow-rose-500/20 ring-1 ring-rose-500 ring-offset-1 ring-offset-transparent'
+              : 'bg-rose-500/10 text-rose-500 hover:bg-rose-500/20 shadow-none'
+              }`}
+          >
+            <XCircle size={18} />
+            <span>Меня не будет</span>
+          </button>
+        </div>
+      )}
     </div>
   )
 })
