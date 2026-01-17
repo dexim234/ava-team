@@ -16,6 +16,7 @@ import {
   BookOpen
 } from 'lucide-react'
 import logo from '../assets/logo.png'
+import { ForgotPasswordModal } from '@/components/Auth/ForgotPasswordModal'
 
 // Declare Telegram WebApp types
 declare global {
@@ -52,6 +53,7 @@ export const Login = () => {
   const { activateAdmin } = useAdminStore()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
+  const [isForgotModalOpen, setIsForgotModalOpen] = useState(false)
 
   // Apply theme to body on mount and theme change
   useEffect(() => {
@@ -341,14 +343,13 @@ export const Login = () => {
                 </div>
                 <span className={`text-sm font-bold ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Запомнить меня</span>
               </label>
-              <a
-                href="https://t.me/artyommedoed"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-sm font-bold text-emerald-500 hover:text-emerald-600"
+              <button
+                type="button"
+                onClick={() => setIsForgotModalOpen(true)}
+                className="text-sm font-bold text-emerald-500 hover:text-emerald-600 transition-colors"
               >
                 Забыли пароль?
-              </a>
+              </button>
             </div>
 
             {error && (
@@ -396,6 +397,12 @@ export const Login = () => {
           {/* Copyright footnote removed per user request */}
         </div>
       </div>
+      {isForgotModalOpen && (
+        <ForgotPasswordModal
+          theme={theme as 'dark' | 'light'}
+          onClose={() => setIsForgotModalOpen(false)}
+        />
+      )}
     </div>
   )
 }

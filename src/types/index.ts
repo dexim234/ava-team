@@ -6,6 +6,7 @@ export interface User {
   avatar?: string // Путь к изображению аватара
   role?: string
   nickname?: string
+  recoveryCode?: string
 }
 
 // Slot types
@@ -386,10 +387,10 @@ export interface Note {
 
 // Team members
 export const TEAM_MEMBERS: User[] = [
-  { id: '1', name: 'Артём', login: 'artyom03', password: '248artdex', avatar: '/avatars/artyom.jpg' },
-  { id: '2', name: 'Enowk', login: 'adel05', password: '058adeldex', avatar: '/avatars/adel.jpg' },
-  { id: '3', name: 'Ксения', login: 'ksen03', password: '907ksendex', avatar: '/avatars/kseniya.jpg' },
-  { id: '4', name: 'Ольга', login: 'olga04', password: '638olgadex', avatar: '/avatars/olga.jpg' },
+  { id: '1', name: 'Артём', login: 'dexim03@apevault.io', password: '095deximadmpro.03', recoveryCode: '20035009', avatar: '/avatars/artyom.jpg' },
+  { id: '2', name: 'Адель', login: 'enowk05@apevault.io', password: '101enowk.05', recoveryCode: '2005100', avatar: '/avatars/adel.jpg' },
+  { id: '3', name: 'Ксения', login: 'ksen03@apevault.io', password: '03ksen.03-@!', recoveryCode: '20037958', avatar: '/avatars/kseniya.jpg' },
+  { id: '4', name: 'Ольга', login: 'lelik-304@apevault.io', password: '040lelik.04', recoveryCode: '200423', avatar: '/avatars/olga.jpg' },
 ]
 
 export const TASK_CATEGORIES: Record<TaskCategory, { label: string; icon: string; color: string }> = {
