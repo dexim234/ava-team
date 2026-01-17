@@ -10,12 +10,11 @@ import {
     ChevronDown,
     ChevronUp,
     Info,
-    CheckCircle2,
-    AlertCircle,
     Twitter,
     Send,
     Target,
-    Calculator
+    Calculator,
+    AlertCircle
 } from 'lucide-react'
 
 interface StrategyStepProps {
@@ -32,8 +31,8 @@ const StrategyStep: React.FC<StrategyStepProps> = ({ number, title, children, ic
 
     return (
         <div className={`overflow-hidden rounded-2xl border transition-all duration-300 ${theme === 'dark'
-            ? 'bg-[#1a212a]/50 border-white/5 shadow-inner'
-            : 'bg-white border-gray-100 shadow-sm'
+                ? 'bg-[#1a212a]/50 border-white/5 shadow-inner'
+                : 'bg-white border-gray-100 shadow-sm'
             }`}>
             <button
                 onClick={onToggle}
@@ -70,14 +69,9 @@ const StrategyStep: React.FC<StrategyStepProps> = ({ number, title, children, ic
 export const AVFLateVolumeStrategy: React.FC = () => {
     const { theme } = useThemeStore()
     const [openStep, setOpenStep] = useState<number | null>(1)
-    const [checks, setChecks] = useState<Record<string, boolean>>({})
 
     const toggleStep = (step: number) => {
         setOpenStep(openStep === step ? null : step)
-    }
-
-    const toggleCheck = (id: string) => {
-        setChecks(prev => ({ ...prev, [id]: !prev[id] }))
     }
 
     const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
@@ -86,8 +80,8 @@ export const AVFLateVolumeStrategy: React.FC = () => {
         <div className="space-y-8 animate-fade-in">
             {/* Strategy Intro */}
             <div className={`relative overflow-hidden rounded-3xl p-8 border ${theme === 'dark'
-                ? 'bg-gradient-to-br from-[#1a212a] to-[#0f1216] border-blue-500/20 shadow-2xl'
-                : 'bg-gradient-to-br from-white to-blue-50/30 border-blue-500/10 shadow-xl'
+                    ? 'bg-gradient-to-br from-[#1a212a] to-[#0f1216] border-blue-500/20 shadow-2xl'
+                    : 'bg-gradient-to-br from-white to-blue-50/30 border-blue-500/10 shadow-xl'
                 }`}>
                 <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/5 blur-3xl rounded-full -mr-20 -mt-20 pointer-events-none"></div>
 
@@ -259,50 +253,33 @@ export const AVFLateVolumeStrategy: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* Express Check */}
+                    {/* Express Check Summary */}
                     <div className={`rounded-2xl p-6 border ${theme === 'dark' ? 'bg-blue-500/5 border-blue-500/20' : 'bg-blue-50 border-blue-500/20'
                         } shadow-lg space-y-4`}>
                         <div className="flex items-center gap-3">
-                            <CheckCircle2 className={`w-6 h-6 text-blue-500`} />
+                            <AlertCircle className={`w-6 h-6 text-blue-500`} />
                             <h3 className={`text-lg font-black ${headingColor}`}>Экспресс-чек</h3>
                         </div>
-
-                        <div className="space-y-2">
-                            {[
-                                { id: 'ath', label: 'ATH-кап ≥ 500k USD' },
-                                { id: 'curr', label: 'Current кап > 20k USD' },
-                                { id: 'drawdown', label: 'Просадка 50–90%' },
-                                { id: 'social', label: '3+ упоминания в X (5k+)' },
-                                { id: 'holders', label: 'Топ-1 < 3%, Топ-10 < 20%' },
-                            ].map((item) => (
-                                <button
-                                    key={item.id}
-                                    onClick={() => toggleCheck(item.id)}
-                                    className={`w-full flex items-center gap-3 p-2 rounded-lg transition-colors ${checks[item.id]
-                                        ? theme === 'dark' ? 'bg-blue-500/20' : 'bg-blue-500/10'
-                                        : 'hover:bg-white/5'
-                                        }`}
-                                >
-                                    <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${checks[item.id]
-                                        ? 'bg-blue-500 border-blue-500'
-                                        : theme === 'dark' ? 'border-white/20' : 'border-gray-300'
-                                        }`}>
-                                        {checks[item.id] && <CheckCircle2 className="w-4 h-4 text-white" />}
-                                    </div>
-                                    <span className={`text-sm font-medium ${checks[item.id] ? theme === 'dark' ? 'text-white' : 'text-gray-900' : 'text-gray-500'
-                                        }`}>
-                                        {item.label}
-                                    </span>
-                                </button>
-                            ))}
-                        </div>
-
-                        <div className={`p-3 rounded-xl border border-dashed ${Object.values(checks).filter(Boolean).length === 5
-                            ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
-                            : 'bg-white/5 border-white/10 text-gray-500'
-                            } text-center transition-all duration-500`}>
-                            <p className="text-[10px] font-black uppercase tracking-widest">
-                                {Object.values(checks).filter(Boolean).length === 5 ? 'ГОТОВ К ВХОДУ' : 'ВХОД ЗАПРЕЩЕН'}
+                        <div className={`space-y-1.5 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} text-sm`}>
+                            <p className="flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                                ATH-кап ≥ 500k USD
+                            </p>
+                            <p className="flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                                Current кап {'>'} 20k USD
+                            </p>
+                            <p className="flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                                Просадка 50–90%
+                            </p>
+                            <p className="flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                                3+ упоминания в X (5k+)
+                            </p>
+                            <p className="flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                                Топ-1 {'<'} 3%, Топ-10 ≤ 20%
                             </p>
                         </div>
                     </div>

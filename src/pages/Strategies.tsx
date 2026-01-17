@@ -1,16 +1,35 @@
 import { useState } from 'react'
 import { useThemeStore } from '@/store/themeStore'
-import { TrendingUp, Rocket, Shield, LineChart } from 'lucide-react'
+import {
+    TrendingUp,
+    Rocket,
+    Shield,
+    LineChart,
+    BarChart3,
+    Image as ImageIcon,
+    Database,
+    Wallet2,
+    Zap,
+    Gift
+} from 'lucide-react'
 import { MemecoinStrategies } from '@/components/Strategies/MemecoinStrategies'
+
+type TabType = 'memecoins' | 'polymarket' | 'nft' | 'staking' | 'spot' | 'futures' | 'airdrop' | 'other';
 
 export const Strategies = () => {
     const { theme } = useThemeStore()
-    const [activeTab, setActiveTab] = useState<'memecoins' | 'other'>('memecoins')
+    const [activeTab, setActiveTab] = useState<TabType>('memecoins')
 
     const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
 
     const tabs = [
         { id: 'memecoins', label: 'Мемкоины', icon: <Rocket className="w-4 h-4" /> },
+        { id: 'polymarket', label: 'Polymarket', icon: <BarChart3 className="w-4 h-4" /> },
+        { id: 'nft', label: 'NFT', icon: <ImageIcon className="w-4 h-4" /> },
+        { id: 'staking', label: 'Стейкинг', icon: <Database className="w-4 h-4" /> },
+        { id: 'spot', label: 'Спот', icon: <Wallet2 className="w-4 h-4" /> },
+        { id: 'futures', label: 'Фьючерсы', icon: <Zap className="w-4 h-4" /> },
+        { id: 'airdrop', label: 'AirDrop', icon: <Gift className="w-4 h-4" /> },
         { id: 'other', label: 'Скоро...', icon: <Shield className="w-4 h-4" />, disabled: true },
     ]
 
@@ -39,37 +58,42 @@ export const Strategies = () => {
                 </div>
             </div>
 
-            {/* Tabs Navigation */}
-            <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-white/5 border border-white/5 w-fit backdrop-blur-sm">
-                {tabs.map((tab) => (
-                    <button
-                        key={tab.id}
-                        disabled={tab.disabled}
-                        onClick={() => !tab.disabled && setActiveTab(tab.id as any)}
-                        className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${activeTab === tab.id
-                                ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/25'
-                                : tab.disabled
-                                    ? 'opacity-30 cursor-not-allowed text-gray-500'
-                                    : 'text-gray-400 hover:bg-white/5 hover:text-white'
-                            }`}
-                    >
-                        {tab.icon}
-                        {tab.label}
-                    </button>
-                ))}
+            {/* Tabs Navigation - Scrollable on small screens */}
+            <div className="overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
+                <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-white/5 border border-white/5 w-fit backdrop-blur-sm min-w-max">
+                    {tabs.map((tab) => (
+                        <button
+                            key={tab.id}
+                            disabled={tab.disabled}
+                            onClick={() => !tab.disabled && setActiveTab(tab.id as TabType)}
+                            className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${activeTab === tab.id
+                                    ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/25'
+                                    : tab.disabled
+                                        ? 'opacity-30 cursor-not-allowed text-gray-500'
+                                        : 'text-gray-400 hover:bg-white/5 hover:text-white'
+                                }`}
+                        >
+                            {tab.icon}
+                            {tab.label}
+                        </button>
+                    ))}
+                </div>
             </div>
 
             {/* Tab Content */}
             <div className="animate-fade-in">
-                {activeTab === 'memecoins' && <MemecoinStrategies />}
-                {activeTab === 'other' && (
+                {activeTab === 'memecoins' ? (
+                    <MemecoinStrategies />
+                ) : (
                     <div className="py-20 text-center space-y-4">
                         <div className="flex justify-center">
                             <LineChart className="w-16 h-16 text-gray-700 animate-pulse" />
                         </div>
-                        <h3 className={`text-xl font-black ${headingColor}`}>В разработке</h3>
-                        <p className="text-gray-500 max-w-md mx-auto">
-                            Мы готовим новые стратегические модули для глубокого анализа рынка.
+                        <h3 className={`text-xl font-black ${headingColor}`}>
+                            {tabs.find(t => t.id === activeTab)?.label} — В разработке
+                        </h3>
+                        <p className="text-gray-500 max-w-md mx-auto px-4">
+                            Мы готовим новые контентные модули и стратегии для данного направления. Следите за обновлениями в AVF Контур.
                         </p>
                     </div>
                 )}
