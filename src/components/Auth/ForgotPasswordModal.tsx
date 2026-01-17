@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { X, Lock, Key, AlertTriangle, ShieldCheck } from 'lucide-react'
+import { X, Lock, AlertTriangle, ShieldCheck } from 'lucide-react'
 import { TEAM_MEMBERS } from '@/types'
 
 interface ForgotPasswordModalProps {
@@ -79,15 +79,12 @@ export const ForgotPasswordModal = ({ onClose, theme }: ForgotPasswordModalProps
                                         Логин / Email
                                     </label>
                                     <div className="relative group">
-                                        <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-gray-500 group-focus-within:text-emerald-500 transition-colors duration-300">
-                                            <Lock className="w-4.5 h-4.5" />
-                                        </div>
                                         <input
                                             type="text"
                                             value={login}
                                             onChange={(e) => setLogin(e.target.value)}
                                             placeholder="example@apevault.io"
-                                            className={`w-full pl-13 pr-5 py-4.5 rounded-[1.25rem] border transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-emerald-500/10 ${theme === 'dark'
+                                            className={`w-full px-5 py-4.5 rounded-[1.25rem] border transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-emerald-500/10 ${theme === 'dark'
                                                 ? 'bg-white/5 border-white/10 text-white placeholder-gray-600 focus:border-emerald-500/50'
                                                 : 'bg-gray-50/50 border-gray-200 text-gray-900 placeholder-gray-400 focus:border-emerald-500/50'}`}
                                             required
@@ -100,15 +97,12 @@ export const ForgotPasswordModal = ({ onClose, theme }: ForgotPasswordModalProps
                                         Специальный код
                                     </label>
                                     <div className="relative group">
-                                        <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-gray-500 group-focus-within:text-emerald-500 transition-colors duration-300">
-                                            <Key className="w-4.5 h-4.5" />
-                                        </div>
                                         <input
                                             type="text"
                                             value={code}
                                             onChange={(e) => setCode(e.target.value)}
                                             placeholder="00000000"
-                                            className={`w-full pl-13 pr-5 py-4.5 rounded-[1.25rem] border transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-emerald-500/10 ${theme === 'dark'
+                                            className={`w-full px-5 py-4.5 rounded-[1.25rem] border transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-emerald-500/10 ${theme === 'dark'
                                                 ? 'bg-white/5 border-white/10 text-white placeholder-gray-600 focus:border-emerald-500/50'
                                                 : 'bg-gray-50/50 border-gray-200 text-gray-900 placeholder-gray-400 focus:border-emerald-500/50'}`}
                                             required
