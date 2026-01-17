@@ -118,7 +118,7 @@ export const ForgotPasswordModal = ({ onClose, theme }: ForgotPasswordModalProps
                                             <AlertTriangle className="w-5 h-5 text-amber-500" />
                                         </div>
                                         <p className="text-[11px] font-bold text-amber-600 dark:text-amber-400/80 leading-relaxed normal-case">
-                                            Внимание: если вы забыли специальный код, восстановить его невозможно, доступ к аккаунту утерян навсегда.
+                                            Если забыли специальный код, восстановить его невозможно, доступ к аккаунту утерян навсегда.
                                         </p>
                                     </div>
                                 </div>
