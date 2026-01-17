@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useThemeStore } from '@/store/themeStore'
 import {
     Lightbulb,
@@ -13,9 +13,13 @@ import {
     Search
 } from 'lucide-react'
 import { AVFLateVolumeStrategy } from './AVFLateVolumeStrategy'
+import { AVFIntradayStrategy } from './AVFIntradayStrategy'
+
+type StrategyId = 'late-volume' | 'intraday';
 
 export const MemecoinStrategies: React.FC = () => {
     const { theme } = useThemeStore()
+    const [activeStrategy, setActiveStrategy] = useState<StrategyId>('late-volume')
 
     const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
 
@@ -27,6 +31,11 @@ export const MemecoinStrategies: React.FC = () => {
         { title: 'Фибоначчи', icon: <BarChart className="w-5 h-5 text-rose-400" />, desc: 'Технический анализ уровней' },
         { title: 'Нарративы', icon: <MessageSquare className="w-5 h-5 text-sky-400" />, desc: 'Анализ рыночных трендов' },
         { title: 'Ончейн-анализ', icon: <Search className="w-5 h-5 text-indigo-400" />, desc: 'Отслеживание кошельков и китов' },
+    ]
+
+    const strategies = [
+        { id: 'late-volume', name: 'AVF Late Volume', icon: <BarChart className="w-4 h-4" /> },
+        { id: 'intraday', name: 'AVF Intraday', icon: <Zap className="w-4 h-4" /> },
     ]
 
     return (
@@ -50,8 +59,8 @@ export const MemecoinStrategies: React.FC = () => {
                         <div
                             key={idx}
                             className={`group p-5 rounded-2xl border transition-all duration-300 hover:shadow-lg ${theme === 'dark'
-                                    ? 'bg-[#151a21]/50 border-white/5 hover:border-purple-500/30'
-                                    : 'bg-white border-gray-100 hover:border-purple-500/20'
+                                ? 'bg-[#151a21]/50 border-white/5 hover:border-purple-500/30'
+                                : 'bg-white border-gray-100 hover:border-purple-500/20'
                                 }`}
                         >
                             <div className={`p-2.5 rounded-xl w-fit mb-4 ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'} group-hover:scale-110 transition-transform`}>
@@ -66,15 +75,34 @@ export const MemecoinStrategies: React.FC = () => {
 
             {/* 2. Strategies Block */}
             <section className="space-y-6">
-                <div className="flex items-center gap-3">
-                    <div className="p-2 bg-blue-500/10 rounded-xl border border-blue-500/20">
-                        <Lightbulb className="w-6 h-6 text-blue-500" />
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2 bg-blue-500/10 rounded-xl border border-blue-500/20">
+                            <Lightbulb className="w-6 h-6 text-blue-500" />
+                        </div>
+                        <div>
+                            <h3 className={`text-xl font-black ${headingColor}`}>Стратегии</h3>
+                            <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                                Проверенные методики отбора и управления позициями
+                            </p>
+                        </div>
                     </div>
-                    <div>
-                        <h3 className={`text-xl font-black ${headingColor}`}>Стратегии</h3>
-                        <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                            Проверенные методики отбора и управления позициями
-                        </p>
+
+                    {/* Strategy Selector */}
+                    <div className={`flex p-1 rounded-xl w-fit ${theme === 'dark' ? 'bg-white/5 border border-white/5' : 'bg-gray-100'}`}>
+                        {strategies.map(s => (
+                            <button
+                                key={s.id}
+                                onClick={() => setActiveStrategy(s.id as StrategyId)}
+                                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all duration-300 ${activeStrategy === s.id
+                                    ? 'bg-blue-500 text-white shadow-md'
+                                    : 'text-gray-500 hover:text-gray-400'
+                                    }`}
+                            >
+                                {s.icon}
+                                {s.name}
+                            </button>
+                        ))}
                     </div>
                 </div>
 
@@ -82,7 +110,7 @@ export const MemecoinStrategies: React.FC = () => {
                     } shadow-xl`}>
                     <div className={`p-6 sm:p-8 rounded-[2.5rem] ${theme === 'dark' ? 'bg-[#151a21]/50' : 'bg-gray-50/50'
                         }`}>
-                        <AVFLateVolumeStrategy />
+                        {activeStrategy === 'late-volume' ? <AVFLateVolumeStrategy /> : <AVFIntradayStrategy />}
                     </div>
                 </div>
             </section>
