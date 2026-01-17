@@ -10,12 +10,14 @@ import {
     Repeat,
     BarChart,
     MessageSquare,
-    Search
+    Search,
+    Timer
 } from 'lucide-react'
 import { AVFLateVolumeStrategy } from './AVFLateVolumeStrategy'
 import { AVFIntradayStrategy } from './AVFIntradayStrategy'
+import { AVFFlipStrategy } from './AVFFlipStrategy'
 
-type StrategyId = 'late-volume' | 'intraday';
+type StrategyId = 'late-volume' | 'intraday' | 'flip';
 
 export const MemecoinStrategies: React.FC = () => {
     const { theme } = useThemeStore()
@@ -36,6 +38,7 @@ export const MemecoinStrategies: React.FC = () => {
     const strategies = [
         { id: 'late-volume', name: 'AVF Late Volume', icon: <BarChart className="w-4 h-4" /> },
         { id: 'intraday', name: 'AVF Intraday', icon: <Zap className="w-4 h-4" /> },
+        { id: 'flip', name: 'AVF FLIP-1S', icon: <Timer className="w-4 h-4" /> },
     ]
 
     return (
@@ -110,7 +113,13 @@ export const MemecoinStrategies: React.FC = () => {
                     } shadow-xl`}>
                     <div className={`p-6 sm:p-8 rounded-[2.5rem] ${theme === 'dark' ? 'bg-[#151a21]/50' : 'bg-gray-50/50'
                         }`}>
-                        {activeStrategy === 'late-volume' ? <AVFLateVolumeStrategy /> : <AVFIntradayStrategy />}
+                        {activeStrategy === 'late-volume' ? (
+                            <AVFLateVolumeStrategy />
+                        ) : activeStrategy === 'intraday' ? (
+                            <AVFIntradayStrategy />
+                        ) : (
+                            <AVFFlipStrategy />
+                        )}
                     </div>
                 </div>
             </section>

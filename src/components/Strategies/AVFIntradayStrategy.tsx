@@ -140,8 +140,33 @@ export const AVFIntradayStrategy: React.FC = () => {
                 ))}
             </div>
 
+            {/* 3. Logic & Summary (Moved Up) */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className={`rounded-2xl p-6 border-l-8 ${theme === 'dark' ? 'bg-[#0b1015] border-orange-500/50' : 'bg-gray-50 border-orange-500/30'
+                    } flex gap-4 items-start`}>
+                    <HelpCircle className="w-8 h-8 text-orange-500 shrink-0" />
+                    <div className="space-y-2">
+                        <h4 className={`text-lg font-black ${headingColor}`}>Суть стратегии</h4>
+                        <p className={`text-xs leading-relaxed ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                            Это не про угадывание, это рабочая рутина. Результат достигается анализом, а не спешкой. Один пропущенный красный флаг перечеркивает серию прибыльных сделок. Если токен требует оправданий — он не торгуется.
+                        </p>
+                    </div>
+                </div>
+
+                <div className={`rounded-2xl p-6 border ${theme === 'dark' ? 'bg-blue-500/5 border-blue-500/20' : 'bg-blue-50 border-blue-500/20'
+                    } flex gap-4 items-start`}>
+                    <ShieldAlert className="w-8 h-8 text-blue-500 shrink-0" />
+                    <div className="space-y-2">
+                        <h4 className={`text-lg font-black ${headingColor}`}>Кому подходит?</h4>
+                        <p className={`text-xs leading-relaxed ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                            Трейдерам, ценящим структуру и понятные правила. Новичкам с небольшим депо и опытным филлерам, желающим диверсифицировать стиль через 15–60 минут после старта токена.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* 3. Main Steps */}
+                {/* 4. Main Steps */}
                 <div className="lg:col-span-2 space-y-4">
                     <div className="flex items-center gap-3 mb-2">
                         <LayoutList className={`w-6 h-6 ${theme === 'dark' ? 'text-orange-400' : 'text-orange-500'}`} />
@@ -352,30 +377,6 @@ export const AVFIntradayStrategy: React.FC = () => {
                 </div>
             </div>
 
-            {/* 5. Logic & Summary */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className={`rounded-2xl p-6 border-l-8 ${theme === 'dark' ? 'bg-[#0b1015] border-orange-500/50' : 'bg-gray-50 border-orange-500/30'
-                    } flex gap-4 items-start`}>
-                    <HelpCircle className="w-8 h-8 text-orange-500 shrink-0" />
-                    <div className="space-y-2">
-                        <h4 className={`text-lg font-black ${headingColor}`}>Суть стратегии</h4>
-                        <p className={`text-xs leading-relaxed ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                            Это не про угадывание, это рабочая рутина. Результат достигается анализом, а не спешкой. Один пропущенный красный флаг перечеркивает серию прибыльных сделок. Если токен требует оправданий — он не торгуется.
-                        </p>
-                    </div>
-                </div>
-
-                <div className={`rounded-2xl p-6 border ${theme === 'dark' ? 'bg-blue-500/5 border-blue-500/20' : 'bg-blue-50 border-blue-500/20'
-                    } flex gap-4 items-start`}>
-                    <ShieldAlert className="w-8 h-8 text-blue-500 shrink-0" />
-                    <div className="space-y-2">
-                        <h4 className={`text-lg font-black ${headingColor}`}>Кому подходит?</h4>
-                        <p className={`text-xs leading-relaxed ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                            Трейдерам, ценящим структуру и понятные правила. Новичкам с небольшим депо и опытным филлерам, желающим диверсифицировать стиль через 15–60 минут после старта токена.
-                        </p>
-                    </div>
-                </div>
-            </div>
         </div>
     )
 }
