@@ -75,7 +75,7 @@ export const ForgotPasswordModal = ({ onClose, theme }: ForgotPasswordModalProps
 
                             <form onSubmit={handleRecover} className="space-y-5">
                                 <div className="space-y-2.5">
-                                    <label className={`text-[10px] font-black tracking-[0.05em] ml-1 ${subTextColor}`}>
+                                    <label className={`text-sm font-bold block mb-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
                                         Логин / Email
                                     </label>
                                     <div className="relative group">
@@ -84,16 +84,16 @@ export const ForgotPasswordModal = ({ onClose, theme }: ForgotPasswordModalProps
                                             value={login}
                                             onChange={(e) => setLogin(e.target.value)}
                                             placeholder="example@apevault.io"
-                                            className={`w-full px-5 py-4.5 rounded-[1.25rem] border transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-emerald-500/10 ${theme === 'dark'
-                                                ? 'bg-white/5 border-white/10 text-white placeholder-gray-600 focus:border-emerald-500/50'
-                                                : 'bg-gray-50/50 border-gray-200 text-gray-900 placeholder-gray-400 focus:border-emerald-500/50'}`}
+                                            className={`w-full px-5 py-4 rounded-2xl border transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-emerald-500/10 ${theme === 'dark'
+                                                ? 'bg-white/5 border-white/10 text-white placeholder-gray-600 focus:border-emerald-500'
+                                                : 'bg-gray-50 border-gray-200 text-gray-900 placeholder-gray-400 focus:border-emerald-500'}`}
                                             required
                                         />
                                     </div>
                                 </div>
 
                                 <div className="space-y-2.5">
-                                    <label className={`text-[10px] font-black tracking-[0.05em] ml-1 ${subTextColor}`}>
+                                    <label className={`text-sm font-bold block mb-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
                                         Специальный код
                                     </label>
                                     <div className="relative group">
@@ -102,9 +102,9 @@ export const ForgotPasswordModal = ({ onClose, theme }: ForgotPasswordModalProps
                                             value={code}
                                             onChange={(e) => setCode(e.target.value)}
                                             placeholder="00000000"
-                                            className={`w-full px-5 py-4.5 rounded-[1.25rem] border transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-emerald-500/10 ${theme === 'dark'
-                                                ? 'bg-white/5 border-white/10 text-white placeholder-gray-600 focus:border-emerald-500/50'
-                                                : 'bg-gray-50/50 border-gray-200 text-gray-900 placeholder-gray-400 focus:border-emerald-500/50'}`}
+                                            className={`w-full px-5 py-4 rounded-2xl border transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-emerald-500/10 ${theme === 'dark'
+                                                ? 'bg-white/5 border-white/10 text-white placeholder-gray-600 focus:border-emerald-500'
+                                                : 'bg-gray-50 border-gray-200 text-gray-900 placeholder-gray-400 focus:border-emerald-500'}`}
                                             required
                                         />
                                     </div>
@@ -118,7 +118,7 @@ export const ForgotPasswordModal = ({ onClose, theme }: ForgotPasswordModalProps
                                             <AlertTriangle className="w-5 h-5 text-amber-500" />
                                         </div>
                                         <p className="text-[11px] font-bold text-amber-600 dark:text-amber-400/80 leading-relaxed normal-case">
-                                            Если забыли специальный код, восстановить его невозможно, доступ к аккаунту утерян навсегда.
+                                           Если забыли специальный код, восстановить его невозможно, доступ к аккаунту утерян навсегда.
                                         </p>
                                     </div>
                                 </div>
