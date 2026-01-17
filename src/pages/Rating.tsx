@@ -14,8 +14,6 @@ import { TrendingUp, Award, Target, UserPlus, BarChart3 } from 'lucide-react'
 
 export const Rating = () => {
   const { theme } = useThemeStore()
-  const { user } = useAuthStore()
-  const { isAdmin } = useAdminStore()
   const { users: allMembers, loading: usersLoading } = useUsers()
   type RatingWithBreakdown = RatingData & { breakdown?: ReturnType<typeof getRatingBreakdown> }
   const [ratings, setRatings] = useState<RatingWithBreakdown[]>([])
