@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { X, Lock, AlertTriangle, ShieldCheck } from 'lucide-react'
-import { TEAM_MEMBERS } from '@/types'
+import { X, Lock, AlertTriangle, ShieldCheck, Copy, Check, User as UserIcon, Smartphone, Key } from 'lucide-react'
+import { TEAM_MEMBERS, User } from '@/types'
 
 interface ForgotPasswordModalProps {
     onClose: () => void
@@ -8,25 +8,32 @@ interface ForgotPasswordModalProps {
 }
 
 export const ForgotPasswordModal = ({ onClose, theme }: ForgotPasswordModalProps) => {
-    const [login, setLogin] = useState('')
+    const [phone, setPhone] = useState('')
     const [code, setCode] = useState('')
     const [error, setError] = useState('')
-    const [recoveredPassword, setRecoveredPassword] = useState<string | null>(null)
+    const [recoveredUser, setRecoveredUser] = useState<User | null>(null)
+    const [copiedField, setCopiedField] = useState<string | null>(null)
 
     const handleRecover = (e: React.FormEvent) => {
         e.preventDefault()
         setError('')
 
         const user = TEAM_MEMBERS.find(u =>
-            u.login.toLowerCase() === login.toLowerCase() &&
+            u.phone === phone.replace(/\D/g, '') &&
             u.recoveryCode === code
         )
 
         if (user) {
-            setRecoveredPassword(user.password)
+            setRecoveredUser(user)
         } else {
-            setError('Неверный логин или специальный код')
+            setError('Неверный номер телефона или специальный код')
         }
+    }
+
+    const copyToClipboard = (text: string, field: string) => {
+        navigator.clipboard.writeText(text)
+        setCopiedField(field)
+        setTimeout(() => setCopiedField(null), 2000)
     }
 
     const textColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
@@ -56,7 +63,7 @@ export const ForgotPasswordModal = ({ onClose, theme }: ForgotPasswordModalProps
                         <X className="w-5 h-5" />
                     </button>
 
-                    {!recoveredPassword ? (
+                    {!recoveredUser ? (
                         <div className="space-y-8">
                             <div className="text-center space-y-3">
                                 <div className="relative inline-flex mb-2">
@@ -76,14 +83,14 @@ export const ForgotPasswordModal = ({ onClose, theme }: ForgotPasswordModalProps
                             <form onSubmit={handleRecover} className="space-y-5">
                                 <div className="space-y-2.5">
                                     <label className={`text-sm font-bold block mb-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                                        Логин / Email
+                                        Номер телефона
                                     </label>
                                     <div className="relative group">
                                         <input
-                                            type="text"
-                                            value={login}
-                                            onChange={(e) => setLogin(e.target.value)}
-                                            placeholder="example@apevault.io"
+                                            type="tel"
+                                            value={phone}
+                                            onChange={(e) => setPhone(e.target.value)}
+                                            placeholder="79000000000"
                                             className={`w-full px-5 py-4 rounded-2xl border transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-emerald-500/10 ${theme === 'dark'
                                                 ? 'bg-white/5 border-white/10 text-white placeholder-gray-600 focus:border-emerald-500'
                                                 : 'bg-gray-50 border-gray-200 text-gray-900 placeholder-gray-400 focus:border-emerald-500'}`}
@@ -118,7 +125,7 @@ export const ForgotPasswordModal = ({ onClose, theme }: ForgotPasswordModalProps
                                             <AlertTriangle className="w-5 h-5 text-amber-500" />
                                         </div>
                                         <p className="text-[11px] font-bold text-amber-600 dark:text-amber-400/80 leading-relaxed normal-case">
-                                           Если забыли специальный код, восстановить его невозможно, доступ к аккаунту утерян навсегда.
+                                            Внимание: если вы забыли специальный код, восстановить его невозможно, доступ к аккаунту утерян навсегда.
                                         </p>
                                     </div>
                                 </div>
@@ -142,7 +149,7 @@ export const ForgotPasswordModal = ({ onClose, theme }: ForgotPasswordModalProps
                             </form>
                         </div>
                     ) : (
-                        <div className="space-y-8 text-center animate-in slide-in-from-bottom-8 duration-700">
+                        <div className="space-y-6 text-center animate-in slide-in-from-bottom-8 duration-700">
                             <div className="relative inline-flex mb-2">
                                 <div className="absolute inset-0 bg-emerald-500/30 blur-2xl rounded-full animate-pulse" />
                                 <div className="relative p-5 rounded-3xl bg-emerald-500 text-white shadow-xl shadow-emerald-500/40">
@@ -150,22 +157,50 @@ export const ForgotPasswordModal = ({ onClose, theme }: ForgotPasswordModalProps
                                 </div>
                             </div>
 
-                            <div className="space-y-3">
+                            <div className="space-y-2">
                                 <h3 className={`text-3xl font-black tracking-tight ${textColor}`}>
-                                    Успешная проверка
+                                    Доступ восстановлен
                                 </h3>
                                 <p className={`text-sm font-medium leading-relaxed max-w-[240px] mx-auto ${subTextColor}`}>
-                                    Код подтвержден. Пожалуйста, сохраните ваш новый пароль
+                                    Данные подтверждены. Пожалуйста, сохраните ваши учетные данные
                                 </p>
                             </div>
 
-                            <div className={`group relative p-8 rounded-[2rem] border-2 border-dashed transition-all duration-500 ${theme === 'dark' ? 'bg-white/[0.02] border-emerald-500/30 hover:border-emerald-500/50' : 'bg-emerald-50/30 border-emerald-500/20 hover:border-emerald-500/40'}`}>
-                                <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-emerald-500 text-[10px] font-black tracking-widest text-white">
-                                    Ваш пароль
-                                </div>
-                                <p className={`text-3xl font-black tracking-tighter ${textColor} break-all selection:bg-emerald-500/30`}>
-                                    {recoveredPassword}
-                                </p>
+                            <div className="space-y-3">
+                                {[
+                                    { label: 'Логин', value: recoveredUser.login, icon: UserIcon, id: 'login' },
+                                    { label: 'Пароль', value: recoveredUser.password, icon: Key, id: 'password' },
+                                    { label: 'Спец. код', value: recoveredUser.recoveryCode || '', icon: Lock, id: 'code' },
+                                    { label: 'Телефон', value: recoveredUser.phone || '', icon: Smartphone, id: 'phone' }
+                                ].map((field) => (
+                                    <div
+                                        key={field.id}
+                                        onClick={() => copyToClipboard(field.value, field.id)}
+                                        className={`group relative p-4 rounded-2xl border transition-all duration-300 cursor-pointer ${theme === 'dark'
+                                            ? 'bg-white/[0.03] border-white/10 hover:border-emerald-500/50 hover:bg-white/[0.05]'
+                                            : 'bg-gray-50 border-gray-200 hover:border-emerald-500/30 hover:bg-emerald-50/30'
+                                            }`}
+                                    >
+                                        <div className="flex items-center justify-between gap-4">
+                                            <div className="flex items-center gap-3 min-w-0">
+                                                <div className={`p-2 rounded-xl shrink-0 ${theme === 'dark' ? 'bg-white/5 text-emerald-400' : 'bg-white text-emerald-500 border border-emerald-100'}`}>
+                                                    <field.icon className="w-4 h-4" />
+                                                </div>
+                                                <div className="text-left min-w-0">
+                                                    <span className={`text-[10px] font-black uppercase tracking-wider block mb-0.5 ${subTextColor}`}>
+                                                        {field.label}
+                                                    </span>
+                                                    <p className={`text-sm font-bold truncate ${textColor}`}>
+                                                        {field.value}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div className={`p-2 rounded-lg transition-all duration-300 ${copiedField === field.id ? 'bg-emerald-500 text-white' : 'bg-transparent text-gray-500 group-hover:text-emerald-500'}`}>
+                                                {copiedField === field.id ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
 
                             <button
