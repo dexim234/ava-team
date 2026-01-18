@@ -1050,16 +1050,23 @@ export const Profile = () => {
                   </div>
 
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                    {[{ label: 'Выходные', value: `${ratingBreakdown.daysOff} дн`, pts: ratingBreakdown.daysOffPoints, classes: theme === 'dark' ? 'bg-slate-500/5 border-slate-500/10 text-slate-400' : 'bg-slate-50 border-slate-100 text-slate-600' },
-                    { label: 'Больничные', value: `${rating.sickDays} дн`, pts: ratingBreakdown.sickDaysPoints, classes: theme === 'dark' ? 'bg-amber-500/5 border-amber-500/10 text-amber-500' : 'bg-amber-50 border-amber-100 text-amber-600' },
-                    { label: 'Отпуск', value: `${rating.vacationDays} дн`, pts: ratingBreakdown.vacationDaysPoints, classes: theme === 'dark' ? 'bg-orange-500/5 border-orange-500/10 text-orange-500' : 'bg-orange-50 border-orange-100 text-orange-600' },
-                    { label: 'Часы', value: `${ratingBreakdown.weeklyHours.toFixed(1)} ч`, pts: ratingBreakdown.weeklyHoursPoints, classes: theme === 'dark' ? 'bg-blue-500/5 border-blue-500/10 text-blue-400' : 'bg-blue-50 border-blue-100 text-blue-600' },
-                    { label: 'Заработок', value: `${(ratingBreakdown.weeklyEarnings / 1000).toFixed(1)}k ₽`, pts: ratingBreakdown.weeklyEarningsPoints, classes: theme === 'dark' ? 'bg-emerald-500/5 border-emerald-500/10 text-emerald-400' : 'bg-emerald-50 border-emerald-100 text-emerald-600' },
-                    { label: 'Рефералы', value: `${rating.referrals}`, pts: ratingBreakdown.referralsPoints, classes: theme === 'dark' ? 'bg-purple-500/5 border-purple-500/10 text-purple-400' : 'bg-purple-50 border-purple-100 text-purple-600' }].map(item => (
+                    {[
+                      { label: 'Выходные', value: `${ratingBreakdown.daysOff} дн`, pts: ratingBreakdown.daysOffPoints, classes: theme === 'dark' ? 'bg-slate-500/5 border-slate-500/10 text-slate-400' : 'bg-slate-50 border-slate-100 text-slate-600' },
+                      { label: 'Больничные', value: `${rating.sickDays} дн`, pts: ratingBreakdown.sickDaysPoints, classes: theme === 'dark' ? 'bg-amber-500/5 border-amber-500/10 text-amber-500' : 'bg-amber-50 border-amber-100 text-amber-600' },
+                      { label: 'Отпуск', value: `${rating.vacationDays} дн`, pts: ratingBreakdown.vacationDaysPoints, classes: theme === 'dark' ? 'bg-orange-500/5 border-orange-500/10 text-orange-500' : 'bg-orange-50 border-orange-100 text-orange-600' },
+                      { label: 'Отсутствия', value: `${ratingBreakdown.absenceDays} дн`, pts: ratingBreakdown.absenceDaysPoints, classes: theme === 'dark' ? 'bg-red-500/5 border-red-500/10 text-red-500' : 'bg-red-50 border-red-100 text-red-600' },
+                      { label: 'Прогулы', value: `${ratingBreakdown.truancyDays} дн`, pts: 0, classes: theme === 'dark' ? 'bg-red-900/5 border-red-900/10 text-red-900' : 'bg-red-100 border-red-200 text-red-800' },
+                      { label: 'Часы', value: `${ratingBreakdown.weeklyHours.toFixed(1)} ч`, pts: ratingBreakdown.weeklyHoursPoints, classes: theme === 'dark' ? 'bg-blue-500/5 border-blue-500/10 text-blue-400' : 'bg-blue-50 border-blue-100 text-blue-600' },
+                      { label: 'Заработок', value: `${(ratingBreakdown.weeklyEarnings / 1000).toFixed(1)}k ₽`, pts: ratingBreakdown.weeklyEarningsPoints, classes: theme === 'dark' ? 'bg-emerald-500/5 border-emerald-500/10 text-emerald-400' : 'bg-emerald-50 border-emerald-100 text-emerald-600' },
+                      { label: 'Рефералы', value: `${rating.referrals}`, pts: ratingBreakdown.referralsPoints, classes: theme === 'dark' ? 'bg-purple-500/5 border-purple-500/10 text-purple-400' : 'bg-purple-50 border-purple-100 text-purple-600' },
+                      { label: 'Сигналы', value: `${ratingBreakdown.signals}`, pts: 0, classes: theme === 'dark' ? 'bg-yellow-500/5 border-yellow-500/10 text-yellow-500' : 'bg-yellow-50 border-yellow-100 text-yellow-600' },
+                      { label: 'Инициативы', value: `${ratingBreakdown.initiatives}`, pts: 0, classes: theme === 'dark' ? 'bg-indigo-500/5 border-indigo-500/10 text-indigo-400' : 'bg-indigo-50 border-indigo-100 text-indigo-600' },
+                      { label: 'Пул', value: `${(ratingBreakdown.poolAmount / 1000).toFixed(1)}k ₽`, pts: 0, classes: theme === 'dark' ? 'bg-green-500/5 border-green-500/10 text-green-400' : 'bg-green-50 border-green-100 text-green-600' }
+                    ].map(item => (
                       <div key={item.label} className={`p-3 rounded-xl border shadow-sm transition-all hover:scale-[1.02] ${item.classes}`}>
                         <div className="text-[8px] font-black uppercase tracking-widest opacity-80 mb-1">{item.label}</div>
                         <div className={`text-sm font-black ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{item.value}</div>
-                        <div className={`text-[10px] font-black mt-1`}>{item.pts.toFixed(1)}%</div>
+                        {item.pts !== 0 && <div className={`text-[10px] font-black mt-1`}>{item.pts.toFixed(1)}%</div>}
                       </div>
                     ))}
                   </div>
@@ -1070,25 +1077,12 @@ export const Profile = () => {
                       Как считается рейтинг
                     </h3>
                     <p className={`text-xs ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                      7 параметров: выходные, больничные, отпуск (месяц), часы, доход, рефералы, сообщения (неделя). Максимум 100%.
+                      11 параметров: выходные, больничные, отпуск, отсутствие, прогулы (месяц), часы, доход, рефералы, сигналы, инициативы, пул (неделя). Максимум 100%.
                     </p>
                   </div>
                 </div>
               )}
             </div>
-          </div>
-
-          <div className={`rounded-2xl p-6 border ${theme === 'dark' ? 'border-white/5 bg-[#1a1a1a]' : 'border-gray-200 bg-white'} shadow`}>
-            <button
-              onClick={handleLogout}
-              className={`w-full px-6 py-4 rounded-xl font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${theme === 'dark'
-                ? 'bg-rose-500/5 text-rose-500 border border-rose-500/20 hover:bg-rose-500 hover:text-white'
-                : 'bg-rose-50 text-rose-600 border border-rose-100 hover:bg-rose-600 hover:text-white'
-                }`}
-            >
-              <LogOut className="w-5 h-5" />
-              <span>Выйти из аккаунта</span>
-            </button>
           </div>
         </div>
       )}

@@ -59,12 +59,17 @@ export const EventModal = ({ event, onClose }: EventModalProps) => {
   const [category, setCategory] = useState<EventCategory>(event?.category || 'memecoins')
   const [dates, setDates] = useState<string[]>(event?.dates || [])
   const [time, setTime] = useState(event?.time || '12:00')
+  const [endTime, setEndTime] = useState(event?.endTime || '')
+  const [recurrence, setRecurrence] = useState<Event['recurrence']>(event?.recurrence || { type: 'none', startDate: '' })
   const [links, setLinks] = useState<Event['links']>(event?.links || [])
   const [requiredParticipants, setRequiredParticipants] = useState<string[]>(event?.requiredParticipants || [])
   const [recommendedParticipants, setRecommendedParticipants] = useState<string[]>(event?.recommendedParticipants || [])
   const [going] = useState<string[]>(event?.going || [])
   const [notGoing] = useState<string[]>(event?.notGoing || [])
   const [files, setFiles] = useState<EventFile[]>(event?.files || [])
+
+  // New recurrence fields
+  const [recurrenceEndDate, setRecurrenceEndDate] = useState(event?.recurrence?.endDate || '')
 
   // New date input
   const [newDate, setNewDate] = useState('')
@@ -89,6 +94,50 @@ export const EventModal = ({ event, onClose }: EventModalProps) => {
     if (newDate && !dates.includes(newDate)) {
       setDates(prev => [...prev, newDate].sort())
       setNewDate('')
+    }
+  }
+
+  const generateRecurrenceDates = () => {
+    if (!recurrence || recurrence.type === 'none' || !recurrence.startDate) return
+
+    const start = new Date(recurrence.startDate)
+    const newDates: string[] = []
+
+    if (recurrence.type === 'daily' && recurrenceEndDate) {
+      const end = new Date(recurrenceEndDate)
+      const current = new Date(start)
+      while (current <= end) {
+        newDates.push(current.toISOString().split('T')[0])
+        current.setDate(current.getDate() + 1)
+      }
+    } else if (recurrence.type === 'weekly' && recurrenceEndDate) {
+      const end = new Date(recurrenceEndDate)
+      const current = new Date(start)
+      while (current <= end) {
+        newDates.push(current.toISOString().split('T')[0])
+        current.setDate(current.getDate() + 7)
+      }
+    } else if (recurrence.type === 'range' && recurrenceEndDate) {
+      const end = new Date(recurrenceEndDate)
+      const current = new Date(start)
+      while (current <= end) {
+        newDates.push(current.toISOString().split('T')[0])
+        current.setDate(current.getDate() + 1)
+      }
+    } else if (recurrence.type === 'until' && recurrenceEndDate) {
+      const end = new Date(recurrenceEndDate)
+      const current = new Date(start)
+      while (current <= end) {
+        newDates.push(current.toISOString().split('T')[0])
+        current.setDate(current.getDate() + 1)
+      }
+    }
+
+    if (newDates.length > 0) {
+      setDates(prev => {
+        const combined = Array.from(new Set([...prev, ...newDates]))
+        return combined.sort()
+      })
     }
   }
 
@@ -168,6 +217,10 @@ export const EventModal = ({ event, onClose }: EventModalProps) => {
       let eventId = event?.id
 
       if (event) {
+        // Upload new files
+        const uploadedFiles = await handleUploadFiles(event.id)
+        const updatedFiles = [...files, ...uploadedFiles]
+
         // Update existing event
         await updateEvent(event.id, {
           title,
@@ -175,12 +228,14 @@ export const EventModal = ({ event, onClose }: EventModalProps) => {
           category,
           dates,
           time,
+          endTime,
+          recurrence: { type: recurrence?.type || 'none', startDate: recurrence?.startDate || '', endDate: recurrenceEndDate },
           links: links.map(l => ({ ...l, url: l.url.trim() })),
           requiredParticipants,
           recommendedParticipants,
           going,
           notGoing,
-          files,
+          files: updatedFiles,
         })
       } else {
         // Create new event
@@ -190,6 +245,8 @@ export const EventModal = ({ event, onClose }: EventModalProps) => {
           category,
           dates,
           time,
+          endTime,
+          recurrence: { type: recurrence?.type || 'none', startDate: recurrence?.startDate || '', endDate: recurrenceEndDate },
           links: links.map(l => ({ ...l, url: l.url.trim() })),
           requiredParticipants,
           recommendedParticipants,
@@ -375,7 +432,7 @@ export const EventModal = ({ event, onClose }: EventModalProps) => {
 
             <div>
               <label className={`block text-sm font-medium mb-2 ${textColor}`}>
-                Время
+                Время начала
               </label>
               <input
                 type="time"
@@ -383,6 +440,87 @@ export const EventModal = ({ event, onClose }: EventModalProps) => {
                 onChange={(e) => setTime(e.target.value)}
                 className={`w-full px-4 py-3 rounded-xl border ${borderColor} ${inputBg} ${textColor} focus:outline-none focus:ring-2 focus:ring-emerald-500`}
               />
+            </div>
+
+            <div>
+              <label className={`block text-sm font-medium mb-2 ${textColor}`}>
+                Время окончания
+              </label>
+              <input
+                type="time"
+                value={endTime}
+                onChange={(e) => setEndTime(e.target.value)}
+                className={`w-full px-4 py-3 rounded-xl border ${borderColor} ${inputBg} ${textColor} focus:outline-none focus:ring-2 focus:ring-emerald-500`}
+              />
+            </div>
+          </div>
+
+          {/* Recurrence */}
+          <div className={`p-4 rounded-xl border ${borderColor} ${inputBg}`}>
+            <label className={`block text-sm font-bold mb-4 ${textColor} uppercase tracking-wider`}>
+              Повторение события
+            </label>
+            <div className="space-y-4">
+              <div className="flex flex-wrap gap-2">
+                {[
+                  { id: 'none', label: 'Нет' },
+                  { id: 'daily', label: 'Ежедневно' },
+                  { id: 'weekly', label: 'Еженедельно' },
+                  { id: 'range', label: 'Диапазон дат' },
+                  { id: 'until', label: 'До даты' },
+                ].map((type) => (
+                  <button
+                    key={type.id}
+                    type="button"
+                    onClick={() => setRecurrence(prev => ({ ...prev!, type: type.id as any }))}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${recurrence?.type === type.id
+                      ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20'
+                      : theme === 'dark' ? 'bg-white/10 text-gray-300 hover:bg-white/20' : 'bg-white text-gray-700 hover:bg-gray-50'
+                      }`}
+                  >
+                    {type.label}
+                  </button>
+                ))}
+              </div>
+
+              {recurrence?.type !== 'none' && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2">
+                  <div>
+                    <label className={`block text-xs font-medium mb-1.5 ${subtleColor}`}>
+                      Дата начала
+                    </label>
+                    <input
+                      type="date"
+                      value={recurrence?.startDate}
+                      onChange={(e) => setRecurrence(prev => ({ ...prev!, startDate: e.target.value }))}
+                      className={`w-full px-3 py-2 rounded-lg border ${borderColor} ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'} ${textColor} focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm`}
+                    />
+                  </div>
+                  {(recurrence?.type === 'daily' || recurrence?.type === 'weekly' || recurrence?.type === 'range' || recurrence?.type === 'until') && (
+                    <div>
+                      <label className={`block text-xs font-medium mb-1.5 ${subtleColor}`}>
+                        {recurrence.type === 'range' ? 'Дата окончания' : 'Повторять до'}
+                      </label>
+                      <input
+                        type="date"
+                        value={recurrenceEndDate}
+                        onChange={(e) => setRecurrenceEndDate(e.target.value)}
+                        className={`w-full px-3 py-2 rounded-lg border ${borderColor} ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'} ${textColor} focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm`}
+                      />
+                    </div>
+                  )}
+                  <div className="md:col-span-2">
+                    <button
+                      type="button"
+                      onClick={generateRecurrenceDates}
+                      disabled={!recurrence?.startDate || !recurrenceEndDate}
+                      className="w-full py-2.5 rounded-lg bg-emerald-500/10 text-emerald-500 font-bold hover:bg-emerald-500/20 transition-all text-sm border border-emerald-500/20 disabled:opacity-50"
+                    >
+                      Применить и добавить даты
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 

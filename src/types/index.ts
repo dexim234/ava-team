@@ -665,6 +665,12 @@ export interface Event {
   category: EventCategory
   dates: string[] // Array of dates YYYY-MM-DD
   time: string // HH:mm format
+  endTime?: string // HH:mm format
+  recurrence?: {
+    type: 'none' | 'daily' | 'weekly' | 'range' | 'until'
+    startDate: string
+    endDate?: string
+  }
   links: EventLink[] // Array of named URLs
   requiredParticipants: string[] // User IDs
   recommendedParticipants: string[] // User IDs

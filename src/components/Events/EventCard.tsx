@@ -203,7 +203,9 @@ export const EventCard = memo(({ event, isAdmin, onEdit, onDelete }: EventCardPr
               <div className={`p-2 rounded-xl ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-100'}`}>
                 <Clock size={16} className="text-emerald-500" />
               </div>
-              <span className={`font-bold ${subtleColor}`}>{event.time}</span>
+              <span className={`font-bold ${subtleColor}`}>
+                {event.time}{event.endTime ? ` — ${event.endTime}` : ''}
+              </span>
             </div>
           </div>
 

@@ -15,8 +15,6 @@ import { About } from './pages/About'
 import { Rules } from './pages/Rules'
 import { Approvals } from './pages/Approvals'
 import { Strategies } from './pages/Strategies'
-import { AiAoAlerts } from './pages/AiAoAlerts'
-import { FasolSignalsStrategy } from './pages/FasolSignalsStrategy'
 import { EventsPage } from './pages/Events'
 import { Referrals } from './pages/Referrals'
 
@@ -150,22 +148,6 @@ function App() {
             element={
               <ProtectedRoute>
                 <Strategies />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/ai-ao-alerts"
-            element={
-              <ProtectedRoute>
-                <AiAoAlerts />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/our-deals-analysis"
-            element={
-              <ProtectedRoute>
-                <FasolSignalsStrategy />
               </ProtectedRoute>
             }
           />

@@ -12,10 +12,8 @@ import {
   ChevronRight,
   Bell,
   TrendingUp,
-  Zap,
   Shield,
   DollarSign,
-  AlertTriangle,
   ZapOff,
   Moon,
   Sun,
@@ -68,7 +66,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
           return
         }
 
-        const features = ['slots', 'earnings', 'tasks', 'rating', 'referrals', 'profile', 'about', 'tools', 'tools_strategies', 'tools_ai_ao_alerts', 'tools_our_deals_analysis', 'tools_events', 'avf_hub']
+        const features = ['slots', 'earnings', 'tasks', 'rating', 'referrals', 'profile', 'about', 'tools', 'tools_strategies', 'tools_events', 'avf_hub']
         const accessible = new Set<string>()
 
         for (const feature of features) {
@@ -111,8 +109,6 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
 
   const toolsSubItems: { path: string; label: string; icon: LucideIcon; feature: string }[] = [
     { path: '/strategies', label: 'AVF Контур', icon: TrendingUp, feature: 'tools_strategies' },
-    { path: '/ai-ao-alerts', label: 'Al AO ALERTS', icon: AlertTriangle, feature: 'tools_ai_ao_alerts' },
-    { path: '/our-deals-analysis', label: 'Анализ наших сделок', icon: Zap, feature: 'tools_our_deals_analysis' },
     { path: '/events', label: 'События', icon: CalendarDays, feature: 'tools_events' },
   ]
 
