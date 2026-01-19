@@ -193,8 +193,8 @@ export const EarningsForm = ({ onClose, onSave, editingEarning }: EarningsFormPr
                   onClick={() => setCategory(cat)}
                   disabled={!canEdit}
                   className={`flex flex-col items-center gap-1 p-2 rounded-xl border transition-all ${category === cat
-                      ? 'border-emerald-500 bg-emerald-500/10'
-                      : `border-transparent ${theme === 'dark' ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-100 hover:bg-gray-200'}`
+                    ? 'border-emerald-500 bg-emerald-500/10'
+                    : `border-transparent ${theme === 'dark' ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-100 hover:bg-gray-200'}`
                     } disabled:opacity-50 touch-manipulation`}
                 >
                   <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${EARNINGS_CATEGORY_META[cat]?.gradient || 'from-gray-400 to-gray-600'} flex items-center justify-center text-white shadow-md`}>
@@ -231,8 +231,8 @@ export const EarningsForm = ({ onClose, onSave, editingEarning }: EarningsFormPr
                 onClick={() => setWalletType('general')}
                 disabled={!canEdit}
                 className={`flex items-center justify-center gap-2 p-3 rounded-xl border transition-all ${walletType === 'general'
-                    ? 'border-emerald-500 bg-emerald-500/10 text-emerald-500'
-                    : `border-transparent ${theme === 'dark' ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-700'}`
+                  ? 'border-emerald-500 bg-emerald-500/10 text-emerald-500'
+                  : `border-transparent ${theme === 'dark' ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-700'}`
                   }`}
               >
                 <Users className="w-5 h-5" />
@@ -242,8 +242,8 @@ export const EarningsForm = ({ onClose, onSave, editingEarning }: EarningsFormPr
                 onClick={() => setWalletType('personal')}
                 disabled={!canEdit}
                 className={`flex items-center justify-center gap-2 p-3 rounded-xl border transition-all ${walletType === 'personal'
-                    ? 'border-emerald-500 bg-emerald-500/10 text-emerald-500'
-                    : `border-transparent ${theme === 'dark' ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-700'}`
+                  ? 'border-emerald-500 bg-emerald-500/10 text-emerald-500'
+                  : `border-transparent ${theme === 'dark' ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-700'}`
                   }`}
               >
                 <Wallet className="w-5 h-5" />
@@ -254,7 +254,7 @@ export const EarningsForm = ({ onClose, onSave, editingEarning }: EarningsFormPr
 
           <div className="space-y-3">
             <label className={`block text-sm font-medium ${headingColor}`}>
-              {walletType === 'general' ? 'Прибыль с основного кошелька ($)' : 'Ваш заработок ($)'}
+              {walletType === 'general' ? 'Прибыль с основного кошелька (₽)' : 'Ваш заработок (₽)'}
             </label>
             <input
               type="number"
@@ -283,7 +283,7 @@ export const EarningsForm = ({ onClose, onSave, editingEarning }: EarningsFormPr
               </>
             ) : (
               <div className="space-y-3 col-span-2">
-                <label className={`block text-sm font-medium ${headingColor}`}>Заработок с доп. кошельков ($)</label>
+                <label className={`block text-sm font-medium ${headingColor}`}>Заработок с доп. кошельков (₽)</label>
                 <input
                   type="number"
                   value={extraWalletsAmount}
@@ -299,17 +299,17 @@ export const EarningsForm = ({ onClose, onSave, editingEarning }: EarningsFormPr
           <div className={`p-4 rounded-xl space-y-2 ${theme === 'dark' ? 'bg-gray-700/50' : 'bg-gray-100'}`}>
             <div className="flex justify-between text-sm">
               <span className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>Общий результат:</span>
-              <span className={`font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>${totalEarnings.toFixed(2)}</span>
+              <span className={`font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{totalEarnings.toFixed(2)} ₽</span>
             </div>
 
             <div className="flex justify-between text-sm">
               <span className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>В пул ({(percent * 100).toFixed(0)}%):</span>
-              <span className="text-red-400">-${poolShare.toFixed(2)}</span>
+              <span className="text-red-400">-{poolShare.toFixed(2)} ₽</span>
             </div>
 
             <div className="flex justify-between text-sm font-medium pt-2 border-t border-current border-opacity-10">
               <span className={theme === 'dark' ? 'text-gray-300' : 'text-gray-800'}>Чистый доход на участника:</span>
-              <span className="text-emerald-500">${perParticipant.toFixed(2)}</span>
+              <span className="text-emerald-500">{perParticipant.toFixed(2)} ₽</span>
             </div>
           </div>
 
@@ -344,13 +344,13 @@ export const EarningsForm = ({ onClose, onSave, editingEarning }: EarningsFormPr
                     }}
                     disabled={!canEdit}
                     className={`p-2 rounded-lg text-left text-sm transition-all ${selectedParticipants.includes(member.id)
-                        ? 'bg-emerald-500/10 border border-emerald-500/50 text-emerald-600 dark:text-emerald-400'
-                        : theme === 'dark'
-                          ? 'bg-gray-700 hover:bg-gray-600 text-gray-300'
-                          : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                      ? 'bg-emerald-500/10 border border-emerald-500/50 text-emerald-600 dark:text-emerald-400'
+                      : theme === 'dark'
+                        ? 'bg-gray-700 hover:bg-gray-600 text-gray-300'
+                        : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
                       } disabled:opacity-50`}
                   >
-                    <span className="font-medium">{member.nickname}</span>
+                    <span className="font-medium">{getUserNicknameSync(member.id) || member.name}</span>
                   </button>
                 ))}
               </div>
