@@ -154,7 +154,7 @@ export const MemecoinStrategies: React.FC = () => {
                     {[
                         { name: 'Sniper', url: 'https://www.sniper.xyz', desc: 'Терминал с демо-торговлей для отработки навыков', icon: <Terminal className="w-5 h-5 text-green-400" /> },
                         { name: 'Axiom', url: 'https://axiom.trade', desc: 'Профессиональный терминал для анализа и выбора монет', icon: <BarChart className="w-5 h-5 text-blue-400" /> },
-                        { name: 'GMGN', url: 'https://gmgn.ai', desc: 'Снайпер-бот и аналитическая платформа', icon: <Zap className="w-5 h-5 text-yellow-400" /> },
+                        { name: 'GMGN', url: 'https://gmgn.ai', desc: 'Профессиональный терминал для анализа и выбора монет', icon: <Zap className="w-5 h-5 text-yellow-400" /> },
                         { name: 'DexScreener', url: 'https://dexscreener.com', desc: 'Мониторинг графиков и поиск новых пар', icon: <Monitor className="w-5 h-5 text-slate-400" /> },
                         { name: 'Alpha One', url: 'https://t.me/alpha_web3_bot', desc: 'ТГ-терминал с сигналами и AI-агентом', icon: <Bot className="w-5 h-5 text-purple-400" /> },
                         { name: 'Fasol', url: 'https://t.me/Fasol_robot', desc: 'Торговый бот с гибкими алертами', icon: <Bell className="w-5 h-5 text-red-400" /> },
@@ -175,8 +175,8 @@ export const MemecoinStrategies: React.FC = () => {
                             target="_blank"
                             rel="noopener noreferrer"
                             className={`group relative p-5 rounded-2xl border transition-all duration-300 hover:shadow-lg ${theme === 'dark'
-                                    ? 'bg-[#151a21]/50 border-white/5 hover:border-blue-500/30'
-                                    : 'bg-white border-gray-100 hover:border-blue-500/20'
+                                ? 'bg-[#151a21]/50 border-white/5 hover:border-blue-500/30'
+                                : 'bg-white border-gray-100 hover:border-blue-500/20'
                                 }`}
                         >
                             <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">

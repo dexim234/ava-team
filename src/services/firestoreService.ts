@@ -703,6 +703,8 @@ export const getEarnings = async (userId?: string, startDate?: string, endDate?:
       amount: data?.amount || 0,
       poolAmount: data?.poolAmount || 0,
       slotId: data?.slotId || '',
+      walletType: data?.walletType || 'personal', // Default to personal for old records or as fallback
+      isDeving: data?.isDeving || false,
       extraWalletsCount: data?.extraWalletsCount || 0,
       extraWalletsAmount: data?.extraWalletsAmount || 0,
       category: data?.category || 'other',

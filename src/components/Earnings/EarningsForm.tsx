@@ -1,21 +1,20 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useAuthStore } from '@/store/authStore'
 import { useAdminStore } from '@/store/adminStore'
 import { useThemeStore } from '@/store/themeStore'
-import { addEarnings, getWorkSlots, updateEarnings } from '@/services/firestoreService'
+import { addEarnings, updateEarnings } from '@/services/firestoreService'
 import { canAddEarnings, formatDate } from '@/utils/dateUtils'
 import { getUserNicknameSync } from '@/utils/userUtils'
 import { EARNINGS_CATEGORY_META, Earnings, EarningsCategory, TEAM_MEMBERS } from '@/types'
-import { X, Rocket, LineChart, Image, Coins, BarChart3, ShieldCheck, Sparkles, Gift } from 'lucide-react'
+import { X, Rocket, LineChart, Image, Coins, BarChart3, ShieldCheck, Sparkles, Gift, Wallet, Users } from 'lucide-react'
 import { useScrollLock } from '@/hooks/useScrollLock'
+import { calculatePoolShare, calculateTotalEarnings } from '@/utils/earningsCalculations'
 
 interface EarningsFormProps {
   onClose: () => void
   onSave: () => void
   editingEarning?: Earnings | null
 }
-
-const POOL_RATE = 0.45
 
 export const EarningsForm = ({ onClose, onSave, editingEarning }: EarningsFormProps) => {
   const { user } = useAuthStore()
@@ -25,14 +24,17 @@ export const EarningsForm = ({ onClose, onSave, editingEarning }: EarningsFormPr
   const isEditing = !!editingEarning
 
   const [date, setDate] = useState(editingEarning?.date || formatDate(new Date(), 'yyyy-MM-dd'))
-  const [selectedSlotId, setSelectedSlotId] = useState(editingEarning?.slotId || '')
   const [amount, setAmount] = useState(editingEarning?.amount.toString() || '')
+
+  // New State
+  const [walletType, setWalletType] = useState<'general' | 'personal'>(editingEarning?.walletType || 'general')
+  const [isDeving, setIsDeving] = useState(editingEarning?.isDeving || false)
   const [extraWalletsCount, setExtraWalletsCount] = useState(editingEarning?.extraWalletsCount?.toString() || '')
   const [extraWalletsAmount, setExtraWalletsAmount] = useState(editingEarning?.extraWalletsAmount?.toString() || '')
+
   const [category, setCategory] = useState<EarningsCategory>(editingEarning?.category || 'memecoins')
   const [multipleParticipants, setMultipleParticipants] = useState(editingEarning ? editingEarning.participants.length > 1 : false)
   const [selectedParticipants, setSelectedParticipants] = useState<string[]>(editingEarning ? editingEarning.participants.filter(id => id !== editingEarning.userId) : [])
-  const [availableSlots, setAvailableSlots] = useState<any[]>([])
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -40,22 +42,14 @@ export const EarningsForm = ({ onClose, onSave, editingEarning }: EarningsFormPr
 
   const getCategoryIcon = (key: EarningsCategory, className = 'w-4 h-4') => {
     switch (key) {
-      case 'memecoins':
-        return <Rocket className={className} />
-      case 'futures':
-        return <LineChart className={className} />
-      case 'nft':
-        return <Image className={className} />
-      case 'spot':
-        return <Coins className={className} />
-      case 'polymarket':
-        return <BarChart3 className={className} />
-      case 'staking':
-        return <ShieldCheck className={className} />
-      case 'airdrop':
-        return <Gift className={className} />
-      default:
-        return <Sparkles className={className} />
+      case 'memecoins': return <Rocket className={className} />
+      case 'futures': return <LineChart className={className} />
+      case 'nft': return <Image className={className} />
+      case 'spot': return <Coins className={className} />
+      case 'polymarket': return <BarChart3 className={className} />
+      case 'staking': return <ShieldCheck className={className} />
+      case 'airdrop': return <Gift className={className} />
+      default: return <Sparkles className={className} />
     }
   }
 
@@ -69,25 +63,33 @@ export const EarningsForm = ({ onClose, onSave, editingEarning }: EarningsFormPr
     return user?.id ? [user.id] : []
   }
 
+  // Calculate values
+  const numericAmount = parseFloat(amount || '0')
+  const numericExtraWalletsCount = parseFloat(extraWalletsCount || '0')
+  const numericExtraWalletsAmount = parseFloat(extraWalletsAmount || '0')
+
+  const totalEarnings = calculateTotalEarnings(numericAmount, walletType, numericExtraWalletsCount, numericExtraWalletsAmount)
+  const { poolShare, percent } = calculatePoolShare(totalEarnings, category, walletType, isDeving)
+
   const calculatePerParticipant = () => {
     const participants = resolveParticipants()
     if (!participants.length) return 0
-    const poolShare = parseFloat(amount) * POOL_RATE
-    const extraWalletsTotal = parseFloat(extraWalletsCount || '0') * parseFloat(extraWalletsAmount || '0')
-    return (poolShare - extraWalletsTotal) / participants.length
+    return (totalEarnings - poolShare) / participants.length
   }
+
+  const perParticipant = calculatePerParticipant()
 
   const canEdit = !isEditing || (isAdmin && editingEarning?.status === 'pending')
 
   const handleSave = async () => {
     const participants = resolveParticipants()
-    
+
     if (!canAddEarnings(date)) {
       setError('Нельзя добавлять заработок за прошедшие дни')
       return
     }
 
-    if (!selectedSlotId || !amount || participants.length === 0) {
+    if (!amount || participants.length === 0) {
       setError('Пожалуйста, заполните все обязательные поля')
       return
     }
@@ -103,16 +105,17 @@ export const EarningsForm = ({ onClose, onSave, editingEarning }: EarningsFormPr
     try {
       const earningsData = {
         date,
-        slotId: selectedSlotId,
-        amount: parseFloat(amount),
-        extraWalletsCount: parseFloat(extraWalletsCount || '0'),
-        extraWalletsAmount: parseFloat(extraWalletsAmount || '0'),
+        amount: numericAmount, // Main amount preserved as input
+        extraWalletsCount: numericExtraWalletsCount,
+        extraWalletsAmount: numericExtraWalletsAmount,
         category,
+        walletType,
+        isDeving: category === 'memecoins' ? isDeving : false,
         participants,
         userId: user?.id || '',
         status: ((isAdmin && isEditing) ? 'approved' : 'pending') as 'pending' | 'approved' | 'rejected',
-        perParticipant: calculatePerParticipant(),
-        poolAmount: parseFloat(amount) * POOL_RATE
+        perParticipant: perParticipant,
+        poolAmount: poolShare
       }
 
       if (isEditing && editingEarning?.id) {
@@ -138,31 +141,7 @@ export const EarningsForm = ({ onClose, onSave, editingEarning }: EarningsFormPr
     }
   }
 
-  useEffect(() => {
-    const loadAvailableSlots = async () => {
-      try {
-        const slots = await getWorkSlots()
-        const filteredSlots = slots
-          .filter((slot: any) => slot.status === 'approved')
-          .sort((a: any, b: any) => {
-            const dateA = new Date(a.date.split('.').reverse().join('-'))
-            const dateB = new Date(b.date.split('.').reverse().join('-'))
-            return dateB.getTime() - dateA.getTime()
-          })
-        setAvailableSlots(filteredSlots)
-      } catch (error) {
-        console.error('Error loading slots:', error)
-      }
-    }
-
-    loadAvailableSlots()
-  }, [])
-
-  const perParticipant = calculatePerParticipant()
-  const poolShare = parseFloat(amount) * POOL_RATE
-  const extraWalletsTotal = parseFloat(extraWalletsCount || '0') * parseFloat(extraWalletsAmount || '0')
   const userNickname = user?.id ? getUserNicknameSync(user.id) : ''
-
   const overlayBg = theme === 'dark' ? 'bg-black/60 backdrop-blur-sm' : 'bg-gray-900/50 backdrop-blur-sm'
   const modalBg = theme === 'dark' ? 'bg-gray-800' : 'bg-white'
   const headerBg = theme === 'dark' ? 'border-gray-700 bg-gray-800' : 'border-gray-200 bg-white'
@@ -173,13 +152,13 @@ export const EarningsForm = ({ onClose, onSave, editingEarning }: EarningsFormPr
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 touch-manipulation">
       <div className={`absolute inset-0 ${overlayBg}`} onClick={onClose} />
-      
+
       <div className={`relative w-full max-w-md max-h-[90vh] overflow-y-auto rounded-2xl shadow-2xl ${modalBg}`}>
         <div className={`sticky top-0 z-10 flex items-center justify-between p-4 border-b backdrop-blur-md bg-opacity-90 ${headerBg}`}>
           <h2 className={`text-xl font-bold ${headingColor}`}>
             {isEditing ? 'Редактировать заработок' : 'Добавить заработок'}
           </h2>
-          <button 
+          <button
             onClick={onClose}
             className={`p-2 rounded-lg transition-colors ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
           >
@@ -206,23 +185,6 @@ export const EarningsForm = ({ onClose, onSave, editingEarning }: EarningsFormPr
           </div>
 
           <div className="space-y-3">
-            <label className={`block text-sm font-medium ${headingColor}`}>Слот</label>
-            <select
-              value={selectedSlotId}
-              onChange={(e) => setSelectedSlotId(e.target.value)}
-              disabled={!canEdit}
-              className={`w-full px-3 py-2.5 rounded-xl border ${inputBg} disabled:opacity-50 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all`}
-            >
-              <option value="">Выберите слот</option>
-              {availableSlots.map((slot: any) => (
-                <option key={slot.id} value={slot.id}>
-                  {slot.date} — {getUserNicknameSync(slot.userId)} ({slot.category})
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="space-y-3">
             <label className={`block text-sm font-medium ${headingColor}`}>Категория</label>
             <div className="grid grid-cols-4 gap-2">
               {(['memecoins', 'futures', 'nft', 'spot', 'polymarket', 'staking', 'airdrop'] as EarningsCategory[]).map((cat) => (
@@ -230,11 +192,10 @@ export const EarningsForm = ({ onClose, onSave, editingEarning }: EarningsFormPr
                   key={cat}
                   onClick={() => setCategory(cat)}
                   disabled={!canEdit}
-                  className={`flex flex-col items-center gap-1 p-2 rounded-xl border transition-all ${
-                    category === cat 
-                      ? 'border-emerald-500 bg-emerald-500/10' 
+                  className={`flex flex-col items-center gap-1 p-2 rounded-xl border transition-all ${category === cat
+                      ? 'border-emerald-500 bg-emerald-500/10'
                       : `border-transparent ${theme === 'dark' ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-100 hover:bg-gray-200'}`
-                  } disabled:opacity-50 touch-manipulation`}
+                    } disabled:opacity-50 touch-manipulation`}
                 >
                   <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${EARNINGS_CATEGORY_META[cat]?.gradient || 'from-gray-400 to-gray-600'} flex items-center justify-center text-white shadow-md`}>
                     {getCategoryIcon(cat, 'w-4 h-4')}
@@ -247,8 +208,54 @@ export const EarningsForm = ({ onClose, onSave, editingEarning }: EarningsFormPr
             </div>
           </div>
 
+          {category === 'memecoins' && (
+            <div className="flex items-center gap-3 p-3 rounded-xl border border-emerald-500/20 bg-emerald-500/5">
+              <input
+                type="checkbox"
+                id="isDeving"
+                checked={isDeving}
+                onChange={(e) => setIsDeving(e.target.checked)}
+                disabled={!canEdit}
+                className="w-4 h-4 text-emerald-500 rounded focus:ring-emerald-500/20"
+              />
+              <label htmlFor="isDeving" className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                Deving (Дэвинг)
+              </label>
+            </div>
+          )}
+
           <div className="space-y-3">
-            <label className={`block text-sm font-medium ${headingColor}`}>Сумма ($)</label>
+            <label className={`block text-sm font-medium ${headingColor}`}>Тип кошелька</label>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                onClick={() => setWalletType('general')}
+                disabled={!canEdit}
+                className={`flex items-center justify-center gap-2 p-3 rounded-xl border transition-all ${walletType === 'general'
+                    ? 'border-emerald-500 bg-emerald-500/10 text-emerald-500'
+                    : `border-transparent ${theme === 'dark' ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-700'}`
+                  }`}
+              >
+                <Users className="w-5 h-5" />
+                <span className="font-medium text-sm">Общий</span>
+              </button>
+              <button
+                onClick={() => setWalletType('personal')}
+                disabled={!canEdit}
+                className={`flex items-center justify-center gap-2 p-3 rounded-xl border transition-all ${walletType === 'personal'
+                    ? 'border-emerald-500 bg-emerald-500/10 text-emerald-500'
+                    : `border-transparent ${theme === 'dark' ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-700'}`
+                  }`}
+              >
+                <Wallet className="w-5 h-5" />
+                <span className="font-medium text-sm">Личный</span>
+              </button>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <label className={`block text-sm font-medium ${headingColor}`}>
+              {walletType === 'general' ? 'Прибыль с основного кошелька ($)' : 'Ваш заработок ($)'}
+            </label>
             <input
               type="number"
               value={amount}
@@ -260,41 +267,48 @@ export const EarningsForm = ({ onClose, onSave, editingEarning }: EarningsFormPr
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-3">
-              <label className={`block text-sm font-medium ${headingColor}`}>Кол-во кошельков</label>
-              <input
-                type="number"
-                value={extraWalletsCount}
-                onChange={(e) => setExtraWalletsCount(e.target.value)}
-                disabled={!canEdit}
-                placeholder="0"
-                className={`w-full px-3 py-2.5 rounded-xl border ${inputBgPlaceholder} disabled:opacity-50 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all`}
-              />
-            </div>
-            <div className="space-y-3">
-              <label className={`block text-sm font-medium ${headingColor}`}>Заработок ($)</label>
-              <input
-                type="number"
-                value={extraWalletsAmount}
-                onChange={(e) => setExtraWalletsAmount(e.target.value)}
-                disabled={!canEdit}
-                placeholder="0.00"
-                className={`w-full px-3 py-2.5 rounded-xl border ${inputBgPlaceholder} disabled:opacity-50 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all`}
-              />
-            </div>
+            {walletType === 'general' ? (
+              <>
+                <div className="space-y-3 col-span-2">
+                  <label className={`block text-sm font-medium ${headingColor}`}>Кол-во копи-кошельков</label>
+                  <input
+                    type="number"
+                    value={extraWalletsCount}
+                    onChange={(e) => setExtraWalletsCount(e.target.value)}
+                    disabled={!canEdit}
+                    placeholder="0"
+                    className={`w-full px-3 py-2.5 rounded-xl border ${inputBgPlaceholder} disabled:opacity-50 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all`}
+                  />
+                </div>
+              </>
+            ) : (
+              <div className="space-y-3 col-span-2">
+                <label className={`block text-sm font-medium ${headingColor}`}>Заработок с доп. кошельков ($)</label>
+                <input
+                  type="number"
+                  value={extraWalletsAmount}
+                  onChange={(e) => setExtraWalletsAmount(e.target.value)}
+                  disabled={!canEdit}
+                  placeholder="0.00"
+                  className={`w-full px-3 py-2.5 rounded-xl border ${inputBgPlaceholder} disabled:opacity-50 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all`}
+                />
+              </div>
+            )}
           </div>
 
-          <div className={`p-3 rounded-xl ${theme === 'dark' ? 'bg-gray-700/50' : 'bg-gray-100'}`}>
+          <div className={`p-4 rounded-xl space-y-2 ${theme === 'dark' ? 'bg-gray-700/50' : 'bg-gray-100'}`}>
             <div className="flex justify-between text-sm">
-              <span className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>Доля пула (45%):</span>
-              <span className={theme === 'dark' ? 'text-white' : 'text-gray-900'}>${poolShare.toFixed(2)}</span>
+              <span className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>Общий результат:</span>
+              <span className={`font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>${totalEarnings.toFixed(2)}</span>
             </div>
-            <div className="flex justify-between text-sm mt-1">
-              <span className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>Доп. кошельки:</span>
-              <span className={theme === 'dark' ? 'text-white' : 'text-gray-900'}>${extraWalletsTotal.toFixed(2)}</span>
+
+            <div className="flex justify-between text-sm">
+              <span className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>В пул ({(percent * 100).toFixed(0)}%):</span>
+              <span className="text-red-400">-${poolShare.toFixed(2)}</span>
             </div>
-            <div className="flex justify-between text-sm font-medium mt-2 pt-2 border-t border-current border-opacity-10">
-              <span className={theme === 'dark' ? 'text-gray-300' : 'text-gray-800'}>На участника:</span>
+
+            <div className="flex justify-between text-sm font-medium pt-2 border-t border-current border-opacity-10">
+              <span className={theme === 'dark' ? 'text-gray-300' : 'text-gray-800'}>Чистый доход на участника:</span>
               <span className="text-emerald-500">${perParticipant.toFixed(2)}</span>
             </div>
           </div>
@@ -322,20 +336,19 @@ export const EarningsForm = ({ onClose, onSave, editingEarning }: EarningsFormPr
                     key={member.id}
                     onClick={() => {
                       if (!canEdit) return
-                      setSelectedParticipants(prev => 
-                        prev.includes(member.id) 
+                      setSelectedParticipants(prev =>
+                        prev.includes(member.id)
                           ? prev.filter(id => id !== member.id)
                           : [...prev, member.id]
                       )
                     }}
                     disabled={!canEdit}
-                    className={`p-2 rounded-lg text-left text-sm transition-all ${
-                      selectedParticipants.includes(member.id)
+                    className={`p-2 rounded-lg text-left text-sm transition-all ${selectedParticipants.includes(member.id)
                         ? 'bg-emerald-500/10 border border-emerald-500/50 text-emerald-600 dark:text-emerald-400'
-                        : theme === 'dark' 
-                          ? 'bg-gray-700 hover:bg-gray-600 text-gray-300' 
+                        : theme === 'dark'
+                          ? 'bg-gray-700 hover:bg-gray-600 text-gray-300'
                           : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
-                    } disabled:opacity-50`}
+                      } disabled:opacity-50`}
                   >
                     <span className="font-medium">{member.nickname}</span>
                   </button>

@@ -113,8 +113,10 @@ export interface Earnings {
   date: string
   amount: number
   poolAmount: number
-  slotId: string
+  slotId?: string
   category: EarningsCategory
+  walletType?: 'general' | 'personal'
+  isDeving?: boolean
   status?: 'pending' | 'approved' | 'rejected'
   // Доп. кошельки
   extraWalletsCount?: number
