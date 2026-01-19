@@ -1,40 +1,49 @@
-import { useThemeStore } from '@/store/themeStore'
-import { LineChart, Construction } from 'lucide-react'
 
-export const TokenAnalysis = () => {
-    const { theme } = useThemeStore()
-    const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
+import React, { useState } from 'react';
+import { Plus, LineChart } from 'lucide-react';
+import { TokenAnalysisTable } from '../components/TokenAnalysis/TokenAnalysisTable';
+import { AddSignalModal } from '../components/TokenAnalysis/AddSignalModal';
+
+export const TokenAnalysis: React.FC = () => {
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [refreshKey, setRefreshKey] = useState(0);
+
+    const handleSuccess = () => {
+        // Force table refresh by incrementing key
+        setRefreshKey(prev => prev + 1);
+    };
 
     return (
         <div className="space-y-6">
-            {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div className="flex items-center gap-4">
-                    <div className="p-3 bg-emerald-500/10 rounded-2xl border border-emerald-500/20">
-                        <LineChart className="w-8 h-8 text-emerald-500" />
-                    </div>
-                    <div>
-                        <h1 className={`text-2xl md:text-3xl font-black tracking-tight ${headingColor}`}>
-                            Анализ токенов
-                        </h1>
-                        <p className={`text-sm font-medium ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                            Инструменты анализа и статистики токенов
-                        </p>
-                    </div>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent flex items-center gap-2">
+                        <LineChart className="text-blue-400" />
+                        Token Analysis
+                    </h1>
+                    <p className="text-gray-400 text-sm mt-1">
+                        Automated tracking of token signals on Solana network
+                    </p>
                 </div>
+
+                <button
+                    onClick={() => setIsModalOpen(true)}
+                    className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg shadow-lg hover:shadow-blue-500/20 transition-all text-sm font-medium"
+                >
+                    <Plus size={18} />
+                    Add Signal
+                </button>
             </div>
 
-            {/* Placeholder Content */}
-            <div className={`flex flex-col items-center justify-center min-h-[400px] rounded-3xl border ${theme === 'dark' ? 'bg-[#0b1015] border-white/5' : 'bg-white border-gray-100'}`}>
-                <div className="p-4 bg-emerald-500/10 rounded-full mb-4">
-                    <Construction className="w-12 h-12 text-emerald-500" />
-                </div>
-                <h2 className={`text-xl font-bold mb-2 ${headingColor}`}>Раздел в разработке</h2>
-                <p className={`text-center max-w-md ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                    Мы работаем над созданием мощных инструментов для анализа токенов.
-                    Следите за обновлениями!
-                </p>
+            <div className="mt-6" key={refreshKey}>
+                <TokenAnalysisTable />
             </div>
+
+            <AddSignalModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                onSuccess={handleSuccess}
+            />
         </div>
-    )
-}
+    );
+};
