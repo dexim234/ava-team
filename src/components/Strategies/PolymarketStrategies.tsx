@@ -9,22 +9,104 @@ import {
     Brain,
     TrendingUp,
     Wallet,
-    ExternalLink
+    ExternalLink,
+    Zap,
+    BarChart2,
+    Users,
+    Activity
 } from 'lucide-react'
 import { AVFValueBettingStrategy } from './AVFValueBettingStrategy'
 import { AVFArbitrageStrategy } from './AVFArbitrageStrategy'
 
 type StrategyId = 'value-betting' | 'arbitrage';
 
+interface Tool {
+    name: string
+    url: string
+    shortDesc: string
+    fullDesc: string
+    icon: React.ReactNode
+    color: string
+    bgColor: string
+    tags: string[]
+}
+
 export const PolymarketStrategies: React.FC = () => {
     const { theme } = useThemeStore()
     const [activeStrategy, setActiveStrategy] = useState<StrategyId>('value-betting')
 
     const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
+    const cardBg = theme === 'dark' ? 'bg-[#151a21]/50' : 'bg-white'
+    const cardBorder = theme === 'dark' ? 'border-white/5' : 'border-gray-100'
+    const innerBg = theme === 'dark' ? 'bg-[#151a21]/50' : 'bg-gray-50/50'
+    const mutedText = theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
 
     const strategies = [
         { id: 'value-betting', name: 'AVF Value Betting', icon: <Target className="w-4 h-4" /> },
         { id: 'arbitrage', name: 'AVF Арбитраж', icon: <Calculator className="w-4 h-4" /> },
+    ]
+
+    const tools: Tool[] = [
+        {
+            name: 'Polymarket',
+            url: 'https://polymarket.com/',
+            shortDesc: 'Децентрализованная платформа на блокчейне Polygon',
+            fullDesc: 'Децентрализованная платформа на блокчейне Polygon, на которой можно торговать вероятностями событий, покупая токены результата — YES или NO. Цена токена отражает рыночную вероятность события.',
+            icon: <Target className="w-5 h-5" />,
+            color: 'text-rose-400',
+            bgColor: 'bg-rose-500/10 border-rose-500/20',
+            tags: ['Core', 'Trading']
+        },
+        {
+            name: 'HashDive',
+            url: 'https://hashdive.com',
+            shortDesc: 'Аналитика Polymarket и Kalshi с Smart Scores',
+            fullDesc: 'Аналитическая платформа для Polymarket и Kalshi. Отслеживайте Smart Scores трейдеров (–100 до +100) на основе их перфоманса. Мониторинг активности китов, крупных сделок, рыночных трендов, ликвидности и волатильности. Анализ позиций и PnL по кошелькам.',
+            icon: <BarChart3 className="w-5 h-5" />,
+            color: 'text-blue-400',
+            bgColor: 'bg-blue-500/10 border-blue-500/20',
+            tags: ['Analytics', 'Whales', 'Scores']
+        },
+        {
+            name: 'Polysights',
+            url: 'https://app.polysights.xyz',
+            shortDesc: 'AI/ML аналитика и арбитражные возможности',
+            fullDesc: 'Платформа аналитики для Polymarket с ML и AI. AI-driven insights и рыночные сводки. Поиск арбитражных возможностей и продвинутые торговые метрики. Анализ цен, объёмов и трендов. Smart фильтры по категориям, трендам и ликвидности. Telegram-бот и live feed событий. Leaderboard и performance metrics.',
+            icon: <Brain className="w-5 h-5" />,
+            color: 'text-purple-400',
+            bgColor: 'bg-purple-500/10 border-purple-500/20',
+            tags: ['AI', 'ML', 'Arbitrage', 'Telegram']
+        },
+        {
+            name: 'Munar AI',
+            url: 'https://app.munar.ai',
+            shortDesc: 'AI-криптопомощник для трейдеров',
+            fullDesc: 'AI крипто-помощник (crypto copilot) для трейдеров. Помогает анализировать рынки, отвечает на вопросы о событиях и стратегиях, генерирует аналитические отчёты и торговые рекомендации.',
+            icon: <Zap className="w-5 h-5" />,
+            color: 'text-cyan-400',
+            bgColor: 'bg-cyan-500/10 border-cyan-500/20',
+            tags: ['AI', 'Assistant']
+        },
+        {
+            name: 'Polymarket Analytics',
+            url: 'https://polymarketanalytics.com',
+            shortDesc: 'Глобальная платформа данных и аналитики',
+            fullDesc: 'Глобальная платформа данных и аналитики для Polymarket. Live цены всех активных маркетов с обновлением каждые 5 минут. Top Traders с фильтрацией по категориям (Politics, Crypto, Sports). Unified Search — поиск маркетов на Polymarket и Kalshi в одном месте. Real-time Activity для отслеживания позиций топ-трейдеров. Portfolio Builder для управления несколькими кошельками и сводной PnL.',
+            icon: <TrendingUp className="w-5 h-5" />,
+            color: 'text-emerald-400',
+            bgColor: 'bg-emerald-500/10 border-emerald-500/20',
+            tags: ['Data', 'Live', 'Portfolio']
+        },
+        {
+            name: 'PredictFolio',
+            url: 'https://predictfolio.com',
+            shortDesc: 'Портфолио и трейдер-аналитика',
+            fullDesc: 'Портфолио и трейдер-аналитика для Polymarket. Portfolio Tracker для отслеживания позиций, PnL и odds в реальном времени. Trader Analytics для анализа стратегий других трейдеров. Benchmarking для сравнения win rate, volume и PnL с топ-кошельками. Follow Winners для копирования лучших сделок. Advanced Search по хендлу, маркету или метрикам.',
+            icon: <Wallet className="w-5 h-5" />,
+            color: 'text-indigo-400',
+            bgColor: 'bg-indigo-500/10 border-indigo-500/20',
+            tags: ['Portfolio', 'Analytics', 'Copy Trading']
+        },
     ]
 
     return (
@@ -38,7 +120,7 @@ export const PolymarketStrategies: React.FC = () => {
                         </div>
                         <div>
                             <h3 className={`text-xl font-black ${headingColor}`}>Стратегии</h3>
-                            <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                            <p className={`text-sm ${mutedText}`}>
                                 Проверенные методики работы с прогнозными рынками
                             </p>
                         </div>
@@ -64,8 +146,7 @@ export const PolymarketStrategies: React.FC = () => {
 
                 <div className={`rounded-3xl border p-1 sm:p-2 ${theme === 'dark' ? 'bg-[#0b1015]/50 border-white/5' : 'bg-white border-gray-100'
                     } shadow-xl`}>
-                    <div className={`p-6 sm:p-8 rounded-[2.5rem] ${theme === 'dark' ? 'bg-[#151a21]/50' : 'bg-gray-50/50'
-                        }`}>
+                    <div className={`p-6 sm:p-8 rounded-[2.5rem] ${innerBg}`}>
                         {activeStrategy === 'value-betting' ? (
                             <AVFValueBettingStrategy />
                         ) : (
@@ -83,78 +164,95 @@ export const PolymarketStrategies: React.FC = () => {
                     </div>
                     <div>
                         <h3 className={`text-xl font-black ${headingColor}`}>Инструменты</h3>
-                        <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                        <p className={`text-sm ${mutedText}`}>
                             Аналитические платформы и сервисы для Polymarket
                         </p>
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                    {[
-                        {
-                            name: 'Polymarket',
-                            url: 'https://polymarket.com/',
-                            desc: 'Децентрализованная платформа на блокчейне Polygon для торговли вероятностями событий. Покупайте токены результата YES или NO, где цена токена отражает рыночную вероятность события. Торговля через смарт-контракты без посредников.',
-                            icon: <Target className="w-5 h-5 text-rose-400" />
-                        },
-                        {
-                            name: 'HashDive',
-                            url: 'https://hashdive.com',
-                            desc: 'Аналитическая платформа с уникальной системой Smart Scores (–100 до +100) на основе перфоманса трейдеров. Отслеживайте активность китов, крупные сделки, рыночные тренды, ликвидность и волатильность. Портфельный анализ по адресам.',
-                            icon: <BarChart3 className="w-5 h-5 text-blue-400" />
-                        },
-                        {
-                            name: 'Polysights',
-                            url: 'https://app.polysights.xyz',
-                            desc: 'Платформа аналитики с ML/AI: AI-driven insights и рыночные сводки, поиск арбитражных возможностей, продвинутые торговые метрики. Smart фильтры по категориям, трендам и ликвидности. Telegram-бот и live feed событий.',
-                            icon: <Brain className="w-5 h-5 text-purple-400" />
-                        },
-                        {
-                            name: 'Munar AI',
-                            url: 'https://app.munar.ai',
-                            desc: 'AI-криптопомощник (crypto copilot) для трейдеров. Помогает анализировать рынки, отвечает на вопросы о событиях и стратегиях, генерирует аналитические отчёты и торговые рекомендации.',
-                            icon: <Brain className="w-5 h-5 text-cyan-400" />
-                        },
-                        {
-                            name: 'Polymarket Analytics',
-                            url: 'https://polymarketanalytics.com',
-                            desc: 'Глобальная платформа данных: live-цены всех активных маркетов (обновление каждые 5 минут), Top Traders с фильтрацией по категориям (Politics, Crypto, Sports), Unified Search для Polymarket и Kalshi, Real-time Activity и Portfolio Builder.',
-                            icon: <TrendingUp className="w-5 h-5 text-emerald-400" />
-                        },
-                        {
-                            name: 'PredictFolio',
-                            url: 'https://predictfolio.com',
-                            desc: 'Портфолио и трейдер-аналитика: Portfolio Tracker для отслеживания позиций и PnL в реальном времени, Trader Analytics для анализа стратегий, Benchmarking для сравнения с топ-трейдерами, Follow Winners для копирования сделок.',
-                            icon: <Wallet className="w-5 h-5 text-indigo-400" />
-                        },
-                    ].map((tool, idx) => (
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+                    {tools.map((tool, idx) => (
                         <a
                             key={idx}
                             href={tool.url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className={`group relative p-5 rounded-2xl border transition-all duration-300 hover:shadow-lg ${theme === 'dark'
-                                ? 'bg-[#151a21]/50 border-white/5 hover:border-rose-500/30'
-                                : 'bg-white border-gray-100 hover:border-rose-500/20'
+                            className={`group relative flex flex-col p-6 rounded-2xl border transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ${theme === 'dark'
+                                ? `${cardBg} ${cardBorder} hover:border-rose-500/30`
+                                : 'bg-white border-gray-100 hover:border-rose-500/30 hover:shadow-lg'
                                 }`}
                         >
-                            <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                            {/* External Link Icon */}
+                            <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-2 group-hover:translate-x-0">
                                 <ExternalLink className={`w-4 h-4 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} />
                             </div>
 
-                            <div className={`p-2.5 rounded-xl w-fit mb-4 ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'
-                                } group-hover:scale-110 transition-transform`}>
-                                {tool.icon}
+                            {/* Header with Icon */}
+                            <div className="flex items-start gap-4 mb-4">
+                                <div className={`p-3 rounded-xl ${tool.bgColor} group-hover:scale-110 transition-transform duration-300`}>
+                                    <div className={tool.color}>
+                                        {tool.icon}
+                                    </div>
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <h4 className={`font-bold ${headingColor} text-lg mb-1`}>
+                                        {tool.name}
+                                    </h4>
+                                    <p className={`text-xs font-medium ${tool.color} truncate`}>
+                                        {tool.shortDesc}
+                                    </p>
+                                </div>
                             </div>
 
-                            <h4 className={`font-bold mb-1 ${headingColor} flex items-center gap-2`}>
-                                {tool.name}
-                            </h4>
-                            <p className="text-xs text-gray-500 line-clamp-2 leading-relaxed">
-                                {tool.desc}
+                            {/* Tags */}
+                            <div className="flex flex-wrap gap-2 mb-4">
+                                {tool.tags.map((tag, tagIdx) => (
+                                    <span
+                                        key={tagIdx}
+                                        className={`px-2 py-1 text-[10px] font-semibold uppercase tracking-wider rounded-full ${theme === 'dark' ? 'bg-white/5 text-gray-400' : 'bg-gray-100 text-gray-500'
+                                            }`}
+                                    >
+                                        {tag}
+                                    </span>
+                                ))}
+                            </div>
+
+                            {/* Description */}
+                            <p className={`text-sm leading-relaxed ${mutedText} flex-1`}>
+                                {tool.fullDesc}
                             </p>
+
+                            {/* Hover Line */}
+                            <div className={`absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-rose-500 to-amber-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-b-2xl`} />
                         </a>
                     ))}
+                </div>
+            </section>
+
+            {/* Quick Stats */}
+            <section className={`p-6 rounded-2xl border ${theme === 'dark' ? 'bg-gradient-to-br from-rose-500/5 to-amber-500/5 border-white/5' : 'bg-gradient-to-br from-rose-50 to-amber-50 border-gray-100'
+                }`}>
+                <div className="flex flex-wrap items-center justify-between gap-6">
+                    <div className="flex items-center gap-4">
+                        <div className="p-3 rounded-xl bg-rose-500/10">
+                            <Activity className="w-6 h-6 text-rose-500" />
+                        </div>
+                        <div>
+                            <p className={`text-sm ${mutedText}`}>Всего инструментов</p>
+                            <p className={`text-2xl font-black ${headingColor}`}>{tools.length}</p>
+                        </div>
+                    </div>
+                    <div className="flex flex-wrap gap-3">
+                        {['Analytics', 'AI/ML', 'Portfolio', 'Live Data', 'Copy Trading'].map((category, idx) => (
+                            <span
+                                key={idx}
+                                className={`px-3 py-1.5 text-xs font-medium rounded-lg ${theme === 'dark' ? 'bg-white/5 text-gray-300' : 'bg-white text-gray-600 border border-gray-200'
+                                    }`}
+                            >
+                                {category}
+                            </span>
+                        ))}
+                    </div>
                 </div>
             </section>
         </div>
