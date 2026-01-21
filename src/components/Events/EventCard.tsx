@@ -108,11 +108,6 @@ export const EventCard = memo(({ event, isAdmin, onEdit, onDelete }: EventCardPr
     return member?.name || 'Unknown'
   }).filter(Boolean)
 
-  const recommendedNames = (event.recommendedParticipants || []).map(id => {
-    const member = allMembers.find(m => m.id === id)
-    return member?.name || 'Unknown'
-  }).filter(Boolean)
-
   // Check if current user is involved
   const isUserRequired = user && event.requiredParticipants.includes(user.id)
   const isUserRecommended = user && (event.recommendedParticipants || []).includes(user.id)
@@ -166,282 +161,239 @@ export const EventCard = memo(({ event, isAdmin, onEdit, onDelete }: EventCardPr
 
   return (
     <div
-      className={`relative p-5 rounded-2xl border ${borderColor} ${cardBg} shadow-sm hover:shadow-xl transition-all group overflow-hidden`}
+      className={`relative p-3 rounded-lg border ${borderColor} ${cardBg} shadow-sm hover:shadow-lg transition-all group overflow-hidden`}
     >
       {/* Background Gradient Glow */}
-      <div className={`absolute -right-20 -top-20 w-64 h-64 bg-gradient-to-br ${meta.cardGradient} blur-3xl opacity-50 group-hover:opacity-100 transition-opacity duration-500`} />
+      <div className={`absolute -right-8 -top-8 w-24 h-24 bg-gradient-to-br ${meta.cardGradient} blur-2xl opacity-25 group-hover:opacity-50 transition-opacity duration-500`} />
 
-      <div className="relative flex flex-col lg:flex-row lg:items-start gap-6">
-        {/* Left Section: Icon and Basics */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-start gap-4">
-            <div className={`p-4 rounded-2xl bg-gradient-to-br ${meta.gradient} shadow-lg shadow-emerald-500/10 text-white shrink-0`}>
-              <IconComponent className="w-6 h-6 sm:w-7 sm:h-7" />
-            </div>
-
-            <div className="flex-1 min-w-0">
-              <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                <h3 className={`text-xl sm:text-2xl font-black ${textColor} tracking-tight leading-tight`}>{event.title}</h3>
-                <span className={`w-fit px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-gradient-to-r ${meta.gradient} text-white shadow-sm ring-1 ring-white/20`}>
-                  {meta.label}
-                </span>
-              </div>
-            </div>
+      <div className="relative">
+        {/* Header: Icon, Title, Category */}
+        <div className="flex items-start gap-3">
+          <div className={`p-2.5 rounded-lg bg-gradient-to-br ${meta.gradient} shadow-lg shadow-emerald-500/10 text-white shrink-0`}>
+            <IconComponent className="w-5 h-5" />
           </div>
 
-          <div className="flex flex-wrap items-center gap-5 text-sm sm:text-base mt-4 pl-1">
-            <div className="flex items-center gap-2.5">
-              <div className={`p-2 rounded-xl ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-100'}`}>
-                <Calendar size={16} className="text-emerald-500" />
-              </div>
-              <span className={`font-bold ${subtleColor}`}>
-                {event.dates.length === 1
-                  ? formatDate(event.dates[0])
-                  : `${formatDate(event.dates[0])} — ${formatDate(event.dates[event.dates.length - 1])}`
-                }
-              </span>
-            </div>
-            <div className="flex items-center gap-2.5">
-              <div className={`p-2 rounded-xl ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-100'}`}>
-                <Clock size={16} className="text-emerald-500" />
-              </div>
-              <span className={`font-bold ${subtleColor}`}>
-                {event.time}{event.endTime ? ` — ${event.endTime}` : ''}
-              </span>
-            </div>
+          <div className="flex-1 min-w-0">
+            <h3 className={`text-sm font-bold ${textColor} tracking-tight leading-tight line-clamp-2`}>{event.title}</h3>
+            <span className={`inline-block mt-1 px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider bg-gradient-to-r ${meta.gradient} text-white shadow-sm`}>
+              {meta.label}
+            </span>
           </div>
+        </div>
 
-          {/* Description */}
-          {event.description && (
-            <div className="mt-5 pl-1">
-              <p className={`text-[15px] ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'} leading-relaxed`}>
-                {event.description}
-              </p>
+        {/* Date and Time */}
+        <div className="flex items-center gap-2 mt-3 text-xs">
+          <div className="flex items-center gap-1.5">
+            <Calendar size={12} className="text-emerald-500" />
+            <span className={`font-medium ${subtleColor}`}>
+              {event.dates.length === 1
+                ? formatDate(event.dates[0])
+                : `${formatDate(event.dates[0])} — ${formatDate(event.dates[event.dates.length - 1])}`
+              }
+            </span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <Clock size={12} className="text-emerald-500" />
+            <span className={`font-medium ${subtleColor}`}>
+              {event.time}{event.endTime ? ` — ${event.endTime}` : ''}
+            </span>
+          </div>
+        </div>
+
+        {/* Status Badges */}
+        <div className="flex flex-wrap gap-1.5 mt-2">
+          {isActive && (
+            <div className="flex items-center gap-1 px-2 py-1 rounded-md bg-emerald-500/10 border border-emerald-500/20">
+              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="text-[9px] font-bold uppercase text-emerald-500 tracking-wider">Идёт сейчас</span>
             </div>
           )}
+          {timeUntil && !isActive && (
+            <div className="flex items-center gap-1 px-2 py-1 rounded-md bg-amber-500/10 border border-amber-500/20">
+              <Timer size={10} className="text-amber-500" />
+              <span className="text-[9px] font-bold text-amber-500">{timeUntil}</span>
+            </div>
+          )}
+          {isUserGoing && (
+            <div className="flex items-center gap-1 px-2 py-1 rounded-md bg-emerald-500/10 border border-emerald-500/20">
+              <CheckCircle2 size={10} className="text-emerald-500" />
+              <span className="text-[9px] font-bold uppercase text-emerald-500">Вы идёте</span>
+            </div>
+          )}
+          {isUserNotGoing && (
+            <div className="flex items-center gap-1 px-2 py-1 rounded-md bg-rose-500/10 border border-rose-500/20">
+              <XCircle size={10} className="text-rose-500" />
+              <span className="text-[9px] font-bold uppercase text-rose-500">Вас не будет</span>
+            </div>
+          )}
+          {!isUserGoing && !isUserNotGoing && (isUserRequired || isUserRecommended) && (
+            <div className="flex items-center gap-1 px-2 py-1 rounded-md bg-blue-500/10 border border-blue-500/20">
+              <Users size={10} className="text-blue-500" />
+              <span className="text-[9px] font-bold uppercase text-blue-500">
+                {isUserRequired ? 'Вы участник' : 'Рекомендовано'}
+              </span>
+            </div>
+          )}
+        </div>
 
-          {/* Links and Files */}
-          <div className="mt-6 flex flex-wrap gap-3">
+        {/* Description */}
+        {event.description && (
+          <p className={`mt-2 text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} line-clamp-2`}>
+            {event.description}
+          </p>
+        )}
+
+        {/* Links */}
+        {event.links.length > 0 && (
+          <div className="flex flex-wrap gap-1.5 mt-2">
             {event.links.map((link, index) => (
               <a
                 key={index}
                 href={link.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${theme === 'dark' ? 'bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/20' : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-100'}`}
+                className={`flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-bold transition-all ${theme === 'dark' ? 'bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20' : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'}`}
               >
-                <ExternalLink size={14} />
+                <ExternalLink size={10} />
                 {link.name}
               </a>
             ))}
+          </div>
+        )}
+
+        {/* Going/Not Going Lists */}
+        <div className="mt-2 space-y-1.5">
+          {goingUsers.length > 0 && (
+            <div className={`p-2 rounded-lg ${theme === 'dark' ? 'bg-emerald-500/5 border border-emerald-500/10' : 'bg-emerald-50 border border-emerald-100'}`}>
+              <div className="flex items-center gap-1.5 mb-1.5">
+                <CheckCircle2 size={10} className="text-emerald-500" />
+                <span className="text-[9px] font-bold uppercase text-emerald-500">Будут ({goingUsers.length})</span>
+              </div>
+              <div className="flex flex-wrap gap-1">
+                {goingUsers.slice(0, 4).map((name, idx) => (
+                  <span
+                    key={idx}
+                    className={`px-1.5 py-0.5 rounded text-[9px] font-medium ${theme === 'dark' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-white text-emerald-700 border border-emerald-100'}`}
+                  >
+                    {name}
+                  </span>
+                ))}
+                {goingUsers.length > 4 && (
+                  <span className={`text-[9px] font-medium ${subtleColor}`}>+{goingUsers.length - 4}</span>
+                )}
+              </div>
+            </div>
+          )}
+
+          {notGoingUsers.length > 0 && (
+            <div className={`p-2 rounded-lg ${theme === 'dark' ? 'bg-rose-500/5 border border-rose-500/10' : 'bg-rose-50 border border-rose-100'}`}>
+              <div className="flex items-center gap-1.5 mb-1.5">
+                <XCircle size={10} className="text-rose-500" />
+                <span className="text-[9px] font-bold uppercase text-rose-500">Не смогут ({notGoingUsers.length})</span>
+              </div>
+              <div className="flex flex-wrap gap-1">
+                {notGoingUsers.slice(0, 3).map((name, idx) => (
+                  <span
+                    key={idx}
+                    className={`px-1.5 py-0.5 rounded text-[9px] font-medium ${theme === 'dark' ? 'bg-rose-500/10 text-rose-400' : 'bg-white text-rose-700 border border-rose-100'}`}
+                  >
+                    {name}
+                  </span>
+                ))}
+                {notGoingUsers.length > 3 && (
+                  <span className={`text-[9px] font-medium ${subtleColor}`}>+{notGoingUsers.length - 3}</span>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Participants */}
+        {participants.length > 0 && (
+          <div className={`mt-2 p-2 rounded-lg ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'}`}>
+            <div className="flex items-center gap-1.5 mb-1.5">
+              <Users size={10} className={subtleColor} />
+              <span className="text-[9px] font-bold uppercase tracking-wider text-gray-500">Участники</span>
+            </div>
+            <div className="flex flex-wrap gap-1">
+              {participants.slice(0, 3).map((name, idx) => (
+                <span
+                  key={idx}
+                  className={`px-1.5 py-0.5 rounded text-[9px] font-medium ${theme === 'dark' ? 'bg-white/10 text-gray-300' : 'bg-white text-gray-600'}`}
+                >
+                  {name}
+                </span>
+              ))}
+              {participants.length > 3 && (
+                <span className={`text-[9px] font-medium ${subtleColor}`}>+{participants.length - 3}</span>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Files */}
+        {event.files.length > 0 && (
+          <div className="flex flex-wrap gap-1.5 mt-2">
             {event.files.map((file) => (
               <a
                 key={file.id}
                 href={file.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${theme === 'dark' ? 'bg-white/5 text-gray-300 hover:bg-white/10 border border-white/5' : 'bg-gray-50 text-gray-700 hover:bg-gray-100 border border-gray-100'}`}
+                className={`flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-bold transition-all ${theme === 'dark' ? 'bg-white/5 text-gray-400 hover:bg-white/10' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
               >
-                <FileText size={14} />
+                <FileText size={10} />
                 {file.name}
               </a>
             ))}
           </div>
+        )}
 
-          {/* RSVP Actions - Desktop only */}
-          {user && (
-            <div className="hidden lg:flex mt-6 flex-col sm:flex-row gap-2">
-              <button
-                onClick={() => handleRSVP(true)}
-                className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all shadow-md ${isUserGoing
-                  ? 'bg-emerald-500 text-white shadow-emerald-500/20 ring-1 ring-emerald-500 ring-offset-1 ring-offset-transparent'
-                  : 'bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 shadow-none'
-                  }`}
-              >
-                <CheckCircle2 size={16} />
-                <span>Я буду</span>
-              </button>
-              <button
-                onClick={() => handleRSVP(false)}
-                className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all shadow-md ${isUserNotGoing
-                  ? 'bg-rose-500 text-white shadow-rose-500/20 ring-1 ring-rose-500 ring-offset-1 ring-offset-transparent'
-                  : 'bg-rose-500/10 text-rose-500 hover:bg-rose-500/20 shadow-none'
-                  }`}
-              >
-                <XCircle size={16} />
-                <span>Меня не будет</span>
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* Right Section: Participants and Status */}
-        <div className="lg:w-72 flex flex-col gap-5">
-          {/* Status highlight */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-2">
-            {isActive && (
-              <div className="flex items-center justify-between p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 shadow-inner">
-                <span className="text-[10px] font-black uppercase text-emerald-500 tracking-wider">Идет сейчас</span>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                  <Timer size={16} className="text-emerald-500" />
-                </div>
-              </div>
-            )}
-            {timeUntil && !isActive && (
-              <div className="flex items-center justify-between p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 shadow-inner">
-                <span className="text-[10px] font-black uppercase text-amber-500 tracking-wider">Начнется через</span>
-                <span className="text-sm font-black text-amber-500">{timeUntil}</span>
-              </div>
-            )}
-            {isUserGoing && (
-              <div className="flex items-center justify-between p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 shadow-inner">
-                <span className="text-[10px] font-black uppercase text-emerald-500 tracking-wider">Вы идете</span>
-                <CheckCircle2 size={16} className="text-emerald-500" />
-              </div>
-            )}
-            {isUserNotGoing && (
-              <div className="flex items-center justify-between p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 shadow-inner">
-                <span className="text-[10px] font-black uppercase text-rose-500 tracking-wider">Вы не идете</span>
-                <XCircle size={16} className="text-rose-500" />
-              </div>
-            )}
-            {!isUserGoing && !isUserNotGoing && (isUserRequired || isUserRecommended) && (
-              <div className="flex items-center justify-between p-4 rounded-2xl bg-blue-500/10 border border-blue-500/20 shadow-inner">
-                <span className="text-[10px] font-black uppercase text-blue-500 tracking-wider">
-                  {isUserRequired ? 'Вы участвуете' : 'Рекомендовано вам'}
-                </span>
-                <Users size={16} className="text-blue-500" />
-              </div>
-            )}
+        {/* RSVP Buttons */}
+        {user && (
+          <div className="flex gap-1.5 mt-3">
+            <button
+              onClick={() => handleRSVP(true)}
+              className={`flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg text-[10px] font-bold transition-all ${isUserGoing
+                ? 'bg-emerald-500 text-white shadow-emerald-500/20'
+                : 'bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20'
+                }`}
+            >
+              <CheckCircle2 size={12} />
+              Я буду
+            </button>
+            <button
+              onClick={() => handleRSVP(false)}
+              className={`flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg text-[10px] font-bold transition-all ${isUserNotGoing
+                ? 'bg-rose-500 text-white shadow-rose-500/20'
+                : 'bg-rose-500/10 text-rose-500 hover:bg-rose-500/20'
+                }`}
+            >
+              <XCircle size={12} />
+              Не буду
+            </button>
           </div>
+        )}
 
-          {/* Going List */}
-          {goingUsers.length > 0 && (
-            <div className={`p-5 rounded-2xl ${theme === 'dark' ? 'bg-emerald-500/5 shadow-inner' : 'bg-emerald-50/50'} border ${theme === 'dark' ? 'border-emerald-500/20' : 'border-emerald-100'}`}>
-              <div className="flex items-center gap-2 mb-3.5">
-                <CheckCircle2 size={14} className="text-emerald-500" />
-                <p className={`text-[10px] font-black uppercase tracking-widest text-emerald-500`}>Будут ({goingUsers.length})</p>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {goingUsers.map((name, idx) => (
-                  <span
-                    key={idx}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-bold ${theme === 'dark' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-white text-emerald-700 shadow-sm border border-emerald-100'}`}
-                  >
-                    {name}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Not Going List */}
-          {notGoingUsers.length > 0 && (
-            <div className={`p-5 rounded-2xl ${theme === 'dark' ? 'bg-rose-500/5 shadow-inner' : 'bg-rose-50/50'} border ${theme === 'dark' ? 'border-rose-500/20' : 'border-rose-100'}`}>
-              <div className="flex items-center gap-2 mb-3.5">
-                <XCircle size={14} className="text-rose-500" />
-                <p className={`text-[10px] font-black uppercase tracking-widest text-rose-500`}>Не смогут ({notGoingUsers.length})</p>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {notGoingUsers.map((name, idx) => (
-                  <span
-                    key={idx}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-bold ${theme === 'dark' ? 'bg-rose-500/10 text-rose-400' : 'bg-white text-rose-700 shadow-sm border border-rose-100'}`}
-                  >
-                    {name}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Participants */}
-          {participants.length > 0 && (
-            <div className={`p-5 rounded-2xl ${theme === 'dark' ? 'bg-white/5 shadow-inner' : 'bg-gray-50'} border ${borderColor}`}>
-              <div className="flex items-center gap-2 mb-3.5">
-                <Users size={14} className={subtleColor} />
-                <p className={`text-[10px] font-black uppercase tracking-widest ${subtleColor}`}>Обязательные</p>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {participants.map((name, idx) => (
-                  <span
-                    key={idx}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-bold ${theme === 'dark' ? 'bg-white/10 text-gray-300' : 'bg-white text-gray-700 shadow-sm'}`}
-                  >
-                    {name}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Recommended Participants */}
-          {recommendedNames.length > 0 && (
-            <div className={`p-5 rounded-2xl ${theme === 'dark' ? 'bg-white/5 shadow-inner' : 'bg-gray-50'} border ${borderColor}`}>
-              <div className="flex items-center gap-2 mb-3.5">
-                <Users size={14} className={subtleColor} />
-                <p className={`text-[10px] font-black uppercase tracking-widest ${subtleColor}`}>Рекомендованные</p>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {recommendedNames.map((name, idx) => (
-                  <span
-                    key={idx}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-bold ${theme === 'dark' ? 'bg-white/10 text-gray-300' : 'bg-white text-gray-700 shadow-sm'}`}
-                  >
-                    {name}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Admin Actions */}
-          {isAdmin && (
-            <div className="flex items-center gap-3 mt-auto pt-4 border-t border-white/5 lg:border-none">
-              <button
-                onClick={() => onEdit(event)}
-                className={`flex-1 flex items-center justify-center gap-2 px-5 py-3 rounded-2xl text-sm font-black transition-all ${theme === 'dark' ? 'bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white' : 'bg-gray-50 hover:bg-gray-100 text-gray-500 hover:text-gray-900'}`}
-              >
-                <Edit size={16} />
-                Изменить
-              </button>
-              <button
-                onClick={() => onDelete(event.id)}
-                className={`p-3 rounded-2xl transition-all ${theme === 'dark' ? 'bg-red-500/10 hover:bg-red-500/20 text-red-400' : 'bg-red-50 hover:bg-red-100 text-red-600'}`}
-              >
-                <Trash2 size={20} />
-              </button>
-            </div>
-          )}
-        </div>
+        {/* Admin Actions */}
+        {isAdmin && (
+          <div className="flex items-center gap-1.5 mt-3 pt-2 border-t border-white/5">
+            <button
+              onClick={() => onEdit(event)}
+              className={`flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg text-[10px] font-bold transition-all ${theme === 'dark' ? 'bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-500'}`}
+            >
+              <Edit size={10} />
+              Изменить
+            </button>
+            <button
+              onClick={() => onDelete(event.id)}
+              className={`flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg text-[10px] font-bold transition-all ${theme === 'dark' ? 'bg-red-500/10 hover:bg-red-500/20 text-red-400' : 'bg-red-50 hover:bg-red-100 text-red-600'}`}
+            >
+              <Trash2 size={10} />
+            </button>
+          </div>
+        )}
       </div>
-
-      {/* RSVP Actions - Mobile ONLY - at the very bottom */}
-      {user && (
-        <div className="lg:hidden mt-6 flex flex-col sm:flex-row gap-2">
-          <button
-            onClick={() => handleRSVP(true)}
-            className={`flex-1 flex items-center justify-center gap-2 px-4 py-3.5 rounded-xl text-sm font-bold transition-all shadow-md ${isUserGoing
-              ? 'bg-emerald-500 text-white shadow-emerald-500/20 ring-1 ring-emerald-500 ring-offset-1 ring-offset-transparent'
-              : 'bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 shadow-none'
-              }`}
-          >
-            <CheckCircle2 size={18} />
-            <span>Я буду</span>
-          </button>
-          <button
-            onClick={() => handleRSVP(false)}
-            className={`flex-1 flex items-center justify-center gap-2 px-4 py-3.5 rounded-xl text-sm font-bold transition-all shadow-md ${isUserNotGoing
-              ? 'bg-rose-500 text-white shadow-rose-500/20 ring-1 ring-rose-500 ring-offset-1 ring-offset-transparent'
-              : 'bg-rose-500/10 text-rose-500 hover:bg-rose-500/20 shadow-none'
-              }`}
-          >
-            <XCircle size={18} />
-            <span>Меня не будет</span>
-          </button>
-        </div>
-      )}
     </div>
   )
 })
