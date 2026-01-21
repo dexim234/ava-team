@@ -49,17 +49,20 @@ const categoryIcons: Record<string, any> = {
 // Получение текущего времени в Москве (UTC+3)
 const getMoscowDateTime = (): { date: string; time: string } => {
   const now = new Date()
-  const moscowTime = new Date(now.getTime() + 3 * 60 * 60 * 1000)
+  const moscowTime = new Date(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), now.getUTCHours() + 3, now.getUTCMinutes(), now.getUTCSeconds())
 
-  return {
-    date: moscowTime.toISOString().split('T')[0],
-    time: moscowTime.toTimeString().slice(0, 5),
-  }
+  const dateStr = `${moscowTime.getFullYear()}-${String(moscowTime.getMonth() + 1).padStart(2, '0')}-${String(moscowTime.getDate()).padStart(2, '0')}`
+  const timeStr = `${String(moscowTime.getHours()).padStart(2, '0')}:${String(moscowTime.getMinutes()).padStart(2, '0')}`
+
+  return { date: dateStr, time: timeStr }
 }
 
 // Получение текущего времени в МСК в миллисекундах
 const getMoscowTimeMs = (): number => {
-  return new Date().getTime() + 3 * 60 * 60 * 1000
+  const now = new Date()
+  // UTC время в миллисекундах + 3 часа = московское время
+  const utcMs = now.getTime() + now.getTimezoneOffset() * 60 * 1000
+  return utcMs + 3 * 60 * 60 * 1000
 }
 
 // Проверка, скоро ли начнётся событие (в пределах 30 минут)

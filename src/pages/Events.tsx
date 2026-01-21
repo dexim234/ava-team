@@ -73,14 +73,15 @@ const COLUMNS: ColumnConfig[] = [
 
 // Получение текущего времени в Москве (UTC+3)
 const getMoscowDateTime = (): { date: string; time: string } => {
-  // UTC время + 3 часа = Москва
-  const utcDate = new Date()
-  const moscowTime = new Date(utcDate.getTime() + 3 * 60 * 60 * 1000)
+  // Берём UTC время системы и добавляем 3 часа для Москвы
+  const now = new Date()
+  const moscowTime = new Date(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), now.getUTCHours() + 3, now.getUTCMinutes(), now.getUTCSeconds())
 
-  return {
-    date: moscowTime.toISOString().split('T')[0],
-    time: moscowTime.toTimeString().slice(0, 5),
-  }
+  // Форматируем вручную, чтобы избежать проблем с часовыми поясами
+  const dateStr = `${moscowTime.getFullYear()}-${String(moscowTime.getMonth() + 1).padStart(2, '0')}-${String(moscowTime.getDate()).padStart(2, '0')}`
+  const timeStr = `${String(moscowTime.getHours()).padStart(2, '0')}:${String(moscowTime.getMinutes()).padStart(2, '0')}`
+
+  return { date: dateStr, time: timeStr }
 }
 
 export const EventsPage = () => {
