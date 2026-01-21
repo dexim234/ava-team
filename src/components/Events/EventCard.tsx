@@ -22,6 +22,7 @@ import {
   Gift,
   CheckCircle2,
   XCircle,
+  AlertCircle,
 } from 'lucide-react'
 import { updateEvent } from '@/services/eventService'
 import { format, parseISO } from 'date-fns'
@@ -32,6 +33,7 @@ interface EventCardProps {
   onEdit: (event: Event) => void
   onDelete: (eventId: string) => void
   onRSVP?: () => void
+  isEditable?: boolean // можно ли менять RSVP статус
 }
 
 const categoryIcons: Record<string, any> = {
@@ -46,17 +48,28 @@ const categoryIcons: Record<string, any> = {
 
 // Получение текущего времени в Москве (UTC+3)
 const getMoscowDateTime = (): { date: string; time: string } => {
-  const moscowOffset = 3 * 60 * 60 * 1000
   const now = new Date()
-  const moscowTime = new Date(now.getTime() + moscowOffset)
-  
+  const moscowTime = new Date(now.getTime() + 3 * 60 * 60 * 1000)
+
   return {
     date: moscowTime.toISOString().split('T')[0],
     time: moscowTime.toTimeString().slice(0, 5),
   }
 }
 
-export const EventCard = memo(({ event, isAdmin, onEdit, onDelete }: EventCardProps) => {
+// Получение текущего времени в МСК в миллисекундах
+const getMoscowTimeMs = (): number => {
+  return new Date().getTime() + 3 * 60 * 60 * 1000
+}
+
+// Проверка, скоро ли начнётся событие (в пределах 30 минут)
+const isSoonStarting = (eventDateTimeMs: number): boolean => {
+  const nowMskMs = getMoscowTimeMs()
+  const timeToStart = eventDateTimeMs - nowMskMs
+  return timeToStart > 0 && timeToStart <= 30 * 60 * 1000
+}
+
+export const EventCard = memo(({ event, isAdmin, onEdit, onDelete, isEditable = true }: EventCardProps) => {
   const { theme } = useThemeStore()
   const { user } = useAuthStore()
   const { users: allMembers } = useUsers()
@@ -69,12 +82,21 @@ export const EventCard = memo(({ event, isAdmin, onEdit, onDelete }: EventCardPr
   const borderColor = theme === 'dark' ? 'border-white/10' : 'border-gray-100'
   const cardBg = theme === 'dark' ? 'bg-white/5 backdrop-blur-md' : 'bg-white'
 
-  const { date: currentDate, time: currentTime } = getMoscowDateTime()
+  const { date: currentDate } = getMoscowDateTime()
 
   // Calculate event status using Moscow time
+  const eventStartMs = new Date(`${currentDate}T${event.time}`).getTime()
+  const eventEndMs = event.endTime
+    ? new Date(`${currentDate}T${event.endTime}`).getTime()
+    : eventStartMs + 2 * 60 * 60 * 1000
+
   const isActive = event.dates.includes(currentDate) &&
-    event.time <= currentTime &&
-    (event.endTime ? event.endTime > currentTime : true)
+    eventStartMs <= getMoscowTimeMs() &&
+    eventEndMs > getMoscowTimeMs()
+
+  // Check if event is in the past
+  const isPast = !event.dates.includes(currentDate) ||
+    (event.dates.includes(currentDate) && eventEndMs <= getMoscowTimeMs())
 
   // Get next occurrence date using Moscow time
   const upcomingDates = event.dates.filter(date => date >= currentDate).sort()
@@ -84,9 +106,7 @@ export const EventCard = memo(({ event, isAdmin, onEdit, onDelete }: EventCardPr
   const getTimeUntilEvent = (): string | null => {
     if (!nextDate) return null
     const eventDateTime = new Date(`${nextDate}T${event.time}`)
-    const nowMsk = new Date()
-    const moscowOffset = 3 * 60 * 60 * 1000
-    const diff = eventDateTime.getTime() - (nowMsk.getTime() + moscowOffset)
+    const diff = eventDateTime.getTime() - getMoscowTimeMs()
     if (diff < 0) return null
 
     const days = Math.floor(diff / (1000 * 60 * 60 * 24))
@@ -105,6 +125,9 @@ export const EventCard = memo(({ event, isAdmin, onEdit, onDelete }: EventCardPr
 
   const timeUntil = getTimeUntilEvent()
 
+  // Check if event starts soon (within 30 minutes)
+  const startsSoon = nextDate && isSoonStarting(new Date(`${nextDate}T${event.time}`).getTime())
+
   // Get participant names
   const participants = event.requiredParticipants.map(id => {
     const member = allMembers.find(m => m.id === id)
@@ -121,7 +144,7 @@ export const EventCard = memo(({ event, isAdmin, onEdit, onDelete }: EventCardPr
   }
 
   const handleRSVP = async (going: boolean) => {
-    if (!user) return
+    if (!user || !isEditable) return
 
     const currentGoing = [...event.going]
     const currentNotGoing = [...event.notGoing]
@@ -164,7 +187,7 @@ export const EventCard = memo(({ event, isAdmin, onEdit, onDelete }: EventCardPr
 
   return (
     <div
-      className={`relative p-3 rounded-lg border ${borderColor} ${cardBg} shadow-sm hover:shadow-lg transition-all group overflow-hidden`}
+      className={`relative p-3 rounded-lg border ${borderColor} ${cardBg} shadow-sm hover:shadow-lg transition-all group overflow-hidden ${!isEditable ? 'opacity-75' : ''}`}
     >
       {/* Background Gradient Glow */}
       <div className={`absolute -right-8 -top-8 w-24 h-24 bg-gradient-to-br ${meta.cardGradient} blur-2xl opacity-25 group-hover:opacity-50 transition-opacity duration-500`} />
@@ -211,7 +234,13 @@ export const EventCard = memo(({ event, isAdmin, onEdit, onDelete }: EventCardPr
               <span className="text-[9px] font-bold uppercase text-emerald-500 tracking-wider">Идёт сейчас</span>
             </div>
           )}
-          {timeUntil && !isActive && (
+          {startsSoon && !isActive && (
+            <div className="flex items-center gap-1 px-2 py-1 rounded-md bg-amber-500/10 border border-amber-500/20">
+              <AlertCircle size={10} className="text-amber-500" />
+              <span className="text-[9px] font-bold uppercase text-amber-500">Скоро начнётся</span>
+            </div>
+          )}
+          {timeUntil && !isActive && !startsSoon && (
             <div className="flex items-center gap-1 px-2 py-1 rounded-md bg-amber-500/10 border border-amber-500/20">
               <Timer size={10} className="text-amber-500" />
               <span className="text-[9px] font-bold text-amber-500">{timeUntil}</span>
@@ -234,6 +263,14 @@ export const EventCard = memo(({ event, isAdmin, onEdit, onDelete }: EventCardPr
               <Users size={10} className="text-blue-500" />
               <span className="text-[9px] font-bold uppercase text-blue-500">
                 {isUserRequired ? 'Вы участник' : 'Рекомендовано'}
+              </span>
+            </div>
+          )}
+          {!isEditable && (isActive || isPast) && (
+            <div className="flex items-center gap-1 px-2 py-1 rounded-md bg-gray-500/10 border border-gray-500/20">
+              <AlertCircle size={10} className="text-gray-500" />
+              <span className="text-[9px] font-bold uppercase text-gray-500">
+                {isActive ? 'Сейчас идёт' : 'Завершено'}
               </span>
             </div>
           )}
@@ -343,7 +380,7 @@ export const EventCard = memo(({ event, isAdmin, onEdit, onDelete }: EventCardPr
                 href={file.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className={`flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-bold transition-all ${theme === 'dark' ? 'bg-white/5 text-gray-400 hover:bg-white/10' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+                className={`flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-bold transition-all ${theme === 'dark' ? 'bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-600'}`}
               >
                 <FileText size={10} />
                 {file.name}
@@ -353,7 +390,7 @@ export const EventCard = memo(({ event, isAdmin, onEdit, onDelete }: EventCardPr
         )}
 
         {/* RSVP Buttons */}
-        {user && (
+        {user && isEditable && (
           <div className="flex gap-1.5 mt-3">
             <button
               onClick={() => handleRSVP(true)}

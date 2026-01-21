@@ -33,7 +33,7 @@ const categoryIcons: Record<string, any> = {
 }
 
 // Типы колонок
-type EventColumn = 'added' | 'upcoming' | 'past'
+type EventColumn = 'upcoming' | 'active' | 'past'
 
 interface ColumnConfig {
   id: EventColumn
@@ -46,20 +46,20 @@ interface ColumnConfig {
 
 const COLUMNS: ColumnConfig[] = [
   {
-    id: 'added',
-    label: 'Добавленные',
-    icon: Plus,
-    color: 'text-blue-500',
-    gradient: 'from-blue-500 to-cyan-500',
-    bgGradient: 'bg-blue-500/5',
-  },
-  {
     id: 'upcoming',
     label: 'Предстоящие',
     icon: Star,
     color: 'text-amber-500',
     gradient: 'from-amber-500 to-orange-500',
     bgGradient: 'bg-amber-500/5',
+  },
+  {
+    id: 'active',
+    label: 'Актуальные',
+    icon: TrendingUp,
+    color: 'text-emerald-500',
+    gradient: 'from-emerald-500 to-cyan-500',
+    bgGradient: 'bg-emerald-500/5',
   },
   {
     id: 'past',
@@ -73,11 +73,10 @@ const COLUMNS: ColumnConfig[] = [
 
 // Получение текущего времени в Москве (UTC+3)
 const getMoscowDateTime = (): { date: string; time: string } => {
-  // Москва: UTC+3
-  const moscowOffset = 3 * 60 * 60 * 1000 // 3 часа в миллисекундах
-  const now = new Date()
-  const moscowTime = new Date(now.getTime() + moscowOffset)
-  
+  // UTC время + 3 часа = Москва
+  const utcDate = new Date()
+  const moscowTime = new Date(utcDate.getTime() + 3 * 60 * 60 * 1000)
+
   return {
     date: moscowTime.toISOString().split('T')[0],
     time: moscowTime.toTimeString().slice(0, 5),
@@ -121,24 +120,27 @@ export const EventsPage = () => {
 
   // Разделение событий по колонкам
   const eventsByColumns = useMemo(() => {
-    const { date: currentDate, time: currentTime } = getMoscowDateTime()
-    const oneDayMs = 24 * 60 * 60 * 1000
+    const { date: currentDate } = getMoscowDateTime()
+
+    // Текущее время в МСК в миллисекундах
+    const nowUtc = new Date()
+    const nowMskMs = nowUtc.getTime() + 3 * 60 * 60 * 1000
 
     const columns: Record<EventColumn, Event[]> = {
-      added: [],
       upcoming: [],
+      active: [],
       past: [],
     }
 
+    // Время для перехода в "Актуальные" (30 минут до начала)
+    const activeThresholdMs = 30 * 60 * 1000
+
     events.forEach((event) => {
-      // Получаем все даты в МСК, которые ещё не прошли полностью
+      // Получаем все даты события, которые ещё не прошли полностью
       const upcomingDates = event.dates
         .filter((date) => {
           const eventDateTime = new Date(`${date}T${event.time}`)
-          // Конвертируем время события в МСК для сравнения
-          const eventDateTimeMsk = new Date(eventDateTime.getTime())
-          const nowMsk = new Date()
-          return eventDateTimeMsk.getTime() > nowMsk.getTime()
+          return eventDateTime.getTime() > nowMskMs
         })
         .sort()
 
@@ -150,28 +152,30 @@ export const EventsPage = () => {
         return
       }
 
-      // Проверяем, сколько времени до события (в МСК)
-      const eventDateTime = new Date(`${nextDate}T${event.time}`)
-      const nowMsk = new Date()
-      const timeDiff = eventDateTime.getTime() - nowMsk.getTime()
-
-      // Проверяем, активно ли событие сейчас (сегодня в МСК и время в пределах)
+      // Проверяем, активно ли событие сейчас
       const isToday = event.dates.includes(currentDate)
-      const isActive = isToday && event.time <= currentTime && (!event.endTime || event.endTime > currentTime)
+      const eventStartMs = new Date(`${nextDate}T${event.time}`).getTime()
+      const eventEndMs = event.endTime
+        ? new Date(`${nextDate}T${event.endTime}`).getTime()
+        : eventStartMs + 2 * 60 * 60 * 1000 // По умолчанию 2 часа
 
-      if (isActive) {
-        // Если событие идёт сейчас - оно в предстоящих
+      const isActive = isToday && eventStartMs <= nowMskMs && eventEndMs > nowMskMs
+      const timeToStart = eventStartMs - nowMskMs
+
+      // Событие в "Актуальных" если идёт сейчас или до начала менее 30 минут
+      if (isActive || (timeToStart > 0 && timeToStart <= activeThresholdMs)) {
+        columns.active.push(event)
+        return
+      }
+
+      // Более 30 минут до начала - в предстоящие
+      if (timeToStart > activeThresholdMs) {
         columns.upcoming.push(event)
         return
       }
 
-      if (timeDiff < oneDayMs) {
-        // Менее 24 часов - предстоящие
-        columns.upcoming.push(event)
-      } else {
-        // Более 24 часов - добавленные
-        columns.added.push(event)
-      }
+      // Если мы здесь - значит событие закончилось сегодня
+      columns.past.push(event)
     })
 
     // Сортировка внутри колонок
@@ -181,8 +185,8 @@ export const EventsPage = () => {
       return aDates[0].localeCompare(bDates[0])
     }
 
-    columns.added.sort(sortByDate)
     columns.upcoming.sort(sortByDate)
+    columns.active.sort(sortByDate)
     columns.past.sort((a, b) => {
       const aDates = a.dates.sort()
       const bDates = b.dates.sort()
@@ -330,7 +334,9 @@ export const EventsPage = () => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {COLUMNS.map((column) => {
               const IconComponent = column.icon
-              const filteredEvents = getFilteredEvents(eventsByColumns[column.id === 'added' ? 'added' : column.id === 'upcoming' ? 'upcoming' : 'past'])
+              const filteredEvents = getFilteredEvents(eventsByColumns[column.id])
+              // Запрещаем редактирование RSVP для активных и прошедших событий
+              const isEditable = column.id === 'upcoming'
 
               return (
                 <div
@@ -367,6 +373,7 @@ export const EventsPage = () => {
                           key={event.id}
                           event={event}
                           isAdmin={isAdmin}
+                          isEditable={isEditable}
                           onEdit={(e) => {
                             setSelectedEvent(e)
                             setIsModalOpen(true)
