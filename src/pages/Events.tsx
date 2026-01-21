@@ -71,6 +71,19 @@ const COLUMNS: ColumnConfig[] = [
   },
 ]
 
+// Получение текущего времени в Москве (UTC+3)
+const getMoscowDateTime = (): { date: string; time: string } => {
+  // Москва: UTC+3
+  const moscowOffset = 3 * 60 * 60 * 1000 // 3 часа в миллисекундах
+  const now = new Date()
+  const moscowTime = new Date(now.getTime() + moscowOffset)
+  
+  return {
+    date: moscowTime.toISOString().split('T')[0],
+    time: moscowTime.toTimeString().slice(0, 5),
+  }
+}
+
 export const EventsPage = () => {
   const { user } = useAuthStore()
   const { isAdmin } = useAdminStore()
@@ -108,9 +121,7 @@ export const EventsPage = () => {
 
   // Разделение событий по колонкам
   const eventsByColumns = useMemo(() => {
-    const now = new Date()
-    const currentDate = now.toISOString().split('T')[0]
-    const currentTime = now.toTimeString().slice(0, 5)
+    const { date: currentDate, time: currentTime } = getMoscowDateTime()
     const oneDayMs = 24 * 60 * 60 * 1000
 
     const columns: Record<EventColumn, Event[]> = {
@@ -120,11 +131,14 @@ export const EventsPage = () => {
     }
 
     events.forEach((event) => {
-      // Получаем все даты, которые ещё не прошли полностью
+      // Получаем все даты в МСК, которые ещё не прошли полностью
       const upcomingDates = event.dates
         .filter((date) => {
           const eventDateTime = new Date(`${date}T${event.time}`)
-          return eventDateTime.getTime() > now.getTime()
+          // Конвертируем время события в МСК для сравнения
+          const eventDateTimeMsk = new Date(eventDateTime.getTime())
+          const nowMsk = new Date()
+          return eventDateTimeMsk.getTime() > nowMsk.getTime()
         })
         .sort()
 
@@ -136,11 +150,12 @@ export const EventsPage = () => {
         return
       }
 
-      // Проверяем, сколько времени до события
+      // Проверяем, сколько времени до события (в МСК)
       const eventDateTime = new Date(`${nextDate}T${event.time}`)
-      const timeDiff = eventDateTime.getTime() - now.getTime()
+      const nowMsk = new Date()
+      const timeDiff = eventDateTime.getTime() - nowMsk.getTime()
 
-      // Проверяем, активен ли сейчас (сегодня и время в пределах)
+      // Проверяем, активно ли событие сейчас (сегодня в МСК и время в пределах)
       const isToday = event.dates.includes(currentDate)
       const isActive = isToday && event.time <= currentTime && (!event.endTime || event.endTime > currentTime)
 
@@ -216,18 +231,11 @@ export const EventsPage = () => {
   const bgColor = theme === 'dark' ? 'bg-gray-900' : 'bg-gray-50'
   const cardBg = theme === 'dark' ? 'bg-gray-800' : 'bg-white'
 
-  // Статистика
-  const stats = useMemo(() => ({
-    added: getFilteredEvents(eventsByColumns.added).length,
-    upcoming: getFilteredEvents(eventsByColumns.upcoming).length,
-    past: getFilteredEvents(eventsByColumns.past).length,
-  }), [eventsByColumns, categoryFilter, showMyOnly, user])
-
   return (
     <div className={`min-h-screen ${bgColor} p-6`}>
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-6">
           <div className="flex items-center gap-4">
             <div className={`p-3 rounded-xl bg-gradient-to-br from-emerald-400 to-cyan-500 text-white shadow-lg shadow-emerald-500/20`}>
               <Calendar size={24} />
@@ -311,30 +319,6 @@ export const EventsPage = () => {
               </label>
             </div>
           </div>
-        </div>
-
-        {/* Stats bar */}
-        <div className="grid grid-cols-3 gap-4 mb-8">
-          {COLUMNS.map((column) => {
-            const IconComponent = column.icon
-            return (
-              <div
-                key={column.id}
-                className={`p-4 rounded-xl border ${borderColor} ${cardBg} relative overflow-hidden`}
-              >
-                <div className={`absolute inset-0 bg-gradient-to-br ${column.bgGradient} opacity-50`} />
-                <div className="relative flex items-center gap-3">
-                  <div className={`p-2.5 rounded-xl bg-gradient-to-br ${column.gradient} text-white shadow-lg`}>
-                    <IconComponent size={18} />
-                  </div>
-                  <div>
-                    <span className={`text-xs font-black uppercase tracking-widest ${column.color}`}>{column.label}</span>
-                    <p className={`text-2xl font-bold ${textColor}`}>{stats[column.id === 'added' ? 'added' : column.id === 'upcoming' ? 'upcoming' : 'past']}</p>
-                  </div>
-                </div>
-              </div>
-            )
-          })}
         </div>
 
         {/* Three-column layout */}

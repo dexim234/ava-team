@@ -1,4 +1,4 @@
-import { memo, useState, useEffect } from 'react'
+import { memo } from 'react'
 import { useThemeStore } from '@/store/themeStore'
 import { useAuthStore } from '@/store/authStore'
 import { useUsers } from '@/hooks/useUsers'
@@ -44,6 +44,18 @@ const categoryIcons: Record<string, any> = {
   airdrop: Gift,
 }
 
+// Получение текущего времени в Москве (UTC+3)
+const getMoscowDateTime = (): { date: string; time: string } => {
+  const moscowOffset = 3 * 60 * 60 * 1000
+  const now = new Date()
+  const moscowTime = new Date(now.getTime() + moscowOffset)
+  
+  return {
+    date: moscowTime.toISOString().split('T')[0],
+    time: moscowTime.toTimeString().slice(0, 5),
+  }
+}
+
 export const EventCard = memo(({ event, isAdmin, onEdit, onDelete }: EventCardProps) => {
   const { theme } = useThemeStore()
   const { user } = useAuthStore()
@@ -57,33 +69,24 @@ export const EventCard = memo(({ event, isAdmin, onEdit, onDelete }: EventCardPr
   const borderColor = theme === 'dark' ? 'border-white/10' : 'border-gray-100'
   const cardBg = theme === 'dark' ? 'bg-white/5 backdrop-blur-md' : 'bg-white'
 
-  const [currentTime, setCurrentTime] = useState(new Date())
+  const { date: currentDate, time: currentTime } = getMoscowDateTime()
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentTime(new Date())
-    }, 1000)
+  // Calculate event status using Moscow time
+  const isActive = event.dates.includes(currentDate) &&
+    event.time <= currentTime &&
+    (event.endTime ? event.endTime > currentTime : true)
 
-    return () => clearInterval(timer)
-  }, [])
-
-  // Calculate event status and timer
-  const currentDateStr = currentTime.toISOString().split('T')[0]
-  const currentTimeStr = currentTime.toTimeString().slice(0, 5)
-
-  const isActive = event.dates.includes(currentDateStr) &&
-    event.time <= currentTimeStr &&
-    (event.endTime ? event.endTime > currentTimeStr : true)
-
-  // Get next occurrence date
-  const upcomingDates = event.dates.filter(date => date >= currentDateStr).sort()
+  // Get next occurrence date using Moscow time
+  const upcomingDates = event.dates.filter(date => date >= currentDate).sort()
   const nextDate = upcomingDates[0]
 
-  // Calculate time until event
+  // Calculate time until event using Moscow time
   const getTimeUntilEvent = (): string | null => {
     if (!nextDate) return null
     const eventDateTime = new Date(`${nextDate}T${event.time}`)
-    const diff = eventDateTime.getTime() - currentTime.getTime()
+    const nowMsk = new Date()
+    const moscowOffset = 3 * 60 * 60 * 1000
+    const diff = eventDateTime.getTime() - (nowMsk.getTime() + moscowOffset)
     if (diff < 0) return null
 
     const days = Math.floor(diff / (1000 * 60 * 60 * 24))
