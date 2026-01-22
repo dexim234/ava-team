@@ -22,7 +22,9 @@ import {
   Star,
 } from 'lucide-react'
 
-const categoryIcons: Record<string, any> = {
+import { LucideIcon } from 'lucide-react'
+
+const categoryIcons: Record<string, LucideIcon> = {
   memecoins: Rocket,
   polymarket: BarChart3,
   nft: Image,
@@ -32,44 +34,8 @@ const categoryIcons: Record<string, any> = {
   airdrop: Gift,
 }
 
-// Типы колонок
-type EventColumn = 'upcoming' | 'active' | 'past'
-
-interface ColumnConfig {
-  id: EventColumn
-  label: string
-  icon: React.ElementType
-  color: string
-  gradient: string
-  bgGradient: string
-}
-
-const COLUMNS: ColumnConfig[] = [
-  {
-    id: 'upcoming',
-    label: 'Предстоящие',
-    icon: Star,
-    color: 'text-amber-500',
-    gradient: 'from-amber-500 to-orange-500',
-    bgGradient: 'bg-amber-500/5',
-  },
-  {
-    id: 'active',
-    label: 'Актуальные',
-    icon: TrendingUp,
-    color: 'text-emerald-500',
-    gradient: 'from-emerald-500 to-cyan-500',
-    bgGradient: 'bg-emerald-500/5',
-  },
-  {
-    id: 'past',
-    label: 'Прошедшие',
-    icon: Archive,
-    color: 'text-gray-500',
-    gradient: 'from-gray-500 to-gray-600',
-    bgGradient: 'bg-gray-500/5',
-  },
-]
+// Statuses and Filtering Constants
+const DAYS_TO_SHOW = 3;
 
 // Получение текущего времени в Москве (UTC+3)
 const getMoscowDateTime = (): { date: string; time: string } => {
@@ -124,116 +90,76 @@ export const EventsPage = () => {
     return () => unsubscribe()
   }, [])
 
-  // Разделение событий по колонкам
-  const eventsByColumns = useMemo(() => {
+  // Обработка и фильтрация событий
+  const filteredEvents = useMemo(() => {
     const { date: currentDate } = getMoscowDateTime()
     const nowMskMs = getNowMskMs()
 
-    const columns: Record<EventColumn, Event[]> = {
-      upcoming: [],
-      active: [],
-      past: [],
-    }
+    // 1. Сначала фильтруем по базовым критериям (категория, "только мои")
+    let result = [...events]
 
-    // Время для перехода в "Актуальные" (30 минут до начала)
-    const activeThresholdMs = 30 * 60 * 1000
-
-    events.forEach((event) => {
-      // Функция для получения времени окончания события на конкретную дату
-      const getEventEndMs = (date: string) => {
-        const startMs = new Date(`${date}T${event.time}`).getTime()
-        if (event.endTime) {
-          return new Date(`${date}T${event.endTime}`).getTime()
-        }
-        return startMs + 2 * 60 * 60 * 1000 // По умолчанию 2 часа
-      }
-
-      // Получаем все даты события, которые ещё не закончились
-      const upcomingDates = event.dates
-        .filter((date) => {
-          const eventEndMs = getEventEndMs(date)
-          return eventEndMs > nowMskMs
-        })
-        .sort()
-
-      const nextDate = upcomingDates[0]
-
-      if (!nextDate) {
-        // Все даты прошли - в прошедшие
-        columns.past.push(event)
-        return
-      }
-
-      // Определяем правильную дату для проверки статуса
-      // Если сегодня в upcomingDates, используем сегодня (событие идёт сейчас или было сегодня)
-      const isTodayInUpcoming = upcomingDates.includes(currentDate)
-      const checkDate = isTodayInUpcoming ? currentDate : nextDate
-
-      // Проверяем, активно ли событие сейчас
-      const eventStartMs = new Date(`${checkDate}T${event.time}`).getTime()
-      const eventEndMs = getEventEndMs(checkDate)
-
-      const isToday = event.dates.includes(currentDate)
-      const isActive = isToday && eventStartMs <= nowMskMs && eventEndMs > nowMskMs
-      const timeToStart = eventStartMs - nowMskMs
-
-      // Событие в "Актуальных" если идёт сейчас или до начала менее 30 минут
-      if (isActive || (timeToStart > 0 && timeToStart <= activeThresholdMs)) {
-        columns.active.push(event)
-        return
-      }
-
-      // Более 30 минут до начала - в предстоящие
-      if (timeToStart > activeThresholdMs) {
-        columns.upcoming.push(event)
-        return
-      }
-
-      // Если мы здесь - значит событие закончилось сегодня
-      columns.past.push(event)
-    })
-
-    // Сортировка внутри колонок
-    const sortByDate = (a: Event, b: Event) => {
-      const aDates = a.dates.sort()
-      const bDates = b.dates.sort()
-      return aDates[0].localeCompare(bDates[0])
-    }
-
-    columns.upcoming.sort(sortByDate)
-    columns.active.sort(sortByDate)
-    columns.past.sort((a, b) => {
-      const aDates = a.dates.sort()
-      const bDates = b.dates.sort()
-      return bDates[0].localeCompare(aDates[0]) // Прошедшие - от новых к старым
-    })
-
-    return columns
-  }, [events])
-
-  // Фильтрация внутри колонок
-  const getFilteredEvents = (columnEvents: Event[]) => {
-    let result = [...columnEvents]
-
-    // Фильтр по категории
     if (categoryFilter !== 'all') {
       result = result.filter((e) => e.category === categoryFilter)
     }
 
-    // Фильтр по участию пользователя
     if (showMyOnly && user) {
       result = result.filter((e) => e.requiredParticipants.includes(user.id))
     }
 
+    // 2. Для обычных пользователей скрываем "скрытые" и ограничиваем по времени
+    if (!isAdmin) {
+      const maxDate = new Date(nowMskMs + (DAYS_TO_SHOW + 1) * 24 * 60 * 60 * 1000)
+      const maxDateStr = maxDate.toISOString().split('T')[0]
+
+      result = result.filter(event => {
+        if (event.isHidden) return false
+
+        return event.dates.some((date: string) => date >= currentDate && date <= maxDateStr)
+      })
+    }
+
+    // 3. Сортировка: сначала Актуальные (те что идут сейчас или ForceActual), потом по времени
+    const getStatusWeight = (event: Event) => {
+      const eventStartMs = new Date(`${currentDate}T${event.time}`).getTime()
+      const eventEndMs = event.endTime
+        ? new Date(`${currentDate}T${event.endTime}`).getTime()
+        : eventStartMs + 2 * 60 * 60 * 1000
+
+      const isToday = event.dates.includes(currentDate)
+      const isActive = isToday && eventStartMs <= nowMskMs && eventEndMs > nowMskMs
+
+      if (event.isActualForce || isActive) return 0
+
+      const nextDate = event.dates.filter(d => d >= currentDate).sort()[0]
+      if (nextDate === currentDate) return 1
+      if (nextDate) return 2
+      return 3 // Прошедшие
+    }
+
+    result.sort((a, b) => {
+      // Сначала по весу статуса
+      const weightA = getStatusWeight(a)
+      const weightB = getStatusWeight(b)
+      if (weightA !== weightB) return weightA - weightB
+
+      // Затем по ближайшей дате и времени
+      const nextDateA = a.dates.filter((d: string) => d >= currentDate).sort()[0] || '9999-99-99'
+      const nextDateB = b.dates.filter((d: string) => d >= currentDate).sort()[0] || '9999-99-99'
+
+      if (nextDateA !== nextDateB) return nextDateA.localeCompare(nextDateB)
+      return a.time.localeCompare(b.time)
+    })
+
     return result
-  }
+  }, [events, categoryFilter, showMyOnly, user, isAdmin])
+
 
   const handleDelete = async (eventId: string) => {
     if (!window.confirm('Удалить это событие?')) return
     try {
       await deleteEvent(eventId)
-      setEvents((prev) => prev.filter((e) => e.id !== eventId))
-    } catch (error) {
+      setEvents((prev: Event[]) => prev.filter((e: Event) => e.id !== eventId))
+    } catch (error: any) {
       console.error('Failed to delete event:', error)
     }
   }
@@ -340,67 +266,55 @@ export const EventsPage = () => {
           </div>
         </div>
 
-        {/* Three-column layout */}
+        {/* Unified Event List */}
         {loading ? (
           <div className="flex items-center justify-center py-20">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-emerald-500" />
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {COLUMNS.map((column) => {
-              const IconComponent = column.icon
-              const filteredEvents = getFilteredEvents(eventsByColumns[column.id])
-              // Запрещаем редактирование RSVP для активных и прошедших событий
-              const isEditable = column.id === 'upcoming'
-
-              return (
-                <div
-                  key={column.id}
-                  className={`flex flex-col rounded-2xl border ${borderColor} ${cardBg} overflow-hidden`}
-                >
-                  {/* Column header */}
-                  <div className={`p-4 border-b ${borderColor} bg-gradient-to-r ${column.bgGradient}`}>
-                    <div className="flex items-center gap-3">
-                      <div className={`p-2 rounded-xl bg-gradient-to-br ${column.gradient} text-white shadow-lg`}>
-                        <IconComponent size={18} />
-                      </div>
-                      <div>
-                        <h2 className={`text-lg font-bold ${textColor}`}>{column.label}</h2>
-                        <p className={`text-xs ${subtleColor}`}>
-                          {filteredEvents.length} {filteredEvents.length === 1 ? 'событие' : filteredEvents.length >= 2 && filteredEvents.length <= 4 ? 'события' : 'событий'}
-                        </p>
-                      </div>
-                    </div>
+          <div className={`rounded-2xl border ${borderColor} ${cardBg} overflow-hidden shadow-sm`}>
+            <div className={`p-4 border-b ${borderColor} bg-gradient-to-r from-emerald-500/5 to-cyan-500/5`}>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-xl bg-gradient-to-br from-emerald-500 to-cyan-500 text-white shadow-lg">
+                    <TrendingUp size={18} />
                   </div>
-
-                  {/* Column content */}
-                  <div className="flex-1 p-4 space-y-4 max-h-[calc(100vh-300px)] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400/30 scrollbar-track-transparent">
-                    {filteredEvents.length === 0 ? (
-                      <div className="text-center py-12">
-                        <div className={`inline-flex items-center justify-center w-16 h-16 rounded-full ${column.bgGradient} mb-4`}>
-                          <IconComponent size={24} className={column.color} />
-                        </div>
-                        <p className={`text-sm ${subtleColor}`}>Нет событий</p>
-                      </div>
-                    ) : (
-                      filteredEvents.map((event) => (
-                        <EventCard
-                          key={event.id}
-                          event={event}
-                          isAdmin={isAdmin}
-                          isEditable={isEditable}
-                          onEdit={(e) => {
-                            setSelectedEvent(e)
-                            setIsModalOpen(true)
-                          }}
-                          onDelete={handleDelete}
-                        />
-                      ))
-                    )}
-                  </div>
+                  <h2 className={`text-lg font-bold ${textColor}`}>Список событий</h2>
                 </div>
-              )
-            })}
+                <p className={`text-xs ${subtleColor}`}>
+                  Найдено: {filteredEvents.length}
+                </p>
+              </div>
+            </div>
+
+            <div className="p-4 sm:p-6">
+              {filteredEvents.length === 0 ? (
+                <div className="text-center py-20">
+                  <div className={`inline-flex items-center justify-center w-20 h-20 rounded-full bg-gray-500/10 mb-6`}>
+                    <Calendar size={32} className="text-gray-500" />
+                  </div>
+                  <h3 className={`text-xl font-bold ${textColor} mb-2`}>Список пуст</h3>
+                  <p className={`text-sm ${subtleColor} max-w-xs mx-auto`}>
+                    На ближайшее время событий не запланировано или они скрыты.
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                  {filteredEvents.map((event) => (
+                    <EventCard
+                      key={event.id}
+                      event={event}
+                      isAdmin={isAdmin}
+                      onEdit={(e) => {
+                        setSelectedEvent(e)
+                        setIsModalOpen(true)
+                      }}
+                      onDelete={handleDelete}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         )}
 

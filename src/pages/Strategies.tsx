@@ -13,6 +13,7 @@ import {
 } from 'lucide-react'
 import { MemecoinStrategies } from '@/components/Strategies/MemecoinStrategies'
 import { PolymarketStrategies } from '@/components/Strategies/PolymarketStrategies'
+import { NftStrategies } from '@/components/Strategies/NftStrategies'
 
 type TabType = 'memecoins' | 'polymarket' | 'nft' | 'staking' | 'spot' | 'futures' | 'airdrop';
 
@@ -82,6 +83,8 @@ export const Strategies = () => {
                     <MemecoinStrategies />
                 ) : activeTab === 'polymarket' ? (
                     <PolymarketStrategies />
+                ) : activeTab === 'nft' ? (
+                    <NftStrategies />
                 ) : (
                     <div className="py-20 text-center space-y-4">
                         <div className="flex justify-center">

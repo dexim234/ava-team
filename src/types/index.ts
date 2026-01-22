@@ -679,6 +679,8 @@ export interface Event {
   going: string[] // User IDs
   notGoing: string[] // User IDs
   files: EventFile[]
+  isHidden?: boolean
+  isActualForce?: boolean
   createdBy: string
   createdAt: string
   updatedAt: string

@@ -22,6 +22,7 @@ import {
   TrendingUp,
   Gift,
   Image,
+  LucideIcon,
 } from 'lucide-react'
 
 interface EventModalProps {
@@ -29,7 +30,7 @@ interface EventModalProps {
   onClose: () => void
 }
 
-const categoryIcons: Record<string, any> = {
+const categoryIcons: Record<string, LucideIcon> = {
   memecoins: Rocket,
   polymarket: BarChart3,
   nft: Image,
@@ -67,6 +68,8 @@ export const EventModal = ({ event, onClose }: EventModalProps) => {
   const [going] = useState<string[]>(event?.going || [])
   const [notGoing] = useState<string[]>(event?.notGoing || [])
   const [files, setFiles] = useState<EventFile[]>(event?.files || [])
+  const [isHidden, setIsHidden] = useState(event?.isHidden || false)
+  const [isActualForce, setIsActualForce] = useState(event?.isActualForce || false)
 
   // New recurrence fields
   const [recurrenceEndDate, setRecurrenceEndDate] = useState(event?.recurrence?.endDate || '')
@@ -253,6 +256,8 @@ export const EventModal = ({ event, onClose }: EventModalProps) => {
           going: [],
           notGoing: [],
           files: [],
+          isHidden,
+          isActualForce,
           createdBy: user?.id || '',
         })
 
@@ -264,9 +269,9 @@ export const EventModal = ({ event, onClose }: EventModalProps) => {
       }
 
       onClose()
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to save event:', error)
-      alert('Ошибка при сохранении события')
+      alert(error.message || 'Ошибка при сохранении события')
     } finally {
       setLoading(false)
     }
@@ -381,7 +386,34 @@ export const EventModal = ({ event, onClose }: EventModalProps) => {
             />
           </div>
 
-          {/* Dates and Time */}
+          {/* Visibility and Force Actual (Admin Only) */}
+          <div className="flex flex-col sm:flex-row gap-6 p-4 rounded-xl border border-emerald-500/20 bg-emerald-500/5">
+            <label className="flex items-center gap-3 cursor-pointer">
+              <div className="relative">
+                <input
+                  type="checkbox"
+                  checked={isHidden}
+                  onChange={(e) => setIsHidden(e.target.checked)}
+                  className="sr-only peer"
+                />
+                <div className="w-10 h-6 bg-gray-600 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-rose-500"></div>
+              </div>
+              <span className={`text-sm font-bold ${textColor}`}>Скрыть от всех</span>
+            </label>
+
+            <label className="flex items-center gap-3 cursor-pointer">
+              <div className="relative">
+                <input
+                  type="checkbox"
+                  checked={isActualForce}
+                  onChange={(e) => setIsActualForce(e.target.checked)}
+                  className="sr-only peer"
+                />
+                <div className="w-10 h-6 bg-gray-600 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+              </div>
+              <span className={`text-sm font-bold ${textColor}`}>Закрепить в актуальных</span>
+            </label>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className={`block text-sm font-medium mb-2 ${textColor}`}>

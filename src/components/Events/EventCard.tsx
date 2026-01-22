@@ -23,9 +23,14 @@ import {
   CheckCircle2,
   XCircle,
   AlertCircle,
+  Eye,
+  EyeOff,
+  Pin,
+  PinOff,
 } from 'lucide-react'
 import { updateEvent } from '@/services/eventService'
 import { format, parseISO } from 'date-fns'
+import { LucideIcon } from 'lucide-react'
 
 interface EventCardProps {
   event: Event
@@ -36,7 +41,7 @@ interface EventCardProps {
   isEditable?: boolean // можно ли менять RSVP статус
 }
 
-const categoryIcons: Record<string, any> = {
+const categoryIcons: Record<string, LucideIcon> = {
   memecoins: Rocket,
   polymarket: BarChart3,
   nft: ImageIcon,
@@ -133,7 +138,7 @@ export const EventCard = memo(({ event, isAdmin, onEdit, onDelete, isEditable = 
 
   // Get participant names
   const participants = event.requiredParticipants.map(id => {
-    const member = allMembers.find(m => m.id === id)
+    const member = allMembers.find((m: any) => m.id === id)
     return member?.name || 'Unknown'
   }).filter(Boolean)
 
@@ -144,6 +149,24 @@ export const EventCard = memo(({ event, isAdmin, onEdit, onDelete, isEditable = 
   // Format date helper
   const formatDate = (dateStr: string) => {
     return format(parseISO(dateStr), 'dd.MM.yyyy')
+  }
+
+  const handleToggleHidden = async () => {
+    if (!isAdmin) return
+    try {
+      await updateEvent(event.id, { isHidden: !event.isHidden })
+    } catch (error) {
+      console.error('Failed to toggle visibility:', error)
+    }
+  }
+
+  const handleToggleActual = async () => {
+    if (!isAdmin) return
+    try {
+      await updateEvent(event.id, { isActualForce: !event.isActualForce })
+    } catch (error) {
+      console.error('Failed to toggle actual status:', error)
+    }
   }
 
   const handleRSVP = async (going: boolean) => {
@@ -176,21 +199,21 @@ export const EventCard = memo(({ event, isAdmin, onEdit, onDelete, isEditable = 
           await updateEvent(event.id, { going: updatedGoing, notGoing: updatedNotGoing })
         }
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to RSVP:', error)
-      alert('Ошибка при сохранении ответа')
+      alert(error.message || 'Ошибка при сохранении ответа')
     }
   }
 
-  const goingUsers = event.going.map(id => allMembers.find(m => m.id === id)?.name).filter(Boolean)
-  const notGoingUsers = event.notGoing.map(id => allMembers.find(m => m.id === id)?.name).filter(Boolean)
+  const goingUsers = event.going.map(id => allMembers.find((m: any) => m.id === id)?.name).filter(Boolean)
+  const notGoingUsers = event.notGoing.map(id => allMembers.find((m: any) => m.id === id)?.name).filter(Boolean)
 
   const isUserGoing = user && event.going.includes(user.id)
   const isUserNotGoing = user && event.notGoing.includes(user.id)
 
   return (
     <div
-      className={`relative p-3 rounded-lg border ${borderColor} ${cardBg} shadow-sm hover:shadow-lg transition-all group overflow-hidden ${!isEditable ? 'opacity-75' : ''}`}
+      className={`relative p-3 rounded-lg border ${borderColor} ${cardBg} shadow-sm hover:shadow-lg transition-all group overflow-hidden ${!isEditable ? 'opacity-75' : ''} ${event.isHidden ? 'opacity-50 ring-1 ring-red-500/20' : ''}`}
     >
       {/* Background Gradient Glow */}
       <div className={`absolute -right-8 -top-8 w-24 h-24 bg-gradient-to-br ${meta.cardGradient} blur-2xl opacity-25 group-hover:opacity-50 transition-opacity duration-500`} />
@@ -267,6 +290,18 @@ export const EventCard = memo(({ event, isAdmin, onEdit, onDelete, isEditable = 
               <span className="text-[9px] font-bold uppercase text-blue-500">
                 {isUserRequired ? 'Вы участник' : 'Рекомендовано'}
               </span>
+            </div>
+          )}
+          {event.isActualForce && (
+            <div className="flex items-center gap-1 px-2 py-1 rounded-md bg-cyan-500/10 border border-cyan-500/20">
+              <Pin size={10} className="text-cyan-500" />
+              <span className="text-[9px] font-bold uppercase text-cyan-500">Закреплено</span>
+            </div>
+          )}
+          {event.isHidden && (
+            <div className="flex items-center gap-1 px-2 py-1 rounded-md bg-gray-500/10 border border-gray-500/20">
+              <EyeOff size={10} className="text-gray-500" />
+              <span className="text-[9px] font-bold uppercase text-gray-500">Скрыто</span>
             </div>
           )}
           {!isEditable && (isActive || isPast) && (
@@ -422,17 +457,32 @@ export const EventCard = memo(({ event, isAdmin, onEdit, onDelete, isEditable = 
         {isAdmin && (
           <div className="flex items-center gap-1.5 mt-3 pt-2 border-t border-white/5">
             <button
-              onClick={() => onEdit(event)}
-              className={`flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg text-[10px] font-bold transition-all ${theme === 'dark' ? 'bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-500'}`}
+              onClick={handleToggleActual}
+              title={event.isActualForce ? "Убрать из актуальных" : "Добавить в актуальные"}
+              className={`p-1.5 rounded-lg transition-all ${event.isActualForce ? 'bg-cyan-500/20 text-cyan-400' : 'bg-white/5 text-gray-400 hover:text-white'}`}
             >
-              <Edit size={10} />
+              {event.isActualForce ? <PinOff size={14} /> : <Pin size={14} />}
+            </button>
+            <button
+              onClick={handleToggleHidden}
+              title={event.isHidden ? "Показать пользователям" : "Скрыть от пользователей"}
+              className={`p-1.5 rounded-lg transition-all ${event.isHidden ? 'bg-rose-500/20 text-rose-400' : 'bg-white/5 text-gray-400 hover:text-white'}`}
+            >
+              {event.isHidden ? <Eye size={14} /> : <EyeOff size={14} />}
+            </button>
+            <div className="flex-1" />
+            <button
+              onClick={() => onEdit(event)}
+              className={`flex items-center justify-center gap-1 px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all ${theme === 'dark' ? 'bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-500'}`}
+            >
+              <Edit size={12} />
               Изменить
             </button>
             <button
               onClick={() => onDelete(event.id)}
-              className={`flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg text-[10px] font-bold transition-all ${theme === 'dark' ? 'bg-red-500/10 hover:bg-red-500/20 text-red-400' : 'bg-red-50 hover:bg-red-100 text-red-600'}`}
+              className={`p-1.5 rounded-lg transition-all ${theme === 'dark' ? 'bg-red-500/10 hover:bg-red-500/20 text-red-400' : 'bg-red-50 hover:bg-red-100 text-red-600'}`}
             >
-              <Trash2 size={10} />
+              <Trash2 size={12} />
             </button>
           </div>
         )}
