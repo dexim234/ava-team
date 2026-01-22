@@ -101,39 +101,46 @@ export const EventModal = ({ event, onClose }: EventModalProps) => {
   }
 
   const generateRecurrenceDates = () => {
-    if (!recurrence || recurrence.type === 'none' || !recurrence.startDate) return
+    if (!recurrence || recurrence.type === 'none' || !recurrence.startDate || !recurrenceEndDate) {
+      alert('Укажите дату начала и дату окончания повторения')
+      return
+    }
 
-    const start = new Date(recurrence.startDate)
+    const parseDate = (dateStr: string) => {
+      const [year, month, day] = dateStr.split('-').map(Number)
+      return new Date(year, month - 1, day)
+    }
+
+    const formatDate = (date: Date) => {
+      const y = date.getFullYear()
+      const m = String(date.getMonth() + 1).padStart(2, '0')
+      const d = String(date.getDate()).padStart(2, '0')
+      return `${y}-${m}-${d}`
+    }
+
+    const start = parseDate(recurrence.startDate)
+    const end = parseDate(recurrenceEndDate)
+
+    if (start > end) {
+      alert('Дата начала не может быть позже даты окончания')
+      return
+    }
+
     const newDates: string[] = []
+    const current = new Date(start)
 
-    if (recurrence.type === 'daily' && recurrenceEndDate) {
-      const end = new Date(recurrenceEndDate)
-      const current = new Date(start)
-      while (current <= end) {
-        newDates.push(current.toISOString().split('T')[0])
-        current.setDate(current.getDate() + 1)
-      }
-    } else if (recurrence.type === 'weekly' && recurrenceEndDate) {
-      const end = new Date(recurrenceEndDate)
-      const current = new Date(start)
-      while (current <= end) {
-        newDates.push(current.toISOString().split('T')[0])
+    while (current <= end) {
+      newDates.push(formatDate(current))
+
+      if (recurrence.type === 'weekly') {
         current.setDate(current.getDate() + 7)
-      }
-    } else if (recurrence.type === 'range' && recurrenceEndDate) {
-      const end = new Date(recurrenceEndDate)
-      const current = new Date(start)
-      while (current <= end) {
-        newDates.push(current.toISOString().split('T')[0])
+      } else {
+        // daily, range, until - all increment daily
         current.setDate(current.getDate() + 1)
       }
-    } else if (recurrence.type === 'until' && recurrenceEndDate) {
-      const end = new Date(recurrenceEndDate)
-      const current = new Date(start)
-      while (current <= end) {
-        newDates.push(current.toISOString().split('T')[0])
-        current.setDate(current.getDate() + 1)
-      }
+
+      // Safety break to prevent infinite loops (e.g. 2 years max)
+      if (newDates.length > 730) break
     }
 
     if (newDates.length > 0) {
@@ -141,6 +148,9 @@ export const EventModal = ({ event, onClose }: EventModalProps) => {
         const combined = Array.from(new Set([...prev, ...newDates]))
         return combined.sort()
       })
+      alert(`Добавлено дат: ${newDates.length}`)
+    } else {
+      alert('Не удалось сгенерировать даты. Проверьте диапазон.')
     }
   }
 

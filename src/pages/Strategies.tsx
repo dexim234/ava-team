@@ -65,13 +65,23 @@ export const Strategies = () => {
                         <button
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id as TabType)}
-                            className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${activeTab === tab.id
+                            className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 relative ${activeTab === tab.id
                                 ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/25'
                                 : 'text-gray-400 hover:bg-white/5 hover:text-white'
                                 }`}
                         >
-                            {tab.icon}
-                            {tab.label}
+                            <div className="flex items-center gap-2">
+                                {tab.icon}
+                                {tab.label}
+                            </div>
+                            {(tab.id === 'memecoins' || tab.id === 'polymarket' || tab.id === 'nft') && (
+                                <span className={`flex items-center gap-1 ml-1 px-1.5 py-0.5 rounded-md text-[9px] uppercase tracking-tighter ${activeTab === tab.id
+                                        ? 'bg-white/20 text-white'
+                                        : 'bg-blue-500/10 text-blue-400'
+                                    }`}>
+                                    Инструменты
+                                </span>
+                            )}
                         </button>
                     ))}
                 </div>
