@@ -13,7 +13,8 @@ import {
     Brain,
     Bot,
     Calendar,
-    Activity
+    Activity,
+    Wrench
 } from 'lucide-react'
 
 export const NftStrategies: React.FC = () => {
@@ -73,52 +74,69 @@ export const NftStrategies: React.FC = () => {
 
     return (
         <div className="space-y-16 pb-20">
-            {categories.map((category, catIdx) => (
-                <section key={catIdx} className="space-y-6">
-                    <div className="flex items-center gap-3">
-                        <div className={`p-2 ${category.bgColor} rounded-xl border ${category.borderColor}`}>
-                            {category.icon}
-                        </div>
-                        <div>
-                            <h3 className={`text-xl font-black ${headingColor}`}>{category.title}</h3>
-                            <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                                {category.description}
-                            </p>
-                        </div>
+            {/* 1. Tools Block */}
+            <section className="space-y-8">
+                <div className="flex items-center gap-3">
+                    <div className="p-2 bg-amber-500/10 rounded-xl border border-amber-500/20">
+                        <Wrench className="w-6 h-6 text-amber-500" />
                     </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                        {category.tools.map((tool, idx) => (
-                            <a
-                                key={idx}
-                                href={tool.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className={`group relative p-5 rounded-2xl border transition-all duration-300 hover:shadow-lg ${theme === 'dark'
-                                    ? 'bg-[#151a21]/50 border-white/5 hover:border-blue-500/30'
-                                    : 'bg-white border-gray-100 hover:border-blue-500/20'
-                                    }`}
-                            >
-                                <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <ExternalLink className={`w-4 h-4 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} />
-                                </div>
-
-                                <div className={`p-2.5 rounded-xl w-fit mb-4 ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'
-                                    } group-hover:scale-110 transition-transform`}>
-                                    {tool.icon}
-                                </div>
-
-                                <h4 className={`font-bold mb-1 ${headingColor} flex items-center gap-2`}>
-                                    {tool.name}
-                                </h4>
-                                <p className="text-xs text-gray-500 line-clamp-3 leading-relaxed">
-                                    {tool.desc}
-                                </p>
-                            </a>
-                        ))}
+                    <div>
+                        <h3 className={`text-xl font-black ${headingColor}`}>Инструменты</h3>
+                        <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                            Основные сервисы для работы с NFT
+                        </p>
                     </div>
-                </section>
-            ))}
+                </div>
+
+                <div className="space-y-12">
+                    {categories.map((category, catIdx) => (
+                        <section key={catIdx} className="space-y-6">
+                            <div className="flex items-center gap-3">
+                                <div className={`p-2 ${category.bgColor} rounded-xl border ${category.borderColor}`}>
+                                    {category.icon}
+                                </div>
+                                <div>
+                                    <h3 className={`text-xl font-black ${headingColor}`}>{category.title}</h3>
+                                    <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                                        {category.description}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                                {category.tools.map((tool, idx) => (
+                                    <a
+                                        key={idx}
+                                        href={tool.url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className={`group relative p-5 rounded-2xl border transition-all duration-300 hover:shadow-lg ${theme === 'dark'
+                                            ? 'bg-[#151a21]/50 border-white/5 hover:border-blue-500/30'
+                                            : 'bg-white border-gray-100 hover:border-blue-500/20'
+                                            }`}
+                                    >
+                                        <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <ExternalLink className={`w-4 h-4 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} />
+                                        </div>
+
+                                        <div className={`p-2.5 rounded-xl w-fit mb-4 ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'
+                                            } group-hover:scale-110 transition-transform`}>
+                                            {tool.icon}
+                                        </div>
+
+                                        <h4 className={`font-bold mb-1 ${headingColor} flex items-center gap-2`}>
+                                            {tool.name}
+                                        </h4>
+                                        <p className="text-xs text-gray-500 line-clamp-3 leading-relaxed">
+                                            {tool.desc}
+                                        </p>
+                                    </a>
+                                ))}
+                            </div>
+                        </section>
+                    ))}
+                </div>
+            </section>
         </div>
     )
 }

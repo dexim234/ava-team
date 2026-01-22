@@ -74,14 +74,6 @@ export const Strategies = () => {
                                 {tab.icon}
                                 {tab.label}
                             </div>
-                            {(tab.id === 'memecoins' || tab.id === 'polymarket' || tab.id === 'nft') && (
-                                <span className={`flex items-center gap-1 ml-1 px-1.5 py-0.5 rounded-md text-[9px] uppercase tracking-tighter ${activeTab === tab.id
-                                        ? 'bg-white/20 text-white'
-                                        : 'bg-blue-500/10 text-blue-400'
-                                    }`}>
-                                    Инструменты
-                                </span>
-                            )}
                         </button>
                     ))}
                 </div>

@@ -73,6 +73,7 @@ export const EventModal = ({ event, onClose }: EventModalProps) => {
 
   // New recurrence fields
   const [recurrenceEndDate, setRecurrenceEndDate] = useState(event?.recurrence?.endDate || '')
+  const [excludedDays, setExcludedDays] = useState<number[]>([]) // 0 is Sunday, 1 is Monday, etc.
 
   // New date input
   const [newDate, setNewDate] = useState('')
@@ -130,7 +131,10 @@ export const EventModal = ({ event, onClose }: EventModalProps) => {
     const current = new Date(start)
 
     while (current <= end) {
-      newDates.push(formatDate(current))
+      const dayOfWeek = current.getDay()
+      if (!excludedDays.includes(dayOfWeek)) {
+        newDates.push(formatDate(current))
+      }
 
       if (recurrence.type === 'weekly') {
         current.setDate(current.getDate() + 7)
@@ -139,8 +143,8 @@ export const EventModal = ({ event, onClose }: EventModalProps) => {
         current.setDate(current.getDate() + 1)
       }
 
-      // Safety break to prevent infinite loops (e.g. 2 years max)
-      if (newDates.length > 730) break
+      // Safety break to prevent infinite loops
+      if (newDates.length > 730 || current.getTime() > start.getTime() + 1000 * 60 * 60 * 24 * 365 * 2) break
     }
 
     if (newDates.length > 0) {
@@ -551,6 +555,37 @@ export const EventModal = ({ event, onClose }: EventModalProps) => {
                       />
                     </div>
                   )}
+
+                  <div className="md:col-span-2">
+                    <label className={`block text-xs font-medium mb-2 ${subtleColor}`}>
+                      Исключить дни недели
+                    </label>
+                    <div className="flex flex-wrap gap-2">
+                      {[
+                        { id: 1, label: 'Пн' },
+                        { id: 2, label: 'Вт' },
+                        { id: 3, label: 'Ср' },
+                        { id: 4, label: 'Чт' },
+                        { id: 5, label: 'Пт' },
+                        { id: 6, label: 'Сб' },
+                        { id: 0, label: 'Вс' },
+                      ].map((day) => (
+                        <button
+                          key={day.id}
+                          type="button"
+                          onClick={() => setExcludedDays(prev =>
+                            prev.includes(day.id) ? prev.filter(d => d !== day.id) : [...prev, day.id]
+                          )}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${excludedDays.includes(day.id)
+                            ? 'bg-rose-500 text-white shadow-md'
+                            : theme === 'dark' ? 'bg-gray-800 text-gray-400 hover:text-white' : 'bg-white text-gray-500 hover:bg-gray-50'
+                            } border ${borderColor}`}
+                        >
+                          {day.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                   <div className="md:col-span-2">
                     <button
                       type="button"
