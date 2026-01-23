@@ -129,7 +129,7 @@ export const AVFFlipFibaStrategy: React.FC = () => {
                 <div className={`p-6 rounded-2xl border ${theme === 'dark' ? 'bg-white/5 border-white/5' : 'bg-gray-50 border-gray-100 shadow-sm'}`}>
                     <div className="flex items-center gap-3 mb-4 text-blue-500">
                         <Rocket className="w-6 h-6" />
-                        <h4 className="font-black text-lg uppercase tracking-tight">Основная идея</h4>
+                        <h4 className="font-black text-lg tracking-tight">Основная идея</h4>
                     </div>
                     <p className="text-sm leading-relaxed opacity-80">
                         Ловля первичного импульса на старте выпуска токена через инфоповод: пост в Twitter (X), активное комьюнити, понятный и хайповый нарратив. Вошёл → забрал импульс → вышел. Не удерживаем позицию долго.
@@ -139,7 +139,7 @@ export const AVFFlipFibaStrategy: React.FC = () => {
                 <div className={`p-6 rounded-2xl border ${theme === 'dark' ? 'bg-white/5 border-white/5' : 'bg-gray-50 border-gray-100 shadow-sm'}`}>
                     <div className="flex items-center gap-3 mb-4 text-blue-500">
                         <Activity className="w-6 h-6" />
-                        <h4 className="font-black text-lg uppercase tracking-tight">Почему это работает?</h4>
+                        <h4 className="font-black text-lg tracking-tight">Почему это работает?</h4>
                     </div>
                     <ul className="text-xs space-y-3 opacity-90">
                         <li className="flex gap-2">🔹 <span><strong>Рынок изменился:</strong> Большинство покупок совершаются эмоционально.</span></li>
@@ -394,7 +394,7 @@ export const AVFFlipFibaStrategy: React.FC = () => {
                     <ShieldAlert className="w-10 h-10 text-blue-500 shrink-0" />
                 </div>
                 <div className="space-y-2">
-                    <h4 className={`text-xl font-black ${headingColor} uppercase`}>Итог стратегии</h4>
+                    <h4 className={`text-xl font-black ${headingColor}`}>Итог стратегии</h4>
                     <p className={`text-sm leading-relaxed ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
                         Стратегия основана на скорости и дисциплине. Чек-лист важнее интуиции. На старте — меньше сделок, больше глубокого анализа. Прогресс приходит через ежедневную осознанную практику и наработку насмотренности.
                     </p>

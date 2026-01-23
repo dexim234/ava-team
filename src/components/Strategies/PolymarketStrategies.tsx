@@ -231,8 +231,8 @@ export const PolymarketStrategies: React.FC = () => {
                                     key={idx}
                                     onClick={() => setActiveToolCategory(idx)}
                                     className={`group p-6 rounded-3xl border text-left transition-all duration-500 hover:-translate-y-2 ${theme === 'dark'
-                                        ? 'bg-[#151a21]/50 border-white/5 hover:border-rose-500/30 hover:bg-rose-500/5'
-                                        : 'bg-white border-gray-100 hover:border-rose-500/20 hover:shadow-xl'
+                                        ? 'bg-[#151a21]/50 border-white/5 hover:border-blue-500/30 hover:bg-blue-500/5'
+                                        : 'bg-white border-gray-100 hover:border-blue-500/20 hover:shadow-xl'
                                         }`}
                                 >
                                     <div className={`p-4 rounded-2xl w-fit mb-4 transition-transform duration-500 group-hover:scale-110 ${cat.bgColor} ${cat.borderColor} border`}>

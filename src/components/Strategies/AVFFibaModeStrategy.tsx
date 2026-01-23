@@ -41,7 +41,7 @@ const StrategyStep: React.FC<StrategyStepProps> = ({ number, title, children, ic
                 className="w-full flex items-center justify-between p-5 text-left transition-colors hover:bg-white/5"
             >
                 <div className="flex items-center gap-4">
-                    <div className={`flex items-center justify-center w-10 h-10 rounded-xl font-black text-lg ${theme === 'dark' ? 'bg-indigo-500/20 text-indigo-400' : 'bg-indigo-50 text-indigo-600'
+                    <div className={`flex items-center justify-center w-10 h-10 rounded-xl font-black text-lg ${theme === 'dark' ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-50 text-blue-600'
                         }`}>
                         {number}
                     </div>
@@ -56,7 +56,7 @@ const StrategyStep: React.FC<StrategyStepProps> = ({ number, title, children, ic
                         </div>
                     </div>
                     {badge && (
-                        <span className="hidden sm:inline-block px-2 py-0.5 rounded-md bg-indigo-500/10 text-indigo-500 text-[10px] font-bold uppercase tracking-wider border border-indigo-500/20 mr-4">
+                        <span className="hidden sm:inline-block px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-500 text-[10px] font-bold uppercase tracking-wider border border-blue-500/20 mr-4">
                             {badge}
                         </span>
                     )}
@@ -89,24 +89,24 @@ export const AVFFibaModeStrategy: React.FC = () => {
         <div className="space-y-12 animate-fade-in">
             {/* 1. Hero Intro */}
             <div className={`relative overflow-hidden rounded-3xl p-8 border ${theme === 'dark'
-                ? 'bg-gradient-to-br from-[#1a212a] to-[#0f1216] border-indigo-500/20 shadow-2xl'
-                : 'bg-gradient-to-br from-white to-indigo-50/30 border-indigo-500/10 shadow-xl'
+                ? 'bg-gradient-to-br from-[#1a212a] to-[#0f1216] border-blue-500/20 shadow-2xl'
+                : 'bg-gradient-to-br from-white to-blue-50/30 border-blue-500/10 shadow-xl'
                 }`}>
-                <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/5 blur-3xl rounded-full -mr-20 -mt-20 pointer-events-none"></div>
+                <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/5 blur-3xl rounded-full -mr-20 -mt-20 pointer-events-none"></div>
 
                 <div className="relative flex flex-col md:flex-row gap-8 items-start">
-                    <div className={`p-4 rounded-2xl ${theme === 'dark' ? 'bg-indigo-500/10' : 'bg-indigo-500/5'}`}>
-                        <Layers className={`w-12 h-12 text-indigo-500`} />
+                    <div className={`p-4 rounded-2xl ${theme === 'dark' ? 'bg-blue-500/10' : 'bg-blue-500/5'}`}>
+                        <Layers className={`w-12 h-12 text-blue-500`} />
                     </div>
                     <div className="flex-1 space-y-4">
                         <div className="flex items-center gap-3">
                             <h2 className={`text-2xl md:text-3xl font-black ${headingColor}`}>AVF - FIBA MODE</h2>
-                            <span className="px-3 py-1 rounded-full bg-indigo-500/20 text-indigo-400 text-[10px] font-black uppercase tracking-widest border border-indigo-500/20">Counter-Trend</span>
+                            <span className="px-3 py-1 rounded-full bg-blue-500/20 text-blue-400 text-[10px] font-black uppercase tracking-widest border border-blue-500/20">Counter-Trend</span>
                         </div>
                         <p className={`text-lg leading-relaxed ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
                             Контртрендовая подстратегия для забора технического отката. Включается, когда импульс упущен, но актив жив и сохраняет интерес рынка.
                         </p>
-                        <div className="p-3 rounded-xl bg-indigo-500/5 border border-indigo-500/10 inline-block text-xs font-bold italic opacity-80">
+                        <div className="p-3 rounded-xl bg-blue-500/5 border border-blue-500/10 inline-block text-xs font-bold italic opacity-80">
                             "FIBA — это работа на чужой фиксации. Зарабатываем не на росте, а на реакции рынка на коррекцию."
                         </div>
                     </div>
@@ -142,21 +142,21 @@ export const AVFFibaModeStrategy: React.FC = () => {
                 {/* 3. Detailed Guide */}
                 <div className="lg:col-span-2 space-y-4">
                     <div className="flex items-center gap-3 mb-2">
-                        <LayoutList className={`w-6 h-6 ${theme === 'dark' ? 'text-indigo-400' : 'text-indigo-500'}`} />
+                        <LayoutList className={`w-6 h-6 ${theme === 'dark' ? 'text-blue-400' : 'text-blue-500'}`} />
                         <h3 className={`text-xl font-black ${headingColor}`}>Технический регламент</h3>
                     </div>
 
                     <StrategyStep
                         number={1}
                         title="Обязательные условия"
-                        icon={<Activity className="w-5 h-5 text-indigo-500" />}
+                        icon={<Activity className="w-5 h-5 text-blue-500" />}
                         isOpen={openStep === 1}
                         onToggle={() => toggleStep(1)}
                         badge="Checklist"
                     >
                         <div className="space-y-6">
                             <div className={`p-4 rounded-xl border ${theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'}`}>
-                                <h5 className="text-xs font-bold uppercase mb-2 text-indigo-500 flex items-center gap-2">
+                                <h5 className="text-xs font-bold uppercase mb-2 text-blue-500 flex items-center gap-2">
                                     <Twitter className="w-4 h-4" /> Живой Twitter & Инфополе
                                 </h5>
                                 <p className="text-xs text-gray-500 leading-relaxed">
@@ -164,13 +164,13 @@ export const AVFFibaModeStrategy: React.FC = () => {
                                 </p>
                             </div>
                             <div className={`p-4 rounded-xl border ${theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'}`}>
-                                <h5 className="text-xs font-bold uppercase mb-2 text-indigo-500 flex items-center gap-2">
+                                <h5 className="text-xs font-bold uppercase mb-2 text-blue-500 flex items-center gap-2">
                                     <BarChart3 className="w-4 h-4" /> Объём — ключевой фильтр
                                 </h5>
                                 <p className="text-xs text-gray-500 leading-relaxed mb-2">
                                     Перед построением Фибо: импульсный объём, видны свечи с телами, движение сформировано покупками.
                                 </p>
-                                <div className="p-2 bg-indigo-500/5 rounded border border-indigo-500/10 text-[10px] font-bold italic opacity-70">
+                                <div className="p-2 bg-blue-500/5 rounded border border-blue-500/10 text-[10px] font-bold italic opacity-70">
                                     "Фибо имеет смысл только там, где есть ликвидность. Без объёма уровни — фикция."
                                 </div>
                             </div>
@@ -180,7 +180,7 @@ export const AVFFibaModeStrategy: React.FC = () => {
                     <StrategyStep
                         number={2}
                         title="Механика входа и Фибо"
-                        icon={<MousePointer2 className="w-5 h-5 text-indigo-500" />}
+                        icon={<MousePointer2 className="w-5 h-5 text-blue-500" />}
                         isOpen={openStep === 2}
                         onToggle={() => toggleStep(2)}
                         badge="Technical"
@@ -189,23 +189,23 @@ export const AVFFibaModeStrategy: React.FC = () => {
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-1">
                                     <p className="text-[10px] font-black opacity-50 uppercase">Таймфрейм</p>
-                                    <p className="font-bold text-indigo-500">15s / 1m</p>
+                                    <p className="font-bold text-blue-500">15s / 1m</p>
                                 </div>
                                 <div className="space-y-1">
                                     <p className="text-[10px] font-black opacity-50 uppercase">Тип ордеров</p>
-                                    <p className="font-bold text-indigo-500">Только лимитки</p>
+                                    <p className="font-bold text-blue-500">Только лимитки</p>
                                 </div>
                             </div>
                             <p className="text-xs opacity-80 pt-2 border-t border-white/5">Построение: Сетка строится от <strong>лоя импульса</strong> к его <strong>хаю</strong>.</p>
-                            <div className={`p-4 rounded-xl bg-indigo-500/10 border border-indigo-500/20`}>
+                            <div className={`p-4 rounded-xl bg-blue-500/10 border border-blue-500/20`}>
                                 <h6 className="text-xs font-bold uppercase mb-3">Рабочие уровни входа:</h6>
                                 <div className="grid grid-cols-2 gap-4 text-center">
                                     <div>
-                                        <p className="text-2xl font-black tracking-widest text-indigo-500">0.618</p>
+                                        <p className="text-2xl font-black tracking-widest text-blue-500">0.618</p>
                                         <p className="text-[9px] opacity-60 uppercase font-black">Ликвидная зона 1</p>
                                     </div>
                                     <div>
-                                        <p className="text-2xl font-black tracking-widest text-indigo-500">0.786</p>
+                                        <p className="text-2xl font-black tracking-widest text-blue-500">0.786</p>
                                         <p className="text-[9px] opacity-60 uppercase font-black">Ликвидная зона 2</p>
                                     </div>
                                 </div>
@@ -216,27 +216,27 @@ export const AVFFibaModeStrategy: React.FC = () => {
                     <StrategyStep
                         number={3}
                         title="Условия подтверждения"
-                        icon={<Target className="w-5 h-5 text-indigo-500" />}
+                        icon={<Target className="w-5 h-5 text-blue-500" />}
                         isOpen={openStep === 3}
                         onToggle={() => toggleStep(3)}
                     >
-                        <div className={`p-6 rounded-xl border-l-4 border-indigo-500 ${theme === 'dark' ? 'bg-indigo-500/5' : 'bg-indigo-50'}`}>
-                            <p className="text-sm font-bold text-indigo-500 uppercase mb-3">Сигнал — это реакция цены + объем</p>
+                        <div className={`p-6 rounded-xl border-l-4 border-blue-500 ${theme === 'dark' ? 'bg-blue-500/5' : 'bg-blue-50'}`}>
+                            <p className="text-sm font-bold text-blue-500 uppercase mb-3">Сигнал — это реакция цены + объем</p>
                             <ul className="text-xs space-y-3">
                                 <li className="flex items-start gap-3">
-                                    <div className="p-1 rounded bg-indigo-500/20 text-indigo-500 mt-0.5"><Zap className="w-3 h-3" /></div>
+                                    <div className="p-1 rounded bg-blue-500/20 text-blue-500 mt-0.5"><Zap className="w-3 h-3" /></div>
                                     <span>На уровне появляется объем на откуп.</span>
                                 </li>
                                 <li className="flex items-start gap-3">
-                                    <div className="p-1 rounded bg-indigo-500/20 text-indigo-500 mt-0.5"><Zap className="w-3 h-3" /></div>
+                                    <div className="p-1 rounded bg-blue-500/20 text-blue-500 mt-0.5"><Zap className="w-3 h-3" /></div>
                                     <span>Есть заметное замедление падения.</span>
                                 </li>
                                 <li className="flex items-start gap-3">
-                                    <div className="p-1 rounded bg-indigo-500/20 text-indigo-500 mt-0.5"><Zap className="w-3 h-3" /></div>
+                                    <div className="p-1 rounded bg-blue-500/20 text-blue-500 mt-0.5"><Zap className="w-3 h-3" /></div>
                                     <span>Нет агрессивного пролива маркетом.</span>
                                 </li>
                                 <li className="flex items-start gap-3">
-                                    <div className="p-1 rounded bg-indigo-500/20 text-indigo-500 mt-0.5"><Zap className="w-3 h-3" /></div>
+                                    <div className="p-1 rounded bg-blue-500/20 text-blue-500 mt-0.5"><Zap className="w-3 h-3" /></div>
                                     <span>Отсутствие DevSell в момент коррекции.</span>
                                 </li>
                             </ul>
@@ -246,13 +246,13 @@ export const AVFFibaModeStrategy: React.FC = () => {
                     <StrategyStep
                         number={4}
                         title="Логика сделки и Риски"
-                        icon={<ShieldAlert className="w-5 h-5 text-indigo-500" />}
+                        icon={<ShieldAlert className="w-5 h-5 text-blue-500" />}
                         isOpen={openStep === 4}
                         onToggle={() => toggleStep(4)}
                     >
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-4">
-                                <h5 className="text-xs font-bold uppercase text-indigo-500 border-b border-indigo-500/20 pb-1">Цель сделки</h5>
+                                <h5 className="text-xs font-bold uppercase text-blue-500 border-b border-blue-500/20 pb-1">Цель сделки</h5>
                                 <p className="text-[11px] opacity-80 leading-relaxed">
                                     Целимся в технический отскок, а не в новый хай.
                                     <br />
@@ -276,25 +276,25 @@ export const AVFFibaModeStrategy: React.FC = () => {
                     {/* Psychology */}
                     <div className={`rounded-3xl p-6 border ${theme === 'dark' ? 'bg-[#151a21] border-white/5 shadow-xl' : 'bg-white border-gray-100 shadow-sm'} space-y-4`}>
                         <div className="flex items-center gap-2">
-                            <Brain className="w-6 h-6 text-indigo-500" />
+                            <Brain className="w-6 h-6 text-blue-500" />
                             <h4 className={`font-black uppercase text-sm ${headingColor}`}>Эффективность</h4>
                         </div>
                         <p className="text-[10px] leading-relaxed text-gray-500">
                             Максимально эффективно при: сильном нарративе, хайповой теме, активном Twitter и нескольких волнах объема.
                         </p>
                         <div className="pt-2 border-t border-white/5">
-                            <p className="text-[9px] font-black uppercase text-indigo-500 mb-1">Зона разворота</p>
+                            <p className="text-[9px] font-black uppercase text-blue-500 mb-1">Зона разворота</p>
                             <p className="text-[10px] opacity-70 italic">На 0.618 и 0.786 фиксируют ранние и добирают новые — это зоны локального разворота.</p>
                         </div>
                     </div>
 
                     {/* Conceptual Formula */}
-                    <div className={`p-6 rounded-3xl bg-indigo-500/5 border border-indigo-500/10 text-center space-y-2`}>
-                        <p className="text-[10px] font-black uppercase text-indigo-400">Концептуальная формула:</p>
+                    <div className={`p-6 rounded-3xl bg-blue-500/5 border border-blue-500/10 text-center space-y-2`}>
+                        <p className="text-[10px] font-black uppercase text-blue-400">Концептуальная формула:</p>
                         <p className="text-xs font-black tracking-tighter leading-tight">
                             ЖИЗНЬ В АКТИВЕ + ОБЪЁМ + СТРУКТУРА + УРОВЕНЬ = СДЕЛКА
                         </p>
-                        <p className="text-[9px] opacity-60 underline decoration-indigo-500/30">БЕЗ ЛЮБОГО ЭЛЕМЕНТА ВХОД ЗАПРЕЩЁН</p>
+                        <p className="text-[9px] opacity-60 underline decoration-blue-500/30">БЕЗ ЛЮБОГО ЭЛЕМЕНТА ВХОД ЗАПРЕЩЁН</p>
                     </div>
 
                     <div className={`p-6 rounded-3xl border border-dashed border-gray-300 flex flex-col items-center justify-center opacity-60`}>
@@ -305,8 +305,8 @@ export const AVFFibaModeStrategy: React.FC = () => {
             </div>
 
             {/* Final Conclusion */}
-            <div className={`rounded-[2.5rem] p-8 border ${theme === 'dark' ? 'bg-indigo-500/5 border-indigo-500/10' : 'bg-indigo-50 border-indigo-500/5 shadow-sm'} flex flex-col items-center text-center space-y-4`}>
-                <div className="p-4 rounded-2xl bg-indigo-500 text-white shadow-lg shadow-indigo-500/20">
+            <div className={`rounded-[2.5rem] p-8 border ${theme === 'dark' ? 'bg-blue-500/5 border-blue-500/10' : 'bg-blue-50 border-blue-500/5 shadow-sm'} flex flex-col items-center text-center space-y-4`}>
+                <div className="p-4 rounded-2xl bg-blue-500 text-white shadow-lg shadow-blue-500/20">
                     <TrendingUp className="w-8 h-8" />
                 </div>
                 <div className="max-w-2xl">
