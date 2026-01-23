@@ -33,7 +33,7 @@ export const NftStrategies: React.FC = () => {
     const [activeStrategy, setActiveStrategy] = useState<StrategyId>(null)
 
     const strategies = [
-        { id: 'nft-sniping' as StrategyId, name: 'AFT снайпинга NFT', icon: <Target className="w-4 h-4" />, desc: 'Покупка NFT ниже текущей рыночной цены (флора) с целью быстрой перепродажи.' },
+        { id: 'nft-sniping' as StrategyId, name: 'AVF снайпинг NFT', icon: <Target className="w-4 h-4" />, desc: 'Покупка NFT ниже текущей рыночной цены (флора) с целью быстрой перепродажи.' },
         { id: 'nft-mint-flip' as StrategyId, name: 'AVF Mint → Flip', icon: <Flame className="w-4 h-4" />, desc: 'Покупка на первичном рынке (минт) и перепродажа на хайпе запуска.' },
     ]
 
