@@ -41,7 +41,7 @@ const StrategyStep: React.FC<StrategyStepProps> = ({ number, title, children, ic
                 className="w-full flex items-center justify-between p-5 text-left transition-colors hover:bg-white/5"
             >
                 <div className="flex items-center gap-4">
-                    <div className={`flex items-center justify-center w-10 h-10 rounded-xl font-black text-lg ${theme === 'dark' ? 'bg-amber-500/20 text-amber-400' : 'bg-amber-50 text-amber-600'
+                    <div className={`flex items-center justify-center w-10 h-10 rounded-xl font-black text-lg ${theme === 'dark' ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-50 text-blue-600'
                         }`}>
                         {number}
                     </div>
@@ -56,7 +56,7 @@ const StrategyStep: React.FC<StrategyStepProps> = ({ number, title, children, ic
                         </div>
                     </div>
                     {badge && (
-                        <span className="hidden sm:inline-block px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-500 text-[10px] font-bold uppercase tracking-wider border border-amber-500/20 mr-4">
+                        <span className="hidden sm:inline-block px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-500 text-[10px] font-bold uppercase tracking-wider border border-blue-500/20 mr-4">
                             {badge}
                         </span>
                     )}
@@ -89,24 +89,24 @@ export const AvfMintFlipStrategy: React.FC = () => {
         <div className="space-y-12 animate-fade-in">
             {/* 1. Hero Intro */}
             <div className={`relative overflow-hidden rounded-3xl p-8 border ${theme === 'dark'
-                ? 'bg-gradient-to-br from-[#1a212a] to-[#0f1216] border-amber-500/20 shadow-2xl'
-                : 'bg-gradient-to-br from-white to-amber-50/30 border-amber-500/10 shadow-xl'
+                ? 'bg-gradient-to-br from-[#1a212a] to-[#0f1216] border-blue-500/20 shadow-2xl'
+                : 'bg-gradient-to-br from-white to-blue-50/30 border-blue-500/10 shadow-xl'
                 }`}>
-                <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/5 blur-3xl rounded-full -mr-20 -mt-20 pointer-events-none"></div>
+                <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/5 blur-3xl rounded-full -mr-20 -mt-20 pointer-events-none"></div>
 
                 <div className="relative flex flex-col md:flex-row gap-8 items-start">
-                    <div className={`p-4 rounded-2xl ${theme === 'dark' ? 'bg-amber-500/10' : 'bg-amber-500/5'}`}>
-                        <Flame className={`w-12 h-12 text-amber-500`} />
+                    <div className={`p-4 rounded-2xl ${theme === 'dark' ? 'bg-blue-500/10' : 'bg-blue-500/5'}`}>
+                        <Flame className={`w-12 h-12 text-blue-500`} />
                     </div>
                     <div className="flex-1 space-y-4">
                         <div className="flex items-center gap-3">
                             <h2 className={`text-2xl md:text-3xl font-black ${headingColor}`}>AVF Mint → Flip</h2>
-                            <span className="px-3 py-1 rounded-full bg-amber-500/20 text-amber-400 text-[10px] font-black uppercase tracking-widest border border-amber-500/20">Primary Market</span>
+                            <span className="px-3 py-1 rounded-full bg-blue-500/20 text-blue-400 text-[10px] font-black uppercase tracking-widest border border-blue-500/20">Primary Market</span>
                         </div>
                         <p className={`text-lg leading-relaxed ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
                             Стратегия заработка на первичном спросе и хайпе: покупка напрямую у создателей (mint) и быстрая перепродажа на вторичном рынке.
                         </p>
-                        <div className="p-3 rounded-xl bg-amber-500/5 border border-amber-500/10 inline-block text-xs font-bold italic opacity-80">
+                        <div className="p-3 rounded-xl bg-blue-500/5 border border-blue-500/10 inline-block text-xs font-bold italic opacity-80">
                             "Цель — заработать на импульсе запуска, а не на долгосрочном владении актива."
                         </div>
                     </div>
@@ -116,7 +116,7 @@ export const AvfMintFlipStrategy: React.FC = () => {
             {/* 2. Basic Terms */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className={`p-6 rounded-2xl border ${theme === 'dark' ? 'bg-white/5 border-white/5' : 'bg-gray-50 border-gray-100 shadow-sm'}`}>
-                    <div className="flex items-center gap-3 mb-4 text-amber-500">
+                    <div className="flex items-center gap-3 mb-4 text-blue-500">
                         <Brain className="w-6 h-6" />
                         <h4 className="font-black text-lg tracking-tight">Суть стратегии</h4>
                     </div>
@@ -127,25 +127,25 @@ export const AvfMintFlipStrategy: React.FC = () => {
                 </div>
 
                 <div className={`p-6 rounded-2xl border ${theme === 'dark' ? 'bg-white/5 border-white/5' : 'bg-gray-50 border-gray-100 shadow-sm'}`}>
-                    <div className="flex items-center gap-3 mb-4 text-amber-500">
+                    <div className="flex items-center gap-3 mb-4 text-blue-500">
                         <LayoutList className="w-6 h-6" />
                         <h4 className="font-black text-lg tracking-tight">Обязательные термины</h4>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <p className="text-[10px] font-bold uppercase text-amber-500">Gas (Газ)</p>
+                            <p className="text-[10px] font-bold uppercase text-blue-500">Gas (Газ)</p>
                             <p className="text-[11px] opacity-70">Комиссия сети. Опасайтесь Gas Wars.</p>
                         </div>
                         <div>
-                            <p className="text-[10px] font-bold uppercase text-amber-500">Supply (Саплай)</p>
+                            <p className="text-[10px] font-bold uppercase text-blue-500">Supply (Саплай)</p>
                             <p className="text-[11px] opacity-70">Общее кол-во NFT. Чем меньше, тем лучше.</p>
                         </div>
                         <div>
-                            <p className="text-[10px] font-bold uppercase text-amber-500">Floor Price</p>
+                            <p className="text-[10px] font-bold uppercase text-blue-500">Floor Price</p>
                             <p className="text-[11px] opacity-70">Минимальная цена рынка. Ориентир выхода.</p>
                         </div>
                         <div>
-                            <p className="text-[10px] font-bold uppercase text-amber-500">Whitelist (WL)</p>
+                            <p className="text-[10px] font-bold uppercase text-blue-500">Whitelist (WL)</p>
                             <p className="text-[11px] opacity-70">Право на покупку без очереди и дешевле.</p>
                         </div>
                     </div>
@@ -153,9 +153,9 @@ export const AvfMintFlipStrategy: React.FC = () => {
             </div>
 
             {/* 3. Market Cycles */}
-            <div className={`p-6 rounded-2xl border ${theme === 'dark' ? 'bg-amber-500/5 border-amber-500/20' : 'bg-amber-50 border-amber-500/20'}`}>
+            <div className={`p-6 rounded-2xl border ${theme === 'dark' ? 'bg-blue-500/5 border-blue-500/20' : 'bg-blue-50 border-blue-500/20'}`}>
                 <div className="flex items-center gap-3 mb-6">
-                    <Activity className="w-6 h-6 text-amber-500" />
+                    <Activity className="w-6 h-6 text-blue-500" />
                     <h3 className={`text-xl font-black ${headingColor}`}>Циклы рынка</h3>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -186,7 +186,7 @@ export const AvfMintFlipStrategy: React.FC = () => {
                 {/* 4. Steps */}
                 <div className="lg:col-span-2 space-y-4">
                     <div className="flex items-center gap-3 mb-2">
-                        <LayoutList className={`w-6 h-6 ${theme === 'dark' ? 'text-amber-400' : 'text-amber-500'}`} />
+                        <LayoutList className={`w-6 h-6 ${theme === 'dark' ? 'text-blue-400' : 'text-blue-500'}`} />
                         <h3 className={`text-xl font-black ${headingColor}`}>Инструкция Mint → Flip</h3>
                     </div>
 
@@ -200,17 +200,17 @@ export const AvfMintFlipStrategy: React.FC = () => {
                     >
                         <div className="space-y-4">
                             <div className="grid grid-cols-2 gap-4">
-                                <div className="p-3 rounded-xl bg-amber-500/5 border border-amber-500/10">
+                                <div className="p-3 rounded-xl bg-blue-500/5 border border-blue-500/10">
                                     <h6 className="text-[10px] font-black uppercase mb-1">Где искать:</h6>
                                     <p className="text-[11px] opacity-70">Twitter (X), Discord, NFT-календари.</p>
                                 </div>
-                                <div className="p-3 rounded-xl bg-amber-500/5 border border-amber-500/10">
+                                <div className="p-3 rounded-xl bg-blue-500/5 border border-blue-500/10">
                                     <h6 className="text-[10px] font-black uppercase mb-1">Рекоменация:</h6>
                                     <p className="text-[11px] opacity-70">Минт до 0.08 ETH для новичков.</p>
                                 </div>
                             </div>
                             <div className={`p-4 rounded-xl border ${theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'}`}>
-                                <h6 className="text-xs font-bold uppercase mb-2 text-amber-500">Чек-лист отсева:</h6>
+                                <h6 className="text-xs font-bold uppercase mb-2 text-blue-500">Чек-лист отсева:</h6>
                                 <ul className="text-xs space-y-2">
                                     <li>📊 <strong>Supply:</strong> Всегда проверяйте общее кол-во. Нет числа = красный флаг.</li>
                                     <li>🎨 <strong>Арт:</strong> Должен быть показан до минта. Опасайтесь "рендеров в тумане".</li>
@@ -234,11 +234,11 @@ export const AvfMintFlipStrategy: React.FC = () => {
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-1">
-                                    <h6 className="text-[10px] font-black uppercase text-amber-500">Discord Аудит:</h6>
+                                    <h6 className="text-[10px] font-black uppercase text-blue-500">Discord Аудит:</h6>
                                     <p className="text-[11px] opacity-70">Живое общение против ботов и бесконечных "gm".</p>
                                 </div>
                                 <div className="space-y-1">
-                                    <h6 className="text-[10px] font-black uppercase text-amber-500">Roadmap:</h6>
+                                    <h6 className="text-[10px] font-black uppercase text-blue-500">Roadmap:</h6>
                                     <p className="text-[11px] opacity-70">Конкретика без фантазий про метавселенные завтра.</p>
                                 </div>
                             </div>
@@ -253,8 +253,8 @@ export const AvfMintFlipStrategy: React.FC = () => {
                         onToggle={() => toggleStep(3)}
                     >
                         <div className="space-y-4">
-                            <div className={`p-4 rounded-xl border-l-4 border-amber-500 ${theme === 'dark' ? 'bg-[#151a21]' : 'bg-gray-50'}`}>
-                                <h6 className="text-xs font-bold uppercase text-amber-500 mb-2">Техника безопасности:</h6>
+                            <div className={`p-4 rounded-xl border-l-4 border-blue-500 ${theme === 'dark' ? 'bg-[#151a21]' : 'bg-gray-50'}`}>
+                                <h6 className="text-xs font-bold uppercase text-blue-500 mb-2">Техника безопасности:</h6>
                                 <ul className="text-xs space-y-2">
                                     <li>🛡️ Используйте отдельный чистый кошелёк (MetaMask).</li>
                                     <li>🔗 Ссылки только из ОФИЦИАЛЬНОГО Discord проекта.</li>
@@ -278,8 +278,8 @@ export const AvfMintFlipStrategy: React.FC = () => {
                                     <h6 className="text-[10px] font-black uppercase text-green-500 mb-1">Тайминг:</h6>
                                     <p className="font-bold">Первые 24–72 часа</p>
                                 </div>
-                                <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20">
-                                    <h6 className="text-[10px] font-black uppercase text-amber-500 mb-1">Цель:</h6>
+                                <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/20">
+                                    <h6 className="text-[10px] font-black uppercase text-blue-500 mb-1">Цель:</h6>
                                     <p className="font-bold">1.3–2x от минта</p>
                                 </div>
                             </div>
@@ -295,7 +295,7 @@ export const AvfMintFlipStrategy: React.FC = () => {
                     {/* Diagnostic */}
                     <div className={`rounded-2xl p-6 border ${theme === 'dark' ? 'bg-[#151a21]/80 border-white/5 shadow-xl' : 'bg-white border-gray-100 shadow-sm'} space-y-4`}>
                         <div className="flex items-center gap-3">
-                            <ShieldAlert className="w-6 h-6 text-amber-500" />
+                            <ShieldAlert className="w-6 h-6 text-blue-500" />
                             <h4 className={`font-black uppercase text-sm ${headingColor}`}>Золотые правила</h4>
                         </div>
                         <div className="space-y-4">
@@ -322,18 +322,18 @@ export const AvfMintFlipStrategy: React.FC = () => {
                     </div>
 
                     {/* Conceptual Formula */}
-                    <div className={`p-6 rounded-2xl bg-amber-500/5 border border-amber-500/10 text-center space-y-2`}>
+                    <div className={`p-6 rounded-2xl bg-blue-500/5 border border-blue-500/10 text-center space-y-2`}>
                         <div className="flex justify-center gap-4 py-2">
                             <div className="text-center">
-                                <Zap className="w-5 h-5 text-amber-500 mx-auto" />
+                                <Zap className="w-5 h-5 text-blue-500 mx-auto" />
                                 <span className="text-[10px] font-bold">Скорость</span>
                             </div>
                             <div className="text-center">
-                                <Droplets className="w-5 h-5 text-amber-500 mx-auto" />
+                                <Droplets className="w-5 h-5 text-blue-500 mx-auto" />
                                 <span className="text-[10px] font-bold">Хайп</span>
                             </div>
                             <div className="text-center">
-                                <Search className="w-5 h-5 text-amber-500 mx-auto" />
+                                <Search className="w-5 h-5 text-blue-500 mx-auto" />
                                 <span className="text-[10px] font-bold">Анализ</span>
                             </div>
                         </div>
@@ -342,8 +342,8 @@ export const AvfMintFlipStrategy: React.FC = () => {
             </div>
 
             {/* Final Outcome */}
-            <div className={`rounded-2xl p-8 border ${theme === 'dark' ? 'bg-amber-500/5 border-amber-500/10' : 'bg-amber-50 border-amber-500/5 shadow-sm'} flex flex-col items-center text-center space-y-4`}>
-                <div className="p-4 rounded-2xl bg-amber-500 text-white shadow-lg shadow-amber-500/20">
+            <div className={`rounded-2xl p-8 border ${theme === 'dark' ? 'bg-blue-500/5 border-blue-500/10' : 'bg-blue-50 border-blue-500/5 shadow-sm'} flex flex-col items-center text-center space-y-4`}>
+                <div className="p-4 rounded-2xl bg-blue-500 text-white shadow-lg shadow-blue-500/20">
                     <TrendingUp className="w-8 h-8" />
                 </div>
                 <div className="max-w-2xl">
