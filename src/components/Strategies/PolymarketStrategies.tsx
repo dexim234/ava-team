@@ -305,7 +305,7 @@ export const PolymarketStrategies: React.FC = () => {
                                                 <h4 className={`font-bold mb-1 ${headingColor} flex items-center gap-2`}>
                                                     {tool.name}
                                                 </h4>
-                                                <p className="text-xs text-gray-500 line-clamp-2 leading-relaxed">
+                                                <p className="text-xs text-gray-500 leading-relaxed">
                                                     {tool.fullDesc}
                                                 </p>
                                             </a>

@@ -6,27 +6,29 @@ import {
     ChevronUp,
     Target,
     BarChart3,
-    HelpCircle,
     Info,
-    Rocket,
     XCircle,
     Twitter,
     Layers,
     Brain,
     MousePointer2,
-    ShieldAlert
+    ShieldAlert,
+    TrendingUp,
+    Zap,
+    LayoutList
 } from 'lucide-react'
 
 interface StrategyStepProps {
-    number: number
+    number: number | string
     title: string
     children: React.ReactNode
     icon: React.ReactNode
     isOpen: boolean
     onToggle: () => void
+    badge?: string
 }
 
-const StrategyStep: React.FC<StrategyStepProps> = ({ number, title, children, icon, isOpen, onToggle }) => {
+const StrategyStep: React.FC<StrategyStepProps> = ({ number, title, children, icon, isOpen, onToggle, badge }) => {
     const { theme } = useThemeStore()
 
     return (
@@ -43,14 +45,21 @@ const StrategyStep: React.FC<StrategyStepProps> = ({ number, title, children, ic
                         }`}>
                         {number}
                     </div>
-                    <div className="flex items-center gap-3">
-                        <div className={theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}>
-                            {icon}
+                    <div className="flex-1">
+                        <div className="flex items-center gap-3">
+                            <div className={theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}>
+                                {icon}
+                            </div>
+                            <h3 className={`text-lg font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                                {title}
+                            </h3>
                         </div>
-                        <h3 className={`text-lg font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                            {title}
-                        </h3>
                     </div>
+                    {badge && (
+                        <span className="hidden sm:inline-block px-2 py-0.5 rounded-md bg-indigo-500/10 text-indigo-500 text-[10px] font-bold uppercase tracking-wider border border-indigo-500/20 mr-4">
+                            {badge}
+                        </span>
+                    )}
                 </div>
                 {isOpen ? <ChevronUp className="w-5 h-5 text-gray-500" /> : <ChevronDown className="w-5 h-5 text-gray-500" />}
             </button>
@@ -68,10 +77,10 @@ const StrategyStep: React.FC<StrategyStepProps> = ({ number, title, children, ic
 
 export const AVFFibaModeStrategy: React.FC = () => {
     const { theme } = useThemeStore()
-    const [openStep, setOpenStep] = useState<number | null>(1)
+    const [openStep, setOpenStep] = useState<number | string>(1)
 
-    const toggleStep = (step: number) => {
-        setOpenStep(openStep === step ? null : step)
+    const toggleStep = (step: number | string) => {
+        setOpenStep(openStep === step ? '' : step)
     }
 
     const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
@@ -95,8 +104,11 @@ export const AVFFibaModeStrategy: React.FC = () => {
                             <span className="px-3 py-1 rounded-full bg-indigo-500/20 text-indigo-400 text-[10px] font-black uppercase tracking-widest border border-indigo-500/20">Counter-Trend</span>
                         </div>
                         <p className={`text-lg leading-relaxed ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
-                            Контртрендовая подстратегия для забора технического отката. Включается, когда импульс упущен, но актив жив.
+                            Контртрендовая подстратегия для забора технического отката. Включается, когда импульс упущен, но актив жив и сохраняет интерес рынка.
                         </p>
+                        <div className="p-3 rounded-xl bg-indigo-500/5 border border-indigo-500/10 inline-block text-xs font-bold italic opacity-80">
+                            "FIBA — это работа на чужой фиксации. Зарабатываем не на росте, а на реакции рынка на коррекцию."
+                        </div>
                     </div>
                 </div>
             </div>
@@ -105,119 +117,154 @@ export const AVFFibaModeStrategy: React.FC = () => {
             <div className={`p-6 rounded-2xl border ${theme === 'dark' ? 'bg-rose-500/5 border-rose-500/20' : 'bg-rose-50 border-rose-500/20'}`}>
                 <div className="flex items-center gap-3 mb-4">
                     <ShieldAlert className="w-6 h-6 text-rose-500" />
-                    <h3 className={`text-lg font-black ${headingColor}`}>FIBA НЕ используется, если:</h3>
+                    <h3 className={`text-lg font-black ${headingColor}`}>FIBA ЗАПРЕЩЕНА, если:</h3>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {[
-                        "Токен мёртвый по объёму",
-                        "Нет живого инфоповода (X)",
-                        "Twitter молчит (нет твитов)",
-                        "Разовый памп без комьюнити",
-                        "График — тонкие линии",
-                        "Слив без попыток откупа"
-                    ].map((text, i) => (
-                        <div key={i} className="flex items-center gap-2 text-xs text-rose-600/80 font-medium">
-                            <XCircle className="w-4 h-4 shrink-0" />
-                            {text}
+                        { title: "Мёртвый актив", desc: "Нет объема, график — тонкие линии, пустые свечи." },
+                        { title: "Тишина в X", desc: "Twitter молчит, нет живого инфоповода и новых твитов." },
+                        { title: "Одиночный памп", desc: "Движение было разовым импульсом без поддержки комьюнити." },
+                        { title: "Агрессивный слив", desc: "Слив без откупов, Dev активно продает в коррекции." },
+                        { title: "Слом структуры", desc: "Цена ушла ниже старта импульса → стратегия отменяется." }
+                    ].map((item, i) => (
+                        <div key={i} className="space-y-1">
+                            <div className="flex items-center gap-2 text-xs text-rose-600 font-bold uppercase">
+                                <XCircle className="w-3.5 h-3.5 shrink-0" />
+                                {item.title}
+                            </div>
+                            <p className="text-[10px] opacity-70 ml-5 leading-relaxed">{item.desc}</p>
                         </div>
                     ))}
                 </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* 3. Guide */}
+                {/* 3. Detailed Guide */}
                 <div className="lg:col-span-2 space-y-4">
+                    <div className="flex items-center gap-3 mb-2">
+                        <LayoutList className={`w-6 h-6 ${theme === 'dark' ? 'text-indigo-400' : 'text-indigo-500'}`} />
+                        <h3 className={`text-xl font-black ${headingColor}`}>Технический регламент</h3>
+                    </div>
+
                     <StrategyStep
                         number={1}
                         title="Обязательные условия"
                         icon={<Activity className="w-5 h-5 text-indigo-500" />}
                         isOpen={openStep === 1}
                         onToggle={() => toggleStep(1)}
+                        badge="Checklist"
                     >
-                        <div className="space-y-4">
+                        <div className="space-y-6">
                             <div className={`p-4 rounded-xl border ${theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'}`}>
                                 <h5 className="text-xs font-bold uppercase mb-2 text-indigo-500 flex items-center gap-2">
                                     <Twitter className="w-4 h-4" /> Живой Twitter & Инфополе
                                 </h5>
                                 <p className="text-xs text-gray-500 leading-relaxed">
-                                    Актуальное сопровождение: новые твиты, репосты, обсуждения в чатах. FIBA не работает на «молчаливых» токенах.
+                                    Должно быть актуальное инфо-сопровождение: продолжаются твиты, идут репосты, комьюнити обсуждает токен, появляются новые участники. Откат должен быть на фоне интереса, а не затухания.
                                 </p>
                             </div>
                             <div className={`p-4 rounded-xl border ${theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'}`}>
                                 <h5 className="text-xs font-bold uppercase mb-2 text-indigo-500 flex items-center gap-2">
-                                    <BarChart3 className="w-4 h-4" /> Импульсный объём
+                                    <BarChart3 className="w-4 h-4" /> Объём — ключевой фильтр
                                 </h5>
-                                <p className="text-xs text-gray-500 leading-relaxed">
-                                    Свечи с телами, а не хвостами. Объём — это ликвидность, без которой уровни Фибо являются фикцией.
+                                <p className="text-xs text-gray-500 leading-relaxed mb-2">
+                                    Перед построением Фибо: импульсный объём, видны свечи с телами, движение сформировано покупками.
                                 </p>
+                                <div className="p-2 bg-indigo-500/5 rounded border border-indigo-500/10 text-[10px] font-bold italic opacity-70">
+                                    "Фибо имеет смысл только там, где есть ликвидность. Без объёма уровни — фикция."
+                                </div>
                             </div>
                         </div>
                     </StrategyStep>
 
                     <StrategyStep
                         number={2}
-                        title="Механика входа"
+                        title="Механика входа и Фибо"
                         icon={<MousePointer2 className="w-5 h-5 text-indigo-500" />}
                         isOpen={openStep === 2}
                         onToggle={() => toggleStep(2)}
+                        badge="Technical"
                     >
-                        <div className="space-y-3 text-sm">
-                            <p className="font-bold">Таймфрейм: <span className="text-indigo-500">15s / 1m</span></p>
-                            <p>Построение: Сетка Фибо строится <strong>от лоя импульса до его хая</strong>.</p>
-                            <div className="grid grid-cols-2 gap-4 mt-2">
-                                <div className="p-3 rounded-lg border border-indigo-500/30 bg-indigo-500/5 text-center">
-                                    <p className="text-[10px] uppercase font-bold text-indigo-400">Вход 1</p>
-                                    <p className="text-lg font-black tracking-widest">0.618</p>
+                        <div className="space-y-4 text-sm">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-1">
+                                    <p className="text-[10px] font-black opacity-50 uppercase">Таймфрейм</p>
+                                    <p className="font-bold text-indigo-500">15s / 1m</p>
                                 </div>
-                                <div className="p-3 rounded-lg border border-indigo-500/30 bg-indigo-500/5 text-center">
-                                    <p className="text-[10px] uppercase font-bold text-indigo-400">Вход 2</p>
-                                    <p className="text-lg font-black tracking-widest">0.786</p>
+                                <div className="space-y-1">
+                                    <p className="text-[10px] font-black opacity-50 uppercase">Тип ордеров</p>
+                                    <p className="font-bold text-indigo-500">Только лимитки</p>
                                 </div>
                             </div>
-                            <p className="text-xs italic text-center mt-2 opacity-70">Используйте только лимитные ордера</p>
+                            <p className="text-xs opacity-80 pt-2 border-t border-white/5">Построение: Сетка строится от <strong>лоя импульса</strong> к его <strong>хаю</strong>.</p>
+                            <div className={`p-4 rounded-xl bg-indigo-500/10 border border-indigo-500/20`}>
+                                <h6 className="text-xs font-bold uppercase mb-3">Рабочие уровни входа:</h6>
+                                <div className="grid grid-cols-2 gap-4 text-center">
+                                    <div>
+                                        <p className="text-2xl font-black tracking-widest text-indigo-500">0.618</p>
+                                        <p className="text-[9px] opacity-60 uppercase font-black">Ликвидная зона 1</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-2xl font-black tracking-widest text-indigo-500">0.786</p>
+                                        <p className="text-[9px] opacity-60 uppercase font-black">Ликвидная зона 2</p>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </StrategyStep>
 
                     <StrategyStep
                         number={3}
-                        title="Подтверждение сигнала"
+                        title="Условия подтверждения"
                         icon={<Target className="w-5 h-5 text-indigo-500" />}
                         isOpen={openStep === 3}
                         onToggle={() => toggleStep(3)}
                     >
-                        <div className={`p-4 rounded-xl border-l-4 border-indigo-500 ${theme === 'dark' ? 'bg-white/5' : 'bg-indigo-50'}`}>
-                            <p className="text-xs font-bold text-indigo-500 uppercase mb-2">Уровень — не сигнал!</p>
-                            <ul className="text-xs space-y-2">
-                                <li className="flex items-start gap-2">🔹 <span>На уровне должен появиться <strong>объём на откуп</strong>.</span></li>
-                                <li className="flex items-start gap-2">🔹 <span>Замедление падения (удар в стенку ликвидности).</span></li>
-                                <li className="flex items-start gap-2">🔹 <span>Отсутствие агрессивного пролива (DevSell) в коррекции.</span></li>
+                        <div className={`p-6 rounded-xl border-l-4 border-indigo-500 ${theme === 'dark' ? 'bg-indigo-500/5' : 'bg-indigo-50'}`}>
+                            <p className="text-sm font-bold text-indigo-500 uppercase mb-3">Сигнал — это реакция цены + объем</p>
+                            <ul className="text-xs space-y-3">
+                                <li className="flex items-start gap-3">
+                                    <div className="p-1 rounded bg-indigo-500/20 text-indigo-500 mt-0.5"><Zap className="w-3 h-3" /></div>
+                                    <span>На уровне появляется объем на откуп.</span>
+                                </li>
+                                <li className="flex items-start gap-3">
+                                    <div className="p-1 rounded bg-indigo-500/20 text-indigo-500 mt-0.5"><Zap className="w-3 h-3" /></div>
+                                    <span>Есть заметное замедление падения.</span>
+                                </li>
+                                <li className="flex items-start gap-3">
+                                    <div className="p-1 rounded bg-indigo-500/20 text-indigo-500 mt-0.5"><Zap className="w-3 h-3" /></div>
+                                    <span>Нет агрессивного пролива маркетом.</span>
+                                </li>
+                                <li className="flex items-start gap-3">
+                                    <div className="p-1 rounded bg-indigo-500/20 text-indigo-500 mt-0.5"><Zap className="w-3 h-3" /></div>
+                                    <span>Отсутствие DevSell в момент коррекции.</span>
+                                </li>
                             </ul>
                         </div>
                     </StrategyStep>
 
                     <StrategyStep
                         number={4}
-                        title="Цели и Риски"
+                        title="Логика сделки и Риски"
                         icon={<ShieldAlert className="w-5 h-5 text-indigo-500" />}
                         isOpen={openStep === 4}
                         onToggle={() => toggleStep(4)}
                     >
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-4">
-                                <h5 className="text-xs font-bold uppercase text-indigo-500">Логика сделки</h5>
-                                <ul className="text-[11px] space-y-1 opacity-80 list-disc list-inside">
-                                    <li>Вход: Уровень + реакция</li>
-                                    <li>Цель: Технический отскок</li>
-                                    <li>Фиксация: <span className="font-bold text-green-500">20–40%</span></li>
-                                </ul>
+                                <h5 className="text-xs font-bold uppercase text-indigo-500 border-b border-indigo-500/20 pb-1">Цель сделки</h5>
+                                <p className="text-[11px] opacity-80 leading-relaxed">
+                                    Целимся в технический отскок, а не в новый хай.
+                                    <br />
+                                    Фиксация: <strong className="text-green-500">20–40%</strong> без ожиданий продолжения тренда.
+                                </p>
                             </div>
                             <div className="space-y-4">
-                                <h5 className="text-xs font-bold uppercase text-rose-500">Риск-модель</h5>
-                                <ul className="text-[11px] space-y-1 opacity-80 list-disc list-inside">
-                                    <li>Меньший объём позиции</li>
-                                    <li>Более быстрый стоп-лосс</li>
-                                    <li>Никаких усреднений</li>
-                                    <li>Никакой "веры" в токен</li>
+                                <h5 className="text-xs font-bold uppercase text-rose-500 border-b border-rose-500/20 pb-1">Риск-модель</h5>
+                                <ul className="text-[11px] space-y-2 opacity-80">
+                                    <li>• Меньший объём позиции, чем в AVF FLIP</li>
+                                    <li>• Более быстрый стоп-лосс</li>
+                                    <li>• Никаких усреднений и "веры"</li>
                                 </ul>
                             </div>
                         </div>
@@ -226,41 +273,46 @@ export const AVFFibaModeStrategy: React.FC = () => {
 
                 {/* Sidebar */}
                 <div className="space-y-6">
-                    {/* Psychology Section */}
-                    <div className={`rounded-3xl p-6 border ${theme === 'dark' ? 'bg-[#151a21] border-white/5' : 'bg-white border-gray-100'} shadow-xl`}>
-                        <div className="flex items-center gap-3 mb-4">
+                    {/* Psychology */}
+                    <div className={`rounded-3xl p-6 border ${theme === 'dark' ? 'bg-[#151a21] border-white/5 shadow-xl' : 'bg-white border-gray-100 shadow-sm'} space-y-4`}>
+                        <div className="flex items-center gap-2">
                             <Brain className="w-6 h-6 text-indigo-500" />
-                            <h4 className={`font-black uppercase text-sm ${headingColor}`}>Психология</h4>
+                            <h4 className={`font-black uppercase text-sm ${headingColor}`}>Эффективность</h4>
                         </div>
-                        <p className="text-xs leading-relaxed text-gray-500">
-                            FIBA — это работа на <strong>чужой фиксации</strong>. Ты зарабатываешь на реакции рынка на коррекцию, а не на глобальном росте.
+                        <p className="text-[10px] leading-relaxed text-gray-500">
+                            Максимально эффективно при: сильном нарративе, хайповой теме, активном Twitter и нескольких волнах объема.
                         </p>
+                        <div className="pt-2 border-t border-white/5">
+                            <p className="text-[9px] font-black uppercase text-indigo-500 mb-1">Зона разворота</p>
+                            <p className="text-[10px] opacity-70 italic">На 0.618 и 0.786 фиксируют ранние и добирают новые — это зоны локального разворота.</p>
+                        </div>
                     </div>
 
-                    <div className={`p-6 rounded-3xl bg-indigo-500/5 border border-indigo-500/10 space-y-4`}>
-                        <h4 className="flex items-center gap-2 text-xs font-black uppercase text-indigo-400">
-                            <Rocket className="w-4 h-4" /> Построение
-                        </h4>
-                        <p className="text-[10px] leading-relaxed opacity-80">
-                            <strong>Концептуальная формула:</strong> Жизнь в активе + объём + структура + уровень = сделка. Без любого элемента вход запрещён.
+                    {/* Conceptual Formula */}
+                    <div className={`p-6 rounded-3xl bg-indigo-500/5 border border-indigo-500/10 text-center space-y-2`}>
+                        <p className="text-[10px] font-black uppercase text-indigo-400">Концептуальная формула:</p>
+                        <p className="text-xs font-black tracking-tighter leading-tight">
+                            ЖИЗНЬ В АКТИВЕ + ОБЪЁМ + СТРУКТУРА + УРОВЕНЬ = СДЕЛКА
                         </p>
+                        <p className="text-[9px] opacity-60 underline decoration-indigo-500/30">БЕЗ ЛЮБОГО ЭЛЕМЕНТА ВХОД ЗАПРЕЩЁН</p>
                     </div>
 
-                    <div className={`p-6 rounded-3xl border border-dashed border-gray-300 text-center opacity-70`}>
-                        <HelpCircle className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                        <p className="text-[10px] font-bold">Нужна помощь?</p>
-                        <p className="text-[9px]">Раздел «Нарративы» поможет найти живые активы.</p>
+                    <div className={`p-6 rounded-3xl border border-dashed border-gray-300 flex flex-col items-center justify-center opacity-60`}>
+                        <Info className="w-8 h-8 text-gray-400 mb-2" />
+                        <p className="text-[10px] font-black text-center uppercase tracking-widest">FIBA — это короткий технический трейд, а не долгосрочная идея.</p>
                     </div>
                 </div>
             </div>
 
-            {/* Footer summary */}
-            <div className={`rounded-2xl p-6 border-l-8 ${theme === 'dark' ? 'bg-[#0b1015] border-indigo-500/50' : 'bg-gray-50 border-indigo-500/30'} flex gap-4 items-start`}>
-                <Info className="w-8 h-8 text-indigo-500 shrink-0" />
-                <div className="space-y-1">
-                    <h4 className={`text-lg font-black ${headingColor}`}>Финальное правило</h4>
-                    <p className={`text-sm leading-relaxed ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
-                        FIBA — это короткий технический трейд, а не вера в перехай. Отработал отскок, забрал профит, вышел.
+            {/* Final Conclusion */}
+            <div className={`rounded-[2.5rem] p-8 border ${theme === 'dark' ? 'bg-indigo-500/5 border-indigo-500/10' : 'bg-indigo-50 border-indigo-500/5 shadow-sm'} flex flex-col items-center text-center space-y-4`}>
+                <div className="p-4 rounded-2xl bg-indigo-500 text-white shadow-lg shadow-indigo-500/20">
+                    <TrendingUp className="w-8 h-8" />
+                </div>
+                <div className="max-w-2xl">
+                    <h4 className={`text-2xl font-black ${headingColor} uppercase mb-2`}>Финальное правило FIBA</h4>
+                    <p className={`text-sm leading-relaxed ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                        Если AVF FLIP — это работа на импульсе, то FIBA — это хладнокровная работа на неэффективности рынка в момент страха коррекции. Отработал отскок → забрал профит → вышел без оглядки.
                     </p>
                 </div>
             </div>
