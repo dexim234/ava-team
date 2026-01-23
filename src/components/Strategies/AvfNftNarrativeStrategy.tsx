@@ -154,139 +154,147 @@ export const AvfNftNarrativeStrategy: React.FC = () => {
                         <p className="text-[10px] font-black uppercase text-blue-500 mb-2">2. Фаза роста</p>
                         <p className="text-xs opacity-70">Появляются инфлюенсеры, растёт объём, флоры начинают двигаться.</p>
                     </div>
-                    <div className="p-4 rounded-xl bg-blue-500/5 border border-blue-500/10 opacity-60">
-                        <p className="text-[10px] font-black uppercase text-orange-500 mb-2">3. Массовая фаза</p>
+                    <div className="p-4 rounded-xl bg-blue-500/5 border border-blue-500/10">
+                        <p className="text-[10px] font-black uppercase text-blue-500 mb-2">3. Массовая фаза</p>
                         <p className="text-xs opacity-70">Тема в каждом посте, куча копий, рост замедляется. <strong>Поздний вход.</strong></p>
                     </div>
-                    <div className="p-4 rounded-xl bg-blue-500/5 border border-blue-500/10 opacity-40">
-                        <p className="text-[10px] font-black uppercase text-rose-500 mb-2">4. Угасание</p>
+                    <div className="p-4 rounded-xl bg-blue-500/5 border border-blue-500/10">
+                        <p className="text-[10px] font-black uppercase text-blue-500 mb-2">4. Угасание</p>
                         <p className="text-xs opacity-70">Объёмы падают, внимание уходит. Остаются "багхолдеры".</p>
                     </div>
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* 4. Steps */}
-                <div className="lg:col-span-2 space-y-4">
-                    <div className="flex items-center gap-3 mb-2">
-                        <LayoutList className={`w-6 h-6 ${theme === 'dark' ? 'text-blue-400' : 'text-blue-500'}`} />
-                        <h3 className={`text-xl font-black ${headingColor}`}>Инструкция</h3>
-                    </div>
-
-                    <StrategyStep
-                        number={1}
-                        title="Поиск и Проверка нарратива"
-                        icon={<Search className="w-5 h-5" />}
-                        isOpen={openStep === 1}
-                        onToggle={() => toggleStep(1)}
-                        badge="Step 1-2"
-                    >
-                        <div className="space-y-4">
-                            <div className={`p-4 rounded-xl border ${theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'}`}>
-                                <h6 className="text-xs font-bold uppercase mb-2 text-blue-500">Где искать ранние сигналы:</h6>
-                                <ul className="text-xs space-y-2">
-                                    <li>🐦 <strong>Twitter (X):</strong> Аналитика разработчиков и специализированных аккаунтов.</li>
-                                    <li>💻 <strong>GitHub:</strong> Рост активности и новых репозиториев по теме.</li>
-                                    <li>🏗️ <strong>Анонсы:</strong> Крупные фонды инвестируют в инфраструктуру под тему.</li>
-                                </ul>
-                            </div>
-                            <div className="p-4 rounded-xl border border-blue-500/20 bg-blue-500/5">
-                                <h6 className="text-xs font-bold uppercase text-blue-500 mb-2">Критический вопрос для входа:</h6>
-                                <p className="text-xs">Решает ли тема задачу, есть ли в ней реальные деньги и заходит ли она широкому рынку?</p>
-                            </div>
-                        </div>
-                    </StrategyStep>
-
-                    <StrategyStep
-                        number={2}
-                        title="Отбор и Проверка проекта"
-                        icon={<Target className="w-5 h-5" />}
-                        isOpen={openStep === 2}
-                        onToggle={() => toggleStep(2)}
-                        badge="Step 3-4"
-                    >
-                        <div className="space-y-4">
-                            <ul className="text-xs space-y-3">
-                                <li className="flex gap-2">✅ <strong>Связь:</strong> Понятная и прямая связь NFT с нарративом.</li>
-                                <li className="flex gap-2">✅ <strong>Саплай:</strong> Ограниченное количество токенов.</li>
-                                <li className="flex gap-2">✅ <strong>Команда:</strong> Живая активность и отсутствие анонимности (или сильное портфолио).</li>
-                            </ul>
-                            <div className="p-3 rounded-xl bg-orange-500/10 border border-orange-500/20 text-[11px] text-orange-500">
-                                <strong>Опасайтесь:</strong> Проектов с общими формулировками или без внятного продукта ("мы тоже AI").
-                            </div>
-                        </div>
-                    </StrategyStep>
-
-                    <StrategyStep
-                        number={3}
-                        title="Вход и Мониторинг"
-                        icon={<Wallet className="w-5 h-5" />}
-                        isOpen={openStep === 3}
-                        onToggle={() => toggleStep(3)}
-                        badge="Step 5-6"
-                    >
-                        <div className="space-y-4">
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/20">
-                                    <h6 className="text-[10px] font-black uppercase text-blue-500 mb-1">Точка входа:</h6>
-                                    <p className="font-bold text-xs uppercase tracking-tight">До массовых обзоров</p>
-                                </div>
-                                <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/20">
-                                    <h6 className="text-[10px] font-black uppercase text-blue-500 mb-1">Подтверждение:</h6>
-                                    <p className="font-bold text-xs uppercase tracking-tight">Рост флора + объёма</p>
-                                </div>
-                            </div>
-                        </div>
-                    </StrategyStep>
-
-                    <StrategyStep
-                        number={4}
-                        title="Дисциплинированный Выход"
-                        icon={<Coins className="w-5 h-5" />}
-                        isOpen={openStep === 4}
-                        onToggle={() => toggleStep(4)}
-                        badge="Step 7"
-                    >
-                        <div className="space-y-4">
-                            <p className="text-xs opacity-70">Продажа происходит по факту перегрева рынка, а не по обещаниям.</p>
-                            <div className="p-4 rounded-xl border border-rose-500/20 bg-rose-500/5">
-                                <h6 className="text-xs font-bold uppercase text-rose-500 mb-2">Сигналы к выходу:</h6>
-                                <ul className="text-[11px] space-y-1.5 list-disc list-inside">
-                                    <li>Тема стала массовой и вездесущей</li>
-                                    <li>Появились сотни клонов-однодневок</li>
-                                    <li>Внимание инвесторов сместилось на другие мемы</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </StrategyStep>
+            <div className="space-y-8">
+                <div className="flex items-center gap-3 mb-2">
+                    <LayoutList className={`w-6 h-6 ${theme === 'dark' ? 'text-blue-400' : 'text-blue-500'}`} />
+                    <h3 className={`text-xl font-black ${headingColor}`}>Инструкция</h3>
                 </div>
 
-                {/* Sidebar */}
-                <div className="space-y-6">
-                    {/* Diagnostic */}
-                    <div className={`rounded-2xl p-6 border ${theme === 'dark' ? 'bg-[#151a21]/80 border-white/5 shadow-xl' : 'bg-white border-gray-100 shadow-sm'} space-y-4`}>
-                        <div className="flex items-center gap-3">
-                            <ShieldAlert className="w-6 h-6 text-blue-500" />
-                            <h4 className={`font-black uppercase text-sm ${headingColor}`}>А когда не работает?</h4>
-                        </div>
-                        <ul className="text-[10px] space-y-2 opacity-80 list-disc list-inside">
-                            <li>В глубоком "медведе"</li>
-                            <li>При общей усталости рынка от историй</li>
-                            <li>Когда нарратив слишком сложен для понимания</li>
-                        </ul>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    {/* Steps 1-2 + Diagnostic */}
+                    <div className="lg:col-span-2 space-y-4">
+                        <StrategyStep
+                            number={1}
+                            title="Поиск и Проверка нарратива"
+                            icon={<Search className="w-5 h-5" />}
+                            isOpen={openStep === 1}
+                            onToggle={() => toggleStep(1)}
+                            badge="Step 1-2"
+                        >
+                            <div className="space-y-4">
+                                <div className={`p-4 rounded-xl border ${theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'}`}>
+                                    <h6 className="text-xs font-bold uppercase mb-2 text-blue-500">Где искать ранние сигналы:</h6>
+                                    <ul className="text-xs space-y-2">
+                                        <li>🐦 <strong>Twitter (X):</strong> Аналитика разработчиков и специализированных аккаунтов.</li>
+                                        <li>💻 <strong>GitHub:</strong> Рост активности и новых репозиториев по теме.</li>
+                                        <li>🏗️ <strong>Анонсы:</strong> Крупные фонды инвестируют в инфраструктуру под тему.</li>
+                                    </ul>
+                                </div>
+                                <div className="p-4 rounded-xl border border-blue-500/20 bg-blue-500/5">
+                                    <h6 className="text-xs font-bold uppercase text-blue-500 mb-2">Критический вопрос для входа:</h6>
+                                    <p className="text-xs">Решает ли тема задачу, есть ли в ней реальные деньги и заходит ли она широкому рынку?</p>
+                                </div>
+                            </div>
+                        </StrategyStep>
+
+                        <StrategyStep
+                            number={2}
+                            title="Отбор и Проверка проекта"
+                            icon={<Target className="w-5 h-5" />}
+                            isOpen={openStep === 2}
+                            onToggle={() => toggleStep(2)}
+                            badge="Step 3-4"
+                        >
+                            <div className="space-y-4">
+                                <ul className="text-xs space-y-3">
+                                    <li className="flex gap-2">✅ <strong>Связь:</strong> Понятная и прямая связь NFT с нарративом.</li>
+                                    <li className="flex gap-2">✅ <strong>Саплай:</strong> Ограниченное количество токенов.</li>
+                                    <li className="flex gap-2">✅ <strong>Команда:</strong> Живая активность и отсутствие анонимности (или сильное портфолио).</li>
+                                </ul>
+                                <div className="p-3 rounded-xl bg-orange-500/10 border border-orange-500/20 text-[11px] text-orange-500">
+                                    <strong>Опасайтесь:</strong> Проектов с общими формулировками или без внятного продукта ("мы тоже AI").
+                                </div>
+                            </div>
+                        </StrategyStep>
                     </div>
 
-                    {/* Risks Box */}
-                    <div className={`rounded-2xl p-6 border ${theme === 'dark' ? 'bg-rose-500/5 border-rose-500/20' : 'bg-rose-50 border-rose-500/20'} space-y-4`}>
-                        <div className="flex items-center gap-3">
-                            <AlertTriangle className="w-6 h-6 text-rose-500" />
-                            <h3 className={`text-lg font-black ${headingColor}`}>Риски</h3>
+                    <div className="space-y-6">
+                        {/* Diagnostic */}
+                        <div className={`rounded-2xl p-6 border ${theme === 'dark' ? 'bg-[#151a21]/80 border-white/5 shadow-xl' : 'bg-white border-gray-100 shadow-sm'} space-y-4 h-full`}>
+                            <div className="flex items-center gap-3">
+                                <ShieldAlert className="w-6 h-6 text-blue-500" />
+                                <h4 className={`font-black uppercase text-sm ${headingColor}`}>А когда не работает?</h4>
+                            </div>
+                            <ul className="text-[10px] space-y-2 opacity-80 list-disc list-inside">
+                                <li>В глубоком "медведе"</li>
+                                <li>При общей усталости рынка от историй</li>
+                                <li>Когда нарратив слишком сложен для понимания</li>
+                            </ul>
                         </div>
-                        <ul className="text-xs space-y-2 opacity-80">
-                            <li>🚩 Вход после всех инфлюенсеров</li>
-                            <li>🚩 Удержание при потере внимания</li>
-                            <li>🚩 Путаница между нарративом и пустышкой</li>
-                        </ul>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    {/* Steps 3-4 + Risks */}
+                    <div className="lg:col-span-2 space-y-4">
+                        <StrategyStep
+                            number={3}
+                            title="Вход и Мониторинг"
+                            icon={<Wallet className="w-5 h-5" />}
+                            isOpen={openStep === 3}
+                            onToggle={() => toggleStep(3)}
+                            badge="Step 5-6"
+                        >
+                            <div className="space-y-4">
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/20">
+                                        <h6 className="text-[10px] font-black uppercase text-blue-500 mb-1">Точка входа:</h6>
+                                        <p className="font-bold text-xs uppercase tracking-tight">До массовых обзоров</p>
+                                    </div>
+                                    <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/20">
+                                        <h6 className="text-[10px] font-black uppercase text-blue-500 mb-1">Подтверждение:</h6>
+                                        <p className="font-bold text-xs uppercase tracking-tight">Рост флора + объёма</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </StrategyStep>
+
+                        <StrategyStep
+                            number={4}
+                            title="Дисциплинированный Выход"
+                            icon={<Coins className="w-5 h-5" />}
+                            isOpen={openStep === 4}
+                            onToggle={() => toggleStep(4)}
+                            badge="Step 7"
+                        >
+                            <div className="space-y-4">
+                                <p className="text-xs opacity-70">Продажа происходит по факту перегрева рынка, а не по обещаниям.</p>
+                                <div className="p-4 rounded-xl border border-rose-500/20 bg-rose-500/5">
+                                    <h6 className="text-xs font-bold uppercase text-rose-500 mb-2">Сигналы к выходу:</h6>
+                                    <ul className="text-[11px] space-y-1.5 list-disc list-inside">
+                                        <li>Тема стала массовой и вездесущей</li>
+                                        <li>Появились сотни клонов-однодневок</li>
+                                        <li>Внимание инвесторов сместилось на другие мемы</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </StrategyStep>
+                    </div>
+
+                    <div className="space-y-6">
+                        {/* Risks Box */}
+                        <div className={`rounded-2xl p-6 border ${theme === 'dark' ? 'bg-rose-500/5 border-rose-500/20' : 'bg-rose-50 border-rose-500/20'} space-y-4 h-full`}>
+                            <div className="flex items-center gap-3">
+                                <AlertTriangle className="w-6 h-6 text-rose-500" />
+                                <h3 className={`text-lg font-black ${headingColor}`}>Риски</h3>
+                            </div>
+                            <ul className="text-xs space-y-2 opacity-80">
+                                <li>🚩 Вход после всех инфлюенсеров</li>
+                                <li>🚩 Удержание при потере внимания</li>
+                                <li>🚩 Путаница между нарративом и пустышкой</li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </div>
