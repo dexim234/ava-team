@@ -11,7 +11,10 @@ import {
     Wallet,
     ExternalLink,
     Zap,
-    Activity
+    Activity,
+    Search,
+    Calendar,
+    ArrowLeft
 } from 'lucide-react'
 import { AVFValueBettingStrategy } from './AVFValueBettingStrategy'
 import { AVFArbitrageStrategy } from './AVFArbitrageStrategy'
@@ -31,10 +34,9 @@ interface Tool {
 export const PolymarketStrategies: React.FC = () => {
     const { theme } = useThemeStore()
     const [activeStrategy, setActiveStrategy] = useState<StrategyId>(null)
+    const [activeToolCategory, setActiveToolCategory] = useState<number | null>(null)
 
     const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
-    const cardBg = theme === 'dark' ? 'bg-[#151a21]/50' : 'bg-white'
-    const cardBorder = theme === 'dark' ? 'border-white/5' : 'border-gray-100'
     const innerBg = theme === 'dark' ? 'bg-[#151a21]/50' : 'bg-gray-50/50'
     const mutedText = theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
 
@@ -145,8 +147,8 @@ export const PolymarketStrategies: React.FC = () => {
                                 key={s.id}
                                 onClick={() => setActiveStrategy(s.id as StrategyId)}
                                 className={`group p-8 rounded-[2.5rem] border text-left transition-all duration-500 hover:-translate-y-2 ${theme === 'dark'
-                                        ? 'bg-white/5 border-white/5 hover:border-rose-500/30 hover:bg-rose-500/5'
-                                        : 'bg-white border-gray-100 hover:border-rose-500/20 hover:shadow-2xl hover:shadow-rose-500/10'
+                                    ? 'bg-white/5 border-white/5 hover:border-rose-500/30 hover:bg-rose-500/5'
+                                    : 'bg-white border-gray-100 hover:border-rose-500/20 hover:shadow-2xl hover:shadow-rose-500/10'
                                     }`}
                             >
                                 <div className={`p-4 rounded-2xl w-fit mb-6 transition-transform duration-500 group-hover:scale-110 ${theme === 'dark' ? 'bg-rose-500/20 text-rose-400' : 'bg-rose-50 text-rose-500'
@@ -189,7 +191,7 @@ export const PolymarketStrategies: React.FC = () => {
             </section>
 
             {/* Tools Block */}
-            <section className="space-y-6">
+            <section className="space-y-8">
                 <div className="flex items-center gap-3">
                     <div className="p-2 bg-amber-500/10 rounded-xl border border-amber-500/20">
                         <Wrench className="w-6 h-6 text-amber-500" />
@@ -197,64 +199,125 @@ export const PolymarketStrategies: React.FC = () => {
                     <div>
                         <h3 className={`text-xl font-black ${headingColor}`}>Инструменты</h3>
                         <p className={`text-sm ${mutedText}`}>
-                            Аналитические платформы и сервисы для Polymarket
+                            Вспомогательные сервисы и аналитика для прогнозных рынков
                         </p>
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
-                    {tools.map((tool, idx) => (
-                        <a
-                            key={idx}
-                            href={tool.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className={`group relative flex flex-col p-6 rounded-2xl border transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ${theme === 'dark'
-                                ? `${cardBg} ${cardBorder} hover:border-rose-500/30`
-                                : 'bg-white border-gray-100 hover:border-rose-500/30 hover:shadow-lg'
-                                }`}
-                        >
-                            {/* External Link Icon */}
-                            <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-2 group-hover:translate-x-0">
-                                <ExternalLink className={`w-4 h-4 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} />
+                <div className="space-y-12">
+                    {activeToolCategory === null ? (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {[
+                                {
+                                    title: 'Аналитика и Данные',
+                                    description: 'Отслеживание рынков, объёмов и активности китов',
+                                    icon: <BarChart3 className="w-8 h-8 text-blue-500" />,
+                                    bgColor: 'bg-blue-500/10',
+                                    borderColor: 'border-blue-500/20'
+                                },
+                                {
+                                    title: 'AI и Смарт-Инсайты',
+                                    description: 'Интеллектуальные помощники и предсказательные модели',
+                                    icon: <Brain className="w-8 h-8 text-purple-500" />,
+                                    bgColor: 'bg-purple-500/10',
+                                    borderColor: 'border-purple-500/20'
+                                },
+                                {
+                                    title: 'Портфолио и Трекинг',
+                                    description: 'Управление позициями и мониторинг перфоманса',
+                                    icon: <Wallet className="w-8 h-8 text-emerald-500" />,
+                                    bgColor: 'bg-emerald-500/10',
+                                    borderColor: 'border-emerald-500/20'
+                                }
+                            ].map((cat, idx) => (
+                                <button
+                                    key={idx}
+                                    onClick={() => setActiveToolCategory(idx)}
+                                    className={`group p-6 rounded-3xl border text-left transition-all duration-500 hover:-translate-y-2 ${theme === 'dark'
+                                        ? 'bg-[#151a21]/50 border-white/5 hover:border-rose-500/30 hover:bg-rose-500/5'
+                                        : 'bg-white border-gray-100 hover:border-rose-500/20 hover:shadow-xl'
+                                        }`}
+                                >
+                                    <div className={`p-4 rounded-2xl w-fit mb-4 transition-transform duration-500 group-hover:scale-110 ${cat.bgColor} ${cat.borderColor} border`}>
+                                        {cat.icon}
+                                    </div>
+                                    <h4 className={`text-lg font-black mb-2 ${headingColor}`}>{cat.title}</h4>
+                                    <p className={`text-xs leading-relaxed ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                                        {cat.description}
+                                    </p>
+                                    <div className="mt-4 flex items-center gap-2 text-rose-500 font-bold text-[10px] uppercase tracking-wider">
+                                        Смотреть инструменты <ExternalLink className="w-3 h-3" />
+                                    </div>
+                                </button>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="space-y-8 animate-scale-up">
+                            <div className="flex items-center justify-between">
+                                <button
+                                    onClick={() => setActiveToolCategory(null)}
+                                    className="text-xs font-bold text-gray-500 hover:text-rose-500 transition-colors flex items-center gap-2"
+                                >
+                                    <ArrowLeft className="w-4 h-4" /> К категориям
+                                </button>
                             </div>
 
-                            {/* Header with Icon */}
-                            <div className="flex items-start gap-4 mb-4">
-                                <div className={`p-3 rounded-xl ${tool.bgColor} group-hover:scale-110 transition-transform duration-300`}>
-                                    <div className={tool.color}>
-                                        {tool.icon}
+                            {[
+                                {
+                                    title: 'Аналитика и Данные',
+                                    items: tools.filter(t => t.tags.includes('Analytics') || t.tags.includes('Live'))
+                                },
+                                {
+                                    title: 'AI и Смарт-Инсайты',
+                                    items: tools.filter(t => t.tags.includes('AI') || t.tags.includes('Scores'))
+                                },
+                                {
+                                    title: 'Портфолио и Трекинг',
+                                    items: tools.filter(t => t.tags.includes('Portfolio'))
+                                }
+                            ].filter((_c, i) => i === activeToolCategory).map((category, catIdx) => (
+                                <div key={catIdx} className="space-y-6">
+                                    <div className="flex items-center gap-3">
+                                        <div className={`p-3 rounded-2xl ${theme === 'dark' ? 'bg-white/5 border border-white/10' : 'bg-gray-100 border border-gray-200'}`}>
+                                            <Wrench className="w-6 h-6 text-rose-500" />
+                                        </div>
+                                        <h4 className={`text-xl font-bold ${headingColor}`}>{category.title}</h4>
+                                    </div>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                                        {category.items.map((tool, idx) => (
+                                            <a
+                                                key={idx}
+                                                href={tool.url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className={`group relative p-5 rounded-2xl border transition-all duration-300 hover:shadow-lg ${theme === 'dark'
+                                                    ? 'bg-[#151a21]/50 border-white/5 hover:border-rose-500/30'
+                                                    : 'bg-white border-gray-100 hover:border-rose-500/20'
+                                                    }`}
+                                            >
+                                                <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <ExternalLink className={`w-4 h-4 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} />
+                                                </div>
+
+                                                <div className={`p-2.5 rounded-xl w-fit mb-4 ${tool.bgColor} group-hover:scale-110 transition-transform`}>
+                                                    <div className={tool.color}>
+                                                        {tool.icon}
+                                                    </div>
+                                                </div>
+
+                                                <h4 className={`font-bold mb-1 ${headingColor} flex items-center gap-2`}>
+                                                    {tool.name}
+                                                </h4>
+                                                <p className="text-xs text-gray-500 line-clamp-2 leading-relaxed">
+                                                    {tool.fullDesc}
+                                                </p>
+                                            </a>
+                                        ))}
                                     </div>
                                 </div>
-                                <div className="flex-1 min-w-0">
-                                    <h4 className={`font-bold ${headingColor} text-lg`}>
-                                        {tool.name}
-                                    </h4>
-                                </div>
-                            </div>
-
-                            {/* Tags */}
-                            <div className="flex flex-wrap gap-2 mb-4">
-                                {tool.tags.map((tag, tagIdx) => (
-                                    <span
-                                        key={tagIdx}
-                                        className={`px-2 py-1 text-[10px] font-semibold uppercase tracking-wider rounded-full ${theme === 'dark' ? 'bg-white/5 text-gray-400' : 'bg-gray-100 text-gray-500'
-                                            }`}
-                                    >
-                                        {tag}
-                                    </span>
-                                ))}
-                            </div>
-
-                            {/* Description */}
-                            <p className={`text-sm leading-relaxed ${mutedText} flex-1`}>
-                                {tool.fullDesc}
-                            </p>
-
-                            {/* Hover Line */}
-                            <div className={`absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-rose-500 to-amber-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-b-2xl`} />
-                        </a>
-                    ))}
+                            ))}
+                        </div>
+                    )}
                 </div>
             </section>
 
@@ -272,7 +335,7 @@ export const PolymarketStrategies: React.FC = () => {
                         </div>
                     </div>
                     <div className="flex flex-wrap gap-3">
-                        {['Analytics', 'AI/ML', 'Portfolio', 'Live Data', 'Copy Trading'].map((category, idx) => (
+                        {['Analytics', 'AI/ML', 'Portfolio', 'Live Data', 'Whales'].map((category, idx) => (
                             <span
                                 key={idx}
                                 className={`px-3 py-1.5 text-xs font-medium rounded-lg ${theme === 'dark' ? 'bg-white/5 text-gray-300' : 'bg-white text-gray-600 border border-gray-200'
