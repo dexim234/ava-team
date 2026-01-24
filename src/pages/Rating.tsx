@@ -227,24 +227,6 @@ export const Rating = () => {
     })
   }, [ratings, user, selfAccess.hasAccess, othersAccess.hasAccess])
 
-  if (pageAccess.loading) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <div className="animate-spin rounded-full h-8 w-8 border-4 border-emerald-500 border-t-transparent"></div>
-      </div>
-    )
-  }
-
-  if (!pageAccess.hasAccess) {
-    return (
-      <div className="py-20 text-center space-y-4">
-        <Lock className="w-16 h-16 text-gray-700 mx-auto opacity-20" />
-        <h3 className={`text-xl font-black ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Доступ к AVF Score ограничен</h3>
-        <p className="text-gray-500 max-w-md mx-auto">{othersAccess.reason || 'У вас нет доступа к просмотру рейтинга.'}</p>
-      </div>
-    )
-  }
-
   const teamKPD = ratings.reduce((sum: number, r: RatingWithBreakdown) => sum + r.rating, 0) / (ratings.length || 1)
   const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
 
@@ -303,6 +285,24 @@ export const Rating = () => {
       window.removeEventListener('nicknameUpdated', handleNicknameUpdate)
     }
   }, [allMembers])
+
+  if (pageAccess.loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <div className="animate-spin rounded-full h-8 w-8 border-4 border-emerald-500 border-t-transparent"></div>
+      </div>
+    )
+  }
+
+  if (!pageAccess.hasAccess) {
+    return (
+      <div className="py-20 text-center space-y-4">
+        <Lock className="w-16 h-16 text-gray-700 mx-auto opacity-20" />
+        <h3 className={`text-xl font-black ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Доступ к AVF Score ограничен</h3>
+        <p className="text-gray-500 max-w-md mx-auto">{othersAccess.reason || 'У вас нет доступа к просмотру рейтинга.'}</p>
+      </div>
+    )
+  }
 
   const statCards = [
     {
