@@ -1,7 +1,6 @@
 import React, { useState } from 'react'
 import { useThemeStore } from '@/store/themeStore'
 import {
-    Lightbulb,
     Wrench,
     Calculator,
     BarChart3,
@@ -34,7 +33,6 @@ export const FuturesStrategies: React.FC = () => {
     const [activeToolCategory, setActiveToolCategory] = useState<ToolCategory>(null)
 
     const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
-    const innerBg = theme === 'dark' ? 'bg-[#151a21]/50' : 'bg-gray-50/50'
     const mutedText = theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
 
     const tools: Tool[] = [
