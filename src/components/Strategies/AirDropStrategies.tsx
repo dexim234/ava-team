@@ -57,6 +57,15 @@ export const AirDropStrategies: React.FC = () => {
             tags: ['Aggregator']
         },
         {
+            name: 'Drops Bot',
+            url: 'https://drops.bot',
+            fullDesc: 'Сервис для отслеживания криптовалютных айрдропов, который позволяет проверять публичные адреса кошельков на предмет доступных, пропущенных и потенциальных будущих наград.',
+            icon: <Gift className="w-5 h-5" />,
+            color: 'text-purple-400',
+            bgColor: 'bg-purple-500/10 border-purple-500/20',
+            tags: ['Aggregator']
+        },
+        {
             name: 'Coindar',
             url: 'https://coindar.org',
             fullDesc: 'Календарь событий: листинги, аирдропы и мероприятия как триггеры нарративов.',
@@ -66,21 +75,21 @@ export const AirDropStrategies: React.FC = () => {
             tags: ['Calendar']
         },
         {
+            name: 'Reddit',
+            url: 'https://www.reddit.com',
+            fullDesc: 'Форумная платформа, где обсуждаются новые протоколы, testnet\'ы и потенциальные airdrop-активности.',
+            icon: <Users className="w-5 h-5" />,
+            color: 'text-orange-400',
+            bgColor: 'bg-orange-500/10 border-orange-500/20',
+            tags: ['Community']
+        },
+        {
             name: 'Discord',
             url: 'https://discord.com',
             fullDesc: 'Основной коммуникационный канал криптопроектов, где публикуются testnet-активности, роли за участие и ранние пользовательские задания.',
             icon: <MessageCircle className="w-5 h-5" />,
             color: 'text-indigo-400',
             bgColor: 'bg-indigo-500/10 border-indigo-500/20',
-            tags: ['Communication']
-        },
-        {
-            name: 'Reddit',
-            url: 'https://www.reddit.com',
-            fullDesc: 'Форумная платформа, где обсуждаются новые протоколы, testnet’ы и потенциальные airdrop-активности.',
-            icon: <Users className="w-5 h-5" />,
-            color: 'text-orange-400',
-            bgColor: 'bg-orange-500/10 border-orange-500/20',
             tags: ['Community']
         }
     ]
@@ -111,13 +120,6 @@ export const AirDropStrategies: React.FC = () => {
                                     icon: <Gift className="w-8 h-8 text-blue-500" />,
                                     bgColor: 'bg-blue-500/10',
                                     borderColor: 'border-blue-500/20'
-                                },
-                                {
-                                    title: 'Коммуникация',
-                                    description: 'Каналы проектов и анонсы',
-                                    icon: <MessageCircle className="w-8 h-8 text-indigo-500" />,
-                                    bgColor: 'bg-indigo-500/10',
-                                    borderColor: 'border-indigo-500/20'
                                 },
                                 {
                                     title: 'Комьюнити',
@@ -163,10 +165,6 @@ export const AirDropStrategies: React.FC = () => {
                                 {
                                     title: 'Агрегаторы и Календари',
                                     items: tools.filter(t => t.tags.includes('Aggregator') || t.tags.includes('Calendar'))
-                                },
-                                {
-                                    title: 'Коммуникация',
-                                    items: tools.filter(t => t.tags.includes('Communication'))
                                 },
                                 {
                                     title: 'Комьюнити',
