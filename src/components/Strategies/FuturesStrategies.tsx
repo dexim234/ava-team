@@ -13,11 +13,21 @@ import {
     ArrowLeft,
     Wrench,
     BookOpen,
-    Lightbulb
+    Lightbulb,
+    RefreshCw,
+    ArrowDownUp,
+    Sunrise,
+    Megaphone,
+    Gauge // Добавлен новый иконка
 } from 'lucide-react'
 import { AvfTrendFollowingStrategy } from './AvfTrendFollowingStrategy'
+import { AvfBreakoutRetestStrategy } from './AvfBreakoutRetestStrategy'
+import { AvfMeanReversionStrategy } from './AvfMeanReversionStrategy'
+import { AvfSessionOpenStrategy } from './AvfSessionOpenStrategy'
+import { AvfEventTradingStrategy } from './AvfEventTradingStrategy'
+import { AvfScalpingStrategy } from './AvfScalpingStrategy'
 
-type StrategyId = 'trend-following' | null;
+type StrategyId = 'trend-following' | 'breakout-retest' | 'mean-reversion' | 'session-open' | 'event-trading' | 'scalping' | null; // Добавляем новый тип StrategyId
 
 export const FuturesStrategies: React.FC = () => {
     const { theme } = useThemeStore()
@@ -32,6 +42,36 @@ export const FuturesStrategies: React.FC = () => {
             name: 'AVF тренд-фолловинг', 
             icon: <TrendingUp className="w-4 h-4" />, 
             desc: 'Торговля по тренду. Самая базовая логика из тех, что стабильно работают.'
+        },
+        {
+            id: 'breakout-retest' as StrategyId, 
+            name: 'AVF пробой с возвратом', 
+            icon: <RefreshCw className="w-4 h-4" />, 
+            desc: 'Работаем не на сам пробой, а на подтверждение того, что рынок действительно выбрал направление.'
+        },
+        {
+            id: 'mean-reversion' as StrategyId,
+            name: 'AVF - Mean Reversion',
+            icon: <ArrowDownUp className="w-4 h-4" />,
+            desc: 'Контртрендовая работа. Самая коварная и одновременно самая «денежная», если применять её строго по условиям.'
+        },
+        {
+            id: 'session-open' as StrategyId,
+            name: 'AVF - Session Open',
+            icon: <Sunrise className="w-4 h-4" />,
+            desc: 'Торговля первых минут активной фазы рынка, когда в стакан заходят основные объёмы.'
+        },
+        {
+            id: 'event-trading' as StrategyId,
+            name: 'AVF - Event Trading',
+            icon: <Megaphone className="w-4 h-4" />,
+            desc: 'Это стратегия для особых случаев. Мы её используем только тогда, когда есть крупный катализатор.'
+        },
+        {
+            id: 'scalping' as StrategyId, // Добавляем новую стратегию
+            name: 'AVF - Scalping',
+            icon: <Gauge className="w-4 h-4" />,
+            desc: 'Суть скальпинга — ловить микродвижения на графике 1–5 минут. Мы берём маленькие профиты много раз в течение дня.'
         },
     ]
 
@@ -190,6 +230,11 @@ export const FuturesStrategies: React.FC = () => {
                                 </button>
                             </div>
                             {activeStrategy === 'trend-following' && <AvfTrendFollowingStrategy />}
+                            {activeStrategy === 'breakout-retest' && <AvfBreakoutRetestStrategy />}
+                            {activeStrategy === 'mean-reversion' && <AvfMeanReversionStrategy />}
+                            {activeStrategy === 'session-open' && <AvfSessionOpenStrategy />}
+                            {activeStrategy === 'event-trading' && <AvfEventTradingStrategy />}
+                            {activeStrategy === 'scalping' && <AvfScalpingStrategy />} {/* Добавляем рендеринг новой стратегии */}
                         </div>
                     </div>
                 )}
