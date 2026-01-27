@@ -396,16 +396,16 @@ export const AvfTrendFollowingStrategy: React.FC = () => {
                             <h3 className={`text-lg font-black ${headingColor}`}>Что важно зафиксировать</h3>
                         </div>
                         <div className={`space-y-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} text-xs`}>
-                            <p className="flex items-center gap-2">
-                                <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                            <p className="flex items-start gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-0.5 shrink-0"></span>
                                 Это <strong>не частая</strong> стратегия
                             </p>
-                            <p className="flex items-center gap-2">
-                                <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                            <p className="flex items-start gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-0.5 shrink-0"></span>
                                 Это стратегия <strong>терпения</strong>
                             </p>
-                            <p className="flex items-center gap-2">
-                                <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                            <p className="flex items-start gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-0.5 shrink-0"></span>
                                 Основные деньги делаются <strong>редкими, но сильными</strong> сделками
                             </p>
                         </div>

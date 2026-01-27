@@ -357,16 +357,16 @@ export const AvfSessionOpenStrategy: React.FC = () => {
                             <h3 className={`text-lg font-black ${headingColor}`}>Что важно зафиксировать</h3>
                         </div>
                         <div className={`space-y-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} text-xs`}>
-                            <p className="flex items-center gap-2">
-                                <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                            <p className="flex items-start gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-0.5 shrink-0"></span>
                                 Это стратегия <strong>чётких правил</strong>
                             </p>
-                            <p className="flex items-center gap-2">
-                                <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                            <p className="flex items-start gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-0.5 shrink-0"></span>
                                 Требует <strong>дисциплины и терпения</strong>
                             </p>
-                            <p className="flex items-center gap-2">
-                                <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                            <p className="flex items-start gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-0.5 shrink-0"></span>
                                 Приносит хорошие результаты при <strong>строгом соблюдении условий</strong>
                             </p>
                         </div>

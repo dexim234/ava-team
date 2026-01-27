@@ -306,16 +306,16 @@ export const AvfScalpingStrategy: React.FC = () => {
                             <h3 className={`text-lg font-black ${headingColor}`}>Что важно зафиксировать</h3>
                         </div>
                         <div className={`space-y-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} text-xs`}>
-                            <p className="flex items-center gap-2">
-                                <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                            <p className="flex items-start gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-0.5 shrink-0"></span>
                                 Скальпинг — это <strong>дисциплина, скорость и точность</strong>
                             </p>
-                            <p className="flex items-center gap-2">
-                                <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                            <p className="flex items-start gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-0.5 shrink-0"></span>
                                 Требует <strong>высокой ликвидности и низких комиссий</strong>
                             </p>
-                            <p className="flex items-center gap-2">
-                                <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                            <p className="flex items-start gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-0.5 shrink-0"></span>
                                 <strong>Не для прогнозирования</strong>, а для реакции на факты рынка
                             </p>
                         </div>
