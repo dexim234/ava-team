@@ -3,7 +3,7 @@ import { useState, useEffect, useMemo } from 'react'
 import { useThemeStore } from '@/store/themeStore'
 import { useAuthStore } from '@/store/authStore'
 import { useAdminStore } from '@/store/adminStore'
-import { getReferrals, addApprovalRequest, updateReferral, addReferral } from '@/services/firestoreService'
+import { getReferrals, addApprovalRequest, updateReferral, addReferral, deleteReferral } from '@/services/firestoreService'
 import { Referral } from '@/types'
 import { useUsers } from '@/hooks/useUsers'
 import {
@@ -14,7 +14,8 @@ import {
     Shield,
     User as UserIcon,
     Check,
-    Battery
+    Battery,
+    Trash2
 } from 'lucide-react'
 
 // Battery Component
@@ -42,44 +43,47 @@ const ReferralBattery = ({ count, theme }: { count: number; theme: 'dark' | 'lig
         <div className={`relative p-6 rounded-[2rem] border transition-all duration-500 ${theme === 'dark' ? 'bg-[#0b1015] border-white/5 hover:border-emerald-500/20' : 'bg-white border-gray-100 hover:border-emerald-500/10'} shadow-2xl group overflow-hidden`}>
             <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 blur-[50px] rounded-full pointer-events-none" />
 
-            <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
                     <div className={`p-2.5 rounded-xl ${theme === 'dark' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-emerald-50 text-emerald-600'}`}>
                         <Battery className="w-5 h-5" />
                     </div>
                     <div>
                         <h4 className={`text-sm font-black uppercase tracking-widest ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Месячный драйв</h4>
-                        <p className="text-[10px] font-bold text-gray-500 uppercase tracking-tighter">Счетчик обнуляется каждый месяц</p>
                     </div>
-                </div>
-                <div className="text-right">
-                    <span className={`text-3xl font-black tracking-tighter ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{count}</span>
-                    <span className="text-sm font-bold text-gray-500"> / 30</span>
                 </div>
             </div>
 
-            <div className="space-y-4">
-                <div className={`relative h-14 w-full rounded-2xl overflow-hidden p-1.5 ${theme === 'dark' ? 'bg-white/5 border border-white/5' : 'bg-gray-100 border border-gray-200'}`}>
+            <div className="flex flex-col items-center">
+                {/* Vertical battery */}
+                <div className="relative w-16 h-48 rounded-2xl overflow-hidden p-1.5 bg-white/5 border border-white/5">
                     <div
-                        className={`h-full rounded-xl transition-all duration-1000 ease-out ${colorClass}`}
-                        style={{ width: `${progress}%` }}
+                        className={`absolute bottom-0 left-0 right-0 rounded-xl transition-all duration-1000 ease-out ${colorClass}`}
+                        style={{ height: `${progress}%` }}
                     />
 
                     {/* Milestone markers */}
                     {[5, 10, 20, 30].map((m) => (
                         <div
                             key={m}
-                            className="absolute top-0 bottom-0 border-r border-white/10 dark:border-white/5"
-                            style={{ left: `${(m / 30) * 100}%` }}
+                            className="absolute left-0 right-0 border-t border-white/10 dark:border-white/5"
+                            style={{ bottom: `${(m / 30) * 100}%` }}
                         />
                     ))}
                 </div>
 
-                <div className="flex justify-between px-1">
-                    {[5, 10, 20, 30].map((m) => (
-                        <div key={m} className={`flex flex-col items-center gap-1 transition-all duration-300 ${count >= m ? 'opacity-100' : 'opacity-40'}`}>
-                            <span className={`text-[10px] font-black tracking-tighter ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>{m}</span>
+                {/* Count display */}
+                <div className="mt-4 text-center">
+                    <span className={`text-4xl font-black tracking-tighter ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{count}</span>
+                    <span className="text-sm font-bold text-gray-500 ml-1">/ 30</span>
+                </div>
+
+                {/* Milestone labels */}
+                <div className="flex flex-col justify-between h-40 mt-2 px-2">
+                    {[30, 20, 10, 5].map((m) => (
+                        <div key={m} className={`flex items-center gap-1 transition-all duration-300 ${count >= m ? 'opacity-100' : 'opacity-40'}`}>
                             <div className={`w-1 h-1 rounded-full ${count >= m ? 'bg-emerald-500' : 'bg-gray-500'}`} />
+                            <span className={`text-[10px] font-black tracking-tighter ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>{m}</span>
                         </div>
                     ))}
                 </div>
@@ -295,6 +299,20 @@ export const Referrals = () => {
     const [showModal, setShowModal] = useState(false)
     const [editingReferral, setEditingReferral] = useState<Referral | null>(null)
     const [copied, setCopied] = useState(false)
+    const [deletingId, setDeletingId] = useState<string | null>(null)
+
+    const handleDeleteReferral = async (id: string) => {
+        if (!confirm('Вы уверены, что хотите удалить этого реферала?')) return
+        setDeletingId(id)
+        try {
+            await deleteReferral(id)
+            loadData()
+        } catch (err) {
+            console.error('Ошибка при удалении:', err)
+        } finally {
+            setDeletingId(null)
+        }
+    }
 
     const loadData = async () => {
         setLoading(true)
@@ -464,15 +482,24 @@ export const Referrals = () => {
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 text-right">
-                                                <button
-                                                    onClick={() => {
-                                                        setEditingReferral(r)
-                                                        setShowModal(true)
-                                                    }}
-                                                    className={`p-2 rounded-lg opacity-0 group-hover:opacity-100 transition-all ${theme === 'dark' ? 'hover:bg-white/10 text-gray-400 hover:text-white' : 'hover:bg-emerald-50 text-gray-400 hover:text-emerald-500'}`}
-                                                >
-                                                    <EditIcon className="w-4 h-4" />
-                                                </button>
+                                                <div className="flex items-center justify-end gap-2">
+                                                    <button
+                                                        onClick={() => {
+                                                            setEditingReferral(r)
+                                                            setShowModal(true)
+                                                        }}
+                                                        className={`p-2 rounded-lg opacity-0 group-hover:opacity-100 transition-all ${theme === 'dark' ? 'hover:bg-white/10 text-gray-400 hover:text-white' : 'hover:bg-emerald-50 text-gray-400 hover:text-emerald-500'}`}
+                                                    >
+                                                        <EditIcon className="w-4 h-4" />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDeleteReferral(r.id)}
+                                                        disabled={deletingId === r.id}
+                                                        className={`p-2 rounded-lg opacity-0 group-hover:opacity-100 transition-all ${theme === 'dark' ? 'hover:bg-white/10 text-gray-400 hover:text-rose-500' : 'hover:bg-rose-50 text-gray-400 hover:text-rose-500'} ${deletingId === r.id ? 'animate-spin opacity-50' : ''}`}
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </button>
+                                                </div>
                                             </td>
                                         </tr>
                                     ))}
