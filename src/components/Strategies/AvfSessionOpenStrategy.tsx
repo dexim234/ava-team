@@ -32,8 +32,8 @@ const StrategyStep: React.FC<StrategyStepProps> = ({ number, title, children, ic
 
     return (
         <div className={`overflow-hidden rounded-2xl border transition-all duration-300 ${theme === 'dark'
-                ? 'bg-[#1a212a]/50 border-white/5 shadow-inner'
-                : 'bg-white border-gray-100 shadow-sm'
+            ? 'bg-[#1a212a]/50 border-white/5 shadow-inner'
+            : 'bg-white border-gray-100 shadow-sm'
             }`}>
             <button
                 onClick={onToggle}
@@ -81,8 +81,8 @@ export const AvfSessionOpenStrategy: React.FC = () => {
         <div className="space-y-8 animate-fade-in">
             {/* Strategy Intro */}
             <div className={`relative overflow-hidden rounded-3xl p-8 border ${theme === 'dark'
-                    ? 'bg-gradient-to-br from-[#1a212a] to-[#0f1216] border-blue-500/20 shadow-2xl'
-                    : 'bg-gradient-to-br from-white to-blue-50/30 border-blue-500/10 shadow-xl'
+                ? 'bg-gradient-to-br from-[#1a212a] to-[#0f1216] border-blue-500/20 shadow-2xl'
+                : 'bg-gradient-to-br from-white to-blue-50/30 border-blue-500/10 shadow-xl'
                 }`}>
                 <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/5 blur-3xl rounded-full -mr-20 -mt-20 pointer-events-none"></div>
 
@@ -349,35 +349,13 @@ export const AvfSessionOpenStrategy: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* Important Notes */}
-                    <div className={`rounded-2xl p-6 border ${theme === 'dark' ? 'bg-blue-500/5 border-blue-500/20' : 'bg-blue-50 border-blue-500/20'
-                        } shadow-lg space-y-4`}>
-                        <div className="flex items-center gap-3">
-                            <Target className={`w-6 h-6 text-blue-500`} />
-                            <h3 className={`text-lg font-black ${headingColor}`}>Что важно зафиксировать</h3>
-                        </div>
-                        <div className={`space-y-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} text-xs`}>
-                            <p className="flex items-start gap-2">
-                                <span className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-0.5 shrink-0"></span>
-                                Это стратегия <strong>чётких правил</strong>
-                            </p>
-                            <p className="flex items-start gap-2">
-                                <span className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-0.5 shrink-0"></span>
-                                Требует <strong>дисциплины и терпения</strong>
-                            </p>
-                            <p className="flex items-start gap-2">
-                                <span className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-0.5 shrink-0"></span>
-                                Приносит хорошие результаты при <strong>строгом соблюдении условий</strong>
-                            </p>
-                        </div>
-                    </div>
                 </div>
             </div>
 
             {/* Example Case */}
             <div className={`rounded-3xl p-8 border ${theme === 'dark'
-                    ? 'bg-gradient-to-br from-[#1a212a] to-[#0f1216] border-blue-500/20'
-                    : 'bg-gradient-to-br from-white to-blue-50/30 border-blue-500/10'
+                ? 'bg-gradient-to-br from-[#1a212a] to-[#0f1216] border-blue-500/20'
+                : 'bg-gradient-to-br from-white to-blue-50/30 border-blue-500/10'
                 } shadow-xl`}>
                 <h3 className={`text-xl font-black ${headingColor} mb-4 flex items-center gap-3`}>
                     <Lightbulb className="w-6 h-6 text-blue-500" />
@@ -405,7 +383,7 @@ export const AvfSessionOpenStrategy: React.FC = () => {
                             </div>
                         </div>
                     </div>
-                    
+
                     <div className={`p-4 rounded-xl ${theme === 'dark' ? 'bg-blue-500/10 border border-blue-500/20' : 'bg-blue-50 border border-blue-500/20'}`}>
                         <p className="text-sm font-bold mb-2">🎯 Вход</p>
                         <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
