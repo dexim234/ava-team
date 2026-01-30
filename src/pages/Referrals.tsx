@@ -130,7 +130,7 @@ const ReferralModal = ({
 
     // Close dropdown when clicking outside
     useEffect(() => {
-        const handleClickOutside = (e: MouseEvent) => {
+        const handleClickOutside = () => {
             if (statusDropdownOpen) {
                 setStatusDropdownOpen(false)
             }
