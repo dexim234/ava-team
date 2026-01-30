@@ -20,9 +20,13 @@ import { Referrals } from './pages/Referrals'
 
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { AccessBlockScreen } from './components/AccessBlockScreen'
+import { MobileBlockScreen } from './components/MobileBlockScreen'
+import { AccessControlAdmin } from './components/AccessControlAdmin'
+import { AccessControlProvider } from '@/contexts/AccessControlContext'
 import { cleanupOldData } from './services/firestoreService'
 
 import { AppLayout } from './components/AppLayout'
+import './styles/mobile-detection.css'
 
 function App() {
   const { isAuthenticated } = useAuthStore()
@@ -39,132 +43,136 @@ function App() {
   }, [])
 
   return (
-    <BrowserRouter>
-      <AccessBlockScreen />
-      <Routes>
-        <Route
-          path="/login"
-          element={
-            (!isAuthenticated && !isAdmin) ? (
-              <Login />
-            ) : (
-              <Navigate to="/management" replace />
-            )
-          }
-        />
-
-        {/* Layout wrapper for all pages with navigation */}
-        <Route element={<AppLayout />}>
+    <AccessControlProvider>
+      <BrowserRouter>
+        <AccessBlockScreen />
+        <MobileBlockScreen />
+        <Routes>
           <Route
-            path="/call"
+            path="/login"
             element={
-              <ProtectedRoute>
-                <CallPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/management"
-            element={
-              <ProtectedRoute>
-                <Management />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/earnings"
-            element={
-              <ProtectedRoute>
-                <Earnings />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/rating"
-            element={
-              <ProtectedRoute>
-                <Rating />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/referrals"
-            element={
-              <ProtectedRoute>
-                <Referrals />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/tasks"
-            element={
-              <ProtectedRoute>
-                <Tasks />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/about"
-            element={
-              <ProtectedRoute>
-                <About />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/rules"
-            element={
-              <ProtectedRoute>
-                <Rules />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/approvals"
-            element={
-              <ProtectedRoute>
-                <Approvals />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin"
-            element={
-              <ProtectedRoute>
-                <Admin />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/profile"
-            element={
-              <ProtectedRoute>
-                <Profile />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/strategies"
-            element={
-              <ProtectedRoute>
-                <Strategies />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/events"
-            element={
-              <ProtectedRoute>
-                <EventsPage />
-              </ProtectedRoute>
+              (!isAuthenticated && !isAdmin) ? (
+                <Login />
+              ) : (
+                <Navigate to="/management" replace />
+              )
             }
           />
 
-        </Route>
+          {/* Layout wrapper for all pages with navigation */}
+          <Route element={<AppLayout />}>
+            <Route
+              path="/call"
+              element={
+                <ProtectedRoute>
+                  <CallPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/management"
+              element={
+                <ProtectedRoute>
+                  <Management />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/earnings"
+              element={
+                <ProtectedRoute>
+                  <Earnings />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/rating"
+              element={
+                <ProtectedRoute>
+                  <Rating />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/referrals"
+              element={
+                <ProtectedRoute>
+                  <Referrals />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/tasks"
+              element={
+                <ProtectedRoute>
+                  <Tasks />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/about"
+              element={
+                <ProtectedRoute>
+                  <About />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/rules"
+              element={
+                <ProtectedRoute>
+                  <Rules />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/approvals"
+              element={
+                <ProtectedRoute>
+                  <Approvals />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute>
+                  <Admin />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <Profile />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/strategies"
+              element={
+                <ProtectedRoute>
+                  <Strategies />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/events"
+              element={
+                <ProtectedRoute>
+                  <EventsPage />
+                </ProtectedRoute>
+              }
+            />
 
-        <Route path="/" element={<Navigate to={(isAuthenticated || isAdmin) ? "/management" : "/login"} replace />} />
-      </Routes>
-    </BrowserRouter>
+          </Route>
+
+          <Route path="/" element={<Navigate to={(isAuthenticated || isAdmin) ? "/management" : "/login"} replace />} />
+        </Routes>
+        <AccessControlAdmin />
+      </BrowserRouter>
+    </AccessControlProvider>
   )
 }
 
