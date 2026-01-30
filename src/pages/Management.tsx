@@ -32,7 +32,7 @@ import { UserConflictsForm } from '@/components/Management/UserConflictsForm'
 import { AccessBlocksForm } from '@/components/Management/AccessBlocksForm'
 import { getWorkSlots, getDayStatuses } from '@/services/firestoreService'
 import { getWeekDays, formatDate, getMoscowTime } from '@/utils/dateUtils'
-// import { useAccessControl } from '@/hooks/useAccessControl'
+import { useAccessControl } from '@/hooks/useAccessControl'
 import { Lock } from 'lucide-react'
 
 type ViewMode = 'table' | 'week'
@@ -70,17 +70,11 @@ export const Management = () => {
   })
 
   // Access Control Hooks
-  // const pageAccess = useAccessControl('avf_schedule')
-  // const statsAccess = useAccessControl('schedule_stats_view')
-  // const addSlotAccess = useAccessControl('schedule_add_slot')
-  // const statusEditAccess = useAccessControl('schedule_status_edit')
-  // const slotDeleteAccess = useAccessControl('schedule_slot_delete')
-
-  const pageAccess = { hasAccess: true, loading: false, reason: '' }
-  const statsAccess = { hasAccess: true, loading: false }
-  const addSlotAccess = { hasAccess: true, loading: false }
-  const statusEditAccess = { hasAccess: true, loading: false }
-  const slotDeleteAccess = { hasAccess: true, loading: false }
+  const pageAccess = useAccessControl('avf_schedule')
+  const statsAccess = useAccessControl('schedule_stats_view')
+  const addSlotAccess = useAccessControl('schedule_add_slot')
+  const statusEditAccess = useAccessControl('schedule_status_edit')
+  const slotDeleteAccess = useAccessControl('schedule_slot_delete')
 
   const [timeAnchors, setTimeAnchors] = useState<{ nextStart: Date | null; activeEnd: Date | null }>({
     nextStart: null,

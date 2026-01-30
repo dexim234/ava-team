@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useThemeStore } from '@/store/themeStore'
-// import { useAccessControl } from '@/hooks/useAccessControl'
+import { useAccessControl } from '@/hooks/useAccessControl'
 import {
     TrendingUp,
     Rocket,
@@ -31,25 +31,15 @@ export const Strategies = () => {
 
     const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
 
-    // const pageAccess = useAccessControl('tools_strategies_view')
-    // const memecoinsAccess = useAccessControl('tools_kontur_memecoins')
-    // const polymarketAccess = useAccessControl('tools_kontur_polymarket')
-    // const nftAccess = useAccessControl('tools_kontur_nft')
-    // const stakingAccess = useAccessControl('tools_kontur_staking')
-    // const spotAccess = useAccessControl('tools_kontur_spot')
-    // const futuresAccess = useAccessControl('tools_kontur_futures')
-    // const airdropAccess = useAccessControl('tools_kontur_airdrop')
-    // const otherAccess = useAccessControl('tools_kontur_other')
-    
-    const pageAccess = { hasAccess: true, loading: false, reason: '' }
-    const memecoinsAccess = { hasAccess: true, loading: false, reason: '' }
-    const polymarketAccess = { hasAccess: true, loading: false, reason: '' }
-    const nftAccess = { hasAccess: true, loading: false, reason: '' }
-    const stakingAccess = { hasAccess: true, loading: false, reason: '' }
-    const spotAccess = { hasAccess: true, loading: false, reason: '' }
-    const futuresAccess = { hasAccess: true, loading: false, reason: '' }
-    const airdropAccess = { hasAccess: true, loading: false, reason: '' }
-    const otherAccess = { hasAccess: true, loading: false, reason: '' }
+    const pageAccess = useAccessControl('tools_strategies_view')
+    const memecoinsAccess = useAccessControl('tools_kontur_memecoins')
+    const polymarketAccess = useAccessControl('tools_kontur_polymarket')
+    const nftAccess = useAccessControl('tools_kontur_nft')
+    const stakingAccess = useAccessControl('tools_kontur_staking')
+    const spotAccess = useAccessControl('tools_kontur_spot')
+    const futuresAccess = useAccessControl('tools_kontur_futures')
+    const airdropAccess = useAccessControl('tools_kontur_airdrop')
+    const otherAccess = useAccessControl('tools_kontur_other')
 
     const tabs: { id: TabType; label: string; icon: any; access: { hasAccess: boolean; loading: boolean } }[] = [
         { id: 'memecoins', label: 'Мемкоины', icon: <Rocket className="w-4 h-4" />, access: memecoinsAccess },

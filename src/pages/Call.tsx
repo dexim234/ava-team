@@ -30,7 +30,7 @@ import {
 } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
 import { useScrollLock } from '@/hooks/useScrollLock'
-// import { useAccessControl } from '@/hooks/useAccessControl'
+import { useAccessControl } from '@/hooks/useAccessControl'
 import { Lock } from 'lucide-react'
 
 type StatusFilter = 'all' | 'active' | 'completed' | 'cancelled' | 'reviewed'
@@ -132,27 +132,17 @@ export const CallPage = () => {
   const [traderFilter, setTraderFilter] = useState<'all' | string>('all')
 
   // Access Control Hooks
-  // const pageAccess = useAccessControl('avf_hub')
-  // const addSignalAccess = useAccessControl('hub_signals_add')
+  const pageAccess = useAccessControl('avf_hub')
+  const addSignalAccess = useAccessControl('hub_signals_add')
 
   // Category-specific access
-  // const memecoinsAccess = useAccessControl('hub_signals_cat_memecoins')
-  // const polymarketAccess = useAccessControl('hub_signals_cat_polymarket')
-  // const nftAccess = useAccessControl('hub_signals_cat_nft')
-  // const spotAccess = useAccessControl('hub_signals_cat_spot')
-  // const futuresAccess = useAccessControl('hub_signals_cat_futures')
-  // const stakingAccess = useAccessControl('hub_signals_cat_staking')
-  // const airdropAccess = useAccessControl('hub_signals_cat_airdrop')
-
-  const pageAccess = { hasAccess: true, loading: false, reason: '' }
-  const addSignalAccess = { hasAccess: true, loading: false }
-  const memecoinsAccess = { hasAccess: true, loading: false }
-  const polymarketAccess = { hasAccess: true, loading: false }
-  const nftAccess = { hasAccess: true, loading: false }
-  const spotAccess = { hasAccess: true, loading: false }
-  const futuresAccess = { hasAccess: true, loading: false }
-  const stakingAccess = { hasAccess: true, loading: false }
-  const airdropAccess = { hasAccess: true, loading: false }
+  const memecoinsAccess = useAccessControl('hub_signals_cat_memecoins')
+  const polymarketAccess = useAccessControl('hub_signals_cat_polymarket')
+  const nftAccess = useAccessControl('hub_signals_cat_nft')
+  const spotAccess = useAccessControl('hub_signals_cat_spot')
+  const futuresAccess = useAccessControl('hub_signals_cat_futures')
+  const stakingAccess = useAccessControl('hub_signals_cat_staking')
+  const airdropAccess = useAccessControl('hub_signals_cat_airdrop')
 
   const categoryAccess: Record<CallCategory, boolean> = {
     memecoins: memecoinsAccess.hasAccess,

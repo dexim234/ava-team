@@ -7,7 +7,7 @@ import { AiAlert, AiAoStrategy, AiAoProfit } from '@/types'
 import { Plus, Edit, Trash2, Save, X, Copy, Check, Filter, ArrowUp, ArrowDown, RotateCcw, Calendar as CalendarIcon, Hash, Coins, TrendingDown, TrendingUp, Activity, Clock, FileText, AlertTriangle, ChevronDown, Upload, TrendingUp as TrendingUpIcon, TrendingDown as TrendingDownIcon } from 'lucide-react'
 import { MultiStrategySelector } from '@/components/Management/MultiStrategySelector'
 import { UserNickname } from '@/components/UserNickname'
-// import { useAccessControl } from '@/hooks/useAccessControl'
+import { useAccessControl } from '@/hooks/useAccessControl'
 import { Lock } from 'lucide-react'
 
 type SortField = 'date' | 'drop' | 'profit'
@@ -24,8 +24,7 @@ export const AiAoAlerts = () => {
     const cardBorder = theme === 'dark' ? 'border-blue-500/30' : 'border-blue-500/20'
     const cardShadow = theme === 'dark' ? 'shadow-[0_8px_32px_rgba(0,0,0,0.4)]' : 'shadow-[0_8px_32px_rgba(0,0,0,0.08)]'
 
-    // const pageAccess = useAccessControl('tools_ai_ao_alerts')
-    const pageAccess = { loading: false, hasAccess: true, reason: '' }
+    const pageAccess = useAccessControl('tools_ai_ao_alerts')
 
     const [alerts, setAlerts] = useState<AiAlert[]>([])
     const [loading, setLoading] = useState(true)

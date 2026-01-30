@@ -8,7 +8,7 @@ import { getTasks, deleteTask } from '@/services/firestoreService'
 import { Task, TaskCategory, TaskStatus } from '@/types'
 import { CheckSquare, LayoutGrid, Calendar, Zap, Layers, CheckCircle2, Archive, Timer } from 'lucide-react'
 import { formatDate } from '@/utils/dateUtils'
-// import { useAccessControl } from '@/hooks/useAccessControl'
+import { useAccessControl } from '@/hooks/useAccessControl'
 import { Lock } from 'lucide-react'
 
 export const Tasks = () => {
@@ -23,11 +23,8 @@ export const Tasks = () => {
   const [selectedStatus, setSelectedStatus] = useState<TaskStatus | 'all'>('all')
   const [selectedUsers, setSelectedUsers] = useState<string[]>([])
 
-  // const pageAccess = useAccessControl('avf_tasks')
-  // const addTaskAccess = useAccessControl('tasks_add')
-  
-  const pageAccess = { hasAccess: true, loading: false, reason: '' }
-  const addTaskAccess = { hasAccess: true, loading: false, reason: '' }
+  const pageAccess = useAccessControl('avf_tasks')
+  const addTaskAccess = useAccessControl('tasks_add')
 
   const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
 

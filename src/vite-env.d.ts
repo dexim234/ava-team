@@ -18,10 +18,5 @@ declare module '*.png' {
   export default src
 }
 
-declare module '@/*' {
-  const path: string
-  export default path
-}
-
 
 
