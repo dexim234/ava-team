@@ -394,10 +394,10 @@ export interface Note {
 
 // Team members
 export const TEAM_MEMBERS: User[] = [
-  { id: '1', name: 'Артём', login: 'dexim03@apevault.io', password: '095deximadmpro.03', recoveryCode: '20035009', avatar: '/avatars/artyom.jpg', phone: '79778730513' },
-  { id: '2', name: 'Адель', login: 'enowk05@apevault.io', password: '101enowk.05', recoveryCode: '2005100', avatar: '/avatars/adel.jpg', phone: '79172480769' },
-  { id: '3', name: 'Ксения', login: 'ksen03@apevault.io', password: '03ksen.03-@!', recoveryCode: '20037958', avatar: '/avatars/kseniya.jpg', phone: '79378159355' },
-  { id: '4', name: 'Ольга', login: 'lelik-304@apevault.io', password: '040lelik.04', recoveryCode: '200423', avatar: '/avatars/olga.jpg', phone: '79393035770' },
+  { id: '1', name: 'Артём', login: 'dexim03@apevault.io', password: '095deximadmpro.03', recoveryCode: '20035009', avatar: '/avatars/artyom.jpg', phone: '79778730513', role: 'admin' },
+  { id: '2', name: 'Адель', login: 'enowk05@apevault.io', password: '101enowk.05', recoveryCode: '2005100', avatar: '/avatars/adel.jpg', phone: '79172480769', role: 'user' },
+  { id: '3', name: 'Ксения', login: 'ksen03@apevault.io', password: '03ksen.03-@!', recoveryCode: '20037958', avatar: '/avatars/kseniya.jpg', phone: '79378159355', role: 'user' },
+  { id: '4', name: 'Ольга', login: 'lelik-304@apevault.io', password: '040lelik.04', recoveryCode: '200423', avatar: '/avatars/olga.jpg', phone: '79393035770', role: 'user' },
 ]
 
 export const TASK_CATEGORIES: Record<TaskCategory, { label: string; icon: string; color: string }> = {

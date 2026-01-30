@@ -10,7 +10,7 @@ import { Plus, DollarSign, TrendingUp, Sparkles, Wallet, PiggyBank, PieChart, Co
 import { getWeekRange, formatDate } from '@/utils/dateUtils'
 import { getUserNicknameAsync } from '@/utils/userUtils'
 import { useUsers } from '@/hooks/useUsers'
-import { useAccessControl } from '@/hooks/useAccessControl'
+// import { useAccessControl } from '@/hooks/useAccessControl'
 import { Lock } from 'lucide-react'
 
 export const Earnings = () => {
@@ -29,22 +29,38 @@ export const Earnings = () => {
   })
 
   // Access Control Hooks
-  const pageAccess = useAccessControl('avf_profit')
-  const statsAccess = useAccessControl('profit_stats_view')
-  const addAccess = useAccessControl('profit_add')
-  const insightsAccess = useAccessControl('profit_insights_view')
-  const leadersAccess = useAccessControl('profit_leaders_view')
-  const historyAccess = useAccessControl('profit_history_view')
+  // const pageAccess = useAccessControl('avf_profit')
+  // const statsAccess = useAccessControl('profit_stats_view')
+  // const addAccess = useAccessControl('profit_add')
+  // const insightsAccess = useAccessControl('profit_insights_view')
+  // const leadersAccess = useAccessControl('profit_leaders_view')
+  // const historyAccess = useAccessControl('profit_history_view')
 
   // Category Access
-  const memecoinsAccess = useAccessControl('profit_cat_memecoins')
-  const polymarketAccess = useAccessControl('profit_cat_polymarket')
-  const nftAccess = useAccessControl('profit_cat_nft')
-  const spotAccess = useAccessControl('profit_cat_spot')
-  const futuresAccess = useAccessControl('profit_cat_futures')
-  const stakingAccess = useAccessControl('profit_cat_staking')
-  const airdropAccess = useAccessControl('profit_cat_airdrop')
-  const otherAccess = useAccessControl('profit_cat_other')
+  // const memecoinsAccess = useAccessControl('profit_cat_memecoins')
+  // const polymarketAccess = useAccessControl('profit_cat_polymarket')
+  // const nftAccess = useAccessControl('profit_cat_nft')
+  // const spotAccess = useAccessControl('profit_cat_spot')
+  // const futuresAccess = useAccessControl('profit_cat_futures')
+  // const stakingAccess = useAccessControl('profit_cat_staking')
+  // const airdropAccess = useAccessControl('profit_cat_airdrop')
+  // const otherAccess = useAccessControl('profit_cat_other')
+
+  const pageAccess = { hasAccess: true, loading: false, reason: '' }
+  const statsAccess = { hasAccess: true, loading: false }
+  const addAccess = { hasAccess: true, loading: false }
+  const insightsAccess = { hasAccess: true, loading: false }
+  const leadersAccess = { hasAccess: true, loading: false }
+  const historyAccess = { hasAccess: true, loading: false }
+
+  const memecoinsAccess = { hasAccess: true, loading: false }
+  const polymarketAccess = { hasAccess: true, loading: false }
+  const nftAccess = { hasAccess: true, loading: false }
+  const spotAccess = { hasAccess: true, loading: false }
+  const futuresAccess = { hasAccess: true, loading: false }
+  const stakingAccess = { hasAccess: true, loading: false }
+  const airdropAccess = { hasAccess: true, loading: false }
+  const otherAccess = { hasAccess: true, loading: false }
 
   const categoryAccess: Record<EarningsCategory, boolean> = {
     memecoins: memecoinsAccess.hasAccess,

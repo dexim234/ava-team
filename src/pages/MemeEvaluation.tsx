@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { useThemeStore } from '@/store/themeStore'
 import { TrendingUp, Target, ShieldCheck, AlertTriangle, Rocket, DollarSign, Home, Clock, CheckCircle, Search, Lock } from 'lucide-react'
-import { useAccessControl } from '@/hooks/useAccessControl'
+// import { useAccessControl } from '@/hooks/useAccessControl'
 
 export const MemeEvaluation = () => {
   const { theme } = useThemeStore()
@@ -170,7 +170,10 @@ export const MemeEvaluation = () => {
     loadChecklist()
   }, [])
 
-  const { hasAccess, loading: accessLoading, reason } = useAccessControl('tools_meme_evaluation')
+  // const { hasAccess, loading: accessLoading, reason } = useAccessControl('tools_meme_evaluation')
+  const hasAccess = true
+  const accessLoading = false
+  const reason = ''
 
   if (accessLoading) {
     return (
