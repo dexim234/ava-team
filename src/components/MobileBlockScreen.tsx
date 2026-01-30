@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useDeviceDetection } from '../hooks/useDeviceDetection'
+import { useDeviceDetection } from '@/hooks/useDeviceDetection'
 import { useThemeStore } from '@/store/themeStore'
 import { Smartphone, Tablet, Monitor, X } from 'lucide-react'
 
