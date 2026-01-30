@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useThemeStore } from '@/store/themeStore'
-import { useAccessControl } from '@/contexts/AccessControlContext'
+import { useAccessControl } from '../contexts/AccessControlContext'
 import { Smartphone, Tablet, Monitor, X } from 'lucide-react'
 
 // Функции для определения типов устройств
