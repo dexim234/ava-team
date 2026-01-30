@@ -9,6 +9,7 @@ export interface AccessControlSettings {
   allowedUsers?: string[]
   blockedUsers?: string[]
   isTestMode: boolean
+  isAdmin: boolean
 }
 
 interface AccessControlContextType {
@@ -27,7 +28,8 @@ const defaultSettings: AccessControlSettings = {
   customMessage: '',
   allowedUsers: [],
   blockedUsers: [],
-  isTestMode: false
+  isTestMode: false,
+  isAdmin: false
 }
 
 const AccessControlContext = createContext<AccessControlContextType | undefined>(undefined)
