@@ -6,7 +6,7 @@ interface ProtectedRouteProps {
   requiredRole?: string
 }
 
-export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requiredRole }) => {
+export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { user } = useAuthStore()
 
   if (!user) {

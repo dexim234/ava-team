@@ -1,31 +1,52 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useAccessControl } from '@/contexts/AccessControlContext'
-import { Settings, Shield, Smartphone, Tablet, Monitor, Save, RotateCcw, EyeOff } from 'lucide-react'
+import { useAuthStore } from '@/store/authStore'
+import { Settings, Shield, Smartphone, Tablet, Monitor, Save, RotateCcw, EyeOff, UserCheck } from 'lucide-react'
 
 export const AccessControlAdmin: React.FC = () => {
   const { settings, updateSettings, resetSettings, isAdmin, setIsAdmin } = useAccessControl()
+  const { user, isAuthenticated: isUserAuthenticated } = useAuthStore()
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
-  const [isAuthenticated, setIsAuthenticated] = useState(isAdmin)
+  const [isAdminPanelAuthenticated, setIsAdminPanelAuthenticated] = useState(isAdmin || (user?.role === 'admin'))
+
+  // Проверяем, является ли пользователь админом
+  const isUserAdmin = isUserAuthenticated && user?.role === 'admin'
+
+  useEffect(() => {
+    // Обновляем статус аутентификации при изменении пользователя
+    setIsAdminPanelAuthenticated(isAdmin || isUserAdmin)
+  }, [user, isAdmin, isUserAdmin])
 
   const handleLogin = () => {
-    // Простая проверка пароля для демо
-    if (password === 'admin123' || password === 'ape2024') {
-      setIsAuthenticated(true)
+    // Проверка пароля 4747
+    if (password === '4747' && isUserAdmin) {
+      setIsAdminPanelAuthenticated(true)
       setIsAdmin(true)
       localStorage.setItem('isAdmin', 'true')
+      setPassword('')
+      setShowPassword(false)
+    } else if (password === '4747') {
+      alert('Доступ запрещен. Только администраторы могут управлять блокировкой устройств.')
+      setPassword('')
     } else {
       alert('Неверный пароль')
+      setPassword('')
     }
   }
 
   const handleLogout = () => {
-    setIsAuthenticated(false)
+    setIsAdminPanelAuthenticated(false)
     setIsAdmin(false)
     localStorage.removeItem('isAdmin')
   }
 
-  if (!isAuthenticated) {
+  // Показываем кнопку только авторизованным админам
+  if (!isUserAdmin) {
+    return null
+  }
+
+  if (!isAdminPanelAuthenticated) {
     return (
       <div className="fixed bottom-6 right-6 z-50">
         <button
@@ -38,9 +59,15 @@ export const AccessControlAdmin: React.FC = () => {
 
         {showPassword && (
           <div className="absolute bottom-16 right-0 bg-white dark:bg-gray-800 p-4 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 min-w-[280px]">
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-3">
-              Вход в админ-панель
-            </h3>
+            <div className="flex items-center gap-2 mb-3">
+              <UserCheck className="w-5 h-5 text-green-600" />
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+                Админ-панель
+              </h3>
+            </div>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+              Вы вошли как: <span className="font-medium">{user?.name}</span> (Администратор)
+            </p>
             <div className="space-y-3">
               <input
                 type="password"
@@ -49,6 +76,7 @@ export const AccessControlAdmin: React.FC = () => {
                 placeholder="Введите пароль администратора"
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
+                autoFocus
               />
               <div className="flex gap-2">
                 <button
@@ -58,14 +86,17 @@ export const AccessControlAdmin: React.FC = () => {
                   Войти
                 </button>
                 <button
-                  onClick={() => setShowPassword(false)}
+                  onClick={() => {
+                    setShowPassword(false)
+                    setPassword('')
+                  }}
                   className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                 >
                   Отмена
                 </button>
               </div>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                Пароли: admin123 или ape2024
+              <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
+                Пароль администратора: 4747
               </p>
             </div>
           </div>
@@ -80,9 +111,14 @@ export const AccessControlAdmin: React.FC = () => {
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <Shield className="w-5 h-5 text-blue-600" />
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white">
-              Управление блокировкой
-            </h3>
+            <div>
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+                Управление блокировкой
+              </h3>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                {user?.name}
+              </p>
+            </div>
           </div>
           <button
             onClick={handleLogout}
