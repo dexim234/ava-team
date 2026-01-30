@@ -1,11 +1,10 @@
-import React from 'react'
-import { Outlet } from 'react-router-dom'
 import { Layout } from './Layout'
+import { Outlet } from 'react-router-dom'
 
-export const AppLayout: React.FC = () => {
-  return (
-    <Layout>
-      <Outlet />
-    </Layout>
-  )
+export const AppLayout = () => {
+    return (
+        <Layout>
+            <Outlet />
+        </Layout>
+    )
 }
