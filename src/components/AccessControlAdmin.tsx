@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { useAccessControl } from '@/contexts/AccessControlContext'
+import { useAccessControl } from '../contexts/AccessControlContext'
 import { 
   Settings, 
   Smartphone, 
