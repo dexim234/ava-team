@@ -1,22 +1,63 @@
 import { useState, useEffect } from 'react'
-import { useDeviceDetection } from '@/hooks/useDeviceDetection'
 import { useThemeStore } from '@/store/themeStore'
 import { Smartphone, Tablet, Monitor, X } from 'lucide-react'
 
+// Функция для определения мобильного устройства
+const isMobilePhone = (): boolean => {
+  if (typeof window === 'undefined') return false
+  
+  const width = window.innerWidth
+  const height = window.innerHeight
+  const userAgent = navigator.userAgent.toLowerCase()
+
+  return (
+    (/android.*mobile|webos|iphone|ipod|blackberry|iemobile|opera mini/i.test(userAgent) ||
+     (width < 768 && height < 1024)) &&
+    !(/ipad|android.*(?!.*mobile)/i.test(userAgent) ||
+      (width >= 768 && width <= 1024 && height >= 768))
+  )
+}
+
 export const MobileBlockScreen = () => {
   const { theme } = useThemeStore()
-  const deviceInfo = useDeviceDetection()
+  const [isPhone, setIsPhone] = useState(false)
   const [showModal, setShowModal] = useState(false)
+  const [screenInfo, setScreenInfo] = useState({
+    width: 0,
+    height: 0,
+    isLandscape: false
+  })
 
-  // Показываем модальное окно только для мобильных телефонов
+  // Проверяем тип устройства при монтировании
   useEffect(() => {
-    if (deviceInfo.isPhone) {
-      setShowModal(true)
+    const checkDevice = () => {
+      const phone = isMobilePhone()
+      setIsPhone(phone)
+      
+      if (phone) {
+        setShowModal(true)
+      }
+      
+      setScreenInfo({
+        width: window.innerWidth,
+        height: window.innerHeight,
+        isLandscape: window.innerWidth > window.innerHeight
+      })
     }
-  }, [deviceInfo.isPhone])
+
+    checkDevice()
+    
+    window.addEventListener('resize', checkDevice)
+    window.addEventListener('orientationchange', checkDevice)
+    
+    return () => {
+      window.removeEventListener('resize', checkDevice)
+      window.removeEventListener('orientationchange', checkDevice)
+    }
+  }, [])
 
   // Если устройство не мобильный телефон или модальное окно не нужно показывать
-  if (!deviceInfo.isPhone || !showModal) {
+  if (!isPhone || !showModal) {
     return null
   }
 
@@ -55,7 +96,7 @@ export const MobileBlockScreen = () => {
             Мобильные телефоны не поддерживаются
           </h1>
           <p className={`text-lg ${textColor} mb-2`}>
-            Данный сайт предназначен для использования на планшетах и персональных компьютерах
+            Мы поддерживаем только планшеты и компьютеры для использования
           </p>
         </div>
 
@@ -116,8 +157,8 @@ export const MobileBlockScreen = () => {
             Информация о вашем устройстве:
           </p>
           <div className={`text-xs ${textColor} space-y-1`}>
-            <p>Размер экрана: {deviceInfo.screenWidth} × {deviceInfo.screenHeight}px</p>
-            <p>Ориентация: {deviceInfo.isLandscape ? 'Альбомная' : 'Книжная'}</p>
+            <p>Размер экрана: {screenInfo.width} × {screenInfo.height}px</p>
+            <p>Ориентация: {screenInfo.isLandscape ? 'Альбомная' : 'Книжная'}</p>
           </div>
         </div>
 
