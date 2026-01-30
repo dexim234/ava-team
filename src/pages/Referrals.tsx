@@ -128,6 +128,19 @@ const ReferralModal = ({
         }
     }, [referral])
 
+    // Close dropdown when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (e: MouseEvent) => {
+            if (statusDropdownOpen) {
+                setStatusDropdownOpen(false)
+            }
+        }
+        if (statusDropdownOpen) {
+            document.addEventListener('click', handleClickOutside)
+            return () => document.removeEventListener('click', handleClickOutside)
+        }
+    }, [statusDropdownOpen])
+
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault()
         setLoading(true)
@@ -257,7 +270,10 @@ const ReferralModal = ({
                                     <label className="text-[10px] font-black uppercase tracking-widest text-gray-500 ml-2">Статус</label>
                                     <div className="relative">
                                         <button
-                                            onClick={() => setStatusDropdownOpen(!statusDropdownOpen)}
+                                            onClick={(e) => {
+                                                e.stopPropagation()
+                                                setStatusDropdownOpen(!statusDropdownOpen)
+                                            }}
                                             className={`${inputClasses} flex items-center justify-between text-left`}
                                         >
                                             <span className="flex items-center gap-2">
