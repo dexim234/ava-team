@@ -18,6 +18,16 @@ interface FeatureGroup {
   features: { value: AccessFeature; label: string; description: string }[]
 }
 
+interface FormData {
+  targetType: 'all' | 'single' | 'subset'
+  userId: string
+  userIds: string[]
+  reason: string
+  expiresAt: string
+  blockFeatures: AccessFeature[]
+  isActive: boolean
+}
+
 const FEATURE_GROUPS: FeatureGroup[] = [
   {
     id: 'global',
@@ -39,7 +49,8 @@ const FEATURE_GROUPS: FeatureGroup[] = [
       { value: 'tools_kontur_staking', label: 'Вкладка Стейкинг', description: 'Заблокировать вкладку в Контуре' },
       { value: 'tools_kontur_spot', label: 'Вкладка Спот', description: 'Заблокировать вкладку в Контуре' },
       { value: 'tools_kontur_futures', label: 'Вкладка Фьючерсы', description: 'Заблокировать вкладку в Контуре' },
-      { value: 'tools_kontur_airdrop', label: 'Вкладка AirDrop', description: 'Заблокировать вкладку в Контуре' },
+      { value: 'tools_kontur_airdrop', label: 'Вкладка AirDrop', description: 'Заблокировать вкладка в Контуре' },
+      { value: 'tools_kontur_other', label: 'Вкладка Прочее', description: 'Заблокировать вкладку в Контуре' },
       { value: 'tools_strategies_view', label: 'Просмотр стратегий', description: 'Скрыть блок стратегий на страницах' },
       { value: 'tools_items_view', label: 'Просмотр инструментов', description: 'Скрыть ссылки на инструменты' },
     ]
@@ -137,13 +148,13 @@ export const AccessBlocksForm = ({ onClose }: AccessBlocksFormProps) => {
   const [showAddForm, setShowAddForm] = useState(false)
   const [openGroups, setOpenGroups] = useState<Set<string>>(new Set(['global', 'tools']))
 
-  const [formData, setFormData] = useState({
-    targetType: 'single' as 'all' | 'single' | 'subset',
+  const [formData, setFormData] = useState<FormData>({
+    targetType: 'single',
     userId: '',
-    userIds: [] as string[],
+    userIds: [],
     reason: '',
     expiresAt: '',
-    blockFeatures: [] as AccessFeature[],
+    blockFeatures: [],
     isActive: true
   })
 
@@ -248,25 +259,25 @@ export const AccessBlocksForm = ({ onClose }: AccessBlocksFormProps) => {
   }
 
   const handleFeatureToggle = (feature: AccessFeature) => {
-    setFormData(prev => ({
+    setFormData((prev: FormData) => ({
       ...prev,
       blockFeatures: prev.blockFeatures.includes(feature)
-        ? prev.blockFeatures.filter(f => f !== feature)
+        ? prev.blockFeatures.filter((f: AccessFeature) => f !== feature)
         : [...prev.blockFeatures, feature]
     }))
   }
 
   const handleUserToggle = (id: string) => {
-    setFormData(prev => ({
+    setFormData((prev: FormData) => ({
       ...prev,
       userIds: prev.userIds.includes(id)
-        ? prev.userIds.filter(uid => uid !== id)
+        ? prev.userIds.filter((uid: string) => uid !== id)
         : [...prev.userIds, id]
     }))
   }
 
   const toggleGroup = (groupId: string) => {
-    setOpenGroups(prev => {
+    setOpenGroups((prev: Set<string>) => {
       const next = new Set(prev)
       if (next.has(groupId)) next.delete(groupId)
       else next.add(groupId)
