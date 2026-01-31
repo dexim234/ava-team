@@ -1,90 +1,137 @@
 import { useNavigate } from 'react-router-dom'
 import { useThemeStore } from '@/store/themeStore'
-import { ArrowLeft } from 'lucide-react'
-import crocBg from '@/assets/404_bg.jpg'
+import { ArrowLeft, Home } from 'lucide-react'
+import mascotImg from '@/assets/404_mascot.png'
 
 export const NotFound = () => {
     const { theme } = useThemeStore()
     const navigate = useNavigate()
 
     return (
-        <div className={`min-h-screen w-full flex flex-col relative overflow-hidden font-sans ${theme === 'dark' ? 'bg-[#0a0f18]' : 'bg-slate-50'}`}>
-            {/* Header / Top Navigation */}
-            <div className="absolute top-0 left-0 w-full p-8 flex justify-between items-center z-10">
-                <div className="flex items-center gap-2">
-                    <span className={`text-xl font-black tracking-tighter ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
-                        ALPHA <span className="opacity-30">|</span> VAULT
-                    </span>
-                </div>
-                <div className="flex items-center gap-2">
-                    <span className={`text-xs font-bold tracking-[0.2em] uppercase opacity-50 ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
-                        CROC <span className="opacity-30 px-1">|</span> TEAM
-                    </span>
-                </div>
+        <div className={`min-h-screen w-full flex flex-col relative overflow-hidden font-sans selection:bg-[#10b981]/30 ${theme === 'dark' ? 'bg-[#06080c] text-white' : 'bg-slate-50 text-slate-900'}`}>
+
+            {/* Animated Background Atmosphere */}
+            <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                <div className="absolute top-[-10%] right-[-10%] w-[60%] h-[60%] bg-[#10b981]/5 rounded-full blur-[120px] animate-pulse" />
+                <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-[#06b6d4]/3 rounded-full blur-[100px] animate-pulse" style={{ animationDelay: '1s' }} />
+
+                {/* Grid Overlay */}
+                <div className={`absolute inset-0 opacity-[0.03] ${theme === 'dark' ? 'invert-0' : 'invert'}`}
+                    style={{
+                        backgroundImage: `linear-gradient(#10b981 1px, transparent 1px), linear-gradient(90deg, #10b981 1px, transparent 1px)`,
+                        backgroundSize: '80px 80px'
+                    }}
+                />
+
+                {/* Radial Gradient for Depth */}
+                <div className={`absolute inset-0 ${theme === 'dark' ? 'bg-[radial-gradient(circle_at_50%_50%,transparent_0%,#06080c_100%)]' : 'bg-[radial-gradient(circle_at_50%_50%,transparent_0%,#f8fafc_100%)]'}`} />
             </div>
 
-            {/* Main Content */}
-            <div className="flex-1 flex items-center justify-center p-6 sm:p-12 relative">
-                <div className="max-w-7xl w-full grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            {/* Header */}
+            <header className="relative w-full p-8 lg:p-12 flex justify-between items-center z-50">
+                <div className="flex items-center gap-3 group cursor-pointer" onClick={() => navigate('/')}>
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#10b981] to-[#06b6d4] flex items-center justify-center shadow-[0_0_20px_rgba(16,185,129,0.4)] transition-transform group-hover:scale-110">
+                        <Home className="w-5 h-5 text-black" />
+                    </div>
+                    <span className="text-xl font-black tracking-tighter uppercase whitespace-nowrap">
+                        APEVAULT <span className="text-[#10b981]">FRONTIER</span>
+                    </span>
+                </div>
+            </header>
 
-                    {/* Left Side: Content */}
-                    <div className="space-y-8 relative z-10 order-2 lg:order-1">
-                        <div className="space-y-2">
-                            <h1 className="text-8xl sm:text-[12rem] font-black leading-none tracking-tighter text-[#4ade80] drop-shadow-[0_0_25px_rgba(74,222,128,0.3)]">
+            {/* Main Content Area */}
+            <main className="flex-1 flex items-center justify-center relative z-10 px-6 sm:px-12 pb-24 lg:pb-0">
+                <div className="max-w-7xl w-full grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+
+                    {/* Visual Section (Mascot) */}
+                    <div className="relative flex justify-center items-center order-1 lg:order-2">
+                        {/* Mobile Backdrop 404 - Visible only on mobile/tablet */}
+                        <div className="absolute inset-0 flex items-center justify-center lg:hidden pointer-events-none z-0">
+                            <h1 className="text-[14rem] sm:text-[18rem] font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-[#10b981] via-[#06b6d4] to-transparent opacity-10 select-none">
                                 404
                             </h1>
-                            <h2 className={`text-4xl sm:text-5xl font-black uppercase tracking-tight ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
-                                PAGE NOT FOUND
-                            </h2>
-                            <p className={`text-lg sm:text-xl font-medium opacity-60 max-w-md ${theme === 'dark' ? 'text-gray-300' : 'text-slate-600'}`}>
-                                The page you are looking for does not seem to exist.
-                            </p>
                         </div>
 
-                        <button
-                            onClick={() => navigate('/')}
-                            className={`group flex items-center gap-3 px-10 py-5 rounded-2xl font-black uppercase tracking-widest text-sm transition-all duration-300 active:scale-95 ${theme === 'dark'
-                                    ? 'bg-white/5 border border-white/10 text-white hover:bg-white/10 hover:border-white/20'
-                                    : 'bg-slate-900 text-white hover:bg-slate-800'
-                                } shadow-2xl overflow-hidden relative`}
-                        >
-                            <ArrowLeft className="w-5 h-5 transition-transform group-hover:-translate-x-1" />
-                            GO HOME
+                        <div className="relative w-full max-w-[500px] aspect-square flex items-center justify-center animate-float group z-10">
 
-                            {/* Animated background glow */}
-                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-                        </button>
-                    </div>
+                            {/* Halo / Glow Disk */}
+                            <div className="absolute inset-0 bg-gradient-to-tr from-[#10b981]/15 to-transparent rounded-full blur-3xl scale-75 animate-pulse" />
 
-                    {/* Right Side: Mascot */}
-                    <div className="relative order-1 lg:order-2 flex justify-center lg:justify-end">
-                        <div className="relative w-full max-w-[500px] aspect-square group">
-                            {/* Decorative background circle */}
-                            <div className="absolute inset-0 bg-[#4ade80]/10 rounded-full blur-[100px] animate-pulse" />
+                            {/* Decorative Tech Circles */}
+                            <div className="absolute inset-0 border border-[#10b981]/10 rounded-full scale-90 animate-[spin_20s_linear_infinite]" />
+                            <div className="absolute inset-4 border border-[#06b6d4]/5 rounded-full scale-110 animate-[spin_30s_linear_infinite_reverse]" />
 
-                            {/* The Image */}
-                            <img
-                                src={crocBg}
-                                alt="404 Mascot"
-                                className="w-full h-full object-contain relative z-10 transition-transform duration-700 hover:scale-110"
-                            />
+                            {/* Masked Image Container - Ensures no square borders are visible */}
+                            <div className="relative z-20 w-[85%] h-[85%] rounded-full overflow-hidden border border-[#10b981]/10 backdrop-blur-[2px]">
+                                <img
+                                    src={mascotImg}
+                                    alt="ApeVault Frontier Mascot"
+                                    className="w-full h-full object-cover transition-all duration-700 hover:scale-110"
+                                    style={{
+                                        maskImage: 'radial-gradient(circle, black 65%, transparent 95%)',
+                                        WebkitMaskImage: 'radial-gradient(circle, black 65%, transparent 95%)'
+                                    }}
+                                />
+                                {/* Overlay to further blend edges */}
+                                <div className="absolute inset-0 shadow-[inset_0_0_40px_20px_#06080c] pointer-events-none" />
+                            </div>
 
-                            {/* Border decoration around the image area to mimic the "cutout" feel */}
-                            <div className="absolute inset-0 border-2 border-[#4ade80]/20 rounded-full scale-110 opacity-0 group-hover:opacity-100 transition-all duration-700" />
+                            {/* Floating Tech Badges */}
+                            <div className="absolute top-10 right-0 p-3 bg-[#10b981]/10 backdrop-blur-md rounded-2xl border border-[#10b981]/20 shadow-2xl animate-bounce" style={{ animationDuration: '4s' }}>
+                                <div className="w-2 h-2 rounded-full bg-[#10b981] animate-ping" />
+                            </div>
                         </div>
                     </div>
+
+                    {/* Text Section */}
+                    <div className="flex flex-col items-center lg:items-start text-center lg:text-left space-y-6 lg:space-y-10 order-2 lg:order-1 mt-4 lg:mt-0">
+                        <div className="relative w-full flex flex-col items-center lg:items-start">
+                            {/* Desktop Backdrop 404 - Hidden on mobile */}
+                            <h1 className="hidden lg:block text-[14rem] sm:text-[18rem] font-black leading-none tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-[#10b981] via-[#06b6d4] to-transparent opacity-10 select-none">
+                                404
+                            </h1>
+                            <div className="relative lg:absolute lg:top-1/2 lg:left-1/2 lg:-translate-x-1/2 lg:-translate-y-1/2 w-full px-4 lg:px-0">
+                                <h2 className="text-3xl sm:text-6xl font-black uppercase tracking-tight mb-2 drop-shadow-sm leading-tight">
+                                    ПОТЕРЯЛИСЬ В <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#10b981] to-[#06b6d4]">ХРАНИЛИЩЕ?</span>
+                                </h2>
+                                <p className="text-base sm:text-2xl font-medium opacity-50 max-w-xl mx-auto lg:mx-0">
+                                    Указанные координаты не соответствуют ни одному известному сектору в нашей инфраструктуре.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="flex flex-col sm:flex-row gap-4 w-full max-w-md lg:max-w-none pt-4 pb-12 lg:pb-0">
+                            <button
+                                onClick={() => navigate('/')}
+                                className="group relative flex items-center justify-center gap-4 px-12 py-6 bg-gradient-to-r from-[#10b981] to-[#06b6d4] text-black font-black uppercase tracking-widest text-sm rounded-2xl transition-all duration-300 hover:scale-105 active:scale-95 shadow-[0_20px_40px_rgba(16,185,129,0.2)] hover:shadow-[0_20px_60px_rgba(16,185,129,0.4)] overflow-hidden"
+                            >
+                                <ArrowLeft className="w-5 h-5 transition-transform group-hover:-translate-x-2" />
+                                ВЕРНУТЬСЯ ДОМОЙ
+
+                                <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 pointer-events-none" />
+                            </button>
+
+                            <button
+                                onClick={() => window.history.back()}
+                                className="flex items-center justify-center gap-4 px-12 py-6 border-2 border-[#10b981]/20 hover:border-[#10b981]/50 text-[#10b981] font-black uppercase tracking-widest text-sm rounded-2xl transition-all duration-300 hover:bg-[#10b981]/5"
+                            >
+                                НАЗАД
+                            </button>
+                        </div>
+                    </div>
+
                 </div>
-            </div>
+            </main>
 
-            {/* Background Decorations */}
-            <div className="absolute inset-0 pointer-events-none opacity-20">
-                <div className={`absolute top-0 right-0 w-[500px] h-[500px] bg-[#4ade80]/10 rounded-full blur-[120px] -mr-64 -mt-64`} />
-                <div className={`absolute bottom-0 left-0 w-[500px] h-[500px] bg-[#4ade80]/5 rounded-full blur-[120px] -ml-64 -mb-64`} />
-            </div>
-
-            {/* Subtle Grid / Scanline Effect */}
-            <div className="absolute inset-0 pointer-events-none opacity-[0.03] select-none"
-                style={{ backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
+            <style>{`
+                @keyframes float {
+                    0%, 100% { transform: translateY(0); }
+                    50% { transform: translateY(-20px); }
+                }
+                .animate-float {
+                    animation: float 6s ease-in-out infinite;
+                }
+            `}</style>
         </div>
     )
 }
