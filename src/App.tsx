@@ -17,6 +17,7 @@ import { Approvals } from './pages/Approvals'
 import { Strategies } from './pages/Strategies'
 import { EventsPage } from './pages/Events'
 import { Referrals } from './pages/Referrals'
+import { NotFound } from './pages/NotFound'
 
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { AccessBlockScreen } from './components/AccessBlockScreen'
@@ -163,6 +164,7 @@ function App() {
         </Route>
 
         <Route path="/" element={<Navigate to={(isAuthenticated || isAdmin) ? "/management" : "/login"} replace />} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
   )

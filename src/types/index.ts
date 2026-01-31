@@ -483,6 +483,7 @@ export type AccessFeature =
   | 'tools_kontur_spot'
   | 'tools_kontur_futures'
   | 'tools_kontur_airdrop'
+  | 'tools_kontur_other'
   | 'tools_strategies_view' // block viewing strategies
   | 'tools_items_view' // block viewing tool items
   // HUB Sub-features
