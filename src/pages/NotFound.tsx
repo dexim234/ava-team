@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { useThemeStore } from '@/store/themeStore'
 import { ArrowLeft, Home } from 'lucide-react'
-import mascotImg from '@/assets/404_mascot.png'
+import mascotImg from '../assets/404_mascot.png'
 
 export const NotFound = () => {
     const { theme } = useThemeStore()
