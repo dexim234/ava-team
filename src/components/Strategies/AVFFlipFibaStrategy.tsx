@@ -79,7 +79,7 @@ const StrategyStep: React.FC<StrategyStepProps> = ({ number, title, children, ic
     )
 }
 
-export const AVFFlipFibaStrategy: React.FC = () => {
+export const AVAFlipFibaStrategy: React.FC = () => {
     const { theme } = useThemeStore()
     const [openStep, setOpenStep] = useState<number | string>(1)
 
@@ -104,7 +104,7 @@ export const AVFFlipFibaStrategy: React.FC = () => {
                     </div>
                     <div className="flex-1 space-y-4">
                         <div className="flex items-center gap-3">
-                            <h2 className={`text-2xl md:text-3xl font-black ${headingColor}`}>AVF FLIP + FIBA</h2>
+                            <h2 className={`text-2xl md:text-3xl font-black ${headingColor}`}>AVA FLIP + FIBA</h2>
                             <span className="px-3 py-1 rounded-full bg-blue-500/20 text-blue-400 text-[10px] font-black uppercase tracking-widest border border-blue-500/20">Pre-Migration</span>
                         </div>
                         <p className={`text-lg leading-relaxed ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>

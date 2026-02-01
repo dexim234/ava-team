@@ -28,11 +28,11 @@ import {
     ArrowLeft,
     Layers
 } from 'lucide-react'
-import { AVFLateVolumeStrategy } from './AVFLateVolumeStrategy'
-import { AVFIntradayStrategy } from './AVFIntradayStrategy'
-import { AVFFlipStrategy } from './AVFFlipStrategy'
-import { AVFFlipFibaStrategy } from './AVFFlipFibaStrategy'
-import { AVFFibaModeStrategy } from './AVFFibaModeStrategy'
+import { AVALateVolumeStrategy } from './AVALateVolumeStrategy'
+import { AVAIntradayStrategy } from './AVAIntradayStrategy'
+import { AVAFlipStrategy } from './AVAFlipStrategy'
+import { AVAFlipFibaStrategy } from './AVAFlipFibaStrategy'
+import { AVAFibaModeStrategy } from './AVAFibaModeStrategy'
 
 type StrategyId = 'late-volume' | 'intraday' | 'flip' | 'flip-fiba' | 'fiba-mode' | null;
 
@@ -69,11 +69,11 @@ export const MemecoinStrategies: React.FC = () => {
     }, [user, isAdmin])
 
     const strategies = [
-        { id: 'late-volume', name: 'AVF Late Volume', icon: <BarChart className="w-4 h-4" /> },
-        { id: 'intraday', name: 'AVF Intraday', icon: <Zap className="w-4 h-4" /> },
-        { id: 'flip', name: 'AVF FLIP-1S', icon: <Timer className="w-4 h-4" /> },
-        { id: 'flip-fiba', name: 'AVF FLIP + FIBA', icon: <Zap className="w-4 h-4" /> },
-        { id: 'fiba-mode', name: 'AVF - FIBA MODE', icon: <Layers className="w-4 h-4" /> },
+        { id: 'late-volume', name: 'AVA Late Volume', icon: <BarChart className="w-4 h-4" /> },
+        { id: 'intraday', name: 'AVA Intraday', icon: <Zap className="w-4 h-4" /> },
+        { id: 'flip', name: 'AVA FLIP-1S', icon: <Timer className="w-4 h-4" /> },
+        { id: 'flip-fiba', name: 'AVA FLIP + FIBA', icon: <Zap className="w-4 h-4" /> },
+        { id: 'fiba-mode', name: 'AVA - FIBA MODE', icon: <Layers className="w-4 h-4" /> },
     ]
 
     if (loading) {
@@ -162,15 +162,15 @@ export const MemecoinStrategies: React.FC = () => {
                                     </button>
                                 </div>
                                 {activeStrategy === 'late-volume' ? (
-                                    <AVFLateVolumeStrategy />
+                                    <AVALateVolumeStrategy />
                                 ) : activeStrategy === 'intraday' ? (
-                                    <AVFIntradayStrategy />
+                                    <AVAIntradayStrategy />
                                 ) : activeStrategy === 'flip' ? (
-                                    <AVFFlipStrategy />
+                                    <AVAFlipStrategy />
                                 ) : activeStrategy === 'flip-fiba' ? (
-                                    <AVFFlipFibaStrategy />
+                                    <AVAFlipFibaStrategy />
                                 ) : (
-                                    <AVFFibaModeStrategy />
+                                    <AVAFibaModeStrategy />
                                 )}
                             </div>
                         </div>

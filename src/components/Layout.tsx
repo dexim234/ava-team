@@ -7,27 +7,27 @@ import { useUserActivity } from '@/hooks/useUserActivity'
 import { checkUserAccess } from '@/services/firestoreService'
 import {
   Calendar,
+  Users,
+  BookOpen,
+  LayoutDashboard,
+  BarChart3,
+  Clock,
   Settings,
-  LogOut,
-  ChevronRight,
-  Bell,
-  TrendingUp,
   Shield,
-  DollarSign,
-  ZapOff,
-  Moon,
-  Sun,
   CheckCircle2,
-  CheckSquare,
-  ChevronDown,
-  Info,
-  Radio,
-  PanelLeftClose,
+  Sun,
+  Moon,
+  Bell,
   PanelLeftOpen,
+  PanelLeftClose,
   Menu,
   X,
-  CalendarDays,
-  Users
+  Radio,
+  DollarSign,
+  CheckSquare,
+  TrendingUp,
+  Info,
+  CalendarDays
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import logo from '@/assets/logo.png'
@@ -59,18 +59,26 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
 
   // Check user access to features
   useEffect(() => {
+    if (location.state?.openMenu && window.innerWidth < 1024) {
+      setIsMobileMenuOpen(true)
+      // Clear state to prevent reopening on refresh or back navigation
+      window.history.replaceState({}, document.title)
+    }
+  }, [location.state])
+
+  useEffect(() => {
     const checkFeaturesAccess = async () => {
       setIsFeaturesLoading(true)
       try {
         if (!user || isAdmin) {
-          setAccessibleFeatures(new Set(['avf_schedule', 'avf_profit', 'avf_tasks', 'avf_rating', 'avf_referrals', 'profile', 'admin', 'tools', 'tools_strategies', 'tools_events', 'avf_hub', 'avf_info']))
+          setAccessibleFeatures(new Set(['ava_schedule', 'ava_profit', 'ava_tasks', 'ava_rating', 'ava_referrals', 'profile', 'admin', 'tools', 'tools_strategies', 'tools_events', 'ava_hub', 'ava_info']))
           return
         }
 
         const features = [
-          'avf_schedule', 'avf_profit', 'avf_tasks', 'avf_rating', 'avf_referrals',
-          'profile', 'avf_info', 'tools', 'tools_strategies', 'tools_events',
-          'avf_hub', 'slots', 'earnings', 'tasks', 'rating', 'about' // Keep legacy for compatibility
+          'ava_schedule', 'ava_profit', 'ava_tasks', 'ava_rating', 'ava_referrals',
+          'profile', 'ava_info', 'tools', 'tools_strategies', 'tools_events',
+          'ava_hub', 'slots', 'earnings', 'tasks', 'rating', 'about' // Keep legacy for compatibility
         ]
         const accessible = new Set<string>()
 
@@ -95,27 +103,35 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
   }, [user, isAdmin, effectiveUserId])
 
   const funcsSubItems: { path: string; label: string; icon: LucideIcon; feature?: string }[] = [
-    { path: '/call', label: 'AVF HUB', icon: Radio, feature: 'avf_hub' },
-    { path: '/management', label: 'AVF Schedule', icon: Calendar, feature: 'avf_schedule' },
-    { path: '/tasks', label: 'AVF Tasks', icon: CheckSquare, feature: 'avf_tasks' },
-    { path: '/earnings', label: 'AVF Profit', icon: DollarSign, feature: 'avf_profit' },
-    { path: '/rating', label: 'AVF Score', icon: TrendingUp, feature: 'avf_rating' },
-    { path: '/referrals', label: 'AVF Referrals', icon: Users, feature: 'avf_referrals' },
-    { path: '/about', label: 'AVF INFO', icon: Info, feature: 'avf_info' },
-    ...(isAdmin ? [
-      { path: '/approvals', label: 'AVF Check', icon: CheckCircle2, feature: 'admin' },
-      { path: '/admin', label: 'AVF Admin', icon: Shield, feature: 'admin' },
-    ] : []),
+    { path: '/call', label: 'HUB', icon: Radio, feature: 'ava_hub' },
+    { path: '/management', label: 'Lead', icon: Calendar, feature: 'ava_schedule' },
+    { path: '/earnings', label: 'Profit', icon: DollarSign, feature: 'ava_profit' },
+    { path: '/tasks', label: 'Tasks', icon: CheckSquare, feature: 'ava_tasks' },
+    { path: '/rating', label: 'Score', icon: TrendingUp, feature: 'ava_rating' },
+    { path: '/referrals', label: 'Referrals', icon: Users, feature: 'ava_referrals' },
   ]
 
   const mobileFuncSubItems = funcsSubItems.filter(item =>
     (!item.feature || accessibleFeatures.has(item.feature) || isAdmin)
   )
 
-  const toolsSubItems: { path: string; label: string; icon: LucideIcon; feature: string }[] = [
-    { path: '/strategies', label: 'AVF Контур', icon: TrendingUp, feature: 'tools_strategies' },
+  const toolsSubItems: { path: string; label: string; icon: LucideIcon; feature: string; isDev?: boolean }[] = [
+    { path: '/strategies', label: 'Контур', icon: TrendingUp, feature: 'tools_strategies' },
+    { path: '/calendar-dev', label: 'Календарь', icon: Clock, feature: 'tools_events', isDev: true },
     { path: '/events', label: 'События', icon: CalendarDays, feature: 'tools_events' },
+    { path: '/about', label: 'INFO', icon: Info, feature: 'ava_info' },
+    { path: '/docs', label: 'Docs', icon: BookOpen, feature: 'tools_events' }, // Docs usually uses events access or similar
+    { path: '/analytics-dev', label: 'Analytics Deal', icon: BarChart3, feature: 'tools_strategies', isDev: true },
   ]
+
+  const adminSubItems: { path: string; label: string; icon: LucideIcon }[] = [
+    { path: '/controls', label: 'Controls', icon: Shield },
+    { path: '/approvals', label: 'Check', icon: CheckCircle2 },
+    { path: '/admin', label: 'Team', icon: Users },
+  ]
+
+  const [showAdminMenu, setShowAdminMenu] = useState(false)
+  const isAdminActive = adminSubItems.some(item => location.pathname === item.path)
 
   // Filter tools that user has access to
   const accessibleToolsSubItems = toolsSubItems.filter(item =>
@@ -167,13 +183,13 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
               <div className="w-10 h-10 flex items-center justify-center">
                 <img
                   src={logo}
-                  alt="ApeVault"
+                  alt="Alpha Vault : Apex"
                   className="w-9 h-9 object-contain rounded-xl filter drop-shadow-[0_0_8px_rgba(78,110,73,0.3)]"
                 />
               </div>
               <div className="flex flex-col whitespace-nowrap">
-                <span className="text-sm font-black tracking-widest text-[#4E6E49] dark:text-white uppercase transition-opacity duration-300">ApeVault</span>
-                <span className="text-[10px] font-bold text-gray-400 -mt-1 uppercase tracking-tighter transition-opacity duration-300">Frontier</span>
+                <span className="text-sm font-black tracking-widest text-[#4E6E49] dark:text-white uppercase transition-opacity duration-300">AVA</span>
+                <span className="text-[10px] font-bold text-gray-400 -mt-1 uppercase tracking-tighter transition-opacity duration-300">— Team</span>
               </div>
             </div>
           </div>
@@ -234,7 +250,69 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                         <div className="px-3 py-2 mb-1 border-b border-white/10">
                           <p className="text-[10px] font-black uppercase tracking-widest text-[#4E6E49]">Инструменты</p>
                         </div>
-                        {accessibleToolsSubItems.map((item) => (
+                        <Link
+                          key={item.path}
+                          to={item.isDev ? '#' : item.path}
+                          onClick={(e) => item.isDev && e.preventDefault()}
+                          className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-all relative ${location.pathname === item.path ? 'bg-[#4E6E49] text-white' : 'text-gray-500 hover:bg-[#4E6E49]/10 hover:text-[#4E6E49]'} ${item.isDev ? 'cursor-not-allowed opacity-80' : ''}`}
+                        >
+                          <item.icon className="w-3.5 h-3.5" />
+                          <span>{item.label}</span>
+                          {item.isDev && (
+                            <span className="absolute -top-1 -right-1 px-1.5 py-0.5 rounded-full bg-amber-500 text-[8px] text-white font-black animate-pulse">DEV</span>
+                          )}
+                        </Link>
+                      </div>
+                    </div>
+                  )}
+
+                  {showToolsMenu && !isCollapsed && (
+                    <div className="absolute left-0 top-full mt-1 pl-4 pr-2 py-2 glass-panel border border-white/40 dark:border-white/10 rounded-xl shadow-2xl backdrop-blur-2xl z-[100] min-w-[200px] animate-in fade-in slide-in-from-top-2 duration-200">
+                      <div className="px-3 py-2 mb-1 border-b border-white/10">
+                        <p className="text-[10px] font-black uppercase tracking-widest text-[#4E6E49]">Инструменты</p>
+                      </div>
+                      {accessibleToolsSubItems.map((item) => (
+                        <Link
+                          key={item.path}
+                          to={item.isDev ? '#' : item.path}
+                          onClick={(e) => item.isDev && e.preventDefault()}
+                          className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-all relative ${location.pathname === item.path ? 'bg-[#4E6E49] text-white' : 'text-gray-500 hover:bg-[#4E6E49]/10 hover:text-[#4E6E49]'} ${item.isDev ? 'cursor-not-allowed opacity-80' : ''}`}
+                        >
+                          <item.icon className="w-3.5 h-3.5" />
+                          <span>{item.label}</span>
+                          {item.isDev && (
+                            <span className="absolute -top-1 -right-1 px-1.5 py-0.5 rounded-full bg-amber-500 text-[8px] text-white font-black animate-pulse">DEV</span>
+                          )}
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Admin section - only for admins */}
+              {isAdmin && (
+                <div className="space-y-1 relative group/admin">
+                  <button
+                    onClick={() => !isCollapsed && setShowAdminMenu(!showAdminMenu)}
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 ${isAdminActive ? 'bg-[#4E6E49]/15 text-[#4E6E49]' : 'text-gray-500 hover:bg-gray-100/50 dark:hover:bg-white/5'} ${isCollapsed ? 'justify-center px-0' : ''}`}
+                  >
+                    <Shield className={`w-4 h-4 transition-transform duration-500 ${isCollapsed ? 'group-hover/admin:scale-110' : ''}`} />
+                    {!isCollapsed && (
+                      <>
+                        <span className="font-bold flex-1 text-left">Admin</span>
+                        <ChevronDown className={`w-4 h-4 transition-transform ${showAdminMenu ? 'rotate-180' : ''}`} />
+                      </>
+                    )}
+                  </button>
+
+                  {isCollapsed && (
+                    <div className="absolute left-full top-0 invisible group-hover/admin:visible opacity-0 group-hover/admin:opacity-100 transition-all duration-300 translate-x-3 group-hover/admin:translate-x-1 z-[100]">
+                      <div className="ml-2 glass-panel border border-white/40 dark:border-white/10 rounded-2xl p-2 min-w-[200px] shadow-2xl backdrop-blur-2xl">
+                        <div className="px-3 py-2 mb-1 border-b border-white/10">
+                          <p className="text-[10px] font-black uppercase tracking-widest text-[#4E6E49]">Панель управления</p>
+                        </div>
+                        {adminSubItems.map((item) => (
                           <Link
                             key={item.path}
                             to={item.path}
@@ -248,12 +326,12 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                     </div>
                   )}
 
-                  {showToolsMenu && !isCollapsed && (
+                  {showAdminMenu && !isCollapsed && (
                     <div className="absolute left-0 top-full mt-1 pl-4 pr-2 py-2 glass-panel border border-white/40 dark:border-white/10 rounded-xl shadow-2xl backdrop-blur-2xl z-[100] min-w-[200px] animate-in fade-in slide-in-from-top-2 duration-200">
                       <div className="px-3 py-2 mb-1 border-b border-white/10">
-                        <p className="text-[10px] font-black uppercase tracking-widest text-[#4E6E49]">Инструменты</p>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-[#4E6E49]">Панель управления</p>
                       </div>
-                      {accessibleToolsSubItems.map((item) => (
+                      {adminSubItems.map((item) => (
                         <Link
                           key={item.path}
                           to={item.path}
@@ -303,7 +381,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                 <>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-bold truncate dark:text-white">{user?.name || 'Administrator'}</p>
-                    <p className="text-[10px] text-gray-500 font-medium truncate">{user?.login || 'admin@apevault.io'}</p>
+                    <p className="text-[10px] text-gray-500 font-medium truncate">{user?.login || 'admin@ava-apex.io'}</p>
                   </div>
                   <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-[#4E6E49] transition-colors" />
                 </>
@@ -362,11 +440,11 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
             <div className="w-8 h-8 flex items-center justify-center">
               <img
                 src={logo}
-                alt="ApeVault"
+                alt="Alpha Vault : Apex"
                 className="w-7 h-7 object-contain rounded-xl filter drop-shadow-[0_0_8px_rgba(78,110,73,0.3)]"
               />
             </div>
-            <span className={`text-sm font-black tracking-widest uppercase ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>ApeVault</span>
+            <span className={`text-sm font-black tracking-widest uppercase ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>AVA — Team</span>
           </div>
           <button
             onClick={() => setIsMobileMenuOpen(true)}
@@ -387,7 +465,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                 <div className="w-8 h-8 flex items-center justify-center">
                   <img
                     src={logo}
-                    alt="ApeVault"
+                    alt="Alpha Vault : Apex"
                     className="w-7 h-7 object-contain rounded-xl"
                   />
                 </div>
@@ -420,7 +498,34 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                 <div className="space-y-3">
                   <p className="text-xs font-bold text-gray-500 uppercase tracking-wider px-2">Инструменты</p>
                   <div className="grid grid-cols-2 gap-3">
-                    {accessibleToolsSubItems.map((item) => (
+                    <Link
+                      key={item.path}
+                      to={item.isDev ? '#' : item.path}
+                      onClick={(e) => {
+                        if (item.isDev) {
+                          e.preventDefault()
+                        } else {
+                          setIsMobileMenuOpen(false)
+                        }
+                      }}
+                      className={`flex flex-col items-center justify-center gap-2 p-3 rounded-xl border transition-all relative ${location.pathname === item.path ? 'border-[#4E6E49]/50 bg-[#4E6E49]/10' : theme === 'dark' ? 'border-white/10 bg-white/5 hover:bg-white/10' : 'border-gray-100 bg-gray-50 hover:bg-gray-100'} ${item.isDev ? 'opacity-70 grayscale' : ''}`}
+                    >
+                      <item.icon className={`w-6 h-6 ${location.pathname === item.path ? 'text-[#4E6E49]' : 'text-gray-400'}`} />
+                      <span className={`text-xs font-medium text-center ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>{item.label}</span>
+                      {item.isDev && (
+                        <span className="absolute top-1 right-1 px-1.5 py-0.5 rounded-full bg-amber-500 text-[8px] text-white font-black">DEV</span>
+                      )}
+                    </Link>
+                  </div>
+                </div>
+              )}
+
+              {/* Admin Section */}
+              {isAdmin && (
+                <div className="space-y-3">
+                  <p className="text-xs font-bold text-gray-500 uppercase tracking-wider px-2">Панель управления</p>
+                  <div className="grid grid-cols-2 gap-3">
+                    {adminSubItems.map((item) => (
                       <Link
                         key={item.path}
                         to={item.path}

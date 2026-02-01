@@ -13,8 +13,8 @@ import {
     Zap,
     ArrowLeft
 } from 'lucide-react'
-import { AVFValueBettingStrategy } from './AVFValueBettingStrategy'
-import { AVFArbitrageStrategy } from './AVFArbitrageStrategy'
+import { AVAValueBettingStrategy } from './AVAValueBettingStrategy'
+import { AVAArbitrageStrategy } from './AVAArbitrageStrategy'
 
 type StrategyId = 'value-betting' | 'arbitrage' | null;
 
@@ -38,8 +38,8 @@ export const PolymarketStrategies: React.FC = () => {
     const mutedText = theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
 
     const strategies = [
-        { id: 'value-betting', name: 'AVF Value Betting', icon: <Target className="w-4 h-4" /> },
-        { id: 'arbitrage', name: 'AVF Арбитраж', icon: <Calculator className="w-4 h-4" /> },
+        { id: 'value-betting', name: 'AVA Value Betting', icon: <Target className="w-4 h-4" /> },
+        { id: 'arbitrage', name: 'AVA Арбитраж', icon: <Calculator className="w-4 h-4" /> },
     ]
 
     const tools: Tool[] = [
@@ -178,9 +178,9 @@ export const PolymarketStrategies: React.FC = () => {
                                 </button>
                             </div>
                             {activeStrategy === 'value-betting' ? (
-                                <AVFValueBettingStrategy />
+                                <AVAValueBettingStrategy />
                             ) : (
-                                <AVFArbitrageStrategy />
+                                <AVAArbitrageStrategy />
                             )}
                         </div>
                     </div>

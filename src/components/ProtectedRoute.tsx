@@ -9,9 +9,10 @@ import { ShieldX, Clock } from 'lucide-react'
 
 interface ProtectedRouteProps {
   children: React.ReactNode
+  adminOnly?: boolean
 }
 
-export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
+export const ProtectedRoute = ({ children, adminOnly }: ProtectedRouteProps) => {
   const { isAuthenticated, user } = useAuthStore()
   const { isAdmin } = useAdminStore()
   const { theme } = useThemeStore()
@@ -25,6 +26,11 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     return <Navigate to="/login" replace />
   }
 
+  // If route is admin-only, and user is not admin, redirect or block
+  if (adminOnly && !isAdmin) {
+    return <Navigate to="/about" replace /> // Redirect to about instead of showing block screen
+  }
+
   // Determine feature based on current path
   const getFeatureFromPath = (path: string): string => {
     if (path === '/admin') return 'admin'
@@ -34,7 +40,7 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     if (path === '/rating') return 'rating'
     if (path === '/profile') return 'profile'
     if (path === '/approvals') return 'admin'
-    if (path === '/call') return 'avf_hub'
+    if (path === '/call') return 'ava_hub'
     if (path === '/about') return 'about'
     if (path === '/meme-evaluation') return 'tools_meme_evaluation'
     if (path === '/ai-ao-alerts') return 'tools_ai_ao_alerts'

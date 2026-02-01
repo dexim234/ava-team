@@ -90,7 +90,7 @@ export const AvfEventTradingStrategy: React.FC = () => {
                         <Megaphone className={`w-12 h-12 ${theme === 'dark' ? 'text-blue-400' : 'text-blue-500'}`} />
                     </div>
                     <div className="flex-1 space-y-4">
-                        <h2 className={`text-2xl md:text-3xl font-black ${headingColor}`}>AVF — Event Trading</h2>
+                        <h2 className={`text-2xl md:text-3xl font-black ${headingColor}`}>AVA — Event Trading</h2>
                         <p className={`text-lg leading-relaxed ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
                             Это стратегия для особых случаев. Мы её используем только тогда, когда есть крупный катализатор, и точно знаем, как реагировать на рынок. Здесь нет места угадывания — всё о реакции на факт.
                         </p>

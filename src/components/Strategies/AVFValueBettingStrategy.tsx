@@ -67,7 +67,7 @@ const StrategyStep: React.FC<StrategyStepProps> = ({ number, title, children, ic
     )
 }
 
-export const AVFValueBettingStrategy: React.FC = () => {
+export const AVAValueBettingStrategy: React.FC = () => {
     const { theme } = useThemeStore()
     const [openStep, setOpenStep] = useState<number | null>(1)
 
@@ -91,7 +91,7 @@ export const AVFValueBettingStrategy: React.FC = () => {
                         <Target className={`w-12 h-12 ${theme === 'dark' ? 'text-rose-400' : 'text-rose-500'}`} />
                     </div>
                     <div className="flex-1 space-y-4">
-                        <h2 className={`text-2xl md:text-3xl font-black ${headingColor}`}>AVF — Value Betting</h2>
+                        <h2 className={`text-2xl md:text-3xl font-black ${headingColor}`}>AVA — Value Betting</h2>
                         <p className={`text-lg leading-relaxed ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
                             Стратегия поиска недооценённых событий на прогнозных рынках. Основана на выявлении расхождений между рыночной вероятностью события и вашей собственной обоснованной оценкой.
                         </p>

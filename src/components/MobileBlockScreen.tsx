@@ -6,7 +6,7 @@ import { Smartphone, Tablet, Monitor, X } from 'lucide-react'
 // Функции для определения типов устройств
 const isMobilePhone = (): boolean => {
   if (typeof window === 'undefined') return false
-  
+
   const width = window.innerWidth
   const height = window.innerHeight
   const userAgent = navigator.userAgent.toLowerCase()
@@ -14,26 +14,26 @@ const isMobilePhone = (): boolean => {
   // Агрессивная проверка для мобильных телефонов
   const isPhoneByUserAgent = /android.*mobile|webos|iphone|ipod|blackberry|iemobile|opera mini/i.test(userAgent)
   const isNotTablet = !/ipad|android.*(?!.*mobile)/i.test(userAgent)
-  
+
   // Размеры для мобильных телефонов (более строгие)
   const isPhoneBySize = width < 1200 && height < 1200 && !(
     // Исключаем большие экраны планшетов
     (width >= 1024 && height >= 768) ||
     (width >= 768 && height >= 1024)
   )
-  
+
   // Специальная проверка для всех iPhone (включая современные)
   const isIphone = /iphone/i.test(userAgent)
   const isIphoneBySize = isIphone && (
     // iPhone 12 Pro: 390x844, iPhone 12: 390x844, iPhone 11: 375x812, etc.
-    (width <= 428 && height <= 926) || 
+    (width <= 428 && height <= 926) ||
     // Альбомная ориентация
     (width <= 926 && height <= 428)
   )
-  
+
   // Специальная проверка для Android телефонов
   const isAndroidPhone = /android.*mobile/i.test(userAgent) && width < 500 && height < 1000
-  
+
   // Объединенная логика с приоритетом для мобильных
   return (
     // 1. Любой iPhone (даже с большим экраном)
@@ -49,11 +49,11 @@ const isMobilePhone = (): boolean => {
 
 const isTablet = (): boolean => {
   if (typeof window === 'undefined') return false
-  
+
   const width = window.innerWidth
   const height = window.innerHeight
   const userAgent = navigator.userAgent.toLowerCase()
-  
+
   return (
     /ipad|android.*(?!.*mobile)/i.test(userAgent) ||
     (width >= 768 && width <= 1024 && height >= 768) ||
@@ -79,16 +79,16 @@ export const MobileBlockScreen = () => {
       const width = window.innerWidth
       const height = window.innerHeight
       const userAgent = navigator.userAgent.toLowerCase()
-      
+
       const isPhone = isMobilePhone()
       const isTab = isTablet()
-      
+
       // Определяем тип устройства
       let currentDeviceType: 'mobile' | 'tablet' | 'desktop'
       if (isPhone) currentDeviceType = 'mobile'
       else if (isTab) currentDeviceType = 'tablet'
       else currentDeviceType = 'desktop'
-      
+
       // Отладочная информация
       console.log('=== ПРОВЕРКА УСТРОЙСТВА ===')
       console.log('User-Agent:', userAgent)
@@ -97,24 +97,24 @@ export const MobileBlockScreen = () => {
       console.log('Тип устройства:', currentDeviceType)
       console.log('Настройки блокировки:', settings)
       console.log('==========================')
-      
+
       // Сохраняем отладочную информацию для отображения
       setDebugInfo(`UA: ${userAgent.substring(0, 30)}... | Тип: ${currentDeviceType.toUpperCase()} | Размер: ${width}x${height}`)
-      
+
       setDeviceType(currentDeviceType)
-      
+
       // Определяем, нужно ли блокировать это устройство
       const shouldBlock = (
         (currentDeviceType === 'mobile' && settings.blockMobile) ||
         (currentDeviceType === 'tablet' && settings.blockTablet) ||
         (currentDeviceType === 'desktop' && settings.blockDesktop)
       )
-      
+
       // Показываем модальное окно только если блокировка включена и устройство должно быть заблокировано
       if (settings.isBlockingEnabled && shouldBlock) {
         setShowModal(true)
       }
-      
+
       setScreenInfo({
         width: window.innerWidth,
         height: window.innerHeight,
@@ -123,10 +123,10 @@ export const MobileBlockScreen = () => {
     }
 
     checkDevice()
-    
+
     window.addEventListener('resize', checkDevice)
     window.addEventListener('orientationchange', checkDevice)
-    
+
     return () => {
       window.removeEventListener('resize', checkDevice)
       window.removeEventListener('orientationchange', checkDevice)
@@ -173,8 +173,8 @@ export const MobileBlockScreen = () => {
 
   // Определяем цвета для темы
   const bgColor = theme === 'dark' ? 'bg-slate-950' : 'bg-gray-100'
-  const cardBg = theme === 'dark' 
-    ? 'bg-gradient-to-br from-[#0c1320] via-[#0b1220] to-[#08111b] border-white/10' 
+  const cardBg = theme === 'dark'
+    ? 'bg-gradient-to-br from-[#0c1320] via-[#0b1220] to-[#08111b] border-white/10'
     : 'bg-white border-slate-200'
   const titleColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
   const textColor = theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
@@ -284,7 +284,7 @@ export const MobileBlockScreen = () => {
               Блокируется: {
                 [
                   settings.blockMobile && 'мобильные',
-                  settings.blockTablet && 'планшеты', 
+                  settings.blockTablet && 'планшеты',
                   settings.blockDesktop && 'ПК'
                 ].filter(Boolean).join(', ') || 'ничего'
               }
@@ -318,16 +318,15 @@ export const MobileBlockScreen = () => {
         <div className="mt-6 space-y-3">
           <button
             onClick={() => setShowModal(false)}
-            className={`w-full px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              theme === 'dark' 
-                ? 'bg-blue-600 hover:bg-blue-700 text-white' 
+            className={`w-full px-4 py-2 rounded-lg text-sm font-medium transition-colors ${theme === 'dark'
+                ? 'bg-blue-600 hover:bg-blue-700 text-white'
                 : 'bg-blue-500 hover:bg-blue-600 text-white'
-            }`}
+              }`}
           >
             Временно скрыть окно (для тестирования)
           </button>
           <div className="text-xs text-gray-500 dark:text-gray-500 text-center">
-            ApeVault Team
+            AVA — Team
           </div>
         </div>
       </div>

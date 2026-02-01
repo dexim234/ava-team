@@ -89,7 +89,7 @@ export const AvfScalpingStrategy: React.FC = () => {
                         <Gauge className={`w-12 h-12 ${theme === 'dark' ? 'text-blue-400' : 'text-blue-500'}`} />
                     </div>
                     <div className="flex-1 space-y-4">
-                        <h2 className={`text-2xl md:text-3xl font-black ${headingColor}`}>AVF — Scalping</h2>
+                        <h2 className={`text-2xl md:text-3xl font-black ${headingColor}`}>AVA — Scalping</h2>
                         <p className={`text-lg leading-relaxed ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
                             Суть скальпинга — ловить микродвижения на графике 1–5 минут. Мы берём маленькие профиты много раз в течение дня, не пытаясь «поймать тренд» на 50–100 пунктов. Это дисциплина, скорость и точность, а не прогнозирование.
                         </p>

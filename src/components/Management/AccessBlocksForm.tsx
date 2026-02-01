@@ -41,8 +41,9 @@ const FEATURE_GROUPS: FeatureGroup[] = [
     label: 'Раздел Tools (Инструменты)',
     features: [
       { value: 'tools', label: 'Весь раздел Tools', description: 'Скрыть весь раздел из меню и запретить вход' },
+      { value: 'tools_kontur', label: 'Контур', description: 'Заблокировать доступ к блоку Контур' },
       { value: 'tools_events', label: 'События', description: 'Заблокировать доступ к разделу Событий' },
-      { value: 'tools_kontur', label: 'AVF Контур', description: 'Заблокировать доступ к блоку Контур' },
+      { value: 'ava_info', label: 'INFO', description: 'Заблокировать раздел информации (INFO)' },
       { value: 'tools_kontur_memecoins', label: 'Вкладка Мемкоины', description: 'Заблокировать вкладку в Контуре' },
       { value: 'tools_kontur_polymarket', label: 'Вкладка Polymarket', description: 'Заблокировать вкладку в Контуре' },
       { value: 'tools_kontur_nft', label: 'Вкладка NFT', description: 'Заблокировать вкладку в Контуре' },
@@ -57,9 +58,9 @@ const FEATURE_GROUPS: FeatureGroup[] = [
   },
   {
     id: 'hub',
-    label: 'AVF HUB (Сигналы)',
+    label: 'HUB (Сигналы)',
     features: [
-      { value: 'avf_hub', label: 'Весь задел HUB', description: 'Полная блокировка раздела HUB' },
+      { value: 'ava_hub', label: 'Весь задел HUB', description: 'Полная блокировка раздела HUB' },
       { value: 'hub_signals_view', label: 'Просмотр сигналов', description: 'Запретить просмотр списка сигналов' },
       { value: 'hub_signals_add', label: 'Добавление сигналов', description: 'Запретить создавать любые сигналы' },
       { value: 'hub_signals_cat_memecoins', label: 'Сигналы: Мемкоины', description: 'Запретить работу с мемкоинами в HUB' },
@@ -73,9 +74,9 @@ const FEATURE_GROUPS: FeatureGroup[] = [
   },
   {
     id: 'schedule',
-    label: 'AVF Schedule (Расписание)',
+    label: 'Lead (Расписание)',
     features: [
-      { value: 'avf_schedule', label: 'Весь раздел Schedule', description: 'Полная блокировка раздела Расписания' },
+      { value: 'ava_schedule', label: 'Весь раздел Lead', description: 'Полная блокировка раздела Расписания' },
       { value: 'schedule_view', label: 'Просмотр расписания', description: 'Запретить видеть сетку и таблицу' },
       { value: 'schedule_stats_view', label: 'Карточки статистики', description: 'Скрыть блоки статистики расписания' },
       { value: 'schedule_add_slot', label: 'Добавление слотов', description: 'Запретить бронирование времени' },
@@ -85,18 +86,18 @@ const FEATURE_GROUPS: FeatureGroup[] = [
   },
   {
     id: 'tasks',
-    label: 'AVF Tasks (Задачи)',
+    label: 'Tasks (Задачи)',
     features: [
-      { value: 'avf_tasks', label: 'Весь раздел Tasks', description: 'Блокировать доступ к управлению задачами' },
+      { value: 'ava_tasks', label: 'Весь раздел Tasks', description: 'Блокировать доступ к управлению задачами' },
       { value: 'tasks_view', label: 'Просмотр задач', description: 'Запретить видеть список задач' },
       { value: 'tasks_add', label: 'Создание задач', description: 'Запретить добавлять новые задачи' },
     ]
   },
   {
     id: 'profit',
-    label: 'AVF Profit (Доходы)',
+    label: 'Profit (Доходы)',
     features: [
-      { value: 'avf_profit', label: 'Весь раздел Profit', description: 'Полная блокировка раздела доходов' },
+      { value: 'ava_profit', label: 'Весь раздел Profit', description: 'Полная блокировка раздела доходов' },
       { value: 'profit_add', label: 'Добавление профита', description: 'Запретить вносить заработок' },
       { value: 'profit_stats_view', label: 'Статистика и доли', description: 'Скрыть графики и детализацию доходов' },
       { value: 'profit_insights_view', label: 'Инсайты эффективности', description: 'Скрыть аналитику эффективности' },
@@ -107,7 +108,7 @@ const FEATURE_GROUPS: FeatureGroup[] = [
       { value: 'profit_cat_nft', label: 'Категория: NFT', description: 'Запретить доход по NFT' },
       { value: 'profit_cat_spot', label: 'Категория: Спот', description: 'Запретить доход по Споту' },
       { value: 'profit_cat_futures', label: 'Категория: Фьючерсы', description: 'Запретить доход по Фьючерсам' },
-      { value: 'profit_cat_staking', label: 'Категория: Стейкинг', description: 'Запретить доход по Стейкингу' },
+      { value: 'profit_cat_staking', label: 'Категория: Стейкинг', description: 'Запретить доход по Стейкингом' },
       { value: 'profit_cat_airdrop', label: 'Категория: AirDrop', description: 'Запретить доход по AirDrop' },
       { value: 'profit_cat_other', label: 'Категория: Прочее', description: 'Запретить доход по прочим категориям' },
       { value: 'profit_wallet_general', label: 'Кошелек: Общий', description: 'Запретить выбор типа General' },
@@ -117,9 +118,9 @@ const FEATURE_GROUPS: FeatureGroup[] = [
   },
   {
     id: 'rating',
-    label: 'AVF Rating (Скор)',
+    label: 'Score (Скор)',
     features: [
-      { value: 'avf_rating', label: 'Весь раздел Rating', description: 'Блокировать доступ к рейтингу' },
+      { value: 'ava_rating', label: 'Весь раздел Score', description: 'Блокировать доступ к рейтингу' },
       { value: 'rating_self_view', label: 'Своя карточка', description: 'Запретить видеть свой рейтинг' },
       { value: 'rating_others_view', label: 'Чужие карточки', description: 'Запретить видеть рейтинг других' },
     ]
@@ -128,8 +129,7 @@ const FEATURE_GROUPS: FeatureGroup[] = [
     id: 'other',
     label: 'Прочее',
     features: [
-      { value: 'avf_referrals', label: 'Рефералы', description: 'Блокировать раздел рефералов' },
-      { value: 'avf_info', label: 'AVF INFO', description: 'Блокировать раздел информации (О нас)' },
+      { value: 'ava_referrals', label: 'Referrals', description: 'Блокировать раздел рефералов' },
       { value: 'profile', label: 'Профиль', description: 'Ограничить редактирование профиля' },
     ]
   }

@@ -75,7 +75,7 @@ const StrategyStep: React.FC<StrategyStepProps> = ({ number, title, children, ic
     )
 }
 
-export const AVFFibaModeStrategy: React.FC = () => {
+export const AVAFibaModeStrategy: React.FC = () => {
     const { theme } = useThemeStore()
     const [openStep, setOpenStep] = useState<number | string>(1)
 
@@ -100,7 +100,7 @@ export const AVFFibaModeStrategy: React.FC = () => {
                     </div>
                     <div className="flex-1 space-y-4">
                         <div className="flex items-center gap-3">
-                            <h2 className={`text-2xl md:text-3xl font-black ${headingColor}`}>AVF - FIBA MODE</h2>
+                            <h2 className={`text-2xl md:text-3xl font-black ${headingColor}`}>AVA - FIBA MODE</h2>
                             <span className="px-3 py-1 rounded-full bg-blue-500/20 text-blue-400 text-[10px] font-black uppercase tracking-widest border border-blue-500/20">Counter-Trend</span>
                         </div>
                         <p className={`text-lg leading-relaxed ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
@@ -262,7 +262,7 @@ export const AVFFibaModeStrategy: React.FC = () => {
                             <div className="space-y-4">
                                 <h5 className="text-xs font-bold uppercase text-rose-500 border-b border-rose-500/20 pb-1">Риск-модель</h5>
                                 <ul className="text-[11px] space-y-2 opacity-80">
-                                    <li>• Меньший объём позиции, чем в AVF FLIP</li>
+                                    <li>• Меньший объём позиции, чем в AVA FLIP</li>
                                     <li>• Более быстрый стоп-лосс</li>
                                     <li>• Никаких усреднений и "веры"</li>
                                 </ul>
@@ -312,7 +312,7 @@ export const AVFFibaModeStrategy: React.FC = () => {
                 <div className="max-w-2xl">
                     <h4 className={`text-2xl font-black ${headingColor} uppercase mb-2`}>Финальное правило FIBA</h4>
                     <p className={`text-sm leading-relaxed ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                        Если AVF FLIP — это работа на импульсе, то FIBA — это хладнокровная работа на неэффективности рынка в момент страха коррекции. Отработал отскок → забрал профит → вышел без оглядки.
+                        Если AVA FLIP — это работа на импульсе, то FIBA — это хладнокровная работа на неэффективности рынка в момент страха коррекции. Отработал отскок → забрал профит → вышел без оглядки.
                     </p>
                 </div>
             </div>

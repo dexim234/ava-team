@@ -71,7 +71,7 @@ const StrategyStep: React.FC<StrategyStepProps> = ({ number, title, children, ic
     )
 }
 
-export const AVFFlipStrategy: React.FC = () => {
+export const AVAFlipStrategy: React.FC = () => {
     const { theme } = useThemeStore()
     const [openStep, setOpenStep] = useState<number | null>(1)
 
@@ -96,7 +96,7 @@ export const AVFFlipStrategy: React.FC = () => {
                     </div>
                     <div className="flex-1 space-y-4">
                         <div className="flex items-center gap-3">
-                            <h2 className={`text-2xl md:text-3xl font-black ${headingColor}`}>AVF FLIP-1S</h2>
+                            <h2 className={`text-2xl md:text-3xl font-black ${headingColor}`}>AVA FLIP-1S</h2>
                             <span className="px-3 py-1 rounded-full bg-blue-500/20 text-blue-400 text-[10px] font-black uppercase tracking-widest border border-blue-500/20">Scalping</span>
                         </div>
                         <p className={`text-lg leading-relaxed ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>

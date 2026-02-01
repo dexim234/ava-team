@@ -72,7 +72,7 @@ const StrategyStep: React.FC<StrategyStepProps> = ({ number, title, children, ic
     )
 }
 
-export const AVFIntradayStrategy: React.FC = () => {
+export const AVAIntradayStrategy: React.FC = () => {
     const { theme } = useThemeStore()
     const [openStep, setOpenStep] = useState<number | null>(1)
 
@@ -96,9 +96,9 @@ export const AVFIntradayStrategy: React.FC = () => {
                         <Zap className={`w-12 h-12 ${theme === 'dark' ? 'text-blue-400' : 'text-blue-500'}`} />
                     </div>
                     <div className="flex-1 space-y-4">
-                        <h2 className={`text-2xl md:text-3xl font-black ${headingColor}`}>AVF Intraday</h2>
+                        <h2 className={`text-2xl md:text-3xl font-black ${headingColor}`}>AVA Intraday</h2>
                         <p className={`text-lg leading-relaxed ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
-                            AVF Intraday — это системная стратегия внутридневной торговли в Solana-сегменте, ориентированная на поиск и отработку свежих токенов с горизонтом удержания позиции от 1 часа до 1 торгового дня.
+                            AVA Intraday — это системная стратегия внутридневной торговли в Solana-сегменте, ориентированная на поиск и отработку свежих токенов с горизонтом удержания позиции от 1 часа до 1 торгового дня.
                         </p>
                         <p className={`text-sm opacity-80 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
                             Это не скальпинг и не погоня за хаями. Ключ — быстрое, но взвешенное принятие решений на основе чётких метрик и алгоритма.
