@@ -9,7 +9,6 @@ import {
   Calendar,
   Users,
   BookOpen,
-  LayoutDashboard,
   BarChart3,
   Clock,
   Settings,
@@ -282,7 +281,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                           key={item.path}
                           to={item.isDev ? '#' : item.path}
                           onClick={(e) => item.isDev && e.preventDefault()}
-                          className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-all relative ${location.pathname === item.path ? 'bg-[#4E6E49] text-white' : 'text-gray-500 hover:bg-[#4E6E49]/10 hover:text-[#4E6E49]'} ${item.isDev ? 'cursor-not-allowed opacity-80' : ''}`}
+                          className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-all ${location.pathname === item.path ? 'bg-[#4E6E49] text-white' : 'text-gray-500 hover:bg-[#4E6E49]/10 hover:text-[#4E6E49]'} ${item.isDev ? 'cursor-not-allowed opacity-80' : ''}`}
                         >
                           <item.icon className="w-3.5 h-3.5" />
                           <span>{item.label}</span>
@@ -341,6 +340,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                         <Link
                           key={item.path}
                           to={item.path}
+                          onClick={() => setIsMobileMenuOpen(false)}
                           className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-all ${location.pathname === item.path ? 'bg-[#4E6E49] text-white' : 'text-gray-500 hover:bg-[#4E6E49]/10 hover:text-[#4E6E49]'}`}
                         >
                           <item.icon className="w-3.5 h-3.5" />
