@@ -280,9 +280,9 @@ const ReferralModal = ({
                                                             setStatusDropdownOpen(false)
                                                         }}
                                                         className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-bold transition-colors ${formData.status === option.value
-                                                                ? theme === 'dark' ? 'bg-white/10 text-white' : 'bg-gray-100 text-gray-900'
-                                                                : theme === 'dark' ? 'text-gray-400 hover:text-white hover:bg-white/5' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                                                            }`}
+                                                            ? theme === 'dark' ? 'bg-white/10 text-white' : 'bg-gray-100 text-gray-900'
+                                                            : theme === 'dark' ? 'text-gray-400 hover:text-white hover:bg-white/5' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                                                        }`}
                                                     >
                                                         <span className={`w-2 h-2 rounded-full ${option.color}`} />
                                                         {option.label}
@@ -412,7 +412,7 @@ export const Referrals = () => {
                     </div>
                     <div>
                         <h1 className={`text-3xl md:text-4xl font-black tracking-tight ${headingColor}`}>
-                            AVA — Referrals
+                            Referrals
                         </h1>
                         <p className={`text-sm font-medium ${subTextColor}`}>
                             Система приглашений и управления рефералами

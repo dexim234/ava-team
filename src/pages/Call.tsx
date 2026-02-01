@@ -358,7 +358,7 @@ export const CallPage = () => {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <Activity className="w-7 h-7 text-emerald-500" />
-            <h1 className={`text-xl font-bold ${textColor}`}>AVA — HUB</h1>
+            <h1 className={`text-xl font-bold ${textColor}`}>HUB</h1>
           </div>
           {addSignalAccess.hasAccess && (
             <button
@@ -382,7 +382,7 @@ export const CallPage = () => {
         <div className="flex flex-row items-center justify-between gap-4 mb-2">
           <div className="flex items-center gap-3">
             <Activity className="w-8 h-8 text-emerald-500" />
-            <h1 className={`text-3xl font-bold ${textColor}`}>AVA — HUB</h1>
+            <h1 className={`text-3xl font-bold ${textColor}`}>HUB</h1>
           </div>
 
           {addSignalAccess.hasAccess && (
@@ -502,8 +502,6 @@ export const CallPage = () => {
           </div>
         </div>
       </div>
-
-
 
       {/* Signals Feed Header */}
       <div className="px-4 sm:px-6 lg:px-8 mb-4">

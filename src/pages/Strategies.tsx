@@ -91,10 +91,10 @@ export const Strategies = () => {
                     </div>
                     <div>
                         <h1 className={`text-2xl md:text-3xl font-black tracking-tight ${headingColor}`}>
-                            AVA Контур
+                            Контур
                         </h1>
                         <p className={`text-sm font-medium ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                            Стратегические направления и инструменты Alpha Vault : Apex
+                            // ... остальной код ...
                         </p>
                     </div>
                 </div>

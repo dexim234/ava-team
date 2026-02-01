@@ -141,7 +141,7 @@ export const Tasks = () => {
           </div>
           <div>
             <h1 className={`text-3xl font-black ${headingColor} flex items-center gap-3`}>
-              AVA Tasks
+              Tasks
             </h1>
             <p className={theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}>
               Управление задачами и заданиями команды Alpha Vault : Apex

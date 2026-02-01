@@ -1,4 +1,3 @@
-// Rating page
 import { useState, useEffect, useMemo } from 'react'
 import { useThemeStore } from '@/store/themeStore'
 import { RatingCard } from '@/components/Rating/RatingCard'
@@ -350,7 +349,7 @@ export const Rating = () => {
             </div>
             <div>
               <h1 className={`text-2xl md:text-3xl font-black tracking-tight ${headingColor}`}>
-                AVA Rating
+                Rating
               </h1>
               <p className={`text-sm font-medium ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
                 Рейтинг эффективности команды Alpha Vault : Apex
