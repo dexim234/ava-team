@@ -44,12 +44,10 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation()
   const [showToolsMenu, setShowToolsMenu] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  const [showNotifications, setShowNotifications] = useState(false)
   const [isCollapsed, setIsCollapsed] = useState(() => {
     const saved = localStorage.getItem('sidebarCollapsed')
     return saved === 'true'
   })
-  const [notifications] = useState<{ id: string; text: string; time: string; status: string }[]>([])
   const [accessibleFeatures, setAccessibleFeatures] = useState<Set<string>>(new Set())
   const [isFeaturesLoading, setIsFeaturesLoading] = useState(true)
 
