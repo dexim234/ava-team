@@ -397,7 +397,7 @@ export const TEAM_MEMBERS: User[] = [
   { id: '1', name: 'Артём', login: 'dexim03@ava-apex.io', password: '095deximadmpro.03', recoveryCode: '20035009', avatar: '/avatars/artyom.jpg', phone: '79778730513' },
   { id: '2', name: 'Адель', login: 'enowk05@ava-apex.io', password: '101enowk.05', recoveryCode: '2005100', avatar: '/avatars/adel.jpg', phone: '79172480769' },
   { id: '3', name: 'Ксения', login: 'ksen03@ava-apex.io', password: '03ksen.03-@!', recoveryCode: '20037958', avatar: '/avatars/kseniya.jpg', phone: '79378159355' },
-  { id: '4', name: 'Ольга', login: 'lelik-304@apevault.io', password: '040lelik.04', recoveryCode: '200423', avatar: '/avatars/olga.jpg', phone: '79393035770' },
+  { id: '4', name: 'Ольга', login: 'lelik-304@ava-apex.io', password: '040lelik.04', recoveryCode: '200423', avatar: '/avatars/olga.jpg', phone: '79393035770' },
 ]
 
 export const TASK_CATEGORIES: Record<TaskCategory, { label: string; icon: string; color: string }> = {
