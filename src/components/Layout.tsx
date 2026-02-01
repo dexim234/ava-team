@@ -29,6 +29,8 @@ import {
   Info,
   CalendarDays,
   ChevronRight,
+  ChevronDown,
+  ZapOff,
   LogOut
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
@@ -252,18 +254,20 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                         <div className="px-3 py-2 mb-1 border-b border-white/10">
                           <p className="text-[10px] font-black uppercase tracking-widest text-[#4E6E49]">Инструменты</p>
                         </div>
-                        <Link
-                          key={item.path}
-                          to={item.isDev ? '#' : item.path}
-                          onClick={(e) => item.isDev && e.preventDefault()}
-                          className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-all relative ${location.pathname === item.path ? 'bg-[#4E6E49] text-white' : 'text-gray-500 hover:bg-[#4E6E49]/10 hover:text-[#4E6E49]'} ${item.isDev ? 'cursor-not-allowed opacity-80' : ''}`}
-                        >
-                          <item.icon className="w-3.5 h-3.5" />
-                          <span>{item.label}</span>
-                          {item.isDev && (
-                            <span className="absolute -top-1 -right-1 px-1.5 py-0.5 rounded-full bg-amber-500 text-[8px] text-white font-black animate-pulse">DEV</span>
-                          )}
-                        </Link>
+                        {accessibleToolsSubItems.map((item) => (
+                          <Link
+                            key={item.path}
+                            to={item.isDev ? '#' : item.path}
+                            onClick={(e) => item.isDev && e.preventDefault()}
+                            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-all relative ${location.pathname === item.path ? 'bg-[#4E6E49] text-white' : 'text-gray-500 hover:bg-[#4E6E49]/10 hover:text-[#4E6E49]'} ${item.isDev ? 'cursor-not-allowed opacity-80' : ''}`}
+                          >
+                            <item.icon className="w-3.5 h-3.5" />
+                            <span>{item.label}</span>
+                            {item.isDev && (
+                              <span className="absolute -top-1 -right-1 px-1.5 py-0.5 rounded-full bg-amber-500 text-[8px] text-white font-black animate-pulse">DEV</span>
+                            )}
+                          </Link>
+                        ))}
                       </div>
                     </div>
                   )}
