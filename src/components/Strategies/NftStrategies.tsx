@@ -22,10 +22,10 @@ import {
     Flame,
     MessageSquare
 } from 'lucide-react'
-import { AftNftSnipingStrategy } from './AftNftSnipingStrategy'
-import { AvfMintFlipStrategy } from './AvfMintFlipStrategy'
-import { AvfNftNarrativeStrategy } from './AvfNftNarrativeStrategy'
-import { TwitterSmartAccountChecklist } from './TwitterSmartAccountChecklist'
+import { AVANftSnipingStrategy } from './AVANftSnipingStrategy'
+import { AVAMintFlipStrategy } from './AVAMintFlipStrategy'
+import { AVANftNarrativeStrategy } from './AVANftNarrativeStrategy'
+import { AVATwitterSmartAccountChecklist } from './AVATwitterSmartAccountChecklist'
 
 type StrategyId = 'nft-sniping' | 'nft-mint-flip' | 'nft-narrative' | 'twitter-checklist' | null;
 
@@ -169,10 +169,10 @@ export const NftStrategies: React.FC = () => {
                                     <ArrowLeft className="w-3 h-3" /> К списку стратегий
                                 </button>
                             </div>
-                            {activeStrategy === 'nft-sniping' && <AftNftSnipingStrategy />}
-                            {activeStrategy === 'nft-mint-flip' && <AvfMintFlipStrategy />}
-                            {activeStrategy === 'nft-narrative' && <AvfNftNarrativeStrategy />}
-                            {activeStrategy === 'twitter-checklist' && <TwitterSmartAccountChecklist />}
+                            {activeStrategy === 'nft-sniping' && <AVANftSnipingStrategy />}
+                            {activeStrategy === 'nft-mint-flip' && <AVAMintFlipStrategy />}
+                            {activeStrategy === 'nft-narrative' && <AVANftNarrativeStrategy />}
+                            {activeStrategy === 'twitter-checklist' && <AVATwitterSmartAccountChecklist />}
                         </div>
                     </div>
                 )}

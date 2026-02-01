@@ -27,7 +27,9 @@ import {
   CheckSquare,
   TrendingUp,
   Info,
-  CalendarDays
+  CalendarDays,
+  ChevronRight,
+  LogOut
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import logo from '@/assets/logo.png'
@@ -498,24 +500,26 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                 <div className="space-y-3">
                   <p className="text-xs font-bold text-gray-500 uppercase tracking-wider px-2">Инструменты</p>
                   <div className="grid grid-cols-2 gap-3">
-                    <Link
-                      key={item.path}
-                      to={item.isDev ? '#' : item.path}
-                      onClick={(e) => {
-                        if (item.isDev) {
-                          e.preventDefault()
-                        } else {
-                          setIsMobileMenuOpen(false)
-                        }
-                      }}
-                      className={`flex flex-col items-center justify-center gap-2 p-3 rounded-xl border transition-all relative ${location.pathname === item.path ? 'border-[#4E6E49]/50 bg-[#4E6E49]/10' : theme === 'dark' ? 'border-white/10 bg-white/5 hover:bg-white/10' : 'border-gray-100 bg-gray-50 hover:bg-gray-100'} ${item.isDev ? 'opacity-70 grayscale' : ''}`}
-                    >
-                      <item.icon className={`w-6 h-6 ${location.pathname === item.path ? 'text-[#4E6E49]' : 'text-gray-400'}`} />
-                      <span className={`text-xs font-medium text-center ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>{item.label}</span>
-                      {item.isDev && (
-                        <span className="absolute top-1 right-1 px-1.5 py-0.5 rounded-full bg-amber-500 text-[8px] text-white font-black">DEV</span>
-                      )}
-                    </Link>
+                    {accessibleToolsSubItems.map((item) => (
+                      <Link
+                        key={item.path}
+                        to={item.isDev ? '#' : item.path}
+                        onClick={(e) => {
+                          if (item.isDev) {
+                            e.preventDefault()
+                          } else {
+                            setIsMobileMenuOpen(false)
+                          }
+                        }}
+                        className={`flex flex-col items-center justify-center gap-2 p-3 rounded-xl border transition-all relative ${location.pathname === item.path ? 'border-[#4E6E49]/50 bg-[#4E6E49]/10' : theme === 'dark' ? 'border-white/10 bg-white/5 hover:bg-white/10' : 'border-gray-100 bg-gray-50 hover:bg-gray-100'} ${item.isDev ? 'opacity-70 grayscale' : ''}`}
+                      >
+                        <item.icon className={`w-6 h-6 ${location.pathname === item.path ? 'text-[#4E6E49]' : 'text-gray-400'}`} />
+                        <span className={`text-xs font-medium text-center ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>{item.label}</span>
+                        {item.isDev && (
+                          <span className="absolute top-1 right-1 px-1.5 py-0.5 rounded-full bg-amber-500 text-[8px] text-white font-black">DEV</span>
+                        )}
+                      </Link>
+                    ))}
                   </div>
                 </div>
               )}

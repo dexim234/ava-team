@@ -20,12 +20,12 @@ import {
     Megaphone,
     Gauge // Добавлен новый иконка
 } from 'lucide-react'
-import { AvfTrendFollowingStrategy } from './AvfTrendFollowingStrategy'
-import { AvfBreakoutRetestStrategy } from './AvfBreakoutRetestStrategy'
-import { AvfMeanReversionStrategy } from './AvfMeanReversionStrategy'
-import { AvfSessionOpenStrategy } from './AvfSessionOpenStrategy'
-import { AvfEventTradingStrategy } from './AvfEventTradingStrategy'
-import { AvfScalpingStrategy } from './AvfScalpingStrategy'
+import { AVATrendFollowingStrategy } from './AVATrendFollowingStrategy'
+import { AVABreakoutRetestStrategy } from './AVABreakoutRetestStrategy'
+import { AVAMeanReversionStrategy } from './AVAMeanReversionStrategy'
+import { AVASessionOpenStrategy } from './AVASessionOpenStrategy'
+import { AVAEventTradingStrategy } from './AVAEventTradingStrategy'
+import { AVAScalpingStrategy } from './AVAScalpingStrategy'
 
 type StrategyId = 'trend-following' | 'breakout-retest' | 'mean-reversion' | 'session-open' | 'event-trading' | 'scalping' | null; // Добавляем новый тип StrategyId
 
@@ -229,12 +229,12 @@ export const FuturesStrategies: React.FC = () => {
                                     ← К списку стратегий
                                 </button>
                             </div>
-                            {activeStrategy === 'trend-following' && <AvfTrendFollowingStrategy />}
-                            {activeStrategy === 'breakout-retest' && <AvfBreakoutRetestStrategy />}
-                            {activeStrategy === 'mean-reversion' && <AvfMeanReversionStrategy />}
-                            {activeStrategy === 'session-open' && <AvfSessionOpenStrategy />}
-                            {activeStrategy === 'event-trading' && <AvfEventTradingStrategy />}
-                            {activeStrategy === 'scalping' && <AvfScalpingStrategy />} {/* Добавляем рендеринг новой стратегии */}
+                            {activeStrategy === 'trend-following' && <AVATrendFollowingStrategy />}
+                            {activeStrategy === 'breakout-retest' && <AVABreakoutRetestStrategy />}
+                            {activeStrategy === 'mean-reversion' && <AVAMeanReversionStrategy />}
+                            {activeStrategy === 'session-open' && <AVASessionOpenStrategy />}
+                            {activeStrategy === 'event-trading' && <AVAEventTradingStrategy />}
+                            {activeStrategy === 'scalping' && <AVAScalpingStrategy />} {/* Добавляем рендеринг новой стратегии */}
                         </div>
                     </div>
                 )}
