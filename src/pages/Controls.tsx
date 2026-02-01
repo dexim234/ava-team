@@ -7,8 +7,7 @@ import {
     ShieldX,
     Lock,
     ChevronRight,
-    AlertTriangle,
-    UserCheck
+    AlertTriangle
 } from 'lucide-react'
 import { RestrictionForm } from '@/components/Management/RestrictionForm'
 import { UserConflictsForm } from '@/components/Management/UserConflictsForm'

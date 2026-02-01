@@ -20,16 +20,11 @@ import {
   Activity,
   ArrowUpRight,
   ArrowDownRight,
-  Shield,
   UserX,
-  ShieldX,
   Hourglass,
 } from 'lucide-react'
 import { TEAM_MEMBERS } from '@/types'
 import { DeleteSlotsForm } from '@/components/Management/DeleteSlotsForm'
-import { RestrictionForm } from '@/components/Management/RestrictionForm'
-import { UserConflictsForm } from '@/components/Management/UserConflictsForm'
-import { AccessBlocksForm } from '@/components/Management/AccessBlocksForm'
 import { getWorkSlots, getDayStatuses } from '@/services/firestoreService'
 import { getWeekDays, formatDate, getMoscowTime } from '@/utils/dateUtils'
 import { useAccessControl } from '@/hooks/useAccessControl'
@@ -40,7 +35,6 @@ export type SlotFilter = 'all' | 'upcoming' | 'completed'
 
 export const Management = () => {
   const { theme } = useThemeStore()
-  const { isAdmin } = useAdminStore()
   const { viewMode: persistedViewMode, setViewMode: setPersistedViewMode, selectedWeekStart: persistedWeekStart, setSelectedDate, setSelectedWeekStart } = useScheduleDateStore()
   const [viewMode, setViewModeState] = useState<ViewMode>(persistedViewMode || 'table')
   const [selectedWeekStart, setSelectedWeekStartState] = useState<string | null>(null)
