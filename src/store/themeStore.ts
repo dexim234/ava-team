@@ -27,7 +27,7 @@ export const useThemeStore = create<ThemeState>()(
         }),
     }),
     {
-      name: 'apevault-theme',
+      name: 'ava-theme',
     }
   )
 )

@@ -80,7 +80,7 @@ export const About = () => {
           </div>
           <div>
             <h1 className={`text-3xl font-black ${headingColor} flex items-center gap-3`}>
-              AVF INFO
+              AVA INFO
             </h1>
             <p className={subTextColor}>
               О нас, наши ценности и правила сообщества
@@ -99,7 +99,7 @@ export const About = () => {
           <div className="relative z-10 space-y-6">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#4E6E49]/10 border border-[#4E6E49]/20 text-[#4E6E49] text-xs font-bold uppercase tracking-wider">
               <Sparkles className="w-3 h-3" />
-              ApeVault Community
+              Apex Community
             </div>
 
             <h2 className={`text-4xl sm:text-5xl font-black tracking-tight leading-tight ${headingColor}`}>
@@ -110,7 +110,7 @@ export const About = () => {
             </h2>
 
             <p className={`text-lg leading-relaxed max-w-2xl ${subTextColor}`}>
-              ApeVault Frontier — закрытая среда для тех, кто понимает рынок глубже заголовков и хайпа.<br /><br />
+              Alpha Vault : Apex — закрытая среда для тех, кто понимает рынок глубже заголовков и хайпа.<br /><br />
               Мы создаём пространство для аккуратного входа в рынок, глубокой аналитики и совместного роста, где во главу угла поставлены качество решений и ответственность за результат.<br /><br />
               Здесь решения принимаются осознанно, а рост строится системно.
             </p>
@@ -158,11 +158,10 @@ export const About = () => {
           {principles.map((item, index) => (
             <div
               key={index}
-              className={`relative overflow-hidden rounded-2xl p-5 border transition-all duration-300 hover:shadow-lg group ${
-                theme === 'dark'
+              className={`relative overflow-hidden rounded-2xl p-5 border transition-all duration-300 hover:shadow-lg group ${theme === 'dark'
                   ? `${item.bg} hover:border-opacity-50`
                   : 'bg-white border-gray-100 hover:border-emerald-500/20'
-              }`}
+                }`}
             >
               <div className="flex justify-between items-start mb-3">
                 <div className="flex items-center gap-2">

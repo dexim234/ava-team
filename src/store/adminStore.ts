@@ -24,7 +24,7 @@ export const useAdminStore = create<AdminState>()(
       deactivateAdmin: () => set({ isAdmin: false }),
     }),
     {
-      name: 'apevault-admin',
+      name: 'ava-admin',
     }
   )
 )

@@ -75,7 +75,7 @@ export const Strategies = () => {
                 <TrendingUp className="w-16 h-16 text-gray-700 mx-auto opacity-20" />
                 <h3 className={`text-xl font-black ${headingColor}`}>Доступ ограничен</h3>
                 <p className="text-gray-500 max-w-md mx-auto">
-                    {pageAccess.reason || 'У вас нет доступа к разделам AVF Контур. Свяжитесь с администрацией.'}
+                    {pageAccess.reason || 'У вас нет доступа к разделам AVA Контур. Свяжитесь с администрацией.'}
                 </p>
             </div>
         )
@@ -91,10 +91,10 @@ export const Strategies = () => {
                     </div>
                     <div>
                         <h1 className={`text-2xl md:text-3xl font-black tracking-tight ${headingColor}`}>
-                            AVF Контур
+                            AVA Контур
                         </h1>
                         <p className={`text-sm font-medium ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                            Стратегические направления и инструменты ApeVault Frontier
+                            Стратегические направления и инструменты Alpha Vault : Apex
                         </p>
                     </div>
                 </div>
@@ -219,7 +219,7 @@ export const Strategies = () => {
                             {tabs.find(t => t.id === activeTab)?.label} — В разработке
                         </h3>
                         <p className="text-gray-500 max-w-md mx-auto px-4">
-                            Мы готовим новые контентные модули и стратегии для данного направления. Следите за обновлениями в AVF Контур.
+                            Мы готовим новые контентные модули и стратегии для данного направления. Следите за обновлениями в AVA Контур.
                         </p>
                     </div>
                 )}

@@ -79,7 +79,7 @@ export const Rules = () => {
   ]
 
   const glossary = [
-    { term: 'Нарушение', text: 'любое действие или бездействие, противоречащее регламентам ApeVault' },
+    { term: 'Нарушение', text: 'любое действие или бездействие, противоречащее регламентам Alpha Vault : Apex' },
     { term: 'Предупреждение', text: 'официальное уведомление о нарушении' },
     { term: 'Выговор', text: 'фиксируемая мера повышенной строгости при повторных нарушениях' },
     { term: 'Ведущий торговой сессии', text: 'управляет процессом и следит за соблюдением регламента на сессии' },
@@ -95,13 +95,13 @@ export const Rules = () => {
         <div className="relative z-10 flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
           <div className="space-y-4 max-w-3xl">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-white/50 dark:border-white/10 bg-white/70 dark:bg-white/5 text-xs font-semibold uppercase tracking-[0.16em] text-[#4E6E49]">
-              ApeVault Standard Operating Code — ASOC
+              Alpha Vault : Apex Operating Code — ASOC
             </div>
             <h1 className={`text-3xl sm:text-4xl lg:text-5xl font-extrabold leading-tight ${headingColor}`}>
-              Кодекс операционных процедур и регламентов платформы ApeVault
+              Кодекс операционных процедур и регламентов платформы Alpha Vault : Apex
             </h1>
             <p className={`text-sm sm:text-base ${subTextColor}`}>
-              Единые правила ответственности, дисциплинарных мер и прозрачных процедур для команды ApeVault.
+              Единые правила ответственности, дисциплинарных мер и прозрачных процедур для команды Alpha Vault : Apex.
             </p>
             <div className="flex flex-wrap gap-2">
               {['Ответственность', 'Прозрачность', 'Безопасность', 'Справедливость'].map((tag) => (
@@ -183,7 +183,7 @@ export const Rules = () => {
       </SectionCard>
 
       <SectionCard
-        title="Унифицированный регламент торговой деятельности ApeVault"
+        title="Унифицированный регламент торговой деятельности Alpha Vault : Apex"
         description="Нормы поведения на торговых сессиях, полномочия ведущего, перерывы, записи и конфиденциальность."
       >
         <div className={`space-y-4 text-sm ${subTextColor}`}>
@@ -266,8 +266,8 @@ export const Rules = () => {
             <p className="text-base font-semibold text-[#4E6E49]">6. Конфликт интересов</p>
             <ul className="space-y-1">
               <li>• Запрещено действовать в интересах сторонних групп/конкурентов.</li>
-              <li>• Запрещено передавать стратегию, аналитику, материалы, алгоритмы, сигналы и методики ApeVault третьим лицам.</li>
-              <li>• Запрещено получать вознаграждение за внешние консультации, использующие опыт или данные ApeVault.</li>
+              <li>• Запрещено передавать стратегию, аналитику, материалы, алгоритмы, сигналы и методики Alpha Vault : Apex третьим лицам.</li>
+              <li>• Запрещено получать вознаграждение за внешние консультации, использующие опыт или данные Alpha Vault : Apex.</li>
               <li>• Запрещено участвовать в параллельных торговых группах, если это создаёт риск конфликта или утечки информации.</li>
             </ul>
           </div>
@@ -275,7 +275,7 @@ export const Rules = () => {
           <div className={`rounded-2xl border p-4 sm:p-5 space-y-2 ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-white'}`}>
             <p className="text-base font-semibold text-[#4E6E49]">7. Конфиденциальность</p>
             <ul className="space-y-1">
-              <li>• Все материалы, данные, аналитика, торговые решения и внутренняя коммуникация — интеллектуальная собственность ApeVault.</li>
+              <li>• Все материалы, данные, аналитика, торговые решения и внутренняя коммуникация — интеллектуальная собственность Alpha Vault : Apex.</li>
               <li>• Запрещено копировать, распространять или передавать информацию третьим лицам.</li>
               <li>• Запрещено создавать производные материалы без согласования с ответственным.</li>
               <li>• Запрещено публиковать скриншоты, отчёты или содержимое сессий в открытых источниках (кроме чата команды).</li>

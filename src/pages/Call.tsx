@@ -132,7 +132,7 @@ export const CallPage = () => {
   const [traderFilter, setTraderFilter] = useState<'all' | string>('all')
 
   // Access Control Hooks
-  const pageAccess = useAccessControl('avf_hub')
+  const pageAccess = useAccessControl('ava_hub')
   const addSignalAccess = useAccessControl('hub_signals_add')
 
   // Category-specific access
@@ -345,7 +345,7 @@ export const CallPage = () => {
     return (
       <div className="py-20 text-center space-y-4">
         <Lock className="w-16 h-16 text-gray-700 mx-auto opacity-20" />
-        <h3 className={`text-xl font-black ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Доступ к AVF HUB ограничен</h3>
+        <h3 className={`text-xl font-black ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Доступ к AVA — HUB ограничен</h3>
         <p className="text-gray-500 max-w-md mx-auto">{pageAccess.reason || 'У вас нет доступа к сигналам.'}</p>
       </div>
     )
@@ -358,7 +358,7 @@ export const CallPage = () => {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <Activity className="w-7 h-7 text-emerald-500" />
-            <h1 className={`text-xl font-bold ${textColor}`}>AVF HUB</h1>
+            <h1 className={`text-xl font-bold ${textColor}`}>AVA — HUB</h1>
           </div>
           {addSignalAccess.hasAccess && (
             <button
@@ -382,7 +382,7 @@ export const CallPage = () => {
         <div className="flex flex-row items-center justify-between gap-4 mb-2">
           <div className="flex items-center gap-3">
             <Activity className="w-8 h-8 text-emerald-500" />
-            <h1 className={`text-3xl font-bold ${textColor}`}>AVF HUB</h1>
+            <h1 className={`text-3xl font-bold ${textColor}`}>AVA — HUB</h1>
           </div>
 
           {addSignalAccess.hasAccess && (
@@ -700,26 +700,26 @@ export const CallPage = () => {
           <div className={`relative ${bgColor} rounded-3xl shadow-2xl shadow-black/50 border ${borderColor} max-w-4xl w-full max-h-[90vh] overflow-hidden animate-in zoom-in-95 duration-300`}>
             {/* Header gradient accent - dynamic based on category */}
             <div className={`h-1.5 transition-all duration-300 ${formCategory === 'memecoins' ? 'bg-gradient-to-r from-teal-400 via-cyan-500 to-emerald-400' :
-                formCategory === 'polymarket' ? 'bg-gradient-to-r from-rose-500 via-red-500 to-orange-500' :
-                  formCategory === 'nft' ? 'bg-gradient-to-r from-purple-500 via-pink-500 to-rose-500' :
-                    formCategory === 'futures' ? 'bg-gradient-to-r from-blue-500 via-indigo-500 to-cyan-500' :
-                      formCategory === 'spot' ? 'bg-gradient-to-r from-amber-500 via-orange-500 to-yellow-500' :
-                        formCategory === 'staking' ? 'bg-gradient-to-r from-emerald-500 via-green-500 to-emerald-400' :
-                          formCategory === 'airdrop' ? 'bg-gradient-to-r from-gray-400 via-gray-300 to-gray-200' :
-                            'bg-gradient-to-r from-gray-400 via-gray-300 to-gray-200'
+              formCategory === 'polymarket' ? 'bg-gradient-to-r from-rose-500 via-red-500 to-orange-500' :
+                formCategory === 'nft' ? 'bg-gradient-to-r from-purple-500 via-pink-500 to-rose-500' :
+                  formCategory === 'futures' ? 'bg-gradient-to-r from-blue-500 via-indigo-500 to-cyan-500' :
+                    formCategory === 'spot' ? 'bg-gradient-to-r from-amber-500 via-orange-500 to-yellow-500' :
+                      formCategory === 'staking' ? 'bg-gradient-to-r from-emerald-500 via-green-500 to-emerald-400' :
+                        formCategory === 'airdrop' ? 'bg-gradient-to-r from-gray-400 via-gray-300 to-gray-200' :
+                          'bg-gradient-to-r from-gray-400 via-gray-300 to-gray-200'
               }`} />
 
             <div className="flex flex-col h-full">
               <div className={`p-5 flex items-center justify-between sticky top-0 z-20 ${bgColor} border-b ${borderColor}`}>
                 <div className="flex items-center gap-3">
                   <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-lg transition-all duration-300 ${formCategory === 'memecoins' ? 'bg-gradient-to-br from-teal-400 to-emerald-500 shadow-teal-400/30' :
-                      formCategory === 'polymarket' ? 'bg-gradient-to-br from-rose-500 to-red-600 shadow-rose-500/30' :
-                        formCategory === 'nft' ? 'bg-gradient-to-br from-purple-500 to-pink-600 shadow-purple-500/30' :
-                          formCategory === 'futures' ? 'bg-gradient-to-br from-blue-500 to-indigo-600 shadow-blue-500/30' :
-                            formCategory === 'spot' ? 'bg-gradient-to-br from-amber-500 to-orange-600 shadow-amber-500/30' :
-                              formCategory === 'staking' ? 'bg-gradient-to-br from-emerald-500 to-green-600 shadow-emerald-500/30' :
-                                formCategory === 'airdrop' ? 'bg-gradient-to-br from-gray-400 to-gray-300 shadow-gray-400/30' :
-                                  'bg-gradient-to-br from-gray-400 to-gray-300 shadow-gray-400/30'
+                    formCategory === 'polymarket' ? 'bg-gradient-to-br from-rose-500 to-red-600 shadow-rose-500/30' :
+                      formCategory === 'nft' ? 'bg-gradient-to-br from-purple-500 to-pink-600 shadow-purple-500/30' :
+                        formCategory === 'futures' ? 'bg-gradient-to-br from-blue-500 to-indigo-600 shadow-blue-500/30' :
+                          formCategory === 'spot' ? 'bg-gradient-to-br from-amber-500 to-orange-600 shadow-amber-500/30' :
+                            formCategory === 'staking' ? 'bg-gradient-to-br from-emerald-500 to-green-600 shadow-emerald-500/30' :
+                              formCategory === 'airdrop' ? 'bg-gradient-to-br from-gray-400 to-gray-300 shadow-gray-400/30' :
+                                'bg-gradient-to-br from-gray-400 to-gray-300 shadow-gray-400/30'
                     }`}>
                     {CATEGORY_META[formCategory].icon}
                   </div>

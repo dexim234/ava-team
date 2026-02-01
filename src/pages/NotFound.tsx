@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { useThemeStore } from '@/store/themeStore'
 import { ArrowLeft, Home } from 'lucide-react'
-import mascotImg from '../assets/404_mascot.png'
+import mascotImg from '@/assets/404_mascot.png'
 
 export const NotFound = () => {
     const { theme } = useThemeStore()
@@ -34,7 +34,7 @@ export const NotFound = () => {
                         <Home className="w-5 h-5 text-black" />
                     </div>
                     <span className="text-xl font-black tracking-tighter uppercase whitespace-nowrap">
-                        APEVAULT <span className="text-[#10b981]">FRONTIER</span>
+                        AVA <span className="text-[#10b981]">TEAM</span>
                     </span>
                 </div>
             </header>
@@ -65,7 +65,7 @@ export const NotFound = () => {
                             <div className="relative z-20 w-[85%] h-[85%] rounded-full overflow-hidden border border-[#10b981]/10 backdrop-blur-[2px]">
                                 <img
                                     src={mascotImg}
-                                    alt="ApeVault Frontier Mascot"
+                                    alt="Alpha Vault : Apex Mascot"
                                     className="w-full h-full object-cover transition-all duration-700 hover:scale-110"
                                     style={{
                                         maskImage: 'radial-gradient(circle, black 65%, transparent 95%)',
@@ -102,7 +102,10 @@ export const NotFound = () => {
 
                         <div className="flex flex-col sm:flex-row gap-4 w-full max-w-md lg:max-w-none pt-4 pb-12 lg:pb-0">
                             <button
-                                onClick={() => navigate('/')}
+                                onClick={() => {
+                                    const isMobile = window.innerWidth < 1024;
+                                    navigate('/about', { state: { openMenu: isMobile } });
+                                }}
                                 className="group relative flex items-center justify-center gap-4 px-12 py-6 bg-gradient-to-r from-[#10b981] to-[#06b6d4] text-black font-black uppercase tracking-widest text-sm rounded-2xl transition-all duration-300 hover:scale-105 active:scale-95 shadow-[0_20px_40px_rgba(16,185,129,0.2)] hover:shadow-[0_20px_60px_rgba(16,185,129,0.4)] overflow-hidden"
                             >
                                 <ArrowLeft className="w-5 h-5 transition-transform group-hover:-translate-x-2" />

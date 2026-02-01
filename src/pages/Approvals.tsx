@@ -6,7 +6,7 @@ export const Approvals = () => {
   const { isAdmin } = useAdminStore()
 
   if (!isAdmin) {
-    return <Navigate to="/management" replace />
+    return <Navigate to="/about" replace />
   }
 
   return (

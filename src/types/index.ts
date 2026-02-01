@@ -394,10 +394,10 @@ export interface Note {
 
 // Team members
 export const TEAM_MEMBERS: User[] = [
-  { id: '1', name: 'Артём', login: 'dexim03@apevault.io', password: '095deximadmpro.03', recoveryCode: '20035009', avatar: '/avatars/artyom.jpg', phone: '79778730513' },
-  { id: '2', name: 'Адель', login: 'enowk05@apevault.io', password: '101enowk.05', recoveryCode: '2005100', avatar: '/avatars/adel.jpg', phone: '79172480769' },
-  { id: '3', name: 'Ксения', login: 'ksen03@apevault.io', password: '03ksen.03-@!', recoveryCode: '20037958', avatar: '/avatars/kseniya.jpg', phone: '79378159355' },
-  { id: '4', name: 'Ольга', login: 'lelik-304@apevault.io', password: '040lelik.04', recoveryCode: '200423', avatar: '/avatars/olga.jpg', phone: '79393035770' },
+  { id: '1', name: 'Артём', login: 'dexim03@ava-apex.io', password: '095deximadmpro.03', recoveryCode: '20035009', avatar: '/avatars/artyom.jpg', phone: '79778730513' },
+  { id: '2', name: 'Адель', login: 'enowk05@ava-apex.io', password: '101enowk.05', recoveryCode: '2005100', avatar: '/avatars/adel.jpg', phone: '79172480769' },
+  { id: '3', name: 'Ксения', login: 'ksen03@ava-apex.io', password: '03ksen.03-@!', recoveryCode: '20037958', avatar: '/avatars/kseniya.jpg', phone: '79378159355' },
+  { id: '4', name: 'Ольга', login: 'lelik-304@ava-apex.io', password: '040lelik.04', recoveryCode: '200423', avatar: '/avatars/olga.jpg', phone: '79393035770' },
 ]
 
 export const TASK_CATEGORIES: Record<TaskCategory, { label: string; icon: string; color: string }> = {
@@ -466,16 +466,16 @@ export type AccessFeature =
   | 'all' // block entire site
   // Sections
   | 'tools' // block access to Tools section
-  | 'avf_hub' // block AVF HUB section
-  | 'avf_schedule' // block AVF Schedule (former slots)
-  | 'avf_tasks' // block AVF Tasks (former tasks)
-  | 'avf_profit' // block AVF Profit (former earnings)
-  | 'avf_rating' // block AVF Score (former rating)
-  | 'avf_referrals' // block AVF Referrals
-  | 'avf_info' // block AVF INFO (former about)
+  | 'ava_hub' // block AVA HUB section
+  | 'ava_schedule' // block AVA Schedule (former slots)
+  | 'ava_tasks' // block AVA Tasks (former tasks)
+  | 'ava_profit' // block AVA Profit (former earnings)
+  | 'ava_rating' // block AVA Score (former rating)
+  | 'ava_referrals' // block AVA Referrals
+  | 'ava_info' // block AVA INFO (former about)
   // Tools Sub-features
   | 'tools_events' // block Events section in Tools
-  | 'tools_kontur' // block AVF Kontur in Tools
+  | 'tools_kontur' // block AVA Kontur in Tools
   | 'tools_kontur_memecoins'
   | 'tools_kontur_polymarket'
   | 'tools_kontur_nft'

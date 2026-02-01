@@ -11,6 +11,7 @@ import { Rating } from './pages/Rating'
 import { Tasks } from './pages/Tasks'
 import { Admin } from './pages/Admin'
 import { Profile } from './pages/Profile'
+import { Controls } from './pages/Controls'
 import { About } from './pages/About'
 import { Rules } from './pages/Rules'
 import { Approvals } from './pages/Approvals'
@@ -49,7 +50,7 @@ function App() {
             (!isAuthenticated && !isAdmin) ? (
               <Login />
             ) : (
-              <Navigate to="/management" replace />
+              <Navigate to="/about" replace />
             )
           }
         />
@@ -121,6 +122,14 @@ function App() {
             }
           />
           <Route
+            path="/controls"
+            element={
+              <ProtectedRoute adminOnly={true}>
+                <Controls />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/approvals"
             element={
               <ProtectedRoute>
@@ -163,7 +172,7 @@ function App() {
 
         </Route>
 
-        <Route path="/" element={<Navigate to={(isAuthenticated || isAdmin) ? "/management" : "/login"} replace />} />
+        <Route path="/" element={<Navigate to={(isAuthenticated || isAdmin) ? "/about" : "/login"} replace />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>

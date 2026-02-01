@@ -29,7 +29,7 @@ export const Earnings = () => {
   })
 
   // Access Control Hooks
-  const pageAccess = useAccessControl('avf_profit')
+  const pageAccess = useAccessControl('ava_profit')
   const statsAccess = useAccessControl('profit_stats_view')
   const addAccess = useAccessControl('profit_add')
   const insightsAccess = useAccessControl('profit_insights_view')
@@ -218,7 +218,7 @@ export const Earnings = () => {
     return (
       <div className="py-20 text-center space-y-4">
         <Lock className="w-16 h-16 text-gray-700 mx-auto opacity-20" />
-        <h3 className={`text-xl font-black ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Доступ к AVF Profit ограничен</h3>
+        <h3 className={`text-xl font-black ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Доступ к AVA — Profit ограничен</h3>
         <p className="text-gray-500 max-w-md mx-auto">{pageAccess.reason || 'У вас нет доступа к мониторингу доходов.'}</p>
       </div>
     )
@@ -235,7 +235,7 @@ export const Earnings = () => {
             </div>
             <div>
               <h1 className={`text-2xl md:text-3xl font-black tracking-tight ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                AVF Profit
+                AVA — Profit
               </h1>
               <p className={`text-sm font-medium ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
                 Мониторинг доходов и распределение пула

@@ -48,9 +48,6 @@ export const Management = () => {
   const [showSlotForm, setShowSlotForm] = useState(false)
   const [showDeleteSlotsForm, setShowDeleteSlotsForm] = useState(false)
   const [showStatusForm, setShowStatusForm] = useState(false)
-  const [showRestrictionForm, setShowRestrictionForm] = useState(false)
-  const [showConflictsForm, setShowConflictsForm] = useState(false)
-  const [showAccessBlocksForm, setShowAccessBlocksForm] = useState(false)
   const [statusType, setStatusType] = useState<'dayoff' | 'sick' | 'vacation' | 'absence' | 'internship' | null>(null)
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null)
   const [editingSlot, setEditingSlot] = useState<any>(null)
@@ -70,7 +67,7 @@ export const Management = () => {
   })
 
   // Access Control Hooks
-  const pageAccess = useAccessControl('avf_schedule')
+  const pageAccess = useAccessControl('ava_schedule')
   const statsAccess = useAccessControl('schedule_stats_view')
   const addSlotAccess = useAccessControl('schedule_add_slot')
   const statusEditAccess = useAccessControl('schedule_status_edit')
@@ -365,25 +362,11 @@ export const Management = () => {
     setShowDeleteSlotsForm(true)
   }
 
-  const handleManageRestrictions = () => {
-    setShowRestrictionForm(true)
-  }
-
-  const handleManageConflicts = () => {
-    setShowConflictsForm(true)
-  }
-
-  const handleManageAccessBlocks = () => {
-    setShowAccessBlocksForm(true)
-  }
 
   const handleFormClose = () => {
     setShowSlotForm(false)
     setShowDeleteSlotsForm(false)
     setShowStatusForm(false)
-    setShowRestrictionForm(false)
-    setShowConflictsForm(false)
-    setShowAccessBlocksForm(false)
     setStatusType(null)
     setEditingSlot(null)
     setEditingStatus(null)
@@ -509,10 +492,10 @@ export const Management = () => {
             </div>
             <div>
               <h1 className={`text-2xl md:text-3xl font-black tracking-tight ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                AVF Schedule
+                AVA Schedule
               </h1>
               <p className={`text-sm font-medium ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                Управление сменами и активностью ApeVault Frontier
+                Управление сменами и активностью Alpha Vault : Apex
               </p>
             </div>
           </div>
@@ -626,25 +609,6 @@ export const Management = () => {
                 onSelect={setSelectedUserId}
               />
             </div>
-            {/* Admin Actions Dropdown Trigger (Simplified for now) */}
-            {isAdmin && (
-              <div className="flex gap-1">
-                {[
-                  { icon: <Shield className="w-4 h-4" />, action: handleManageRestrictions, title: "Ограничения" },
-                  { icon: <Shield className="w-4 h-4" />, action: handleManageConflicts, title: "Конфликты" },
-                  { icon: <ShieldX className="w-4 h-4" />, action: handleManageAccessBlocks, title: "Блокировки" }
-                ].map((btn, i) => (
-                  <button
-                    key={i}
-                    onClick={btn.action}
-                    title={btn.title}
-                    className={`p-2.5 rounded-xl border ${theme === 'dark' ? 'border-white/10 bg-white/5 text-gray-400 hover:text-white' : 'border-gray-200 text-gray-500'}`}
-                  >
-                    {btn.icon}
-                  </button>
-                ))}
-              </div>
-            )}
           </div>
         </div>
       </div>
@@ -709,26 +673,6 @@ export const Management = () => {
         )
       }
 
-      {
-        showRestrictionForm && (
-          <RestrictionForm
-            onClose={handleFormClose}
-            onSave={handleFormClose}
-          />
-        )
-      }
-
-      {
-        showConflictsForm && (
-          <UserConflictsForm onClose={() => setShowConflictsForm(false)} />
-        )
-      }
-
-      {
-        showAccessBlocksForm && (
-          <AccessBlocksForm onClose={() => setShowAccessBlocksForm(false)} />
-        )
-      }
     </div>
   )
 }

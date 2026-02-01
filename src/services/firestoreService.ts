@@ -1644,17 +1644,17 @@ export const checkUserAccess = async (userId: string, feature: string): Promise<
       const parents: Record<string, string[]> = {
         'tools': ['tools_events', 'tools_kontur', 'tools_strategies_view', 'tools_items_view'],
         'tools_kontur': ['tools_kontur_memecoins', 'tools_kontur_polymarket', 'tools_kontur_nft', 'tools_kontur_staking', 'tools_kontur_spot', 'tools_kontur_futures', 'tools_kontur_airdrop'],
-        'avf_hub': ['hub_signals_add', 'hub_signals_view', 'hub_signals_cat_memecoins', 'hub_signals_cat_polymarket', 'hub_signals_cat_nft', 'hub_signals_cat_spot', 'hub_signals_cat_futures', 'hub_signals_cat_staking', 'hub_signals_cat_airdrop'],
-        'avf_schedule': ['schedule_stats_view', 'schedule_view', 'schedule_add_slot', 'schedule_status_edit', 'schedule_slot_delete'],
-        'avf_tasks': ['tasks_add', 'tasks_view'],
-        'avf_profit': ['profit_add', 'profit_stats_view', 'profit_leaders_view', 'profit_history_view', 'profit_insights_view', 'profit_cat_memecoins', 'profit_cat_futures', 'profit_cat_nft', 'profit_cat_spot', 'profit_cat_airdrop', 'profit_cat_polymarket', 'profit_cat_staking', 'profit_cat_other', 'profit_wallet_general', 'profit_wallet_personal', 'profit_wallet_pool'],
-        'avf_rating': ['rating_others_view', 'rating_self_view', 'rating_specific_view'],
+        'ava_hub': ['hub_signals_add', 'hub_signals_view', 'hub_signals_cat_memecoins', 'hub_signals_cat_polymarket', 'hub_signals_cat_nft', 'hub_signals_cat_spot', 'hub_signals_cat_futures', 'hub_signals_cat_staking', 'hub_signals_cat_airdrop'],
+        'ava_schedule': ['schedule_stats_view', 'schedule_view', 'schedule_add_slot', 'schedule_status_edit', 'schedule_slot_delete'],
+        'ava_tasks': ['tasks_add', 'tasks_view'],
+        'ava_profit': ['profit_add', 'profit_stats_view', 'profit_leaders_view', 'profit_history_view', 'profit_insights_view', 'profit_cat_memecoins', 'profit_cat_futures', 'profit_cat_nft', 'profit_cat_spot', 'profit_cat_airdrop', 'profit_cat_polymarket', 'profit_cat_staking', 'profit_cat_other', 'profit_wallet_general', 'profit_wallet_personal', 'profit_wallet_pool'],
+        'ava_rating': ['rating_others_view', 'rating_self_view', 'rating_specific_view'],
         // Legacy parents
         'slots': ['schedule_stats_view', 'schedule_view', 'schedule_add_slot', 'schedule_status_edit', 'schedule_slot_delete'],
         'earnings': ['profit_add', 'profit_stats_view', 'profit_leaders_view', 'profit_history_view', 'profit_insights_view'],
         'tasks': ['tasks_add', 'tasks_view'],
         'rating': ['rating_others_view', 'rating_self_view', 'rating_specific_view'],
-        'about': ['avf_info']
+        'about': ['ava_info']
       }
 
       for (const [parent, children] of Object.entries(parents)) {

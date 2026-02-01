@@ -58,12 +58,11 @@ export const Admin = () => {
           </div>
           <h2 className={`text-xl font-semibold ${headingColor}`}>Ограничения</h2>
           <a
-            href="/management?tab=restrictions"
-            className={`ml-auto flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-all ${
-              theme === 'dark'
+            href="/controls"
+            className={`ml-auto flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-all ${theme === 'dark'
                 ? 'bg-orange-600 hover:bg-orange-500 text-white'
                 : 'bg-orange-500 hover:bg-orange-600 text-white'
-            }`}
+              }`}
           >
             <Settings size={18} />
             Управление

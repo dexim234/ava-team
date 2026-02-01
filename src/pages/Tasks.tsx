@@ -23,7 +23,7 @@ export const Tasks = () => {
   const [selectedStatus, setSelectedStatus] = useState<TaskStatus | 'all'>('all')
   const [selectedUsers, setSelectedUsers] = useState<string[]>([])
 
-  const pageAccess = useAccessControl('avf_tasks')
+  const pageAccess = useAccessControl('ava_tasks')
   const addTaskAccess = useAccessControl('tasks_add')
 
   const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
@@ -141,10 +141,10 @@ export const Tasks = () => {
           </div>
           <div>
             <h1 className={`text-3xl font-black ${headingColor} flex items-center gap-3`}>
-              AVF Tasks
+              AVA Tasks
             </h1>
             <p className={theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}>
-              Управление задачами и заданиями команды ApeVault Frontier
+              Управление задачами и заданиями команды Alpha Vault : Apex
             </p>
           </div>
         </div>

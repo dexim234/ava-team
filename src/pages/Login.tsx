@@ -62,7 +62,7 @@ export const Login = () => {
 
   // Load remembered credentials
   useEffect(() => {
-    const saved = localStorage.getItem('apevault_remembered')
+    const saved = localStorage.getItem('ava_remembered')
     if (saved) {
       try {
         const { login: l, password: p, type } = JSON.parse(saved)
@@ -79,7 +79,8 @@ export const Login = () => {
   // Check for Telegram Mini App authentication
   useEffect(() => {
     if (isAuthenticated && user) {
-      navigate('/management')
+      const isMobile = window.innerWidth < 1024;
+      navigate('/about', { state: { openMenu: isMobile } });
       return
     }
 
@@ -95,7 +96,8 @@ export const Login = () => {
       if (loginFromUrl && passwordFromUrl) {
         const success = loginUser(loginFromUrl, passwordFromUrl)
         if (success) {
-          navigate('/management')
+          const isMobile = window.innerWidth < 1024;
+          navigate('/about', { state: { openMenu: isMobile } });
           return
         }
       }
@@ -110,7 +112,7 @@ export const Login = () => {
             const telegramUserId = userData.id
             sessionStorage.setItem('telegram_user_id', String(telegramUserId))
 
-            const savedAuth = localStorage.getItem('apevault-auth')
+            const savedAuth = localStorage.getItem('ava-auth')
             if (savedAuth) {
               try {
                 const parsed = JSON.parse(savedAuth)
@@ -118,7 +120,8 @@ export const Login = () => {
                   const savedUser = parsed.state.user
                   const success = loginUser(savedUser.login, savedUser.password)
                   if (success) {
-                    navigate('/management')
+                    const isMobile = window.innerWidth < 1024;
+                    navigate('/about', { state: { openMenu: isMobile } });
                     return
                   }
                 }
@@ -152,11 +155,12 @@ export const Login = () => {
       const adminSuccess = activateAdmin(password)
       if (adminSuccess) {
         if (rememberMe) {
-          localStorage.setItem('apevault_remembered', JSON.stringify({ login: '', password, type: 'admin' }))
+          localStorage.setItem('ava_remembered', JSON.stringify({ login: '', password, type: 'admin' }))
         } else {
-          localStorage.removeItem('apevault_remembered')
+          localStorage.removeItem('ava_remembered')
         }
-        navigate('/management')
+        const isMobile = window.innerWidth < 1024;
+        navigate('/about', { state: { openMenu: isMobile } });
       } else {
         setError('Неверный пароль администратора')
       }
@@ -168,11 +172,12 @@ export const Login = () => {
       const success = loginUser(login, password)
       if (success) {
         if (rememberMe) {
-          localStorage.setItem('apevault_remembered', JSON.stringify({ login, password, type: 'member' }))
+          localStorage.setItem('ava_remembered', JSON.stringify({ login, password, type: 'member' }))
         } else {
-          localStorage.removeItem('apevault_remembered')
+          localStorage.removeItem('ava_remembered')
         }
-        navigate('/management')
+        const isMobile = window.innerWidth < 1024;
+        navigate('/about', { state: { openMenu: isMobile } });
       } else {
         setError('Неверный логин или пароль')
       }
@@ -194,14 +199,18 @@ export const Login = () => {
           <div className="w-24 h-24 sm:w-32 sm:h-32 mb-8 flex items-center justify-center animate-pulse-subtle">
             <img
               src={logo}
-              alt="ApeVault"
+              alt="Alpha Vault : Apex"
               className="w-20 h-20 sm:w-24 sm:h-24 object-contain rounded-xl filter drop-shadow-[0_0_15px_rgba(16,185,129,0.4)]"
             />
           </div>
 
-          <h1 className="text-4xl lg:text-5xl font-black text-white mb-6 tracking-tight">
-            ApeVault <span className="text-emerald-500">Frontier</span>
+          <h1 className="text-4xl lg:text-5xl font-black text-white mb-2 tracking-tight">
+            Alpha Vault <span className="text-emerald-500">: Apex</span>
           </h1>
+
+          <div className="mb-6 px-4 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+            <span className="text-sm font-black text-emerald-500 uppercase tracking-[0.2em]">Team</span>
+          </div>
 
           <p className="text-lg text-gray-400 font-medium leading-relaxed">
             Единая командная панель для управления ресурсами, аналитикой и оперативного взаимодействия.
@@ -219,7 +228,7 @@ export const Login = () => {
         <div className="xl:hidden flex items-center justify-between mb-12">
           <div className="flex items-center gap-3">
             <img src={logo} alt="Logo" className="w-10 h-10 object-contain rounded-xl" />
-            <span className={`font-black tracking-tight ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>ApeVault Frontier</span>
+            <span className={`font-black tracking-tight ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>AVA — Team</span>
           </div>
           <button onClick={toggleTheme} className="p-2 rounded-xl bg-gray-100 dark:bg-white/5 text-gray-700 dark:text-amber-300">
             {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
@@ -245,7 +254,7 @@ export const Login = () => {
               Добро пожаловать
             </h2>
             <p className={`text-gray-500 dark:text-gray-400 font-medium`}>
-              Введите данные для входа в <span className="text-emerald-500 font-bold">ApeVault</span>
+              Введите данные для входа в <span className="text-emerald-500 font-bold">Alpha Vault : Apex</span>
             </p>
           </div>
 
@@ -287,7 +296,7 @@ export const Login = () => {
                     type="text"
                     value={login}
                     onChange={(e) => setLogin(e.target.value)}
-                    placeholder="agent@apevault.io"
+                    placeholder="agent@ava-apex.io"
                     className={`w-full pl-12 pr-4 py-4 rounded-2xl border transition-all focus:outline-none focus:ring-4 focus:ring-emerald-500/10 ${theme === 'dark'
                       ? 'bg-white/5 border-white/10 text-white placeholder-gray-600 focus:border-emerald-500'
                       : 'bg-gray-50 border-gray-200 text-gray-900 placeholder-gray-400 focus:border-emerald-500'

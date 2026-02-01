@@ -547,7 +547,7 @@ export const Profile = () => {
                 {isViewingOtherUser() ? viewedUserMember?.name || 'Пользователь' : userData.name}
               </h1>
               <p className={`text-sm font-medium ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                Закрытый контур. Ваши данные и показатели.
+                Alpha Vault : Apex — Личный кабинет. Ваши данные и показатели.
               </p>
             </div>
           </div>
