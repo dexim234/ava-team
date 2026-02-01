@@ -144,7 +144,7 @@ export const Tasks = () => {
               Tasks
             </h1>
             <p className={theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}>
-              Управление задачами и заданиями команды Alpha Vault : Apex
+              Управление задачами и заданиями команды AVA - Team
             </p>
           </div>
         </div>

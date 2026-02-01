@@ -352,7 +352,7 @@ export const Rating = () => {
                 Rating
               </h1>
               <p className={`text-sm font-medium ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                Рейтинг эффективности команды Alpha Vault : Apex
+                Рейтинг эффективности команды AVA - Team
               </p>
             </div>
           </div>

@@ -65,7 +65,7 @@ export const NotFound = () => {
                             <div className="relative z-20 w-[85%] h-[85%] rounded-full overflow-hidden border border-[#10b981]/10 backdrop-blur-[2px]">
                                 <img
                                     src={mascotImg}
-                                    alt="Alpha Vault : Apex Mascot"
+                                    alt="AVA - Team Mascot"
                                     className="w-full h-full object-cover transition-all duration-700 hover:scale-110"
                                     style={{
                                         maskImage: 'radial-gradient(circle, black 65%, transparent 95%)',

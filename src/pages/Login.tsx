@@ -199,7 +199,7 @@ export const Login = () => {
           <div className="w-24 h-24 sm:w-32 sm:h-32 mb-8 flex items-center justify-center animate-pulse-subtle">
             <img
               src={logo}
-              alt="Alpha Vault : Apex"
+              alt="AVA - Team"
               className="w-20 h-20 sm:w-24 sm:h-24 object-contain rounded-xl filter drop-shadow-[0_0_15px_rgba(16,185,129,0.4)]"
             />
           </div>
@@ -254,7 +254,7 @@ export const Login = () => {
               Добро пожаловать
             </h2>
             <p className={`text-gray-500 dark:text-gray-400 font-medium`}>
-              Введите данные для входа в <span className="text-emerald-500 font-bold">Alpha Vault : Apex</span>
+              Введите данные для входа в <span className="text-emerald-500 font-bold">AVA - Team</span>
             </p>
           </div>
 

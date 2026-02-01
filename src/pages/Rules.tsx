@@ -79,7 +79,7 @@ export const Rules = () => {
   ]
 
   const glossary = [
-    { term: 'Нарушение', text: 'любое действие или бездействие, противоречащее регламентам Alpha Vault : Apex' },
+    { term: 'Нарушение', text: 'любое действие или бездействие, противоречащее регламентам AVA - Team' },
     { term: 'Предупреждение', text: 'официальное уведомление о нарушении' },
     { term: 'Выговор', text: 'фиксируемая мера повышенной строгости при повторных нарушениях' },
     { term: 'Ведущий торговой сессии', text: 'управляет процессом и следит за соблюдением регламента на сессии' },
@@ -95,7 +95,7 @@ export const Rules = () => {
         <div className="relative z-10 flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
           <div className="space-y-4 max-w-3xl">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-white/50 dark:border-white/10 bg-white/70 dark:bg-white/5 text-xs font-semibold uppercase tracking-[0.16em] text-[#4E6E49]">
-              Alpha Vault : Apex Operating Code — ASOC
+              AVA - Team Operating Code — ASOC
             </div>
             <h1 className={`text-3xl sm:text-4xl lg:text-5xl font-extrabold leading-tight ${headingColor}`}>
               Кодекс операционных процедур и регламентов платформы Alpha Vault : Apex

@@ -483,7 +483,7 @@ export const Management = () => {
                 Lead
               </h1>
               <p className={`text-sm font-medium ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                Управление сменами и активностью Alpha Vault : Apex
+                Управление сменами и активностью AVA - Team
               </p>
             </div>
           </div>
