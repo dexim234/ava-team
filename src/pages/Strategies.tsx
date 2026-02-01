@@ -94,7 +94,7 @@ export const Strategies = () => {
                             Контур
                         </h1>
                         <p className={`text-sm font-medium ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                            // ... остальной код ...
+                            Авторские материалы Alpha Vault : Apex
                         </p>
                     </div>
                 </div>

@@ -191,8 +191,8 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                 />
               </div>
               <div className="flex flex-col whitespace-nowrap">
-                <span className="text-sm font-black tracking-widest text-[#4E6E49] dark:text-white uppercase transition-opacity duration-300">AVA</span>
-                <span className="text-[10px] font-bold text-gray-400 -mt-1 uppercase tracking-tighter transition-opacity duration-300">— Team</span>
+                <span className="text-sm font-black tracking-widest text-[#4E6E49] dark:text-white uppercase transition-opacity duration-300">Alpha Vault</span>
+                <span className="text-[10px] font-bold text-gray-400 -mt-1 uppercase tracking-tighter transition-opacity duration-300">: Apex</span>
               </div>
             </div>
           </div>
@@ -450,7 +450,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                 className="w-7 h-7 object-contain rounded-xl filter drop-shadow-[0_0_8px_rgba(78,110,73,0.3)]"
               />
             </div>
-            <span className={`text-sm font-black tracking-widest uppercase ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>AVA — Team</span>
+            <span className={`text-sm font-black tracking-widest uppercase ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Alpha Vault : Apex</span>
           </div>
           <button
             onClick={() => setIsMobileMenuOpen(true)}
@@ -487,12 +487,12 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
 
             <div className="flex-1 overflow-y-auto p-4 space-y-6">
               {/* Profile Section */}
-              <div className={`flex items-center gap-3 p-4 rounded-2xl border ${theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-100'}`}>
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-[#4E6E49] font-bold`}>
+              <div className={`flex items-center gap-2 p-4 rounded-2xl border ${theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-100'}`}>
+                <div className="w-8 h-8 rounded-full flex items-center justify-center text-[#4E6E49] font-bold">
                   {user?.avatar ? <img src={user.avatar} className="w-full h-full rounded-full object-cover" /> : getInitials(user?.name || 'User')}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className={`text-sm font-bold truncate ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{user?.name || 'Guest'}</p>
+                  <p className="text-sm font-bold truncate dark:text-white">{user?.name || 'Guest'}</p>
                   <Link to="/profile" onClick={() => setIsMobileMenuOpen(false)} className="text-xs text-[#4E6E49] hover:underline">
                     Перейти в профиль
                   </Link>
