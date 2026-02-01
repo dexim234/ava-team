@@ -191,41 +191,13 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                 />
               </div>
               <div className="flex flex-col whitespace-nowrap">
-                <span className="text-sm font-black tracking-widest text-[#4E6E49] dark:text-white uppercase transition-opacity duration-300">Alpha Vault</span>
-                <span className="text-[10px] font-bold text-gray-400 -mt-1 uppercase tracking-tighter transition-opacity duration-300">: Apex</span>
+                <span className="text-sm font-black tracking-widest text-[#4E6E49] dark:text-white uppercase transition-opacity duration-300">Alpha Vault : Apex</span>
               </div>
             </div>
           </div>
 
           <div className={`relative z-10 px-6 pb-4 flex items-center gap-2 transition-all duration-500 ${isCollapsed ? 'flex-col px-4 items-center' : ''}`}>
-            <button onClick={toggleTheme} className="flex-1 flex items-center justify-center p-2 rounded-xl border border-gray-200 dark:border-white/10 hover:bg-gray-100 dark:hover:bg-white/5 transition-colors w-full">
-              {theme === 'dark' ? <Sun className="w-4 h-4 text-amber-300" /> : <Moon className="w-4 h-4 text-gray-700" />}
-            </button>
-            {!isCollapsed && (
-              <button
-                onClick={() => setShowNotifications(!showNotifications)}
-                className={`flex-1 flex items-center justify-center relative p-2 rounded-xl border border-gray-200 dark:border-white/10 hover:bg-gray-100 dark:hover:bg-white/5 transition-colors w-full ${showNotifications ? 'bg-amber-500/10' : ''}`}
-              >
-                <Bell className="w-4 h-4" />
-                {notifications.length > 0 && <span className="absolute top-2 right-[35%] w-2 h-2 bg-red-500 rounded-full" />}
-              </button>
-            )}
           </div>
-
-          {showNotifications && (
-            <div className="mx-4 mb-4 p-3 glass-panel rounded-xl border border-white/20 shadow-xl max-h-60 overflow-y-auto space-y-2 relative z-20">
-              {notifications.length === 0 ? (
-                <p className="text-[10px] text-gray-500">Нет уведомлений</p>
-              ) : (
-                notifications.map(n => (
-                  <div key={n.id} className="text-[10px] p-2 rounded-lg bg-black/5 dark:bg-white/5">
-                    <p className="font-bold">{n.text}</p>
-                    <p className="opacity-60">{n.time}</p>
-                  </div>
-                ))
-              )}
-            </div>
-          )}
 
           <div className={`h-px w-full bg-gradient-to-r from-transparent via-gray-200/50 dark:via-white/10 to-transparent my-2 transition-opacity duration-500 ${isCollapsed ? 'opacity-0' : 'opacity-100'}`} />
 
