@@ -1,7 +1,6 @@
-// Management page - main component for managing slots, days off, sick leave, and vacation
 import { useState, useEffect } from 'react'
 import { useThemeStore } from '@/store/themeStore'
-import { useAdminStore } from '@/store/adminStore'
+// import { useAdminStore } from '@/store/adminStore' // Удален неиспользуемый импорт
 import { useScheduleDateStore } from '@/store/scheduleDateStore'
 import { ManagementTable } from '@/components/Management/ManagementTable'
 import { ManagementWeekView } from '@/components/Management/ManagementWeekView'
@@ -80,8 +79,6 @@ export const Management = () => {
   useEffect(() => {
     setViewModeState(persistedViewMode || 'table')
   }, [persistedViewMode])
-
-
 
   useEffect(() => {
     setSelectedWeekStartState(persistedWeekStart)
@@ -356,7 +353,6 @@ export const Management = () => {
     setShowDeleteSlotsForm(true)
   }
 
-
   const handleFormClose = () => {
     setShowSlotForm(false)
     setShowDeleteSlotsForm(false)
@@ -367,8 +363,6 @@ export const Management = () => {
     loadStats()
     setRefreshKey((key) => key + 1)
   }
-
-
 
   const handleViewModeChange = (mode: ViewMode) => {
     setViewModeState(mode)
@@ -414,7 +408,7 @@ export const Management = () => {
       label: 'Завершено слотов на неделе',
       value: stats.completedSlots,
       note: 'факт',
-      icon: <CalendarCheck className="w-5 h-5 text-emerald-400" />,
+      icon: <CalendarCheck className="w-4 h-4 text-emerald-400" />,
       tone: 'emerald',
       bgClass: 'bg-emerald-500/5',
       borderClass: 'border-emerald-500/20'
@@ -670,4 +664,3 @@ export const Management = () => {
     </div>
   )
 }
-
