@@ -28,10 +28,10 @@ export const Rating = () => {
 
 
   useEffect(() => {
-    if (!usersLoading && allMembers.length > 0) {
+    if (!usersLoading) {
       loadRatings()
     }
-  }, [allMembers, usersLoading])
+  }, [usersLoading])
 
   const loadRatings = async () => {
     setLoading(true)
