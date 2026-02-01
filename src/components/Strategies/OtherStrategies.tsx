@@ -20,6 +20,14 @@ export const OtherStrategies: React.FC = () => {
 
     const newsResources: NewsResource[] = [
         {
+            name: 'Лента новостей TV',
+            url: 'https://ru.tradingview.com/news-flow/',
+            description: 'Новостная лента TradingView с аналитикой рынков, макроэкономическими событиями и криптоновостями в реальном времени с профессиональной оценкой влияния на цену.',
+            icon: <Globe className="w-5 h-5" />,
+            color: 'text-green-400',
+            bgColor: 'bg-green-500/10 border-green-500/20'
+        },
+        {
             name: 'CoinMarketCap News',
             url: 'https://coinmarketcap.com/headlines/news/',
             description: 'Новостной раздел CoinMarketCap с публикациями о запусках проектов, обновлениях экосистем, инвестиционных раундах и анонсах в криптоиндустрии.',
