@@ -16,7 +16,6 @@ import {
   CheckCircle2,
   Sun,
   Moon,
-  Bell,
   PanelLeftOpen,
   PanelLeftClose,
   Menu,
@@ -197,6 +196,9 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
           </div>
 
           <div className={`relative z-10 px-6 pb-4 flex items-center gap-2 transition-all duration-500 ${isCollapsed ? 'flex-col px-4 items-center' : ''}`}>
+            <button onClick={toggleTheme} className="flex-1 flex items-center justify-center p-2 rounded-xl border border-gray-200 dark:border-white/10 hover:bg-gray-100 dark:hover:bg-white/5 transition-colors w-full">
+              {theme === 'dark' ? <Sun className="w-4 h-4 text-amber-300" /> : <Moon className="w-4 h-4 text-gray-700" />}
+            </button>
           </div>
 
           <div className={`h-px w-full bg-gradient-to-r from-transparent via-gray-200/50 dark:via-white/10 to-transparent my-2 transition-opacity duration-500 ${isCollapsed ? 'opacity-0' : 'opacity-100'}`} />
