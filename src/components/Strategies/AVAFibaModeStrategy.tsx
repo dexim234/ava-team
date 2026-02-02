@@ -158,12 +158,34 @@ export const AVAFibaModeStrategy: React.FC = () => {
                     >
                         <div className="space-y-6">
                             <div className={`p-4 rounded-xl border ${theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'}`}>
-                                <h5 className="text-xs font-bold uppercase mb-2 text-blue-500 flex items-center gap-2">
+                                <h5 className="text-xs font-bold uppercase mb-3 text-blue-500 flex items-center gap-2">
                                     <Twitter className="w-4 h-4" /> Живой Twitter & Инфополе
                                 </h5>
-                                <p className="text-xs text-gray-500 leading-relaxed">
-                                    Должно быть актуальное инфо-сопровождение: продолжаются твиты, идут репосты, комьюнити обсуждает токен, появляются новые участники. Откат должен быть на фоне интереса, а не затухания.
-                                </p>
+                                <div className="space-y-3">
+                                    <div className="text-[10px] font-bold uppercase text-gray-400 mb-2">Обязательные условия:</div>
+                                    <ul className="text-xs text-gray-500 space-y-2 leading-relaxed">
+                                        <li className="flex items-start gap-2">
+                                            <div className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-1.5 shrink-0"></div>
+                                            <span>Запуск из живого Twitter-комьюнити, идут постоянные посты, последнему посту не более 3-4 минут</span>
+                                        </li>
+                                        <li className="flex items-start gap-2">
+                                            <div className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-1.5 shrink-0"></div>
+                                            <span>У автора или комьюнити 500-1000+ живых подписчиков</span>
+                                        </li>
+                                        <li className="flex items-start gap-2">
+                                            <div className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-1.5 shrink-0"></div>
+                                            <span>Контракт указан в посте или закрепленном сообщении чата</span>
+                                        </li>
+                                        <li className="flex items-start gap-2">
+                                            <div className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-1.5 shrink-0"></div>
+                                            <span>Визуал и слоган соответствуют хайповой идее</span>
+                                        </li>
+                                        <li className="flex items-start gap-2">
+                                            <div className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-1.5 shrink-0"></div>
+                                            <span>Должно быть актуальное инфо-сопровождение: продолжаются твиты, идут репосты, комьюнити обсуждает токен, появляются новые участники. Откат должен быть на фоне интереса, а не затухания</span>
+                                        </li>
+                                    </ul>
+                                </div>
                             </div>
                             <div className={`p-4 rounded-xl border ${theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'}`}>
                                 <h5 className="text-xs font-bold uppercase mb-2 text-blue-500 flex items-center gap-2">
