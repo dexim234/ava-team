@@ -6,6 +6,7 @@ import {
   getDocs,
   addDoc,
   updateDoc,
+  setDoc,
   deleteDoc,
   query,
   where,
@@ -1718,7 +1719,7 @@ export const updateUser = async (id: string, updates: Partial<User>): Promise<vo
   const cleanUpdates = Object.fromEntries(
     Object.entries(updates).filter(([_, value]: [string, any]) => value !== undefined)
   )
-  await updateDoc(userRef, cleanUpdates)
+  await setDoc(userRef, cleanUpdates, { merge: true })
 }
 
 export const deleteUser = async (userId: string): Promise<void> => {

@@ -169,7 +169,7 @@ export const Login = () => {
         setError('Пожалуйста, введите логин')
         return
       }
-      const success = loginUser(login, password)
+      const success = await loginUser(login, password)
       if (success) {
         if (rememberMe) {
           localStorage.setItem('ava_remembered', JSON.stringify({ login, password, type: 'member' }))
