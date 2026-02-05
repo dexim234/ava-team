@@ -76,9 +76,9 @@ export const FuturesStrategies: React.FC = () => {
         },
         {
             id: 'intraday-futures' as StrategyId,
-            name: 'AVA - Intraday (Futures)',
+            name: 'AVA - Intraday',
             icon: <Zap className="w-4 h-4" />,
-            desc: 'Торговля внутри дня. Все сделки открываются и закрываются в течение одной сессии, чтобы избежать ночных рисков.'
+            desc: 'Все сделки открываются и закрываются в течение одного торгового дня, чтобы избежать ночных рисков, гэпов и неожиданных новостей.'
         },
     ]
 
