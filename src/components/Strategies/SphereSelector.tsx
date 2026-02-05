@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react'
-import { ChevronDown, X, LayoutGrid } from 'lucide-react'
+import { ChevronDown } from 'lucide-react'
 import { useThemeStore } from '@/store/themeStore'
 
 interface SphereItem {
@@ -21,7 +21,6 @@ export const SphereSelector: React.FC<SphereSelectorProps> = ({
 }) => {
     const { theme } = useThemeStore();
     const [isOpen, setIsOpen] = useState(false);
-    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
 
     const selectedSphere = spheres.find(s => s.id === activeSphere);
@@ -39,7 +38,6 @@ export const SphereSelector: React.FC<SphereSelectorProps> = ({
     const handleSelect = (id: string) => {
         setActiveSphere(id);
         setIsOpen(false);
-        setIsMobileMenuOpen(false);
     };
 
     return (
