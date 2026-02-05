@@ -1,9 +1,9 @@
 import React from 'react';
 import { useThemeStore } from '@/store/themeStore';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react'; // Убеждаемся, что ArrowLeft импортирован
 
 interface Strategy {
-    id: string | null; // Изменено: id может быть string или null
+    id: string; // id должен быть string, так как мы передаем только существующие id стратегий
     name: string;
     icon: React.ReactNode;
     desc: string;
@@ -12,7 +12,7 @@ interface Strategy {
 interface StrategySelectorProps {
     strategies: Strategy[];
     activeStrategy: string | null;
-    setActiveStrategy: (id: string | null) => void;
+    setActiveStrategy: (id: string | null) => void; // Этот тип правильный для useState<StrategyId>(null)
     children: React.ReactNode;
     title: string;
     description: string;
