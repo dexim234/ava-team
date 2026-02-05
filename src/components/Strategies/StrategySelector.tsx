@@ -24,7 +24,6 @@ export const StrategySelector: React.FC<StrategySelectorProps> = ({ strategies, 
     const subTextColor = theme === 'dark' ? 'text-gray-400' : 'text-gray-500';
     const cardBg = theme === 'dark' ? 'bg-[#1a212a]/50' : 'bg-white';
     const cardBorder = theme === 'dark' ? 'border-white/5' : 'border-gray-100';
-    const innerBg = theme === 'dark' ? 'bg-[#151a21]/50' : 'bg-gray-50/50';
 
     return (
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">

@@ -1,7 +1,6 @@
 import React, { useState } from 'react'
 import { useThemeStore } from '@/store/themeStore'
 import {
-    Lightbulb,
     Target,
     Calculator,
     Wrench,
@@ -38,8 +37,8 @@ export const PolymarketStrategies: React.FC = () => {
     const mutedText = theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
 
     const strategies = [
-        { id: 'value-betting' as StrategyId, name: 'AVA Value Betting', icon: <Target className="w-4 h-4" />, desc: 'Поиск математического ожидания и недооцененных исходов на рынках предсказаний.' },
-        { id: 'arbitrage' as StrategyId, name: 'AVA Арбитраж', icon: <Calculator className="w-4 h-4" />, desc: 'Заработок на разнице цен между Polymarket и другими платформами или реальностью.' },
+        { id: 'value-betting', name: 'AVA Value Betting', icon: <Target className="w-4 h-4" />, desc: 'Поиск математического ожидания и недооцененных исходов на рынках предсказаний.' },
+        { id: 'arbitrage', name: 'AVA Арбитраж', icon: <Calculator className="w-4 h-4" />, desc: 'Заработок на разнице цен между Polymarket и другими платформами или реальностью.' },
     ]
 
     const tools: Tool[] = [

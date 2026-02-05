@@ -4,7 +4,6 @@ import { useAuthStore } from '@/store/authStore'
 import { useAdminStore } from '@/store/adminStore'
 import { checkUserAccess } from '@/services/firestoreService'
 import {
-    Lightbulb,
     Wrench,
     Brain,
     Zap,
@@ -285,7 +284,7 @@ export const MemecoinStrategies: React.FC = () => {
                                                         <h4 className={`font-bold mb-1 ${headingColor} flex items-center gap-2`}>
                                                             {tool.name}
                                                         </h4>
-                                                        <p className="text-xs text-gray-500 leading-relaxed">
+                                                        <p className="text-xs text-gray-500 line-clamp-3 leading-relaxed">
                                                             {tool.desc}
                                                         </p>
                                                     </a>
