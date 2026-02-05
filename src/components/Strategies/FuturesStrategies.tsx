@@ -204,13 +204,9 @@ export const FuturesStrategies: React.FC = () => {
                             <button
                                 key={s.id}
                                 onClick={() => setActiveStrategy(s.id as StrategyId)}
-                                className={`group p-8 rounded-[2.5rem] border text-left transition-all duration-500 hover:-translate-y-2 ${theme === 'dark'
-                                    ? 'bg-white/5 border-white/5 hover:border-blue-500/30 hover:bg-blue-500/5'
-                                    : 'bg-white border-gray-100 hover:border-blue-500/20 hover:shadow-2xl hover:shadow-blue-500/10'
-                                    }`}
+                                className="group p-8 rounded-[2.5rem] text-left transition-all duration-500 strategy-card"
                             >
-                                <div className={`p-4 rounded-2xl w-fit mb-6 transition-transform duration-500 group-hover:scale-110 ${theme === 'dark' ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-50 text-blue-500'
-                                    }`}>
+                                <div className="p-4 rounded-2xl w-fit mb-6 transition-transform duration-500 group-hover:scale-110 strategy-card-icon text-blue-500/80 dark:text-blue-300">
                                     {React.cloneElement(s.icon as React.ReactElement, { className: 'w-8 h-8' })}
                                 </div>
                                 <h4 className={`text-xl font-black mb-2 ${headingColor}`}>{s.name}</h4>
