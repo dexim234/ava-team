@@ -60,7 +60,8 @@ export const FuturesStrategies: React.FC = () => {
             name: 'AVA - Scalping',
             icon: <Gauge className="w-4 h-4" />,
             desc: 'Суть скальпинга — ловить микродвижения на графике 1–5 минут. Мы берём маленькие профиты много раз в течение дня.'
-        },\n        {
+        },
+        {
             id: 'intraday-futures',
             name: 'AVA - Intraday',
             icon: <Zap className="w-4 h-4" />,
