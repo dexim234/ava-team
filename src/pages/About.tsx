@@ -19,8 +19,8 @@ export const About = () => {
       title: 'Приватность',
       icon: Lock,
       note: 'Защита цифровой идентичности и личных границ.',
-      accent: 'text-blue-400',
-      bg: 'bg-blue-500/5 border-blue-500/20'
+      accent: 'text-blue-200',
+      bg: 'bg-blue-300/5 border-blue-300/20'
     },
     {
       title: 'Образование',

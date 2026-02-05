@@ -130,13 +130,13 @@ export const Strategies = () => {
 
                     {/* Mobile Drawer Overlay */}
                     {isMobileMenuOpen && (
-                        <div className="fixed inset-0 z-[100] flex items-end sm:hidden">
+                        <div className="fixed inset-0 z-[100] flex items-center justify-center sm:hidden p-4"> {/* Изменено: items-end на items-center и justify-center, добавлен p-4 */}
                             <div
                                 className="absolute inset-0 bg-black/60 backdrop-blur-sm"
                                 onClick={() => setIsMobileMenuOpen(false)}
                             />
-                            <div className={`w-full relative z-10 p-6 rounded-t-[2.5rem] border-t ${theme === 'dark' ? 'bg-[#0b1015] border-white/10' : 'bg-white border-gray-100'
-                                } shadow-2xl animate-in slide-in-from-bottom duration-300`}>
+                            <div className={`w-full max-w-md relative z-10 p-6 rounded-[2.5rem] border ${theme === 'dark' ? 'bg-[#0b1015] border-white/10' : 'bg-white border-gray-100'
+                                } shadow-2xl animate-in fade-in zoom-in-95 duration-300`}> {/* Изменено: rounded-t-[2.5rem] на rounded-[2.5rem], убран border-t, изменена анимация */}
                                 <div className="flex items-center justify-between mb-8">
                                     <h3 className={`text-xl font-black ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Выберите сферу</h3>
                                     <button
@@ -147,7 +147,7 @@ export const Strategies = () => {
                                     </button>
                                 </div>
 
-                                <div className="grid grid-cols-1 gap-3">
+                                <div className="grid grid-cols-1 gap-3 max-h-[70vh] overflow-y-auto pr-2"> {/* Добавлено max-h и overflow-y */}
                                     {visibleTabs.map((tab) => (
                                         <button
                                             key={tab.id}
@@ -176,23 +176,27 @@ export const Strategies = () => {
                     )}
                 </div>
 
-                {/* PC Centered Tabs */}
-                <div className="hidden sm:flex w-full overflow-x-auto pb-2 scrollbar-hide">
-                    <div className={`flex items-center gap-2 p-1.5 rounded-xl border ${theme === 'dark' ? 'bg-[#151a21] border-white/5' : 'bg-gray-50 border-gray-200'}`}>
-                        {visibleTabs.map((tab) => (
-                            <button
-                                key={tab.id}
-                                onClick={() => setActiveTab(tab.id as TabType)}
-                                className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-bold transition-all ${activeTab === tab.id
-                                    ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/20'
-                                    : 'text-gray-400 hover:text-gray-200'
-                                    }`}
-                            >
+                {/* PC Centered Tabs - Redesigned */}
+                <div className="hidden sm:flex flex-wrap gap-3">
+                    {visibleTabs.map((tab) => (
+                        <button
+                            key={tab.id}
+                            onClick={() => setActiveTab(tab.id as TabType)}
+                            className={`flex flex-col items-center gap-2 p-4 rounded-2xl border transition-all duration-300 group ${activeTab === tab.id
+                                ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/20 border-blue-500'
+                                : theme === 'dark'
+                                    ? 'bg-white/5 border-white/5 text-gray-400 hover:bg-white/10 hover:border-white/10'
+                                    : 'bg-white border-gray-100 text-gray-600 hover:bg-gray-50 hover:border-gray-200'
+                                }`}
+                        >
+                            <div className={`p-2 rounded-xl transition-colors ${activeTab === tab.id ? 'bg-white/20' : theme === 'dark' ? 'bg-white/5 group-hover:bg-white/10' : 'bg-gray-100 group-hover:bg-gray-200'}`}>
                                 {tab.icon}
-                                <span>{tab.label}</span>
-                            </button>
-                        ))}
-                    </div>
+                            </div>
+                            <span className={`text-sm font-bold ${activeTab === tab.id ? 'text-white' : (theme === 'dark' ? 'text-gray-300' : 'text-gray-700')}`}>
+                                {tab.label}
+                            </span>
+                        </button>
+                    ))}
                 </div>
             </div>
 
