@@ -15,29 +15,31 @@ import {
     Calendar,
     Activity,
     Wrench,
+    Lightbulb,
+    ArrowLeft,
     Twitter,
     Target,
     Flame,
-    MessageSquare,
-    ArrowLeft // Добавляем импорт ArrowLeft
+    MessageSquare
 } from 'lucide-react'
 import { AVANftSnipingStrategy } from './AVANftSnipingStrategy'
 import { AVAMintFlipStrategy } from './AVAMintFlipStrategy'
 import { AVANftNarrativeStrategy } from './AVANftNarrativeStrategy'
 import { AVATwitterSmartAccountChecklist } from './AVATwitterSmartAccountChecklist'
-import { StrategySelector } from './StrategySelector'
+
+type StrategyId = 'nft-sniping' | 'nft-mint-flip' | 'nft-narrative' | 'twitter-checklist' | null;
 
 export const NftStrategies: React.FC = () => {
     const { theme } = useThemeStore()
     const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
     const [activeCategory, setActiveCategory] = useState<number | null>(null)
-    const [activeStrategy, setActiveStrategy] = useState<string | null>(null) // Изменено здесь
+    const [activeStrategy, setActiveStrategy] = useState<StrategyId>(null)
 
     const strategies = [
-        { id: 'nft-sniping', name: 'AVA снайпинг NFT', icon: <Target className="w-4 h-4" />, desc: 'Покупка NFT ниже текущей рыночной цены (флора) с целью быстрой перепродажи.' },
-        { id: 'nft-mint-flip', name: 'AVA Mint → Flip', icon: <Flame className="w-4 h-4" />, desc: 'Покупка на первичном рынке (минт) и перепродажа на хайпе запуска.' },
-        { id: 'nft-narrative', name: 'AVA торговля NFT на нарративах', icon: <MessageSquare className="w-4 h-4" />, desc: 'Работа с темами, в которые рынок начинает верить. Покупка раньше, продажа на массовом внимании.' },
-        { id: 'twitter-checklist', name: 'Чек-лист: Smart Twitter', icon: <Twitter className="w-4 h-4" />, desc: 'Как отличить «умный» аккаунт в Twitter (X) от маркетингового шума. 5–6 совпадений — аккаунт стоит внимания.' },
+        { id: 'nft-sniping' as StrategyId, name: 'AVA снайпинг NFT', icon: <Target className="w-4 h-4" />, desc: 'Покупка NFT ниже текущей рыночной цены (флора) с целью быстрой перепродажи.' },
+        { id: 'nft-mint-flip' as StrategyId, name: 'AVA Mint → Flip', icon: <Flame className="w-4 h-4" />, desc: 'Покупка на первичном рынке (минт) и перепродажа на хайпе запуска.' },
+        { id: 'nft-narrative' as StrategyId, name: 'AVA торговля NFT на нарративах', icon: <MessageSquare className="w-4 h-4" />, desc: 'Работа с темами, в которые рынок начинает верить. Покупка раньше, продажа на массовом внимании.' },
+        { id: 'twitter-checklist' as StrategyId, name: 'Чек-лист: Smart Twitter', icon: <Twitter className="w-4 h-4" />, desc: 'Как отличить «умный» аккаунт в Twitter (X) от маркетингового шума. 5–6 совпадений — аккаунт стоит внимания.' },
     ]
 
     const categories = [
@@ -97,20 +99,86 @@ export const NftStrategies: React.FC = () => {
     return (
         <div className="space-y-16 pb-20">
             {/* 1. Strategies Block */}
-            <StrategySelector
-                strategies={strategies}
-                activeStrategy={activeStrategy}
-                setActiveStrategy={setActiveStrategy}
-                title="NFT стратегии"
-                description="Проверенные методики работы с NFT рынком."
-            >
-                {activeStrategy === 'nft-sniping' && <AVANftSnipingStrategy />}
-                {activeStrategy === 'nft-mint-flip' && <AVAMintFlipStrategy />}
-                {activeStrategy === 'nft-narrative' && <AVANftNarrativeStrategy />}
-                {activeStrategy === 'twitter-checklist' && <AVATwitterSmartAccountChecklist />}
-            </StrategySelector>
+            <section className="space-y-6">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2 bg-blue-500/10 rounded-xl border border-blue-500/20">
+                            <Lightbulb className="w-6 h-6 text-blue-500" />
+                        </div>
+                        <div>
+                            <h3 className={`text-xl font-black ${headingColor}`}>Стратегии</h3>
+                            <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                                Проверенные методики работы с NFT рынком
+                            </p>
+                        </div>
+                    </div>
 
-            {/* Tools Block */}
+                    {activeStrategy && (
+                        <div className={`flex p-1 rounded-xl w-fit ${theme === 'dark' ? 'bg-white/5 border border-white/5' : 'bg-gray-100'}`}>
+                            {strategies.map(s => (
+                                <button
+                                    key={s.id}
+                                    onClick={() => setActiveStrategy(s.id as StrategyId)}
+                                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all duration-300 ${activeStrategy === s.id
+                                        ? 'bg-blue-500 text-white shadow-md'
+                                        : 'text-gray-500 hover:text-gray-400'
+                                        }`}
+                                >
+                                    {s.icon}
+                                    {s.name}
+                                </button>
+                            ))}
+                        </div>
+                    )}
+                </div>
+
+                {!activeStrategy ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        {strategies.map((s) => (
+                            <button
+                                key={s.id}
+                                onClick={() => setActiveStrategy(s.id as StrategyId)}
+                                className={`group p-8 rounded-[2.5rem] border text-left transition-all duration-500 hover:-translate-y-2 ${theme === 'dark'
+                                    ? 'bg-white/5 border-white/5 hover:border-blue-500/30 hover:bg-blue-500/5'
+                                    : 'bg-white border-gray-100 hover:border-blue-500/20 hover:shadow-2xl hover:shadow-blue-500/10'
+                                    }`}
+                            >
+                                <div className={`p-4 rounded-2xl w-fit mb-6 transition-transform duration-500 group-hover:scale-110 ${theme === 'dark' ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-50 text-blue-500'
+                                    }`}>
+                                    {React.cloneElement(s.icon as React.ReactElement, { className: 'w-8 h-8' })}
+                                </div>
+                                <h4 className={`text-xl font-black mb-2 ${headingColor}`}>{s.name}</h4>
+                                <p className={`text-sm leading-relaxed ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                                    {s.desc}
+                                </p>
+                                <div className="mt-6 flex items-center gap-2 text-blue-500 font-bold text-xs uppercase tracking-wider">
+                                    Подробнее <ExternalLink className="w-3 h-3" />
+                                </div>
+                            </button>
+                        ))}
+                    </div>
+                ) : (
+                    <div className={`rounded-3xl border p-1 sm:p-2 ${theme === 'dark' ? 'bg-[#0b1015]/50 border-white/5' : 'bg-white border-gray-100'
+                        } shadow-xl animate-scale-up`}>
+                        <div className={`p-6 sm:p-8 rounded-[2.5rem] ${theme === 'dark' ? 'bg-[#151a21]/50' : 'bg-gray-50/50'}`}>
+                            <div className="mb-6 flex items-center justify-between">
+                                <button
+                                    onClick={() => setActiveStrategy(null)}
+                                    className="text-xs font-bold text-gray-500 hover:text-blue-500 transition-colors flex items-center gap-1"
+                                >
+                                    <ArrowLeft className="w-3 h-3" /> К списку стратегий
+                                </button>
+                            </div>
+                            {activeStrategy === 'nft-sniping' && <AVANftSnipingStrategy />}
+                            {activeStrategy === 'nft-mint-flip' && <AVAMintFlipStrategy />}
+                            {activeStrategy === 'nft-narrative' && <AVANftNarrativeStrategy />}
+                            {activeStrategy === 'twitter-checklist' && <AVATwitterSmartAccountChecklist />}
+                        </div>
+                    </div>
+                )}
+            </section>
+
+            {/* 2. Tools Block */}
             <section className="space-y-8">
                 <div className="flex items-center gap-3">
                     <div className="p-2 bg-amber-500/10 rounded-xl border border-amber-500/20">
@@ -154,7 +222,7 @@ export const NftStrategies: React.FC = () => {
                             <div className="flex items-center justify-between">
                                 <button
                                     onClick={() => setActiveCategory(null)}
-                                    className="text-xs font-bold text-gray-500 hover:text-blue-500 transition-colors flex items-center gap-2"
+                                    className="text-xs font-bold text-gray-500 hover:text-blue-500 transition-colors flex items-center gap-1"
                                 >
                                     <ArrowLeft className="w-3 h-3" /> Все категории
                                 </button>
@@ -189,7 +257,7 @@ export const NftStrategies: React.FC = () => {
                                                 <ExternalLink className={`w-4 h-4 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} />
                                             </div>
 
-                                            <div className={`p-2.5 rounded-xl w-fit mb-4 ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'}
+                                            <div className={`p-2.5 rounded-xl w-fit mb-4 ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'
                                                 } group-hover:scale-110 transition-transform`}>
                                                 {tool.icon}
                                             </div>
