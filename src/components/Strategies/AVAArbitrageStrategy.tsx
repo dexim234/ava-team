@@ -305,11 +305,11 @@ export const AVAArbitrageStrategy: React.FC = () => {
                     <div className={`rounded-2xl p-6 border ${theme === 'dark' ? 'bg-[#151a21]/80 border-white/5' : 'bg-white border-gray-100'
                         } shadow-lg space-y-4`}>
                         <div className="flex items-center gap-3">
-                            <Calculator className={`w-6 h-6 text-rose-500`} />
+                            <Calculator className={`w-6 h-6 text-blue-500`} />
                             <h3 className={`text-lg font-black ${headingColor}`}>Ключевая формула</h3>
                         </div>
 
-                        <div className={`p-4 rounded-xl ${theme === 'dark' ? 'bg-rose-500/10' : 'bg-rose-50'} border ${theme === 'dark' ? 'border-rose-500/20' : 'border-rose-200'}`}>
+                        <div className={`p-4 rounded-xl ${theme === 'dark' ? 'bg-blue-500/10' : 'bg-blue-50'} border ${theme === 'dark' ? 'border-blue-500/20' : 'border-blue-200'}`}>
                             <p className="text-xs text-gray-500 mb-2">Прибыль =</p>
                             <p className={`text-sm font-black font-mono ${headingColor} leading-relaxed`}>
                                 1 − (YES + NO) − Комиссии
@@ -318,11 +318,11 @@ export const AVAArbitrageStrategy: React.FC = () => {
 
                         <div className="space-y-2 text-xs">
                             <p className={`flex items-start gap-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                                <CheckCircle2 className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
+                                <CheckCircle2 className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
                                 <span>Результат положительный → сделка имеет смысл</span>
                             </p>
                             <p className={`flex items-start gap-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                                <XCircle className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
+                                <XCircle className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
                                 <span>Результат отрицательный → пропуск, без эмоций</span>
                             </p>
                         </div>
@@ -363,35 +363,35 @@ export const AVAArbitrageStrategy: React.FC = () => {
                     </div>
 
                     {/* Red Flags */}
-                    <div className={`rounded-2xl p-6 border ${theme === 'dark' ? 'bg-rose-500/5 border-rose-500/20' : 'bg-rose-50 border-rose-500/20'
+                    <div className={`rounded-2xl p-6 border ${theme === 'dark' ? 'bg-blue-500/5 border-blue-500/20' : 'bg-blue-50 border-blue-500/20'
                         } shadow-lg space-y-4`}>
                         <div className="flex items-center gap-3">
-                            <AlertCircle className={`w-6 h-6 text-rose-500`} />
+                            <AlertCircle className={`w-6 h-6 text-blue-500`} />
                             <h3 className={`text-lg font-black ${headingColor}`}>Красные флаги</h3>
                         </div>
                         <div className={`space-y-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} text-xs`}>
                             <p className="flex items-start gap-2">
-                                <span className="w-1.5 h-1.5 rounded-full bg-rose-500 mt-1.5 shrink-0"></span>
+                                <span className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-1.5 shrink-0"></span>
                                 <span>Сумма &lt; $1.00, но после комиссий ≥ $1.00</span>
                             </p>
                             <p className="flex items-start gap-2">
-                                <span className="w-1.5 h-1.5 rounded-full bg-rose-500 mt-1.5 shrink-0"></span>
+                                <span className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-1.5 shrink-0"></span>
                                 <span>Недостаточная ликвидность → частичное исполнение</span>
                             </p>
                             <p className="flex items-start gap-2">
-                                <span className="w-1.5 h-1.5 rounded-full bg-rose-500 mt-1.5 shrink-0"></span>
+                                <span className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-1.5 shrink-0"></span>
                                 <span>Большой спред в стакане</span>
                             </p>
                             <p className="flex items-start gap-2">
-                                <span className="w-1.5 h-1.5 rounded-full bg-rose-500 mt-1.5 shrink-0"></span>
+                                <span className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-1.5 shrink-0"></span>
                                 <span>Вы купили одну сторону, вторая «убежала»</span>
                             </p>
                             <p className="flex items-start gap-2">
-                                <span className="w-1.5 h-1.5 rounded-full bg-rose-500 mt-1.5 shrink-0"></span>
+                                <span className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-1.5 shrink-0"></span>
                                 <span>Маркет с неочевидными условиями разрешения</span>
                             </p>
                         </div>
-                        <p className={`text-xs font-bold ${theme === 'dark' ? 'text-rose-400' : 'text-rose-600'} pt-2`}>
+                        <p className={`text-xs font-bold ${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'} pt-2`}>
                             Стратегия убивается не рынком, а плохим исполнением.
                         </p>
                     </div>
@@ -452,10 +452,10 @@ export const AVAArbitrageStrategy: React.FC = () => {
             </div>
 
             {/* Final Logic Footer */}
-            <div className={`rounded-2xl p-6 border-l-8 ${theme === 'dark' ? 'bg-[#0b1015] border-rose-500/50' : 'bg-gray-50 border-rose-500/30'
+            <div className={`rounded-2xl p-6 border-l-8 ${theme === 'dark' ? 'bg-[#0b1015] border-blue-500/50' : 'bg-gray-50 border-blue-500/30'
                 }`}>
                 <div className="flex gap-4 items-start">
-                    <Calculator className="w-8 h-8 text-rose-500 shrink-0" />
+                    <Calculator className="w-8 h-8 text-blue-500 shrink-0" />
                     <div className="space-y-2">
                         <h4 className={`text-lg font-black ${headingColor}`}>Итоговая логика стратегии</h4>
                         <p className={`text-sm leading-relaxed ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>

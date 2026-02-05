@@ -81,8 +81,8 @@ export const AVAValueBettingStrategy: React.FC = () => {
         <div className="space-y-8 animate-fade-in">
             {/* Strategy Intro */}
             <div className={`relative overflow-hidden rounded-3xl p-8 border ${theme === 'dark'
-                ? 'bg-gradient-to-br from-[#1a212a] to-[#0f1216] border-rose-500/20 shadow-2xl'
-                : 'bg-gradient-to-br from-white to-rose-50/30 border-rose-500/10 shadow-xl'
+                ? 'bg-gradient-to-br from-[#1a212a] to-[#0f1216] border-blue-500/20 shadow-2xl'
+                : 'bg-gradient-to-br from-white to-blue-50/30 border-blue-500/10 shadow-xl'
                 }`}>
                 <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/5 blur-3xl rounded-full -mr-20 -mt-20 pointer-events-none"></div>
 
@@ -120,7 +120,7 @@ export const AVAValueBettingStrategy: React.FC = () => {
             <div className={`rounded-2xl p-6 border-l-8 ${theme === 'dark' ? 'bg-blue-500/5 border-blue-500/50' : 'bg-blue-50 border-blue-500/30'
                 }`}>
                 <div className="flex gap-4 items-start">
-                    <Lightbulb className="w-8 h-8 text-rose-500 shrink-0" />
+                    <Lightbulb className="w-8 h-8 text-blue-500 shrink-0" />
                     <div className="space-y-2">
                         <h4 className={`text-lg font-black ${headingColor}`}>Ключевой принцип</h4>
                         <p className={`text-sm leading-relaxed ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>

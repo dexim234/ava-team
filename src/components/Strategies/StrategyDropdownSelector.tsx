@@ -48,67 +48,63 @@ export const StrategyDropdownSelector: React.FC<StrategyDropdownSelectorProps> =
         <div className="relative w-full lg:w-72" ref={containerRef}>
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className={`w-full flex items-center justify-between gap-3 px-4 py-2.5 rounded-xl border transition-all ${theme === 'dark'
-                        ? 'bg-[#151a21] border-white/5 text-gray-300 hover:border-emerald-500/30'
-                        : 'bg-gray-50 border-gray-200 text-gray-700 hover:border-emerald-500'
-                    }`}
+                className={`w-full flex items-center justify-between gap-3 px-4 py-2.5 rounded-2xl border transition-all duration-300 ${theme === 'dark'
+                    ? 'bg-[#151a21]/80 border-white/5 text-gray-300 hover:border-blue-500/30'
+                    : 'bg-white border-gray-200 text-gray-700 hover:border-blue-500'
+                    } shadow-xl backdrop-blur-xl group relative overflow-hidden`}
             >
-                <div className="flex items-center gap-2.5 overflow-hidden">
-                    {selectedStrategy ? (
-                        <>
-                            <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] ${activeStrategy ? 'bg-blue-500/20 text-blue-500' : 'bg-gray-500/10 text-gray-500'} flex-shrink-0`}>
-                                {selectedStrategy.icon}
-                            </div>
-                            <span className="text-sm font-bold truncate">
-                                {selectedStrategy.name}
-                            </span>
-                        </>
-                    ) : (
-                        <>
-                            <div className={`w-5 h-5 rounded-full flex items-center justify-center border border-dashed border-gray-500 flex-shrink-0`}>
-                                <Search size={12} className="text-gray-500" />
-                            </div>
-                            <span className="text-sm font-semibold text-gray-500">{placeholder}</span>
-                        </>
-                    )}
+                <div className="flex items-center gap-2.5 overflow-hidden relative z-10">
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${theme === 'dark' ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-50 text-blue-500'
+                        } flex-shrink-0`}>
+                        {selectedStrategy?.icon || <Search size={16} />}
+                    </div>
+                    <div className="text-left min-w-0">
+                        <p className="text-[10px] uppercase tracking-widest font-bold text-blue-500/60 leading-none mb-1">Стратегия</p>
+                        <span className="text-sm font-black tracking-tight truncate block">
+                            {selectedStrategy?.name || placeholder}
+                        </span>
+                    </div>
                 </div>
-                <ChevronDown size={16} className={`text-gray-500 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                <ChevronDown size={16} className={`text-blue-500 transition-transform duration-300 relative z-10 ${isOpen ? 'rotate-180' : ''}`} />
+
+                {/* Animated background glow */}
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-500/0 via-blue-500/5 to-blue-500/0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
             </button>
 
             {isOpen && (
-                <div className={`absolute z-50 top-full mt-2 w-full min-w-[240px] rounded-2xl border shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 ${theme === 'dark' ? 'bg-[#1a1f26] border-white/10' : 'bg-white border-gray-200'
+                <div className={`absolute z-50 top-full mt-2 w-full min-w-[240px] rounded-2xl border shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-300 ${theme === 'dark' ? 'bg-[#1a1f26] border-white/10' : 'bg-white border-gray-200'
                     }`}>
                     {/* Search bar */}
                     <div className="p-3 border-b border-white/5">
                         <div className="relative">
-                            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+                            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-blue-500/60" />
                             <input
                                 type="text"
                                 placeholder="Поиск стратегии..."
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
-                                className={`w-full pl-9 pr-8 py-2 rounded-lg text-xs font-medium outline-none transition-all ${theme === 'dark'
-                                        ? 'bg-black/20 text-gray-300 focus:bg-black/40'
-                                        : 'bg-gray-100 text-gray-700 focus:bg-gray-200'
+                                className={`w-full pl-9 pr-8 py-2.5 rounded-xl text-xs font-bold outline-none transition-all ${theme === 'dark'
+                                    ? 'bg-blue-500/5 text-gray-300 focus:bg-blue-500/10 border border-blue-500/10 focus:border-blue-500/30'
+                                    : 'bg-gray-50 text-gray-700 focus:bg-white border border-gray-200 focus:border-blue-500/30'
                                     }`}
                                 autoFocus
                             />
                             {search && (
                                 <button
                                     onClick={() => setSearch('')}
-                                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1 hover:text-rose-500"
+                                    className="absolute right-2 top-1/2 -translate-y-1/2 p-2 hover:text-rose-500 transition-colors"
                                 >
-                                    <X size={12} />
+                                    <X size={14} />
                                 </button>
                             )}
                         </div>
                     </div>
 
                     {/* Strategies list */}
-                    <div className="max-h-[300px] overflow-y-auto p-1.5 custom-scrollbar">
+                    <div className="max-h-[300px] overflow-y-auto p-2 space-y-1 custom-scrollbar">
                         <StrategyItemButton
                             name={"Все стратегии"}
-                            icon={<Search size={12} />}
+                            icon={<Search size={14} />}
                             isSelected={!activeStrategy}
                             onClick={() => {
                                 setActiveStrategy(null);
@@ -132,8 +128,9 @@ export const StrategyDropdownSelector: React.FC<StrategyDropdownSelectorProps> =
                         ))}
 
                         {filteredStrategies.length === 0 && (
-                            <div className="p-4 text-center">
-                                <p className="text-[10px] text-gray-500">Ничего не найдено :(</p>
+                            <div className="py-8 text-center">
+                                <Search className="w-8 h-8 text-blue-500/20 mx-auto mb-2" />
+                                <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Ничего не найдено</p>
                             </div>
                         )}
                     </div>
@@ -154,19 +151,19 @@ const StrategyItemButton: React.FC<{
     return (
         <button
             onClick={onClick}
-            className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-all text-left group ${isSelected
-                    ? theme === 'dark' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-emerald-50 text-emerald-600'
-                    : theme === 'dark' ? 'hover:bg-white/5 text-gray-300' : 'hover:bg-gray-50 text-gray-700'
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-left group ${isSelected
+                ? theme === 'dark' ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-50 text-blue-600'
+                : theme === 'dark' ? 'hover:bg-white/5 text-gray-400' : 'hover:bg-gray-50 text-gray-600'
                 }`}
         >
-            <div className="relative">
-                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] ${isSelected ? 'bg-emerald-500/20 text-emerald-500' : 'bg-gray-500/10 text-gray-500'
-                    }`}>
-                    {icon}
-                </div>
+            <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${isSelected
+                ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/20'
+                : theme === 'dark' ? 'bg-white/5' : 'bg-gray-100'
+                }`}>
+                {icon}
             </div>
             <div className="flex flex-col min-w-0">
-                <span className="text-xs font-bold truncate">{name}</span>
+                <span className="text-sm font-bold truncate tracking-tight">{name}</span>
             </div>
         </button>
     );
