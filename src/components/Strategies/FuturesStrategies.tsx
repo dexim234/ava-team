@@ -3,14 +3,15 @@ import { useThemeStore } from '@/store/themeStore'
 import {
     TrendingUp,
     Wrench,
-    BookOpen,
     Lightbulb,
     RefreshCw,
     ArrowDownUp,
     Sunrise,
     Megaphone,
     Gauge,
-    Clock
+    Clock,
+    ExternalLink,
+    ArrowLeft
 } from 'lucide-react'
 import { AVATrendFollowingStrategy } from './AVATrendFollowingStrategy'
 import { AVABreakoutRetestStrategy } from './AVABreakoutRetestStrategy'
@@ -71,17 +72,41 @@ export const FuturesStrategies: React.FC = () => {
             id: 'intraday',
             name: 'AVA - Intraday',
             icon: <Clock className="w-4 h-4" />,
-            desc: 'Все сделки открываются и закрываются в течение одного торгового дня, очищая ночных рисков.'
+            desc: 'Все сделки открываются и закрываются в течение одного торгового дня, избегая ночных рисков.'
         },
+    ]
+
+    // Добавляем переменные для блока Tools
+    const categories = [
+        {
+            title: 'Торговые платформы',
+            description: 'Основные биржи для фьючерсной торговли',
+            icon: <TrendingUp className="w-8 h-8 text-blue-500" />,
+            bgColor: 'bg-blue-500/10',
+            borderColor: 'border-blue-500/20',
+            tools: [
+                { name: 'Binance Futures', url: 'https://www.binancefutures.com', desc: 'Крупнейшая криптобиржа с широким выбором фьючерсов.', icon: <TrendingUp className="w-5 h-5 text-blue-400" /> },
+                { name: 'Bybit', url: 'https://www.bybit.com', desc: 'Профессиональная платформа для торговли деривативами.', icon: <TrendingUp className="w-5 h-5 text-blue-400" /> },
+            ]
+        },
+        {
+            title: 'Аналитика',
+            description: 'Инструменты для анализа рынка',
+            icon: <Wrench className="w-8 h-8 text-purple-500" />,
+            bgColor: 'bg-purple-500/10',
+            borderColor: 'border-purple-500/20',
+            tools: [
+                { name: 'TradingView', url: 'https://www.tradingview.com', desc: 'Профессиональный анализ графиков и индикаторы.', icon: <Wrench className="w-5 h-5 text-purple-400" /> },
+            ]
+        }
     ]
 
     return (
         <div className="space-y-16 pb-20">
-            {/* Strategies Block */}
             <StrategySelector
                 strategies={strategies}
                 activeStrategy={activeStrategy}
-                setActiveStrategy={(id) => setActiveStrategy(id as StrategyId)} // Преобразуем id в StrategyId
+                setActiveStrategy={(id) => setActiveStrategy(id as StrategyId)}
                 categoryName="Стратегии"
                 categoryDescription="Проверенные методики фьючерсной торговли"
                 categoryIcon={<Lightbulb className="w-6 h-6 text-blue-500" />}
@@ -119,14 +144,14 @@ export const FuturesStrategies: React.FC = () => {
                     <div>
                         <h3 className={`text-xl font-black ${headingColor}`}>Инструменты</h3>
                         <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                            Биржи, аналитика и терминалы для фьючерсной торговли
+                            Основные сервисы для работы с фьючерсами
                         </p>
                     </div>
                 </div>
 
                 <div className="space-y-12">
                     {activeCategory === null ? (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                             {categories.map((category, idx) => (
                                 <button
                                     key={idx}
@@ -197,7 +222,7 @@ export const FuturesStrategies: React.FC = () => {
                                             <h4 className={`font-bold mb-1 ${headingColor} flex items-center gap-2`}>
                                                 {tool.name}
                                             </h4>
-                                            <p className="text-xs text-gray-500 leading-relaxed">
+                                            <p className="text-xs text-gray-500 line-clamp-3 leading-relaxed">
                                                 {tool.desc}
                                             </p>
                                         </a>

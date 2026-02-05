@@ -26,7 +26,6 @@ export const MemecoinStrategies: React.FC = () => {
     const { isAdmin } = useAdminStore()
     const [activeStrategy, setActiveStrategy] = useState<StrategyId>(null)
     const [hasStrategiesAccess, setHasStrategiesAccess] = useState(true)
-    const [hasToolsAccess, setHasToolsAccess] = useState(true)
     const [loading, setLoading] = useState(true)
 
     const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
@@ -38,13 +37,9 @@ export const MemecoinStrategies: React.FC = () => {
                 return
             }
 
-            const [stratResult, toolsResult] = await Promise.all([
-                checkUserAccess(user.id, 'tools_strategies_view'),
-                checkUserAccess(user.id, 'tools_items_view')
-            ])
+            const stratResult = await checkUserAccess(user.id, 'tools_strategies_view')
 
             setHasStrategiesAccess(stratResult.hasAccess)
-            setHasToolsAccess(toolsResult.hasAccess)
             setLoading(false)
         }
 
@@ -96,7 +91,7 @@ export const MemecoinStrategies: React.FC = () => {
                     <StrategySelector
                         strategies={strategies}
                         activeStrategy={activeStrategy}
-                        setActiveStrategy={(id) => setActiveStrategy(id as StrategyId)} // Преобразуем id в StrategyId
+                        setActiveStrategy={(id) => setActiveStrategy(id as StrategyId)}
                         categoryName="Стратегии"
                         categoryDescription="Проверенные методики отбора и управления позициями"
                         categoryIcon={<Lightbulb className="w-6 h-6 text-blue-500" />}

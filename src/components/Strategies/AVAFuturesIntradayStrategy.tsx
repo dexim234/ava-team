@@ -3,6 +3,7 @@ import { useThemeStore } from '@/store/themeStore'
 import {
     Clock,
     Zap,
+    TrendingUp,
     XCircle,
     HelpCircle,
     CheckCircle2,

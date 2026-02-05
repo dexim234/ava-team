@@ -1,15 +1,13 @@
-// src/components/Strategies/StrategySelector.tsx
 import React, { useState } from 'react'
 import { useThemeStore } from '@/store/themeStore'
 import {
     ChevronDown,
     ChevronUp,
-    LayoutGrid,
     X
 } from 'lucide-react'
 
 interface StrategyItem {
-    id: string | null; // Изменено с 'string' на 'string | null'
+    id: string | null;
     name: string;
     icon: React.ReactNode;
     desc?: string;
@@ -18,9 +16,9 @@ interface StrategyItem {
 interface StrategySelectorProps {
     strategies: StrategyItem[];
     activeStrategy: string | null;
-    setActiveStrategy: (id: string | null) => void; // Изменено на '(id: string | null) => void'
-    categoryName: string; // Например, "Фьючерсные стратегии"
-    categoryDescription: string; // Описание категории
+    setActiveStrategy: (id: string | null) => void;
+    categoryName: string;
+    categoryDescription: string;
     categoryIcon: React.ReactNode;
 }
 
@@ -51,7 +49,12 @@ export const StrategySelector: React.FC<StrategySelectorProps> = (
 
                 {/* Strategy Selector for PC when a strategy is active */}
                 {activeStrategy && (
-                    <div className="hidden sm:flex w-full overflow-x-auto pb-2 scrollbar-hide justify-end">
+                    <div className="hidden sm:flex w-full overflow-x-auto pb-2 justify-end" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                        <style>{`
+                            .overflow-x-auto::-webkit-scrollbar {
+                                display: none;
+                            }
+                        `}</style>
                         <div className={`flex items-center gap-2 p-1.5 rounded-xl border ${theme === 'dark' ? 'bg-[#151a21] border-white/5' : 'bg-gray-50 border-gray-200'}`}>
                             {strategies.map((s) => (
                                 <button
