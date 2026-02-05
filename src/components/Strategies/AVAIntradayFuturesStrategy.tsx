@@ -367,14 +367,6 @@ export const AVAIntradayFuturesStrategy: React.FC = () => {
                 </div>
             </div>
 
-            <div className="mt-12 text-center">
-                <button
-                    onClick={() => window.history.back()}
-                    className={`px-6 py-3 rounded-xl ${theme === 'dark' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-blue-500 hover:bg-blue-600'} text-white font-bold transition-colors`}
-                >
-                    ← Назад к стратегиям
-                </button>
-            </div>
         </div>
     );
 };
