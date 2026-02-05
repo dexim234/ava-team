@@ -27,8 +27,6 @@ import { AVANftNarrativeStrategy } from './AVANftNarrativeStrategy'
 import { AVATwitterSmartAccountChecklist } from './AVATwitterSmartAccountChecklist'
 import { StrategySelector } from './StrategySelector'
 
-type StrategyId = 'nft-sniping' | 'nft-mint-flip' | 'nft-narrative' | 'twitter-checklist';
-
 export const NftStrategies: React.FC = () => {
     const { theme } = useThemeStore()
     const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'

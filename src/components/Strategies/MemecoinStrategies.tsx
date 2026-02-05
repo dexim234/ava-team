@@ -56,8 +56,6 @@ const renderIcon = (iconName: string, className: string) => {
     }
 }
 
-type StrategyId = 'late-volume' | 'intraday' | 'flip' | 'flip-fiba' | 'fiba-mode';
-
 export const MemecoinStrategies: React.FC = () => {
     const { theme } = useThemeStore()
     const { user } = useAuthStore()

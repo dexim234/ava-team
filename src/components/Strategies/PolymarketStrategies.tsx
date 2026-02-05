@@ -16,8 +16,6 @@ import { AVAValueBettingStrategy } from './AVAValueBettingStrategy'
 import { AVAArbitrageStrategy } from './AVAArbitrageStrategy'
 import { StrategySelector } from './StrategySelector'
 
-type StrategyId = 'value-betting' | 'arbitrage';
-
 interface Tool {
     name: string
     url: string
