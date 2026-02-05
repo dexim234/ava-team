@@ -3,7 +3,7 @@ import { useThemeStore } from '@/store/themeStore';
 import { ArrowLeft } from 'lucide-react';
 
 interface Strategy {
-    id: string;
+    id: string | null; // Изменено: id может быть string или null
     name: string;
     icon: React.ReactNode;
     desc: string;

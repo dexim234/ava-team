@@ -1,5 +1,4 @@
 import React, { useState } from 'react'
-import { useThemeStore } from '@/store/themeStore'
 import {
     Zap,
     TrendingUp,
@@ -21,7 +20,6 @@ import { StrategySelector } from './StrategySelector'
 type StrategyId = 'trend-following' | 'breakout-retest' | 'mean-reversion' | 'session-open' | 'event-trading' | 'scalping' | 'intraday-futures' | null;
 
 export const FuturesStrategies: React.FC = () => {
-    const { theme } = useThemeStore()
     const [activeStrategy, setActiveStrategy] = useState<StrategyId>(null)
 
     const strategies = [
