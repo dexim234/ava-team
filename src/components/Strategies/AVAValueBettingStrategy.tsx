@@ -32,15 +32,15 @@ const StrategyStep: React.FC<StrategyStepProps> = ({ number, title, children, ic
 
     return (
         <div className={`overflow-hidden rounded-2xl border transition-all duration-300 ${theme === 'dark'
-                ? 'bg-[#1a212a]/50 border-white/5 shadow-inner'
-                : 'bg-white border-gray-100 shadow-sm'
+            ? 'bg-[#1a212a]/50 border-white/5 shadow-inner'
+            : 'bg-white border-gray-100 shadow-sm'
             }`}>
             <button
                 onClick={onToggle}
                 className="w-full flex items-center justify-between p-5 text-left transition-colors hover:bg-white/5"
             >
                 <div className="flex items-center gap-4">
-                    <div className={`flex items-center justify-center w-10 h-10 rounded-xl font-black text-lg ${theme === 'dark' ? 'bg-rose-500/20 text-rose-400' : 'bg-rose-50 text-rose-600'
+                    <div className={`flex items-center justify-center w-10 h-10 rounded-xl font-black text-lg ${theme === 'dark' ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-50 text-blue-600'
                         }`}>
                         {number}
                     </div>
@@ -81,14 +81,14 @@ export const AVAValueBettingStrategy: React.FC = () => {
         <div className="space-y-8 animate-fade-in">
             {/* Strategy Intro */}
             <div className={`relative overflow-hidden rounded-3xl p-8 border ${theme === 'dark'
-                    ? 'bg-gradient-to-br from-[#1a212a] to-[#0f1216] border-rose-500/20 shadow-2xl'
-                    : 'bg-gradient-to-br from-white to-rose-50/30 border-rose-500/10 shadow-xl'
+                ? 'bg-gradient-to-br from-[#1a212a] to-[#0f1216] border-rose-500/20 shadow-2xl'
+                : 'bg-gradient-to-br from-white to-rose-50/30 border-rose-500/10 shadow-xl'
                 }`}>
-                <div className="absolute top-0 right-0 w-64 h-64 bg-rose-500/5 blur-3xl rounded-full -mr-20 -mt-20 pointer-events-none"></div>
+                <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/5 blur-3xl rounded-full -mr-20 -mt-20 pointer-events-none"></div>
 
                 <div className="relative flex flex-col md:flex-row gap-8 items-start">
-                    <div className={`p-4 rounded-2xl ${theme === 'dark' ? 'bg-rose-500/10' : 'bg-rose-500/5'}`}>
-                        <Target className={`w-12 h-12 ${theme === 'dark' ? 'text-rose-400' : 'text-rose-500'}`} />
+                    <div className={`p-4 rounded-2xl ${theme === 'dark' ? 'bg-blue-500/10' : 'bg-blue-500/5'}`}>
+                        <Target className={`w-12 h-12 ${theme === 'dark' ? 'text-blue-400' : 'text-blue-500'}`} />
                     </div>
                     <div className="flex-1 space-y-4">
                         <h2 className={`text-2xl md:text-3xl font-black ${headingColor}`}>AVA — Value Betting</h2>
@@ -106,7 +106,7 @@ export const AVAValueBettingStrategy: React.FC = () => {
                                 <Brain className="w-3.5 h-3.5" />
                                 DEEP RESEARCH
                             </div>
-                            <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold ${theme === 'dark' ? 'bg-white/10 text-rose-400 border border-rose-500/20' : 'bg-rose-50 text-rose-600 border border-rose-200'
+                            <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold ${theme === 'dark' ? 'bg-white/10 text-blue-400 border border-blue-500/20' : 'bg-blue-50 text-blue-600 border border-blue-200'
                                 }`}>
                                 <Target className="w-3.5 h-3.5" />
                                 MARKET INEFFICIENCY
@@ -117,7 +117,7 @@ export const AVAValueBettingStrategy: React.FC = () => {
             </div>
 
             {/* Key Principle */}
-            <div className={`rounded-2xl p-6 border-l-8 ${theme === 'dark' ? 'bg-rose-500/5 border-rose-500/50' : 'bg-rose-50 border-rose-500/30'
+            <div className={`rounded-2xl p-6 border-l-8 ${theme === 'dark' ? 'bg-blue-500/5 border-blue-500/50' : 'bg-blue-50 border-blue-500/30'
                 }`}>
                 <div className="flex gap-4 items-start">
                     <Lightbulb className="w-8 h-8 text-rose-500 shrink-0" />
@@ -134,7 +134,7 @@ export const AVAValueBettingStrategy: React.FC = () => {
                 {/* Main Steps */}
                 <div className="lg:col-span-2 space-y-4">
                     <div className="flex items-center gap-3 mb-2">
-                        <BarChart3 className={`w-6 h-6 ${theme === 'dark' ? 'text-rose-400' : 'text-rose-500'}`} />
+                        <BarChart3 className={`w-6 h-6 ${theme === 'dark' ? 'text-blue-400' : 'text-blue-500'}`} />
                         <h3 className={`text-xl font-black ${headingColor}`}>Как применять стратегию</h3>
                     </div>
 
@@ -152,7 +152,7 @@ export const AVAValueBettingStrategy: React.FC = () => {
                             <li><strong>Понятный таймфрейм</strong> — известная дата разрешения</li>
                             <li><strong>Доступность данных</strong> — возможность провести анализ</li>
                         </ul>
-                        <div className={`mt-4 p-4 rounded-xl border-l-4 ${theme === 'dark' ? 'bg-rose-500/5 border-rose-500/50' : 'bg-rose-50 border-rose-500/30'}`}>
+                        <div className={`mt-4 p-4 rounded-xl border-l-4 ${theme === 'dark' ? 'bg-blue-500/5 border-blue-500/50' : 'bg-blue-50 border-blue-500/30'}`}>
                             <p className="text-sm">
                                 <strong>Подходящие категории:</strong> кино и медиа, политика, макроэкономика, технологии и продукты, долгосрочные спортивные маркеты
                             </p>
@@ -229,7 +229,7 @@ export const AVAValueBettingStrategy: React.FC = () => {
                                 <li>• Документирование логики</li>
                             </ul>
                         </div>
-                        <div className={`mt-3 p-4 rounded-xl border ${theme === 'dark' ? 'bg-rose-500/5 border-rose-500/20' : 'bg-rose-50 border-rose-500/20'}`}>
+                        <div className={`mt-3 p-4 rounded-xl border ${theme === 'dark' ? 'bg-blue-500/5 border-blue-500/20' : 'bg-blue-50 border-blue-500/20'}`}>
                             <p className="text-sm font-bold mb-2">❌ Неправильный подход:</p>
                             <ul className="space-y-1 text-xs text-gray-500">
                                 <li>• «Мне кажется» без расчёта</li>
@@ -303,7 +303,7 @@ export const AVAValueBettingStrategy: React.FC = () => {
                     <div className={`rounded-2xl p-6 border ${theme === 'dark' ? 'bg-[#151a21]/80 border-white/5' : 'bg-white border-gray-100'
                         } shadow-lg space-y-4`}>
                         <div className="flex items-center gap-3">
-                            <TrendingUp className={`w-6 h-6 text-rose-500`} />
+                            <TrendingUp className={`w-6 h-6 text-blue-500`} />
                             <h3 className={`text-lg font-black ${headingColor}`}>Почему работает</h3>
                         </div>
 
@@ -335,31 +335,31 @@ export const AVAValueBettingStrategy: React.FC = () => {
                     </div>
 
                     {/* Red Flags */}
-                    <div className={`rounded-2xl p-6 border ${theme === 'dark' ? 'bg-rose-500/5 border-rose-500/20' : 'bg-rose-50 border-rose-500/20'
+                    <div className={`rounded-2xl p-6 border ${theme === 'dark' ? 'bg-blue-500/5 border-blue-500/20' : 'bg-blue-50 border-blue-500/20'
                         } shadow-lg space-y-4`}>
                         <div className="flex items-center gap-3">
-                            <AlertCircle className={`w-6 h-6 text-rose-500`} />
+                            <AlertCircle className={`w-6 h-6 text-blue-500`} />
                             <h3 className={`text-lg font-black ${headingColor}`}>Красные флаги</h3>
                         </div>
                         <div className={`space-y-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} text-xs`}>
                             <p className="flex items-start gap-2">
-                                <span className="w-1.5 h-1.5 rounded-full bg-rose-500 mt-1.5 shrink-0"></span>
+                                <span className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-1.5 shrink-0"></span>
                                 <span>Не можете объяснить, почему рынок ошибается</span>
                             </p>
                             <p className="flex items-start gap-2">
-                                <span className="w-1.5 h-1.5 rounded-full bg-rose-500 mt-1.5 shrink-0"></span>
+                                <span className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-1.5 shrink-0"></span>
                                 <span>Оценка на одном источнике</span>
                             </p>
                             <p className="flex items-start gap-2">
-                                <span className="w-1.5 h-1.5 rounded-full bg-rose-500 mt-1.5 shrink-0"></span>
+                                <span className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-1.5 shrink-0"></span>
                                 <span>«Мне кажется» вместо расчёта</span>
                             </p>
                             <p className="flex items-start gap-2">
-                                <span className="w-1.5 h-1.5 rounded-full bg-rose-500 mt-1.5 shrink-0"></span>
+                                <span className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-1.5 shrink-0"></span>
                                 <span>Высоколиквидный рынок уже учёл всю информацию</span>
                             </p>
                             <p className="flex items-start gap-2">
-                                <span className="w-1.5 h-1.5 rounded-full bg-rose-500 mt-1.5 shrink-0"></span>
+                                <span className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-1.5 shrink-0"></span>
                                 <span>Путаете веру в исход с математическим преимуществом</span>
                             </p>
                         </div>
@@ -396,8 +396,8 @@ export const AVAValueBettingStrategy: React.FC = () => {
 
             {/* Example Case */}
             <div className={`rounded-3xl p-8 border ${theme === 'dark'
-                    ? 'bg-gradient-to-br from-[#1a212a] to-[#0f1216] border-blue-500/20'
-                    : 'bg-gradient-to-br from-white to-blue-50/30 border-blue-500/10'
+                ? 'bg-gradient-to-br from-[#1a212a] to-[#0f1216] border-blue-500/20'
+                : 'bg-gradient-to-br from-white to-blue-50/30 border-blue-500/10'
                 } shadow-xl`}>
                 <h3 className={`text-xl font-black ${headingColor} mb-4 flex items-center gap-3`}>
                     <Calculator className="w-6 h-6 text-blue-500" />
@@ -411,7 +411,7 @@ export const AVAValueBettingStrategy: React.FC = () => {
                         </p>
                         <p className="text-xs text-gray-500 mt-1">YES торгуется по $0.40 → рыночная вероятность 40%</p>
                     </div>
-                    
+
                     <div>
                         <p className="text-sm font-bold mb-2">🔍 Ваш анализ</p>
                         <ul className="space-y-1 text-xs text-gray-500">
@@ -450,10 +450,10 @@ export const AVAValueBettingStrategy: React.FC = () => {
             </div>
 
             {/* Final Logic Footer */}
-            <div className={`rounded-2xl p-6 border-l-8 ${theme === 'dark' ? 'bg-[#0b1015] border-rose-500/50' : 'bg-gray-50 border-rose-500/30'
+            <div className={`rounded-2xl p-6 border-l-8 ${theme === 'dark' ? 'bg-[#0b1015] border-blue-500/50' : 'bg-gray-50 border-blue-500/30'
                 }`}>
                 <div className="flex gap-4 items-start">
-                    <Target className="w-8 h-8 text-rose-500 shrink-0" />
+                    <Target className="w-8 h-8 text-blue-500 shrink-0" />
                     <div className="space-y-2">
                         <h4 className={`text-lg font-black ${headingColor}`}>Итоговая логика стратегии</h4>
                         <p className={`text-sm leading-relaxed ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
