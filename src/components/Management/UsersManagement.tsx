@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Plus, Edit2, Trash2, User, X, Image, Save, RefreshCw, Eye, EyeOff, Copy, Check } from 'lucide-react'
 import { User as UserType, TEAM_MEMBERS, User as UserInterface } from '@/types'
 import { getAllUsers, addUser, updateUser, deleteUser } from '@/services/firestoreService'
+import { uploadFile } from '@/services/storageService'
 import { useAdminStore } from '@/store/adminStore'
 import { useThemeStore } from '@/store/themeStore'
 import { generateUserCredentials } from '@/utils/userUtils'
@@ -35,11 +36,14 @@ export const UsersManagement: React.FC = () => {
     login: '',
     password: '',
     avatar: '',
+    nickname: '',
   })
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
   const [showPasswords, setShowPasswords] = useState<Record<string, boolean>>({})
   const [copiedId, setCopiedId] = useState<string | null>(null)
   const [generatedCredentials, setGeneratedCredentials] = useState<{ login: string; password: string } | null>(null)
+  const [uploading, setUploading] = useState(false)
+  const fileInputRef = React.useRef<HTMLInputElement>(null)
 
   const loadUsers = async () => {
     try {
@@ -75,16 +79,36 @@ export const UsersManagement: React.FC = () => {
           name: formData.name,
           login: formData.login,
           password: formData.password,
+          nickname: formData.nickname || undefined,
           avatar: formData.avatar || undefined,
         })
         // Clear generated credentials after successful add
         setGeneratedCredentials(null)
       }
+      // Small delay to ensure Firestore has updated and the state is ready
+      await new Promise(resolve => setTimeout(resolve, 800))
       await loadUsers()
       closeForm()
     } catch (error) {
       console.error('Error saving user:', error)
       alert('Ошибка при сохранении пользователя')
+    }
+  }
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    try {
+      setUploading(true)
+      const path = `avatars/${Date.now()}_${file.name}`
+      const { url } = await uploadFile(file, path)
+      setFormData(prev => ({ ...prev, avatar: url }))
+    } catch (error) {
+      console.error('Error uploading file:', error)
+      alert('Ошибка при загрузке изображения')
+    } finally {
+      setUploading(false)
     }
   }
 
@@ -107,6 +131,7 @@ export const UsersManagement: React.FC = () => {
       name: user.name,
       login: user.login,
       password: user.password,
+      nickname: user.nickname || '',
       avatar: user.avatar || '',
     })
     setShowForm(true)
@@ -115,7 +140,7 @@ export const UsersManagement: React.FC = () => {
   const openAddForm = () => {
     setEditingUser(null)
     const credentials = generateUserCredentials('', users)
-    setFormData({ name: '', login: credentials.login, password: credentials.password, avatar: '' })
+    setFormData({ name: '', login: credentials.login, password: credentials.password, nickname: '', avatar: '' })
     setGeneratedCredentials(credentials)
     setShowForm(true)
   }
@@ -123,7 +148,7 @@ export const UsersManagement: React.FC = () => {
   const closeForm = () => {
     setShowForm(false)
     setEditingUser(null)
-    setFormData({ name: '', login: '', password: '', avatar: '' })
+    setFormData({ name: '', login: '', password: '', nickname: '', avatar: '' })
     setGeneratedCredentials(null)
   }
 
@@ -171,11 +196,10 @@ export const UsersManagement: React.FC = () => {
         <h2 className={`text-xl font-bold ${headingColor}`}>Управление участниками</h2>
         <button
           onClick={openAddForm}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-all ${
-            theme === 'dark'
-              ? 'bg-emerald-600 hover:bg-emerald-500 text-white'
-              : 'bg-emerald-500 hover:bg-emerald-600 text-white'
-          }`}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-all ${theme === 'dark'
+            ? 'bg-emerald-600 hover:bg-emerald-500 text-white'
+            : 'bg-emerald-500 hover:bg-emerald-600 text-white'
+            }`}
         >
           <Plus size={18} />
           Добавить участника
@@ -211,9 +235,8 @@ export const UsersManagement: React.FC = () => {
                         {user.avatar ? (
                           <img src={user.avatar} alt="" className="w-8 h-8 rounded-full object-cover" />
                         ) : (
-                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                            theme === 'dark' ? 'bg-gray-700 text-gray-300' : 'bg-gray-200 text-gray-700'
-                          }`}>
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${theme === 'dark' ? 'bg-gray-700 text-gray-300' : 'bg-gray-200 text-gray-700'
+                            }`}>
                             {user.name[0]}
                           </div>
                         )}
@@ -264,9 +287,8 @@ export const UsersManagement: React.FC = () => {
                       <div className="flex items-center justify-end gap-2">
                         <button
                           onClick={() => openEditForm(user)}
-                          className={`p-2 rounded-lg transition-colors ${
-                            theme === 'dark' ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-100 text-gray-600'
-                          }`}
+                          className={`p-2 rounded-lg transition-colors ${theme === 'dark' ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-100 text-gray-600'
+                            }`}
                           title="Редактировать"
                         >
                           <Edit2 size={16} />
@@ -282,9 +304,8 @@ export const UsersManagement: React.FC = () => {
                         ) : (
                           <button
                             onClick={() => setDeleteConfirm(user.id)}
-                            className={`p-2 rounded-lg transition-colors ${
-                              theme === 'dark' ? 'hover:bg-red-500/20 text-red-400' : 'hover:bg-red-100 text-red-600'
-                            }`}
+                            className={`p-2 rounded-lg transition-colors ${theme === 'dark' ? 'hover:bg-red-500/20 text-red-400' : 'hover:bg-red-100 text-red-600'
+                              }`}
                             title="Удалить"
                           >
                             <Trash2 size={16} />
@@ -293,9 +314,8 @@ export const UsersManagement: React.FC = () => {
                         {deleteConfirm === user.id && (
                           <button
                             onClick={() => setDeleteConfirm(null)}
-                            className={`p-2 rounded-lg transition-colors ${
-                              theme === 'dark' ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-100 text-gray-600'
-                            }`}
+                            className={`p-2 rounded-lg transition-colors ${theme === 'dark' ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-100 text-gray-600'
+                              }`}
                             title="Отмена"
                           >
                             <X size={16} />
@@ -335,13 +355,28 @@ export const UsersManagement: React.FC = () => {
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className={`w-full px-4 py-2.5 rounded-xl border outline-none transition-all ${
-                    theme === 'dark'
-                      ? 'bg-[#2a2a2a] border-gray-700 text-white focus:border-emerald-500'
-                      : 'bg-gray-50 border-gray-300 text-gray-900 focus:border-emerald-500'
-                  }`}
+                  className={`w-full px-4 py-2.5 rounded-xl border outline-none transition-all ${theme === 'dark'
+                    ? 'bg-[#2a2a2a] border-gray-700 text-white focus:border-emerald-500'
+                    : 'bg-gray-50 border-gray-300 text-gray-900 focus:border-emerald-500'
+                    }`}
                   placeholder="Введите имя участника"
                   required
+                />
+              </div>
+
+              <div>
+                <label className={`block text-sm font-medium mb-1.5 ${labelColor}`}>
+                  Никнейм (необязательно)
+                </label>
+                <input
+                  type="text"
+                  value={formData.nickname}
+                  onChange={(e) => setFormData({ ...formData, nickname: e.target.value })}
+                  className={`w-full px-4 py-2.5 rounded-xl border outline-none transition-all ${theme === 'dark'
+                      ? 'bg-[#2a2a2a] border-gray-700 text-white focus:border-emerald-500'
+                      : 'bg-gray-50 border-gray-300 text-gray-900 focus:border-emerald-500'
+                    }`}
+                  placeholder="Введите никнейм"
                 />
               </div>
 
@@ -353,9 +388,8 @@ export const UsersManagement: React.FC = () => {
                     <button
                       type="button"
                       onClick={regenerateCredentials}
-                      className={`flex items-center gap-1 text-xs px-2 py-1 rounded-lg transition-colors ${
-                        theme === 'dark' ? 'bg-gray-700 hover:bg-gray-600 text-gray-300' : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
-                      }`}
+                      className={`flex items-center gap-1 text-xs px-2 py-1 rounded-lg transition-colors ${theme === 'dark' ? 'bg-gray-700 hover:bg-gray-600 text-gray-300' : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
+                        }`}
                     >
                       <RefreshCw size={12} />
                       Сгенерировать заново
@@ -373,11 +407,10 @@ export const UsersManagement: React.FC = () => {
                         type="text"
                         value={formData.login}
                         onChange={(e) => setFormData({ ...formData, login: e.target.value })}
-                        className={`w-full px-4 py-2.5 rounded-xl border outline-none transition-all font-mono text-sm ${
-                          theme === 'dark'
-                            ? 'bg-[#2a2a2a] border-gray-700 text-white focus:border-emerald-500'
-                            : 'bg-white border-gray-300 text-gray-900 focus:border-emerald-500'
-                        }`}
+                        className={`w-full px-4 py-2.5 rounded-xl border outline-none transition-all font-mono text-sm ${theme === 'dark'
+                          ? 'bg-[#2a2a2a] border-gray-700 text-white focus:border-emerald-500'
+                          : 'bg-white border-gray-300 text-gray-900 focus:border-emerald-500'
+                          }`}
                         placeholder="login"
                         required
                       />
@@ -393,11 +426,10 @@ export const UsersManagement: React.FC = () => {
                         type={showPasswords['form'] ? 'text' : 'password'}
                         value={formData.password}
                         onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                        className={`w-full px-4 py-2.5 rounded-xl border outline-none transition-all font-mono text-sm ${
-                          theme === 'dark'
-                            ? 'bg-[#2a2a2a] border-gray-700 text-white focus:border-emerald-500'
-                            : 'bg-white border-gray-300 text-gray-900 focus:border-emerald-500'
-                        }`}
+                        className={`w-full px-4 py-2.5 rounded-xl border outline-none transition-all font-mono text-sm ${theme === 'dark'
+                          ? 'bg-[#2a2a2a] border-gray-700 text-white focus:border-emerald-500'
+                          : 'bg-white border-gray-300 text-gray-900 focus:border-emerald-500'
+                          }`}
                         placeholder="••••••••••••"
                         required
                       />
@@ -413,65 +445,81 @@ export const UsersManagement: React.FC = () => {
 
                   {/* Show generated credentials info for new users */}
                   {!editingUser && generatedCredentials && (
-                    <div className={`text-xs p-2 rounded-lg ${
-                      theme === 'dark' ? 'bg-emerald-900/30 text-emerald-400' : 'bg-emerald-50 text-emerald-600'
-                    }`}>
+                    <div className={`text-xs p-2 rounded-lg ${theme === 'dark' ? 'bg-emerald-900/30 text-emerald-400' : 'bg-emerald-50 text-emerald-600'
+                      }`}>
                       Учётные данные сгенерированы автоматически. Скопируйте их перед закрытием формы.
                     </div>
                   )}
                 </div>
               </div>
 
-              <div>
-                <label className={`block text-sm font-medium mb-1.5 ${labelColor}`}>
-                  Фото (URL)
+              <div className="space-y-2">
+                <label className={`block text-sm font-medium ${labelColor}`}>
+                  Фото участника
                 </label>
-                <div className="relative">
-                  <Image size={16} className={`absolute left-3 top-1/2 -translate-y-1/2 ${labelColor}`} />
-                  <input
-                    type="url"
-                    value={formData.avatar}
-                    onChange={(e) => setFormData({ ...formData, avatar: e.target.value })}
-                    className={`w-full pl-10 pr-4 py-2.5 rounded-xl border outline-none transition-all ${
-                      theme === 'dark'
-                        ? 'bg-[#2a2a2a] border-gray-700 text-white focus:border-emerald-500'
-                        : 'bg-gray-50 border-gray-300 text-gray-900 focus:border-emerald-500'
-                    }`}
-                    placeholder="https://example.com/avatar.jpg"
-                  />
-                </div>
-                {formData.avatar && (
-                  <div className="mt-2">
-                    <img
-                      src={formData.avatar}
-                      alt="Preview"
-                      className="w-12 h-12 rounded-full object-cover border-2 border-emerald-500"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).style.display = 'none'
-                      }}
-                    />
+                <div className="flex items-center gap-4">
+                  <div className="relative">
+                    {formData.avatar ? (
+                      <img
+                        src={formData.avatar}
+                        alt="Preview"
+                        className="w-16 h-16 rounded-full object-cover border-2 border-emerald-500"
+                      />
+                    ) : (
+                      <div className={`w-16 h-16 rounded-full flex items-center justify-center border-2 border-dashed ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-gray-50 border-gray-300'
+                        }`}>
+                        <User className={subTextColor} />
+                      </div>
+                    )}
+                    {uploading && (
+                      <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center">
+                        <RefreshCw className="w-6 h-6 text-white animate-spin" />
+                      </div>
+                    )}
                   </div>
-                )}
+                  <div className="flex-1">
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      onChange={handleFileChange}
+                      accept="image/*"
+                      className="hidden"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={uploading}
+                      className={`w-full px-4 py-2 rounded-xl text-sm font-bold transition-all ${theme === 'dark'
+                        ? 'bg-gray-800 hover:bg-gray-700 text-gray-300'
+                        : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                        } border ${borderColor} flex items-center justify-center gap-2`}
+                    >
+                      {uploading ? 'Загрузка...' : formData.avatar ? 'Изменить фото' : 'Загрузить фото'}
+                      {!uploading && <Image size={16} />}
+                    </button>
+                    <p className={`mt-1 text-[10px] ${subTextColor}`}>
+                      Рекомендуется квадратное изображение (JPG, PNG)
+                    </p>
+                  </div>
+                </div>
               </div>
               <div className="flex gap-3 pt-2">
                 <button
                   type="button"
                   onClick={closeForm}
-                  className={`flex-1 px-4 py-2.5 rounded-xl font-medium transition-all ${
-                    theme === 'dark'
-                      ? 'bg-gray-800 hover:bg-gray-700 text-gray-300'
-                      : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
-                  }`}
+                  className={`flex-1 px-4 py-2.5 rounded-xl font-medium transition-all ${theme === 'dark'
+                    ? 'bg-gray-800 hover:bg-gray-700 text-gray-300'
+                    : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                    }`}
                 >
                   Отмена
                 </button>
                 <button
                   type="submit"
-                  className={`flex-1 px-4 py-2.5 rounded-xl font-medium transition-all ${
-                    theme === 'dark'
-                      ? 'bg-emerald-600 hover:bg-emerald-500 text-white'
-                      : 'bg-emerald-500 hover:bg-emerald-600 text-white'
-                  }`}
+                  className={`flex-1 px-4 py-2.5 rounded-xl font-medium transition-all ${theme === 'dark'
+                    ? 'bg-emerald-600 hover:bg-emerald-500 text-white'
+                    : 'bg-emerald-500 hover:bg-emerald-600 text-white'
+                    }`}
                 >
                   {editingUser ? 'Сохранить' : 'Добавить'}
                 </button>
