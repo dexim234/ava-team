@@ -9,7 +9,7 @@ import {
 } from 'lucide-react'
 
 interface StrategyItem {
-    id: string;
+    id: string | null; // Изменено с 'string' на 'string | null'
     name: string;
     icon: React.ReactNode;
     desc?: string;
@@ -18,7 +18,7 @@ interface StrategyItem {
 interface StrategySelectorProps {
     strategies: StrategyItem[];
     activeStrategy: string | null;
-    setActiveStrategy: (id: string | null) => void;
+    setActiveStrategy: (id: string | null) => void; // Изменено на '(id: string | null) => void'
     categoryName: string; // Например, "Фьючерсные стратегии"
     categoryDescription: string; // Описание категории
     categoryIcon: React.ReactNode;

@@ -5,33 +5,18 @@ import { useAdminStore } from '@/store/adminStore'
 import { checkUserAccess } from '@/services/firestoreService'
 import {
     Lightbulb,
-    Wrench,
-    Brain,
     Zap,
     BarChart,
     Timer,
-    Terminal,
-    Monitor,
-    Bot,
-    Bell,
-    Database,
-    Share2,
-    ShieldAlert,
-    Users,
-    ShieldCheck,
-    Activity,
-    TrendingUp,
-    ExternalLink,
-    Lock,
-    Calendar,
-    Layers
+    Layers,
+    Lock
 } from 'lucide-react'
 import { AVALateVolumeStrategy } from './AVALateVolumeStrategy'
 import { AVAIntradayStrategy } from './AVAIntradayStrategy'
 import { AVAFlipStrategy } from './AVAFlipStrategy'
 import { AVAFlipFibaStrategy } from './AVAFlipFibaStrategy'
 import { AVAFibaModeStrategy } from './AVAFibaModeStrategy'
-import { StrategySelector } from './StrategySelector' // Импортируем новый компонент
+import { StrategySelector } from './StrategySelector'
 
 type StrategyId = 'late-volume' | 'intraday' | 'flip' | 'flip-fiba' | 'fiba-mode' | null;
 
@@ -40,7 +25,6 @@ export const MemecoinStrategies: React.FC = () => {
     const { user } = useAuthStore()
     const { isAdmin } = useAdminStore()
     const [activeStrategy, setActiveStrategy] = useState<StrategyId>(null)
-    const [activeToolCategory, setActiveToolCategory] = useState<number | null>(null)
     const [hasStrategiesAccess, setHasStrategiesAccess] = useState(true)
     const [hasToolsAccess, setHasToolsAccess] = useState(true)
     const [loading, setLoading] = useState(true)
@@ -112,7 +96,7 @@ export const MemecoinStrategies: React.FC = () => {
                     <StrategySelector
                         strategies={strategies}
                         activeStrategy={activeStrategy}
-                        setActiveStrategy={setActiveStrategy}
+                        setActiveStrategy={(id) => setActiveStrategy(id as StrategyId)} // Преобразуем id в StrategyId
                         categoryName="Стратегии"
                         categoryDescription="Проверенные методики отбора и управления позициями"
                         categoryIcon={<Lightbulb className="w-6 h-6 text-blue-500" />}

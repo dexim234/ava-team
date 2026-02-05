@@ -1,16 +1,7 @@
 import React, { useState } from 'react'
 import { useThemeStore } from '@/store/themeStore'
 import {
-    BarChart3,
-    Brain,
-    Bot,
-    ExternalLink,
-    Zap,
     TrendingUp,
-    LayoutGrid,
-    Globe,
-    Terminal,
-    ArrowLeft,
     Wrench,
     BookOpen,
     Lightbulb,
@@ -19,7 +10,7 @@ import {
     Sunrise,
     Megaphone,
     Gauge,
-    Clock // Добавлен новый иконка
+    Clock
 } from 'lucide-react'
 import { AVATrendFollowingStrategy } from './AVATrendFollowingStrategy'
 import { AVABreakoutRetestStrategy } from './AVABreakoutRetestStrategy'
@@ -28,7 +19,7 @@ import { AVASessionOpenStrategy } from './AVASessionOpenStrategy'
 import { AVAEventTradingStrategy } from './AVAEventTradingStrategy'
 import { AVAScalpingStrategy } from './AVAScalpingStrategy'
 import { AVAFuturesIntradayStrategy } from './AVAFuturesIntradayStrategy'
-import { StrategySelector } from './StrategySelector' // Импортируем новый компонент
+import { StrategySelector } from './StrategySelector'
 
 type StrategyId = 'trend-following' | 'breakout-retest' | 'mean-reversion' | 'session-open' | 'event-trading' | 'scalping' | 'intraday' | null;
 
@@ -41,125 +32,47 @@ export const FuturesStrategies: React.FC = () => {
 
     const strategies = [
         {
-            id: 'trend-following' as StrategyId,
+            id: 'trend-following',
             name: 'AVA тренд-фолловинг',
             icon: <TrendingUp className="w-4 h-4" />,
             desc: 'Торговля по тренду. Самая базовая логика из тех, что стабильно работают.'
         },
         {
-            id: 'breakout-retest' as StrategyId,
+            id: 'breakout-retest',
             name: 'AVA пробой с возвратом',
             icon: <RefreshCw className="w-4 h-4" />,
             desc: 'Работаем не на сам пробой, а на подтверждение того, что рынок действительно выбрал направление.'
         },
         {
-            id: 'mean-reversion' as StrategyId,
+            id: 'mean-reversion',
             name: 'AVA - Mean Reversion',
             icon: <ArrowDownUp className="w-4 h-4" />,
             desc: 'Контртрендовая работа. Самая коварная и одновременно самая «денежная», если применять её строго по условиям.'
         },
         {
-            id: 'session-open' as StrategyId,
+            id: 'session-open',
             name: 'AVA - Session Open',
             icon: <Sunrise className="w-4 h-4" />,
             desc: 'Торговля первых минут активной фазы рынка, когда в стакан заходят основные объёмы.'
         },
         {
-            id: 'event-trading' as StrategyId,
+            id: 'event-trading',
             name: 'AVA - Event Trading',
             icon: <Megaphone className="w-4 h-4" />,
             desc: 'Это стратегия для особых случаев. Мы её используем только тогда, когда есть крупный катализатор.'
         },
         {
-            id: 'scalping' as StrategyId,
+            id: 'scalping',
             name: 'AVA - Scalping',
             icon: <Gauge className="w-4 h-4" />,
             desc: 'Суть скальпинга — ловить микродвижения на графике 1–5 минут. Мы берём маленькие профиты много раз в течение дня.'
         },
         {
-            id: 'intraday' as StrategyId,
+            id: 'intraday',
             name: 'AVA - Intraday',
             icon: <Clock className="w-4 h-4" />,
-            desc: 'Все сделки открываются и закрываются в течение одного торгового дня, избегая ночных рисков.'
+            desc: 'Все сделки открываются и закрываются в течение одного торгового дня, очищая ночных рисков.'
         },
-    ]
-
-    const categories = [
-        {
-            title: 'Биржи с фьючерсами',
-            description: 'Ведущие платформы для торговли деривативами',
-            icon: <Globe className="w-6 h-6 text-blue-500" />,
-            bgColor: 'bg-blue-500/10',
-            borderColor: 'border-blue-500/20',
-            tools: [
-                {
-                    name: 'Bybit',
-                    url: 'https://bybit.com',
-                    desc: 'Одна из ведущих криптобирж. Низкие комиссии, удобный UI/UX, мощный стакан и маржинальная торговля. Доступна через P2P.',
-                    icon: <LayoutGrid className="w-5 h-5 text-yellow-400" />
-                },
-                {
-                    name: 'MEXC',
-                    url: 'https://www.mexc.com',
-                    desc: 'Биржа с огромным выбором контрактов. Низкие комиссии и отличная ликвидность на редких парах.',
-                    icon: <BarChart3 className="w-5 h-5 text-green-400" />
-                },
-                {
-                    name: 'BingX',
-                    url: 'https://www.bingx.com',
-                    desc: 'Биржа с социальным трейдингом и копитрейдингом. Интегрированные сигналы и ИИ-метрики.',
-                    icon: <Zap className="w-5 h-5 text-blue-400" />
-                }
-            ]
-        },
-        {
-            title: 'Демо-трейдинг и Тесты',
-            description: 'Безопасная практика без реальных рисков',
-            icon: <Terminal className="w-6 h-6 text-emerald-500" />,
-            bgColor: 'bg-emerald-500/10',
-            borderColor: 'border-emerald-500/20',
-            tools: [
-                {
-                    name: 'MEXC Demo Futures',
-                    url: 'https://www.mexc.com', // Direct link to exchange usually implies demo is inside
-                    desc: 'Торговля бессрочными контрактами в учебном режиме с виртуальными средствами.',
-                    icon: <Terminal className="w-5 h-5 text-green-500" />
-                },
-                {
-                    name: 'CryptoRobotics (Demo)',
-                    url: 'https://cryptorobotics.ai',
-                    desc: 'Универсальный терминал с демо-торговлей на Binance, Bybit, Bitget. Бесплатный демо-баланс ~3000 USDT.',
-                    icon: <Bot className="w-5 h-5 text-purple-400" />
-                }
-            ]
-        },
-        {
-            title: 'Аналитика и Данные',
-            description: 'Инструменты для анализа рынка и трендов',
-            icon: <Brain className="w-6 h-6 text-purple-500" />,
-            bgColor: 'bg-purple-500/10',
-            borderColor: 'border-purple-500/20',
-            tools: [
-                {
-                    name: 'CryptoRobotics',
-                    url: 'https://cryptorobotics.ai',
-                    desc: 'Терминал с ИИ-сигналами и ML-алгоритмами. Автоматическая торговля 24/7.',
-                    icon: <Bot className="w-5 h-5 text-purple-500" />
-                },
-                {
-                    name: 'TradingView',
-                    url: 'https://tradingview.com',
-                    desc: 'Мировой стандарт графиков. Подключение к фьючерсам через API, скрипты Pine Script и теханализ.',
-                    icon: <TrendingUp className="w-5 h-5 text-blue-500" />
-                },
-                {
-                    name: 'ForkLog',
-                    url: 'https://forklog.com', // Changed from wikipedia to actual site
-                    desc: 'Аналитическое издание. Новости и исследования для фундаментального понимания трендов.',
-                    icon: <BookOpen className="w-5 h-5 text-orange-400" />
-                }
-            ]
-        }
     ]
 
     return (
@@ -168,7 +81,7 @@ export const FuturesStrategies: React.FC = () => {
             <StrategySelector
                 strategies={strategies}
                 activeStrategy={activeStrategy}
-                setActiveStrategy={setActiveStrategy}
+                setActiveStrategy={(id) => setActiveStrategy(id as StrategyId)} // Преобразуем id в StrategyId
                 categoryName="Стратегии"
                 categoryDescription="Проверенные методики фьючерсной торговли"
                 categoryIcon={<Lightbulb className="w-6 h-6 text-blue-500" />}

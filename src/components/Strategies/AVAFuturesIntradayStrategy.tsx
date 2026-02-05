@@ -1,17 +1,10 @@
 import React, { useState } from 'react'
 import { useThemeStore } from '@/store/themeStore'
 import {
-    BarChart3,
-    Search,
-    LayoutList,
-    TrendingUp,
-    ChevronDown,
-    ChevronUp,
     Clock,
     Zap,
     XCircle,
     HelpCircle,
-    ArrowRightLeft,
     CheckCircle2,
     Target,
     Scale,
@@ -20,10 +13,13 @@ import {
     Hourglass,
     GanttChart,
     CandlestickChart,
-    HandCoins,
+    HandIcon,
     WalletCards,
     Waypoints,
-    Footprints
+    Footprints,
+    ChevronUp,
+    ChevronDown,
+    LayoutList
 } from 'lucide-react'
 
 // Вспомогательный компонент для шагов стратегии
@@ -281,7 +277,7 @@ export const AVAFuturesIntradayStrategy: React.FC = () => {
                     <StrategyStep
                         number={5}
                         title="Где мы выходим из сделки"
-                        icon={<HandCoins className="w-5 h-5" />}
+                        icon={<HandIcon className="w-5 h-5" />}
                         isOpen={openStep === 5}
                         onToggle={() => toggleStep(5)}
                     >

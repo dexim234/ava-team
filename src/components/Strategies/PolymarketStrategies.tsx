@@ -10,7 +10,8 @@ import {
     TrendingUp,
     Wallet,
     ExternalLink,
-    ArrowLeft
+    ArrowLeft,
+    Zap
 } from 'lucide-react'
 import { AVAValueBettingStrategy } from './AVAValueBettingStrategy'
 import { AVAArbitrageStrategy } from './AVAArbitrageStrategy'
@@ -115,7 +116,7 @@ export const PolymarketStrategies: React.FC = () => {
             <StrategySelector
                 strategies={strategies}
                 activeStrategy={activeStrategy}
-                setActiveStrategy={setActiveStrategy}
+                setActiveStrategy={(id) => setActiveStrategy(id as StrategyId)} // Преобразуем id в StrategyId
                 categoryName="Стратегии"
                 categoryDescription="Проверенные методики работы с прогнозными рынками"
                 categoryIcon={<Lightbulb className="w-6 h-6 text-blue-500" />}
