@@ -26,7 +26,7 @@ import { AVANftSnipingStrategy } from './AVANftSnipingStrategy'
 import { AVAMintFlipStrategy } from './AVAMintFlipStrategy'
 import { AVANftNarrativeStrategy } from './AVANftNarrativeStrategy'
 import { AVATwitterSmartAccountChecklist } from './AVATwitterSmartAccountChecklist'
-import { StrategyTabSelector } from './StrategyTabSelector' // Импорт нового компонента
+import { StrategyDropdownSelector } from './StrategyDropdownSelector' // Импорт нового компонента
 
 type StrategyId = 'nft-sniping' | 'nft-mint-flip' | 'nft-narrative' | 'twitter-checklist' | null;
 
@@ -116,11 +116,12 @@ export const NftStrategies: React.FC = () => {
                         </div>
                     </div>
 
-                    {activeStrategy && (
-                        <StrategyTabSelector
+                    {activeStrategy !== undefined && (
+                        <StrategyDropdownSelector
                             strategies={strategies}
                             activeStrategy={activeStrategy}
-                            setActiveStrategy={setActiveStrategy as (id: string | null) => void} // Исправлено здесь
+                            setActiveStrategy={setActiveStrategy as (id: string | null) => void}
+                            placeholder="Выберите стратегию NFT"
                         />
                     )}
                 </div>

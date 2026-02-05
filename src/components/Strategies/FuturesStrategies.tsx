@@ -27,7 +27,7 @@ import { AVASessionOpenStrategy } from './AVASessionOpenStrategy'
 import { AVAEventTradingStrategy } from './AVAEventTradingStrategy'
 import { AVAScalpingStrategy } from './AVAScalpingStrategy'
 import { AVAIntradayFuturesStrategy } from './AVAIntradayFuturesStrategy' // Новый импорт для фьючерсов
-import { StrategyTabSelector } from './StrategyTabSelector' // Импорт нового компонента
+import { StrategyDropdownSelector } from './StrategyDropdownSelector' // Импорт нового компонента
 
 type StrategyId = 'trend-following' | 'breakout-retest' | 'mean-reversion' | 'session-open' | 'event-trading' | 'scalping' | 'intraday-futures' | null; // Добавляем новый тип StrategyId для фьючерсов
 
@@ -179,11 +179,12 @@ export const FuturesStrategies: React.FC = () => {
                     </div>
 
                     {/* Strategy Selector - Visible when strategy is already selected */}
-                    {activeStrategy && (
-                        <StrategyTabSelector
+                    {activeStrategy !== undefined && (
+                        <StrategyDropdownSelector
                             strategies={strategies}
                             activeStrategy={activeStrategy}
-                            setActiveStrategy={setActiveStrategy as (id: string | null) => void} // Исправлено здесь
+                            setActiveStrategy={setActiveStrategy as (id: string | null) => void}
+                            placeholder="Выберите стратегию Futures"
                         />
                     )}
                 </div>

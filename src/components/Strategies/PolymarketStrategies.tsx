@@ -15,7 +15,7 @@ import {
 } from 'lucide-react'
 import { AVAValueBettingStrategy } from './AVAValueBettingStrategy'
 import { AVAArbitrageStrategy } from './AVAArbitrageStrategy'
-import { StrategyTabSelector } from './StrategyTabSelector'
+import { StrategyDropdownSelector } from './StrategyDropdownSelector' // Импорт нового компонента
 
 type StrategyId = 'value-betting' | 'arbitrage' | null;
 
@@ -118,11 +118,12 @@ export const PolymarketStrategies: React.FC = () => {
                     </div>
 
                     {/* Strategy Selector - Visible when strategy is already selected */}
-                    {activeStrategy && (
-                        <StrategyTabSelector
+                    {activeStrategy !== undefined && (
+                        <StrategyDropdownSelector
                             strategies={strategies}
                             activeStrategy={activeStrategy}
-                            setActiveStrategy={setActiveStrategy as (id: string | null) => void} // Исправлено здесь
+                            setActiveStrategy={setActiveStrategy as (id: string | null) => void}
+                            placeholder="Выберите стратегию Polymarket"
                         />
                     )}
                 </div>

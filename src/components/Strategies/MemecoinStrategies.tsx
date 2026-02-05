@@ -33,7 +33,7 @@ import { AVAIntradayStrategy } from './AVAIntradayStrategy'
 import { AVAFlipStrategy } from './AVAFlipStrategy'
 import { AVAFlipFibaStrategy } from './AVAFlipFibaStrategy'
 import { AVAFibaModeStrategy } from './AVAFibaModeStrategy'
-import { StrategyTabSelector } from './StrategyTabSelector' // Импорт нового компонента
+import { StrategyDropdownSelector } from './StrategyDropdownSelector' // Импорт нового компонента
 
 type StrategyId = 'late-volume' | 'intraday' | 'flip' | 'flip-fiba' | 'fiba-mode' | null;
 
@@ -100,11 +100,12 @@ export const MemecoinStrategies: React.FC = () => {
                         </div>
 
                         {/* Strategy Selector - Visible when strategy is already selected */}
-                        {activeStrategy && (
-                            <StrategyTabSelector
+                        {activeStrategy !== undefined && (
+                            <StrategyDropdownSelector
                                 strategies={strategies}
                                 activeStrategy={activeStrategy}
-                                setActiveStrategy={setActiveStrategy as (id: string | null) => void} // Исправлено здесь
+                                setActiveStrategy={setActiveStrategy as (id: string | null) => void}
+                                placeholder="Выберите стратегию Memecoin"
                             />
                         )}
                     </div>
