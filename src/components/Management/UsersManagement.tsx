@@ -37,6 +37,8 @@ export const UsersManagement: React.FC = () => {
     password: '',
     avatar: '',
     nickname: '',
+    phone: '',
+    recoveryCode: '',
   })
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
   const [showPasswords, setShowPasswords] = useState<Record<string, boolean>>({})
@@ -81,6 +83,8 @@ export const UsersManagement: React.FC = () => {
           password: formData.password,
           nickname: formData.nickname || undefined,
           avatar: formData.avatar || undefined,
+          phone: formData.phone || undefined,
+          recoveryCode: formData.recoveryCode || undefined,
         })
         // Clear generated credentials after successful add
         setGeneratedCredentials(null)
@@ -133,6 +137,8 @@ export const UsersManagement: React.FC = () => {
       password: user.password,
       nickname: user.nickname || '',
       avatar: user.avatar || '',
+      phone: user.phone || '',
+      recoveryCode: user.recoveryCode || '',
     })
     setShowForm(true)
   }
@@ -140,7 +146,7 @@ export const UsersManagement: React.FC = () => {
   const openAddForm = () => {
     setEditingUser(null)
     const credentials = generateUserCredentials('', users)
-    setFormData({ name: '', login: credentials.login, password: credentials.password, nickname: '', avatar: '' })
+    setFormData({ name: '', login: credentials.login, password: credentials.password, nickname: '', avatar: '', phone: '', recoveryCode: '' })
     setGeneratedCredentials(credentials)
     setShowForm(true)
   }
@@ -148,7 +154,7 @@ export const UsersManagement: React.FC = () => {
   const closeForm = () => {
     setShowForm(false)
     setEditingUser(null)
-    setFormData({ name: '', login: '', password: '', nickname: '', avatar: '' })
+    setFormData({ name: '', login: '', password: '', nickname: '', avatar: '', phone: '', recoveryCode: '' })
     setGeneratedCredentials(null)
   }
 
@@ -221,9 +227,11 @@ export const UsersManagement: React.FC = () => {
               <thead className={theme === 'dark' ? 'bg-gray-800/50' : 'bg-gray-50'}>
                 <tr>
                   <th className={`px-4 py-3 text-left text-sm font-semibold ${labelColor}`}>Участник</th>
+                  <th className={`px-4 py-3 text-left text-sm font-semibold ${labelColor}`}>Никнейм</th>
+                  <th className={`px-4 py-3 text-left text-sm font-semibold ${labelColor}`}>Телефон</th>
+                  <th className={`px-4 py-3 text-left text-sm font-semibold ${labelColor}`}>Код восст.</th>
                   <th className={`px-4 py-3 text-left text-sm font-semibold ${labelColor}`}>Логин</th>
                   <th className={`px-4 py-3 text-left text-sm font-semibold ${labelColor}`}>Пароль</th>
-                  <th className={`px-4 py-3 text-left text-sm font-semibold ${labelColor}`}>Фото</th>
                   <th className={`px-4 py-3 text-right text-sm font-semibold ${labelColor}`}>Действия</th>
                 </tr>
               </thead>
@@ -242,6 +250,15 @@ export const UsersManagement: React.FC = () => {
                         )}
                         <span className="font-medium">{user.name}</span>
                       </div>
+                    </td>
+                    <td className={`px-4 py-3 ${labelColor}`}>
+                      <span className="text-sm">{user.nickname || '—'}</span>
+                    </td>
+                    <td className={`px-4 py-3 ${labelColor}`}>
+                      <span className="text-sm">{user.phone || '—'}</span>
+                    </td>
+                    <td className={`px-4 py-3 ${labelColor}`}>
+                      <span className="text-sm font-mono text-amber-500/80">{user.recoveryCode || '—'}</span>
                     </td>
                     <td className={`px-4 py-3 ${labelColor}`}>
                       <div className="flex items-center gap-2">
@@ -373,11 +390,44 @@ export const UsersManagement: React.FC = () => {
                   value={formData.nickname}
                   onChange={(e) => setFormData({ ...formData, nickname: e.target.value })}
                   className={`w-full px-4 py-2.5 rounded-xl border outline-none transition-all ${theme === 'dark'
-                      ? 'bg-[#2a2a2a] border-gray-700 text-white focus:border-emerald-500'
-                      : 'bg-gray-50 border-gray-300 text-gray-900 focus:border-emerald-500'
+                    ? 'bg-[#2a2a2a] border-gray-700 text-white focus:border-emerald-500'
+                    : 'bg-gray-50 border-gray-300 text-gray-900 focus:border-emerald-500'
                     }`}
                   placeholder="Введите никнейм"
                 />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className={`block text-sm font-medium mb-1.5 ${labelColor}`}>
+                    Телефон
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    className={`w-full px-4 py-2.5 rounded-xl border outline-none transition-all ${theme === 'dark'
+                      ? 'bg-[#2a2a2a] border-gray-700 text-white focus:border-emerald-500'
+                      : 'bg-gray-50 border-gray-300 text-gray-900 focus:border-emerald-500'
+                      }`}
+                    placeholder="79001234567"
+                  />
+                </div>
+                <div>
+                  <label className={`block text-sm font-medium mb-1.5 ${labelColor}`}>
+                    Код восстановления
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.recoveryCode}
+                    onChange={(e) => setFormData({ ...formData, recoveryCode: e.target.value })}
+                    className={`w-full px-4 py-2.5 rounded-xl border outline-none transition-all ${theme === 'dark'
+                      ? 'bg-[#2a2a2a] border-gray-700 text-white focus:border-emerald-500'
+                      : 'bg-gray-50 border-gray-300 text-gray-900 focus:border-emerald-500'
+                      }`}
+                    placeholder="Код"
+                  />
+                </div>
               </div>
 
               {/* Credentials Section */}
