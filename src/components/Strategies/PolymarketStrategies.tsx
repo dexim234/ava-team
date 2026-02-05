@@ -10,13 +10,13 @@ import {
     Wallet,
     ExternalLink,
     Zap,
-    ArrowLeft
+    ArrowLeft // Добавляем импорт ArrowLeft
 } from 'lucide-react'
 import { AVAValueBettingStrategy } from './AVAValueBettingStrategy'
 import { AVAArbitrageStrategy } from './AVAArbitrageStrategy'
 import { StrategySelector } from './StrategySelector'
 
-type StrategyId = 'value-betting' | 'arbitrage' | null;
+type StrategyId = 'value-betting' | 'arbitrage';
 
 interface Tool {
     name: string
@@ -30,7 +30,7 @@ interface Tool {
 
 export const PolymarketStrategies: React.FC = () => {
     const { theme } = useThemeStore()
-    const [activeStrategy, setActiveStrategy] = useState<StrategyId>(null)
+    const [activeStrategy, setActiveStrategy] = useState<string | null>(null) // Изменено здесь
     const [activeToolCategory, setActiveToolCategory] = useState<number | null>(null)
 
     const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'

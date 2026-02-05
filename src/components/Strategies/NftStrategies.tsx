@@ -18,7 +18,8 @@ import {
     Twitter,
     Target,
     Flame,
-    MessageSquare
+    MessageSquare,
+    ArrowLeft // Добавляем импорт ArrowLeft
 } from 'lucide-react'
 import { AVANftSnipingStrategy } from './AVANftSnipingStrategy'
 import { AVAMintFlipStrategy } from './AVAMintFlipStrategy'
@@ -26,13 +27,13 @@ import { AVANftNarrativeStrategy } from './AVANftNarrativeStrategy'
 import { AVATwitterSmartAccountChecklist } from './AVATwitterSmartAccountChecklist'
 import { StrategySelector } from './StrategySelector'
 
-type StrategyId = 'nft-sniping' | 'nft-mint-flip' | 'nft-narrative' | 'twitter-checklist' | null;
+type StrategyId = 'nft-sniping' | 'nft-mint-flip' | 'nft-narrative' | 'twitter-checklist';
 
 export const NftStrategies: React.FC = () => {
     const { theme } = useThemeStore()
     const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
     const [activeCategory, setActiveCategory] = useState<number | null>(null)
-    const [activeStrategy, setActiveStrategy] = useState<StrategyId>(null)
+    const [activeStrategy, setActiveStrategy] = useState<string | null>(null) // Изменено здесь
 
     const strategies = [
         { id: 'nft-sniping', name: 'AVA снайпинг NFT', icon: <Target className="w-4 h-4" />, desc: 'Покупка NFT ниже текущей рыночной цены (флора) с целью быстрой перепродажи.' },

@@ -34,13 +34,13 @@ import { AVAFlipFibaStrategy } from './AVAFlipFibaStrategy'
 import { AVAFibaModeStrategy } from './AVAFibaModeStrategy'
 import { StrategySelector } from './StrategySelector'
 
-type StrategyId = 'late-volume' | 'intraday' | 'flip' | 'flip-fiba' | 'fiba-mode' | null;
+type StrategyId = 'late-volume' | 'intraday' | 'flip' | 'flip-fiba' | 'fiba-mode';
 
 export const MemecoinStrategies: React.FC = () => {
     const { theme } = useThemeStore()
     const { user } = useAuthStore()
     const { isAdmin } = useAdminStore()
-    const [activeStrategy, setActiveStrategy] = useState<StrategyId>(null)
+    const [activeStrategy, setActiveStrategy] = useState<string | null>(null) // Изменено здесь
     const [activeToolCategory, setActiveToolCategory] = useState<number | null>(null)
     const [hasStrategiesAccess, setHasStrategiesAccess] = useState(true)
     const [hasToolsAccess, setHasToolsAccess] = useState(true)
@@ -295,12 +295,6 @@ export const MemecoinStrategies: React.FC = () => {
                             </div>
                         )}
                     </div>
-                </section>
-            ) : (
-                <section className={`p-8 rounded-3xl border text-center space-y-4 ${theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'}`}>
-                    <Lock className="w-12 h-12 text-gray-500 mx-auto" />
-                    <h3 className={`text-lg font-bold ${headingColor}`}>Список инструментов скрыт</h3>
-                    <p className="text-sm text-gray-500">Доступ ограничен администратором.</p>
                 </section>
             )}
 

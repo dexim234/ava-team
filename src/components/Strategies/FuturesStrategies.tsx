@@ -17,10 +17,10 @@ import { AVAScalpingStrategy } from './AVAScalpingStrategy'
 import { AVAIntradayFuturesStrategy } from './AVAIntradayFuturesStrategy'
 import { StrategySelector } from './StrategySelector'
 
-type StrategyId = 'trend-following' | 'breakout-retest' | 'mean-reversion' | 'session-open' | 'event-trading' | 'scalping' | 'intraday-futures' | null;
+type StrategyId = 'trend-following' | 'breakout-retest' | 'mean-reversion' | 'session-open' | 'event-trading' | 'scalping' | 'intraday-futures';
 
 export const FuturesStrategies: React.FC = () => {
-    const [activeStrategy, setActiveStrategy] = useState<StrategyId>(null)
+    const [activeStrategy, setActiveStrategy] = useState<string | null>(null)
 
     const strategies = [
         {
