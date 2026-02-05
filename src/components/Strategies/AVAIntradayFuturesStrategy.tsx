@@ -1,6 +1,6 @@
 import React from 'react';
 import { useThemeStore } from '@/store/themeStore';
-import { Bot, Zap, TrendingUp, RefreshCw, BarChart, X, Check } from 'lucide-react';
+import { Check } from 'lucide-react';
 
 export const AVAIntradayFuturesStrategy: React.FC = () => {
     const { theme } = useThemeStore();
@@ -45,7 +45,7 @@ export const AVAIntradayFuturesStrategy: React.FC = () => {
                         <ul className="list-disc list-inside mt-2 space-y-1">
                             <li>дождаться формирования понятной рыночной ситуации;</li>
                             <li>войти в сделку с ограниченным риском;</li>
-                            <li>выйти по заранее определённому плану.</li>
+                            <li>выйти по заранее определённому плану;</li>
                         </ul>
                     </p>
                 </div>
