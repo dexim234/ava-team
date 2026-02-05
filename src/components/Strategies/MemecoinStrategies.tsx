@@ -33,6 +33,7 @@ import { AVAIntradayStrategy } from './AVAIntradayStrategy'
 import { AVAFlipStrategy } from './AVAFlipStrategy'
 import { AVAFlipFibaStrategy } from './AVAFlipFibaStrategy'
 import { AVAFibaModeStrategy } from './AVAFibaModeStrategy'
+import { StrategySelector } from './StrategySelector'
 
 type StrategyId = 'late-volume' | 'intraday' | 'flip' | 'flip-fiba' | 'fiba-mode' | null;
 
@@ -69,11 +70,11 @@ export const MemecoinStrategies: React.FC = () => {
     }, [user, isAdmin])
 
     const strategies = [
-        { id: 'late-volume', name: 'AVA Late Volume', icon: <BarChart className="w-4 h-4" /> },
-        { id: 'intraday', name: 'AVA Intraday', icon: <Zap className="w-4 h-4" /> },
-        { id: 'flip', name: 'AVA FLIP-1S', icon: <Timer className="w-4 h-4" /> },
-        { id: 'flip-fiba', name: 'AVA FLIP + FIBA', icon: <Zap className="w-4 h-4" /> },
-        { id: 'fiba-mode', name: 'AVA - FIBA MODE', icon: <Layers className="w-4 h-4" /> },
+        { id: 'late-volume', name: 'AVA Late Volume', icon: <BarChart className="w-4 h-4" />, desc: 'Работа с аномальными объемами на поздних стадиях.' },
+        { id: 'intraday', name: 'AVA Intraday', icon: <Zap className="w-4 h-4" />, desc: 'Внутридневная торговля на основе технического анализа.' },
+        { id: 'flip', name: 'AVA FLIP-1S', icon: <Timer className="w-4 h-4" />, desc: 'Скоростная торговля на изменениях цены в 1 секунду.' },
+        { id: 'flip-fiba', name: 'AVA FLIP + FIBA', icon: <Zap className="w-4 h-4" />, desc: 'Интрадей-флип токенов Solana pre-migration.' },
+        { id: 'fiba-mode', name: 'AVA - FIBA MODE', icon: <Layers className="w-4 h-4" />, desc: 'Торговля фибо-уровнями.'},
     ]
 
     if (loading) {
@@ -84,98 +85,19 @@ export const MemecoinStrategies: React.FC = () => {
         <div className="space-y-16 pb-20">
             {/* 2. Strategies Block */}
             {hasStrategiesAccess ? (
-                <section className="space-y-6">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                        <div className="flex items-center gap-3">
-                            <div className="p-2 bg-blue-500/10 rounded-xl border border-blue-500/20">
-                                <Lightbulb className="w-6 h-6 text-blue-500" />
-                            </div>
-                            <div>
-                                <h3 className={`text-xl font-black ${headingColor}`}>Стратегии</h3>
-                                <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                                    Проверенные методики отбора и управления позициями
-                                </p>
-                            </div>
-                        </div>
-
-                        {/* Strategy Selector - Visible when strategy is already selected */}
-                        {activeStrategy && (
-                            <div className={`flex p-1 rounded-xl w-fit ${theme === 'dark' ? 'bg-white/5 border border-white/5' : 'bg-gray-100'}`}>
-                                {strategies.map(s => (
-                                    <button
-                                        key={s.id}
-                                        onClick={() => setActiveStrategy(s.id as StrategyId)}
-                                        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all duration-300 ${activeStrategy === s.id
-                                            ? 'bg-blue-500 text-white shadow-md'
-                                            : 'text-gray-500 hover:text-gray-400'
-                                            }`}
-                                    >
-                                        {s.icon}
-                                        {s.name}
-                                    </button>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-
-                    {!activeStrategy ? (
-                        /* Selection Grid */
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                            {strategies.map((s) => (
-                                <button
-                                    key={s.id}
-                                    onClick={() => setActiveStrategy(s.id as StrategyId)}
-                                    className={`group p-8 rounded-[2.5rem] border text-left transition-all duration-500 hover:-translate-y-2 ${theme === 'dark'
-                                        ? 'bg-white/5 border-white/5 hover:border-blue-500/30 hover:bg-blue-500/5'
-                                        : 'bg-white border-gray-100 hover:border-blue-500/20 hover:shadow-2xl hover:shadow-blue-500/10'
-                                        }`}
-                                >
-                                    <div className={`p-4 rounded-2xl w-fit mb-6 transition-transform duration-500 group-hover:scale-110 ${theme === 'dark' ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-50 text-blue-500'
-                                        }`}>
-                                        {React.cloneElement(s.icon as React.ReactElement, { className: 'w-8 h-8' })}
-                                    </div>
-                                    <h4 className={`text-xl font-black mb-2 ${headingColor}`}>{s.name}</h4>
-                                    <p className={`text-sm leading-relaxed ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                                        {s.id === 'late-volume' ? 'Работа с аномальными объемами на поздних стадиях.' :
-                                            s.id === 'intraday' ? 'Внутридневная торговля на основе технического анализа.' :
-                                                s.id === 'flip' ? 'Скоростная торговля на изменениях цены в 1 секунду.' :
-                                                    'Интрадей-флип токенов Solana pre-migration.'}
-                                    </p>
-                                    <div className="mt-6 flex items-center gap-2 text-blue-500 font-bold text-xs uppercase tracking-wider">
-                                        Подробнее <ExternalLink className="w-3 h-3" />
-                                    </div>
-                                </button>
-                            ))}
-                        </div>
-                    ) : (
-                        /* Active Strategy View */
-                        <div className={`rounded-3xl border p-1 sm:p-2 ${theme === 'dark' ? 'bg-[#0b1015]/50 border-white/5' : 'bg-white border-gray-100'
-                            } shadow-xl animate-scale-up`}>
-                            <div className={`p-6 sm:p-8 rounded-[2.5rem] ${theme === 'dark' ? 'bg-[#151a21]/50' : 'bg-gray-50/50'
-                                }`}>
-                                <div className="mb-6 flex items-center justify-between">
-                                    <button
-                                        onClick={() => setActiveStrategy(null)}
-                                        className="text-xs font-bold text-gray-500 hover:text-blue-500 transition-colors flex items-center gap-1"
-                                    >
-                                        ← К списку стратегий
-                                    </button>
-                                </div>
-                                {activeStrategy === 'late-volume' ? (
-                                    <AVALateVolumeStrategy />
-                                ) : activeStrategy === 'intraday' ? (
-                                    <AVAIntradayStrategy />
-                                ) : activeStrategy === 'flip' ? (
-                                    <AVAFlipStrategy />
-                                ) : activeStrategy === 'flip-fiba' ? (
-                                    <AVAFlipFibaStrategy />
-                                ) : (
-                                    <AVAFibaModeStrategy />
-                                )}
-                            </div>
-                        </div>
-                    )}
-                </section>
+                <StrategySelector
+                    strategies={strategies}
+                    activeStrategy={activeStrategy}
+                    setActiveStrategy={setActiveStrategy}
+                    title="Мемкоин стратегии"
+                    description="Оптимизированные стратегии для работы с высокорисковыми и высокодоходными мемкоинами."
+                >
+                    {activeStrategy === 'late-volume' && <AVALateVolumeStrategy />}
+                    {activeStrategy === 'intraday' && <AVAIntradayStrategy />}
+                    {activeStrategy === 'flip' && <AVAFlipStrategy />}
+                    {activeStrategy === 'flip-fiba' && <AVAFlipFibaStrategy />}
+                    {activeStrategy === 'fiba-mode' && <AVAFibaModeStrategy />}
+                </StrategySelector>
             ) : (
                 <section className={`p-8 rounded-3xl border text-center space-y-4 ${theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'}`}>
                     <Lock className="w-12 h-12 text-gray-500 mx-auto" />
@@ -355,7 +277,7 @@ export const MemecoinStrategies: React.FC = () => {
                                                             <ExternalLink className={`w-4 h-4 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} />
                                                         </div>
 
-                                                        <div className={`p-2.5 rounded-xl w-fit mb-4 ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'
+                                                        <div className={`p-2.5 rounded-xl w-fit mb-4 ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'}
                                                             } group-hover:scale-110 transition-transform`}>
                                                             {tool.icon}
                                                         </div>

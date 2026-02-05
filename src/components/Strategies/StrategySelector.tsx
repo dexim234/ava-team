@@ -1,184 +1,70 @@
-import React, { useState } from 'react'
-import { useThemeStore } from '@/store/themeStore'
-import {
-    ChevronDown,
-    ChevronUp,
-    X
-} from 'lucide-react'
+import React from 'react';
+import { useThemeStore } from '@/store/themeStore';
+import { ArrowLeft } from 'lucide-react';
 
-interface StrategyItem {
-    id: string | null;
+interface Strategy {
+    id: string;
     name: string;
     icon: React.ReactNode;
-    desc?: string;
+    desc: string;
 }
 
 interface StrategySelectorProps {
-    strategies: StrategyItem[];
+    strategies: Strategy[];
     activeStrategy: string | null;
     setActiveStrategy: (id: string | null) => void;
-    categoryName: string;
-    categoryDescription: string;
-    categoryIcon: React.ReactNode;
+    children: React.ReactNode;
+    title: string;
+    description: string;
 }
 
-export const StrategySelector: React.FC<StrategySelectorProps> = (
-    { strategies, activeStrategy, setActiveStrategy, categoryName, categoryDescription, categoryIcon }
-) => {
-    const { theme } = useThemeStore()
-    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-
-    const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
-
-    const currentStrategy = strategies.find(s => s.id === activeStrategy);
+export const StrategySelector: React.FC<StrategySelectorProps> = ({ strategies, activeStrategy, setActiveStrategy, children, title, description }) => {
+    const { theme } = useThemeStore();
+    const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900';
+    const subTextColor = theme === 'dark' ? 'text-gray-400' : 'text-gray-500';
+    const cardBg = theme === 'dark' ? 'bg-[#1a212a]/50' : 'bg-white';
+    const cardBorder = theme === 'dark' ? 'border-white/5' : 'border-gray-100';
+    const innerBg = theme === 'dark' ? 'bg-[#151a21]/50' : 'bg-gray-50/50';
 
     return (
-        <section className="space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
-                    <div className="p-2 bg-blue-500/10 rounded-xl border border-blue-500/20">
-                        {categoryIcon}
-                    </div>
-                    <div>
-                        <h3 className={`text-xl font-black ${headingColor}`}>{categoryName}</h3>
-                        <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                            {categoryDescription}
-                        </p>
-                    </div>
-                </div>
-
-                {/* Strategy Selector for PC when a strategy is active */}
-                {activeStrategy && (
-                    <div className="hidden sm:flex w-full overflow-x-auto pb-2 justify-end" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-                        <style>{`
-                            .overflow-x-auto::-webkit-scrollbar {
-                                display: none;
-                            }
-                        `}</style>
-                        <div className={`flex items-center gap-2 p-1.5 rounded-xl border ${theme === 'dark' ? 'bg-[#151a21] border-white/5' : 'bg-gray-50 border-gray-200'}`}>
-                            {strategies.map((s) => (
-                                <button
-                                    key={s.id}
-                                    onClick={() => setActiveStrategy(s.id)}
-                                    className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-bold transition-all ${activeStrategy === s.id
-                                        ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/20'
-                                        : 'text-gray-400 hover:text-gray-200'
-                                        }`}
-                                >
-                                    {s.icon}
-                                    <span>{s.name}</span>
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-                )}
-            </div>
-
-            {/* Mobile Selector for strategies */}
-            <div className="relative sm:hidden">
-                <button
-                    onClick={() => setIsMobileMenuOpen(true)}
-                    className={`w-full flex items-center justify-between p-4 rounded-2xl border transition-all active:scale-[0.98] ${theme === 'dark'
-                        ? 'bg-white/5 border-white/10 text-white active:bg-white/10'
-                        : 'bg-white border-gray-200 text-gray-900 active:bg-gray-50'
-                        } shadow-xl backdrop-blur-xl relative overflow-hidden group`}
-                >
-                    <div className="flex items-center gap-3">
-                        <div className="p-2 rounded-xl bg-blue-500/10 text-blue-500">
-                            {currentStrategy ? currentStrategy.icon : categoryIcon}
-                        </div>
-                        <div className="text-left">
-                            <p className="text-[10px] uppercase tracking-widest font-bold text-blue-500/60 leading-none mb-1">
-                                {activeStrategy ? 'Выбранная Стратегия' : 'Выберите Стратегию'}
-                            </p>
-                            <span className="font-black text-lg">
-                                {currentStrategy ? currentStrategy.name : categoryName}
-                            </span>
-                        </div>
-                    </div>
-                    <div className={`p-2 rounded-xl ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'}`}>
-                        {isMobileMenuOpen ? <ChevronUp className="w-5 h-5 text-blue-500" /> : <ChevronDown className="w-5 h-5 text-blue-500" />}
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
+            {!activeStrategy ? (
+                <section>
+                    <div className="mb-6">
+                        <h1 className={`text-2xl sm:text-3xl font-bold ${headingColor}`}>{title}</h1>
+                        <p className={`text-sm ${subTextColor}`}>{description}</p>
                     </div>
 
-                    {/* Animated background glow */}
-                    <div className="absolute inset-0 bg-gradient-to-r from-blue-500/0 via-blue-500/5 to-blue-500/0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-                </button>
-
-                {/* Mobile Drawer Overlay */}
-                {isMobileMenuOpen && (
-                    <div className="fixed inset-0 z-[100] flex items-end sm:hidden ">
-                        <div
-                            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-                            onClick={() => setIsMobileMenuOpen(false)}
-                        />
-                        <div className={`w-full relative z-10 p-6 rounded-t-[2.5rem] border-t ${theme === 'dark' ? 'bg-[#0b1015] border-white/10' : 'bg-white border-gray-100'
-                            } shadow-2xl animate-in slide-in-from-bottom duration-300`}>
-                            <div className="flex items-center justify-between mb-8">
-                                <h3 className={`text-xl font-black ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Выберите Стратегию</h3>
-                                <button
-                                    onClick={() => setIsMobileMenuOpen(false)}
-                                    className={`p-2 rounded-full ${theme === 'dark' ? 'bg-white/5 text-gray-400' : 'bg-gray-100 text-gray-500'}`}
-                                >
-                                    <X className="w-5 h-5" />
-                                </button>
-                            </div>
-
-                            <div className="grid grid-cols-1 gap-3">
-                                {strategies.map((s) => (
-                                    <button
-                                        key={s.id}
-                                        onClick={() => {
-                                            setActiveStrategy(s.id)
-                                            setIsMobileMenuOpen(false)
-                                        }}
-                                        className={`flex items-center gap-4 p-4 rounded-[1.5rem] transition-all relative overflow-hidden ${activeStrategy === s.id
-                                            ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/25 scale-[1.02]'
-                                            : theme === 'dark' ? 'bg-white/5 text-gray-400 hover:bg-white/10' : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
-                                            }`}
-                                    >
-                                        <div className={`p-2.5 rounded-xl ${activeStrategy === s.id ? 'bg-white/20' : theme === 'dark' ? 'bg-white/5' : 'bg-white'}`}>
-                                            {s.icon}
-                                        </div>
-                                        <span className="font-bold text-base">{s.name}</span>
-                                        {activeStrategy === s.id && (
-                                            <div className="ml-auto w-2 h-2 rounded-full bg-white animate-pulse" />
-                                        )}
-                                    </button>
-                                ))}
-                            </div>
-                            <div className="h-8" /> {/* Safe area spacer */}
-                        </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                        {strategies.map((strategy) => (
+                            <button
+                                key={strategy.id}
+                                onClick={() => setActiveStrategy(strategy.id)}
+                                className={`relative flex flex-col items-start p-6 rounded-3xl border w-full text-left transition-all hover:shadow-lg ${cardBg} ${cardBorder}
+                                    ${theme === 'dark' ? 'hover:border-blue-500/50' : 'hover:border-blue-500/20'}
+                                `}
+                            >
+                                <div className={`p-3 rounded-xl ${theme === 'dark' ? 'bg-blue-500/10' : 'bg-blue-500/5'}`}>
+                                    {strategy.icon}
+                                </div>
+                                <h3 className={`mt-4 text-lg font-bold ${headingColor}`}>{strategy.name}</h3>
+                                <p className={`mt-2 text-sm ${subTextColor}`}>{strategy.desc}</p>
+                            </button>
+                        ))}
                     </div>
-                )}
-            </div>
-
-            {/* Selection Grid for PC when no strategy is active */}
-            {!activeStrategy && (
-                <div className="hidden sm:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    {strategies.map((s) => (
-                        <button
-                            key={s.id}
-                            onClick={() => setActiveStrategy(s.id)}
-                            className={`group p-8 rounded-[2.5rem] border text-left transition-all duration-500 hover:-translate-y-2 ${theme === 'dark'
-                                ? 'bg-white/5 border-white/5 hover:border-blue-500/30 hover:bg-blue-500/5'
-                                : 'bg-white border-gray-100 hover:border-blue-500/20 hover:shadow-2xl hover:shadow-blue-500/10'
-                                }`}
-                        >
-                            <div className={`p-4 rounded-2xl w-fit mb-6 transition-transform duration-500 group-hover:scale-110 ${theme === 'dark' ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-50 text-blue-500'
-                                }`}>
-                                {React.cloneElement(s.icon as React.ReactElement, { className: 'w-8 h-8' })}
-                            </div>
-                            <h4 className={`text-xl font-black mb-2 ${headingColor}`}>{s.name}</h4>
-                            <p className={`text-sm leading-relaxed ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                                {s.desc}
-                            </p>
-                            <div className="mt-6 flex items-center gap-2 text-blue-500 font-bold text-xs uppercase tracking-wider">
-                                Подробнее
-                            </div>
-                        </button>
-                    ))}
-                </div>
+                </section>
+            ) : (
+                <section>
+                    <button
+                        onClick={() => setActiveStrategy(null)}
+                        className={`mb-6 px-4 py-2 rounded-xl text-sm font-semibold transition-all flex items-center gap-2 border ${theme === 'dark' ? 'bg-white/5 border-white/10 text-white' : 'bg-gray-100 border-gray-200 text-gray-900'}`}
+                    >
+                        <ArrowLeft className="w-4 h-4" />
+                        <span>Назад к списку</span>
+                    </button>
+                    {children}
+                </section>
             )}
-        </section>
+        </div>
     );
-}
+};
