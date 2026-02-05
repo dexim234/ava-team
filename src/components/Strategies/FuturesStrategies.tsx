@@ -26,8 +26,9 @@ import { AVAMeanReversionStrategy } from './AVAMeanReversionStrategy'
 import { AVASessionOpenStrategy } from './AVASessionOpenStrategy'
 import { AVAEventTradingStrategy } from './AVAEventTradingStrategy'
 import { AVAScalpingStrategy } from './AVAScalpingStrategy'
+import { AVAIntradayFuturesStrategy } from './AVAIntradayFuturesStrategy' // Новый импорт для фьючерсов
 
-type StrategyId = 'trend-following' | 'breakout-retest' | 'mean-reversion' | 'session-open' | 'event-trading' | 'scalping' | null; // Добавляем новый тип StrategyId
+type StrategyId = 'trend-following' | 'breakout-retest' | 'mean-reversion' | 'session-open' | 'event-trading' | 'scalping' | 'intraday-futures' | null; // Добавляем новый тип StrategyId для фьючерсов
 
 export const FuturesStrategies: React.FC = () => {
     const { theme } = useThemeStore()
@@ -68,10 +69,16 @@ export const FuturesStrategies: React.FC = () => {
             desc: 'Это стратегия для особых случаев. Мы её используем только тогда, когда есть крупный катализатор.'
         },
         {
-            id: 'scalping' as StrategyId, // Добавляем новую стратегию
+            id: 'scalping' as StrategyId,
             name: 'AVA - Scalping',
             icon: <Gauge className="w-4 h-4" />,
             desc: 'Суть скальпинга — ловить микродвижения на графике 1–5 минут. Мы берём маленькие профиты много раз в течение дня.'
+        },
+        {
+            id: 'intraday-futures' as StrategyId,
+            name: 'AVA - Intraday (Futures)',
+            icon: <Zap className="w-4 h-4" />,
+            desc: 'Торговля внутри дня. Все сделки открываются и закрываются в течение одной сессии, чтобы избежать ночных рисков.'
         },
     ]
 
@@ -235,6 +242,7 @@ export const FuturesStrategies: React.FC = () => {
                             {activeStrategy === 'session-open' && <AVASessionOpenStrategy />}
                             {activeStrategy === 'event-trading' && <AVAEventTradingStrategy />}
                             {activeStrategy === 'scalping' && <AVAScalpingStrategy />} {/* Добавляем рендеринг новой стратегии */}
+                            {activeStrategy === 'intraday-futures' && <AVAIntradayFuturesStrategy />} {/* Добавляем рендеринг новой стратегии для фьючерсов */}
                         </div>
                     </div>
                 )}
