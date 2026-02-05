@@ -302,6 +302,12 @@ export const MemecoinStrategies: React.FC = () => {
                         )}
                     </div>
                 </section>
+            ) : (
+                <section className={`p-8 rounded-3xl border text-center space-y-4 ${theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'}`}>
+                    <Lock className="w-12 h-12 text-gray-500 mx-auto" />
+                    <h3 className={`text-lg font-bold ${headingColor}`}>Доступ к инструментам заблокирован</h3>
+                    <p className="text-sm text-gray-500">Свяжитесь с администратором для получения доступа.</p>
+                </section>
             )}
 
         </div>
