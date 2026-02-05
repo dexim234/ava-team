@@ -18,7 +18,8 @@ import {
     ArrowDownUp,
     Sunrise,
     Megaphone,
-    Gauge // Добавлен новый иконка
+    Gauge,
+    Clock // Добавлен новый иконка
 } from 'lucide-react'
 import { AVATrendFollowingStrategy } from './AVATrendFollowingStrategy'
 import { AVABreakoutRetestStrategy } from './AVABreakoutRetestStrategy'
@@ -26,8 +27,10 @@ import { AVAMeanReversionStrategy } from './AVAMeanReversionStrategy'
 import { AVASessionOpenStrategy } from './AVASessionOpenStrategy'
 import { AVAEventTradingStrategy } from './AVAEventTradingStrategy'
 import { AVAScalpingStrategy } from './AVAScalpingStrategy'
+import { AVAFuturesIntradayStrategy } from './AVAFuturesIntradayStrategy'
+import { StrategySelector } from './StrategySelector' // Импортируем новый компонент
 
-type StrategyId = 'trend-following' | 'breakout-retest' | 'mean-reversion' | 'session-open' | 'event-trading' | 'scalping' | null; // Добавляем новый тип StrategyId
+type StrategyId = 'trend-following' | 'breakout-retest' | 'mean-reversion' | 'session-open' | 'event-trading' | 'scalping' | 'intraday' | null;
 
 export const FuturesStrategies: React.FC = () => {
     const { theme } = useThemeStore()
@@ -68,10 +71,16 @@ export const FuturesStrategies: React.FC = () => {
             desc: 'Это стратегия для особых случаев. Мы её используем только тогда, когда есть крупный катализатор.'
         },
         {
-            id: 'scalping' as StrategyId, // Добавляем новую стратегию
+            id: 'scalping' as StrategyId,
             name: 'AVA - Scalping',
             icon: <Gauge className="w-4 h-4" />,
             desc: 'Суть скальпинга — ловить микродвижения на графике 1–5 минут. Мы берём маленькие профиты много раз в течение дня.'
+        },
+        {
+            id: 'intraday' as StrategyId,
+            name: 'AVA - Intraday',
+            icon: <Clock className="w-4 h-4" />,
+            desc: 'Все сделки открываются и закрываются в течение одного торгового дня, избегая ночных рисков.'
         },
     ]
 
@@ -156,89 +165,37 @@ export const FuturesStrategies: React.FC = () => {
     return (
         <div className="space-y-16 pb-20">
             {/* Strategies Block */}
-            <section className="space-y-6">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <div className="flex items-center gap-3">
-                        <div className="p-2 bg-blue-500/10 rounded-xl border border-blue-500/20">
-                            <Lightbulb className="w-6 h-6 text-blue-500" />
-                        </div>
-                        <div>
-                            <h3 className={`text-xl font-black ${headingColor}`}>Стратегии</h3>
-                            <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                                Проверенные методики фьючерсной торговли
-                            </p>
-                        </div>
-                    </div>
+            <StrategySelector
+                strategies={strategies}
+                activeStrategy={activeStrategy}
+                setActiveStrategy={setActiveStrategy}
+                categoryName="Стратегии"
+                categoryDescription="Проверенные методики фьючерсной торговли"
+                categoryIcon={<Lightbulb className="w-6 h-6 text-blue-500" />}
+            />
 
-                    {/* Strategy Selector - Visible when strategy is already selected */}
-                    {activeStrategy && (
-                        <div className={`flex p-1 rounded-xl w-fit ${theme === 'dark' ? 'bg-white/5 border border-white/5' : 'bg-gray-100'}`}>
-                            {strategies.map(s => (
-                                <button
-                                    key={s.id}
-                                    onClick={() => setActiveStrategy(s.id as StrategyId)}
-                                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all duration-300 ${activeStrategy === s.id
-                                        ? 'bg-blue-500 text-white shadow-md'
-                                        : 'text-gray-500 hover:text-gray-400'
-                                        }`}
-                                >
-                                    {s.icon}
-                                    {s.name}
-                                </button>
-                            ))}
-                        </div>
-                    )}
-                </div>
-
-                {!activeStrategy ? (
-                    /* Selection Grid */
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                        {strategies.map((s) => (
+            {activeStrategy && (
+                <div className={`rounded-3xl border p-1 sm:p-2 ${theme === 'dark' ? 'bg-[#0b1015]/50 border-white/5' : 'bg-white border-gray-100'
+                    } shadow-xl animate-scale-up`}>
+                    <div className={`p-6 sm:p-8 rounded-[2.5rem] ${innerBg}`}>
+                        <div className="mb-6 flex items-center justify-between">
                             <button
-                                key={s.id}
-                                onClick={() => setActiveStrategy(s.id as StrategyId)}
-                                className={`group p-8 rounded-[2.5rem] border text-left transition-all duration-500 hover:-translate-y-2 ${theme === 'dark'
-                                    ? 'bg-white/5 border-white/5 hover:border-blue-500/30 hover:bg-blue-500/5'
-                                    : 'bg-white border-gray-100 hover:border-blue-500/20 hover:shadow-2xl hover:shadow-blue-500/10'
-                                    }`}
+                                onClick={() => setActiveStrategy(null)}
+                                className="text-xs font-bold text-gray-500 hover:text-blue-500 transition-colors flex items-center gap-1"
                             >
-                                <div className={`p-4 rounded-2xl w-fit mb-6 transition-transform duration-500 group-hover:scale-110 ${theme === 'dark' ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-50 text-blue-500'
-                                    }`}>
-                                    {React.cloneElement(s.icon as React.ReactElement, { className: 'w-8 h-8' })}
-                                </div>
-                                <h4 className={`text-xl font-black mb-2 ${headingColor}`}>{s.name}</h4>
-                                <p className={`text-sm leading-relaxed ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                                    {s.desc}
-                                </p>
-                                <div className="mt-6 flex items-center gap-2 text-blue-500 font-bold text-xs uppercase tracking-wider">
-                                    Подробнее <ExternalLink className="w-3 h-3" />
-                                </div>
+                                ← К списку стратегий
                             </button>
-                        ))}
-                    </div>
-                ) : (
-                    /* Active Strategy View */
-                    <div className={`rounded-3xl border p-1 sm:p-2 ${theme === 'dark' ? 'bg-[#0b1015]/50 border-white/5' : 'bg-white border-gray-100'
-                        } shadow-xl animate-scale-up`}>
-                        <div className={`p-6 sm:p-8 rounded-[2.5rem] ${innerBg}`}>
-                            <div className="mb-6 flex items-center justify-between">
-                                <button
-                                    onClick={() => setActiveStrategy(null)}
-                                    className="text-xs font-bold text-gray-500 hover:text-blue-500 transition-colors flex items-center gap-1"
-                                >
-                                    ← К списку стратегий
-                                </button>
-                            </div>
-                            {activeStrategy === 'trend-following' && <AVATrendFollowingStrategy />}
-                            {activeStrategy === 'breakout-retest' && <AVABreakoutRetestStrategy />}
-                            {activeStrategy === 'mean-reversion' && <AVAMeanReversionStrategy />}
-                            {activeStrategy === 'session-open' && <AVASessionOpenStrategy />}
-                            {activeStrategy === 'event-trading' && <AVAEventTradingStrategy />}
-                            {activeStrategy === 'scalping' && <AVAScalpingStrategy />} {/* Добавляем рендеринг новой стратегии */}
                         </div>
+                        {activeStrategy === 'trend-following' && <AVATrendFollowingStrategy />}
+                        {activeStrategy === 'breakout-retest' && <AVABreakoutRetestStrategy />}
+                        {activeStrategy === 'mean-reversion' && <AVAMeanReversionStrategy />}
+                        {activeStrategy === 'session-open' && <AVASessionOpenStrategy />}
+                        {activeStrategy === 'event-trading' && <AVAEventTradingStrategy />}
+                        {activeStrategy === 'scalping' && <AVAScalpingStrategy />}
+                        {activeStrategy === 'intraday' && <AVAFuturesIntradayStrategy />}
                     </div>
-                )}
-            </section>
+                </div>
+            )}
 
             {/* Tools Block */}
             <section className="space-y-8">

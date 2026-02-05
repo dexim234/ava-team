@@ -10,11 +10,11 @@ import {
     TrendingUp,
     Wallet,
     ExternalLink,
-    Zap,
     ArrowLeft
 } from 'lucide-react'
 import { AVAValueBettingStrategy } from './AVAValueBettingStrategy'
 import { AVAArbitrageStrategy } from './AVAArbitrageStrategy'
+import { StrategySelector } from './StrategySelector' // Импортируем новый компонент
 
 type StrategyId = 'value-betting' | 'arbitrage' | null;
 
@@ -38,8 +38,18 @@ export const PolymarketStrategies: React.FC = () => {
     const mutedText = theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
 
     const strategies = [
-        { id: 'value-betting', name: 'AVA Value Betting', icon: <Target className="w-4 h-4" /> },
-        { id: 'arbitrage', name: 'AVA Арбитраж', icon: <Calculator className="w-4 h-4" /> },
+        {
+            id: 'value-betting',
+            name: 'AVA Value Betting',
+            icon: <Target className="w-4 h-4" />,
+            desc: 'Поиск математического ожидания и недооцененных исходов на рынках предсказаний.'
+        },
+        {
+            id: 'arbitrage',
+            name: 'AVA Арбитраж',
+            icon: <Calculator className="w-4 h-4" />,
+            desc: 'Заработок на разнице цен между Polymarket и другими платформами или реальностью.'
+        },
     ]
 
     const tools: Tool[] = [
@@ -102,90 +112,35 @@ export const PolymarketStrategies: React.FC = () => {
     return (
         <div className="space-y-16 pb-20">
             {/* Strategies Block */}
-            <section className="space-y-6">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <div className="flex items-center gap-3">
-                        <div className="p-2 bg-blue-500/10 rounded-xl border border-blue-500/20">
-                            <Lightbulb className="w-6 h-6 text-blue-500" />
-                        </div>
-                        <div>
-                            <h3 className={`text-xl font-black ${headingColor}`}>Стратегии</h3>
-                            <p className={`text-sm ${mutedText}`}>
-                                Проверенные методики работы с прогнозными рынками
-                            </p>
-                        </div>
-                    </div>
+            <StrategySelector
+                strategies={strategies}
+                activeStrategy={activeStrategy}
+                setActiveStrategy={setActiveStrategy}
+                categoryName="Стратегии"
+                categoryDescription="Проверенные методики работы с прогнозными рынками"
+                categoryIcon={<Lightbulb className="w-6 h-6 text-blue-500" />}
+            />
 
-                    {/* Strategy Selector - Visible when strategy is already selected */}
-                    {activeStrategy && (
-                        <div className={`flex p-1 rounded-xl w-fit ${theme === 'dark' ? 'bg-white/5 border border-white/5' : 'bg-gray-100'}`}>
-                            {strategies.map(s => (
-                                <button
-                                    key={s.id}
-                                    onClick={() => setActiveStrategy(s.id as StrategyId)}
-                                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all duration-300 ${activeStrategy === s.id
-                                        ? 'bg-blue-500 text-white shadow-md'
-                                        : 'text-gray-500 hover:text-gray-400'
-                                        }`}
-                                >
-                                    {s.icon}
-                                    {s.name}
-                                </button>
-                            ))}
-                        </div>
-                    )}
-                </div>
-
-                {!activeStrategy ? (
-                    /* Selection Grid */
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                        {strategies.map((s) => (
+            {activeStrategy && (
+                <div className={`rounded-3xl border p-1 sm:p-2 ${theme === 'dark' ? 'bg-[#0b1015]/50 border-white/5' : 'bg-white border-gray-100'
+                    } shadow-xl animate-scale-up`}>
+                    <div className={`p-6 sm:p-8 rounded-[2.5rem] ${innerBg}`}>
+                        <div className="mb-6 flex items-center justify-between">
                             <button
-                                key={s.id}
-                                onClick={() => setActiveStrategy(s.id as StrategyId)}
-                                className={`group p-8 rounded-[2.5rem] border text-left transition-all duration-500 hover:-translate-y-2 ${theme === 'dark'
-                                    ? 'bg-white/5 border-white/5 hover:border-blue-500/30 hover:bg-blue-500/5'
-                                    : 'bg-white border-gray-100 hover:border-blue-500/20 hover:shadow-2xl hover:shadow-blue-500/10'
-                                    }`}
+                                onClick={() => setActiveStrategy(null)}
+                                className="text-xs font-bold text-gray-500 hover:text-blue-500 transition-colors flex items-center gap-1"
                             >
-                                <div className={`p-4 rounded-2xl w-fit mb-6 transition-transform duration-500 group-hover:scale-110 ${theme === 'dark' ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-50 text-blue-500'
-                                    }`}>
-                                    {React.cloneElement(s.icon as React.ReactElement, { className: 'w-8 h-8' })}
-                                </div>
-                                <h4 className={`text-xl font-black mb-2 ${headingColor}`}>{s.name}</h4>
-                                <p className={`text-sm leading-relaxed ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                                    {s.id === 'value-betting'
-                                        ? 'Поиск математического ожидания и недооцененных исходов на рынках предсказаний.'
-                                        : 'Заработок на разнице цен между Polymarket и другими платформами или реальностью.'}
-                                </p>
-                                <div className="mt-6 flex items-center gap-2 text-blue-500 font-bold text-xs uppercase tracking-wider">
-                                    Подробнее <ExternalLink className="w-3 h-3" />
-                                </div>
+                                ← К списку стратегий
                             </button>
-                        ))}
-                    </div>
-                ) : (
-                    /* Active Strategy View */
-                    <div className={`rounded-3xl border p-1 sm:p-2 ${theme === 'dark' ? 'bg-[#0b1015]/50 border-white/5' : 'bg-white border-gray-100'
-                        } shadow-xl animate-scale-up`}>
-                        <div className={`p-6 sm:p-8 rounded-[2.5rem] ${innerBg}`}>
-                            <div className="mb-6 flex items-center justify-between">
-                                <button
-                                    onClick={() => setActiveStrategy(null)}
-                                    className="text-xs font-bold text-gray-500 hover:text-blue-500 transition-colors flex items-center gap-1"
-                                >
-                                    ← К списку стратегий
-                                </button>
-                            </div>
-                            {activeStrategy === 'value-betting' ? (
-                                <AVAValueBettingStrategy />
-                            ) : (
-                                <AVAArbitrageStrategy />
-                            )}
                         </div>
+                        {activeStrategy === 'value-betting' ? (
+                            <AVAValueBettingStrategy />
+                        ) : (
+                            <AVAArbitrageStrategy />
+                        )}
                     </div>
-                )}
-            </section>
+                </div>
+            )}
 
             {/* Tools Block */}
             <section className="space-y-8">
