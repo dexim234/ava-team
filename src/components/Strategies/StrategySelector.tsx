@@ -106,13 +106,13 @@ export const StrategySelector: React.FC<StrategySelectorProps> = (
 
                 {/* Mobile Drawer Overlay */}
                 {isMobileMenuOpen && (
-                    <div className="fixed inset-0 z-[100] flex items-end sm:hidden ">
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center sm:hidden p-4"> {/* Изменено: items-end на items-center и justify-center, добавлен p-4 */}
                         <div
                             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
                             onClick={() => setIsMobileMenuOpen(false)}
                         />
-                        <div className={`w-full relative z-10 p-6 rounded-t-[2.5rem] border-t ${theme === 'dark' ? 'bg-[#0b1015] border-white/10' : 'bg-white border-gray-100'
-                            } shadow-2xl animate-in slide-in-from-bottom duration-300`}>
+                        <div className={`w-full max-w-md relative z-10 p-6 rounded-[2.5rem] border ${theme === 'dark' ? 'bg-[#0b1015] border-white/10' : 'bg-white border-gray-100'
+                            } shadow-2xl animate-in fade-in zoom-in-95 duration-300`}> {/* Изменено: rounded-t-[2.5rem] на rounded-[2.5rem], убран border-t, изменена анимация */}
                             <div className="flex items-center justify-between mb-8">
                                 <h3 className={`text-xl font-black ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Выберите Стратегию</h3>
                                 <button
@@ -123,7 +123,7 @@ export const StrategySelector: React.FC<StrategySelectorProps> = (
                                 </button>
                             </div>
 
-                            <div className="grid grid-cols-1 gap-3">
+                            <div className="grid grid-cols-1 gap-3 max-h-[70vh] overflow-y-auto pr-2"> {/* Добавлено max-h и overflow-y */}'''
                                 {strategies.map((s) => (
                                     <button
                                         key={s.id}
@@ -173,7 +173,7 @@ export const StrategySelector: React.FC<StrategySelectorProps> = (
                                 {s.desc}
                             </p>
                             <div className="mt-6 flex items-center gap-2 text-blue-500 font-bold text-xs uppercase tracking-wider">
-                                Подробнее
+                                подробнее
                             </div>
                         </button>
                     ))}

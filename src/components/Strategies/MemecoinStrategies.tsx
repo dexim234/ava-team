@@ -33,6 +33,7 @@ import { AVAIntradayStrategy } from './AVAIntradayStrategy'
 import { AVAFlipStrategy } from './AVAFlipStrategy'
 import { AVAFlipFibaStrategy } from './AVAFlipFibaStrategy'
 import { AVAFibaModeStrategy } from './AVAFibaModeStrategy'
+import { StrategyTabSelector } from './StrategyTabSelector' // Импорт нового компонента
 
 type StrategyId = 'late-volume' | 'intraday' | 'flip' | 'flip-fiba' | 'fiba-mode' | null;
 
@@ -100,21 +101,11 @@ export const MemecoinStrategies: React.FC = () => {
 
                         {/* Strategy Selector - Visible when strategy is already selected */}
                         {activeStrategy && (
-                            <div className={`flex p-1 rounded-xl w-fit ${theme === 'dark' ? 'bg-white/5 border border-white/5' : 'bg-gray-100'}`}>
-                                {strategies.map(s => (
-                                    <button
-                                        key={s.id}
-                                        onClick={() => setActiveStrategy(s.id as StrategyId)}
-                                        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all duration-300 ${activeStrategy === s.id
-                                            ? 'bg-blue-500 text-white shadow-md'
-                                            : 'text-gray-500 hover:text-gray-400'
-                                            }`}
-                                    >
-                                        {s.icon}
-                                        {s.name}
-                                    </button>
-                                ))}
-                            </div>
+                            <StrategyTabSelector
+                                strategies={strategies}
+                                activeStrategy={activeStrategy}
+                                setActiveStrategy={setActiveStrategy as (id: string | null) => void} // Исправлено здесь
+                            />
                         )}
                     </div>
 

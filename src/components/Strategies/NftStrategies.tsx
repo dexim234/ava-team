@@ -26,8 +26,11 @@ import { AVANftSnipingStrategy } from './AVANftSnipingStrategy'
 import { AVAMintFlipStrategy } from './AVAMintFlipStrategy'
 import { AVANftNarrativeStrategy } from './AVANftNarrativeStrategy'
 import { AVATwitterSmartAccountChecklist } from './AVATwitterSmartAccountChecklist'
+import { StrategyTabSelector } from './StrategyTabSelector' // Импорт нового компонента
 
 type StrategyId = 'nft-sniping' | 'nft-mint-flip' | 'nft-narrative' | 'twitter-checklist' | null;
+
+// ... остальной код ...
 
 export const NftStrategies: React.FC = () => {
     const { theme } = useThemeStore()
@@ -114,21 +117,11 @@ export const NftStrategies: React.FC = () => {
                     </div>
 
                     {activeStrategy && (
-                        <div className={`flex p-1 rounded-xl w-fit ${theme === 'dark' ? 'bg-white/5 border border-white/5' : 'bg-gray-100'}`}>
-                            {strategies.map(s => (
-                                <button
-                                    key={s.id}
-                                    onClick={() => setActiveStrategy(s.id as StrategyId)}
-                                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all duration-300 ${activeStrategy === s.id
-                                        ? 'bg-blue-500 text-white shadow-md'
-                                        : 'text-gray-500 hover:text-gray-400'
-                                        }`}
-                                >
-                                    {s.icon}
-                                    {s.name}
-                                </button>
-                            ))}
-                        </div>
+                        <StrategyTabSelector
+                            strategies={strategies}
+                            activeStrategy={activeStrategy}
+                            setActiveStrategy={setActiveStrategy as (id: string | null) => void} // Исправлено здесь
+                        />
                     )}
                 </div>
 
