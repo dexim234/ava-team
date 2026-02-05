@@ -1,7 +1,6 @@
 import React, { useState } from 'react'
 import { useThemeStore } from '@/store/themeStore'
 import {
-    Sunrise,
     LineChart,
     Clock,
     Edit,
@@ -14,7 +13,6 @@ import {
     ChevronDown,
     ChevronUp,
     Activity,
-    Brain,
     BarChart2
 } from 'lucide-react'
 
@@ -123,7 +121,7 @@ export const AVAIntradayFuturesStrategy: React.FC = () => {
                     <LineChart className="w-8 h-8 text-blue-500 shrink-0" />
                     <div className="space-y-2">
                         <h4 className={`text-lg font-black ${headingColor}`}>В чём идея стратегии</h4>
-                        <p className={`text-sm leading-relaxed ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                        <p className={`text-sm leading-relaxed ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
                             В течение дня рынок формирует: импульсы, откаты, диапазоны, уровни, вокруг которых концентрируется ликвидность.
                         </p>
                         <p className={`text-sm leading-relaxed ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
