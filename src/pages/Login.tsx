@@ -94,12 +94,16 @@ export const Login = () => {
       const passwordFromUrl = searchParams.get('password')
 
       if (loginFromUrl && passwordFromUrl) {
-        const success = loginUser(loginFromUrl, passwordFromUrl)
-        if (success) {
-          const isMobile = window.innerWidth < 1024;
-          navigate('/about', { state: { openMenu: isMobile } });
-          return
+        // Use an async function to handle the login
+        const performLogin = async () => {
+          const success = await loginUser(loginFromUrl, passwordFromUrl)
+          if (success) {
+            const isMobile = window.innerWidth < 1024;
+            navigate('/about', { state: { openMenu: isMobile } });
+          }
         }
+        performLogin()
+        return
       }
 
       if (initData) {
@@ -118,12 +122,15 @@ export const Login = () => {
                 const parsed = JSON.parse(savedAuth)
                 if (parsed.state?.user) {
                   const savedUser = parsed.state.user
-                  const success = loginUser(savedUser.login, savedUser.password)
-                  if (success) {
-                    const isMobile = window.innerWidth < 1024;
-                    navigate('/about', { state: { openMenu: isMobile } });
-                    return
+                  const performSavedLogin = async () => {
+                    const success = await loginUser(savedUser.login, savedUser.password)
+                    if (success) {
+                      const isMobile = window.innerWidth < 1024;
+                      navigate('/about', { state: { openMenu: isMobile } });
+                    }
                   }
+                  performSavedLogin()
+                  return
                 }
               } catch (err) {
                 console.error('Error parsing saved auth:', err)
@@ -142,7 +149,7 @@ export const Login = () => {
     }
   }, [searchParams, isAuthenticated, user, navigate, loginUser])
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
 
