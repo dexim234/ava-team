@@ -11,11 +11,17 @@ import {
     Wallet2,
     Zap,
     Gift,
-    X,
-    LayoutGrid,
     MoreHorizontal
 } from 'lucide-react'
 import { SphereSelector } from '@/components/Strategies/SphereSelector'
+import { MemecoinStrategies } from '@/components/Strategies/MemecoinStrategies'
+import { PolymarketStrategies } from '@/components/Strategies/PolymarketStrategies'
+import { NftStrategies } from '@/components/Strategies/NftStrategies'
+import { FuturesStrategies } from '@/components/Strategies/FuturesStrategies'
+import { AirDropStrategies } from '@/components/Strategies/AirDropStrategies'
+import { OtherStrategies } from '@/components/Strategies/OtherStrategies'
+
+type TabType = 'memecoins' | 'polymarket' | 'nft' | 'staking' | 'spot' | 'futures' | 'airdrop' | 'other'
 
 export const Strategies = () => {
     const { theme } = useThemeStore()
