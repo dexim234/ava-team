@@ -6,10 +6,65 @@ import { UserNickname } from '@/components/UserNickname'
 import { Edit, Trash2, ExternalLink } from 'lucide-react'
 import { formatDate } from '@/utils/dateUtils'
 import { SLOT_CATEGORY_META, SlotCategory } from '@/types'
+import { useEffect, useState } from 'react'
+import Avatar from '@/components/Avatar'
 
 interface AnalyticsTableProps {
     reviews: AnalyticsReview[]
     onEdit: (review: AnalyticsReview) => void
+}
+
+const CountdownTimer = ({ deadline }: { deadline: string }) => {
+    const calculateTimeLeft = () => {
+        const difference = +new Date(deadline) - +new Date()
+        let timeLeft = {
+            days: 0,
+            hours: 0,
+            minutes: 0,
+            seconds: 0
+        }
+
+        if (difference > 0) {
+            timeLeft = {
+                days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+                hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
+                minutes: Math.floor((difference / 1000 / 60) % 60),
+                seconds: Math.floor((difference / 1000) % 60)
+            }
+        }
+        return timeLeft
+    }
+
+    const [timeLeft, setTimeLeft] = useState(calculateTimeLeft())
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setTimeLeft(calculateTimeLeft())
+        }, 1000)
+
+        return () => clearTimeout(timer)
+    })
+
+    const { days, hours, minutes, seconds } = timeLeft
+
+    return (
+        <span>
+            {days > 0 && `${days}д `}
+            {hours.toString().padStart(2, '0')}:
+            {minutes.toString().padStart(2, '0')}:
+            {seconds.toString().padStart(2, '0')}
+        </span>
+    )
+}
+
+const getDeadlineColor = (deadline: string) => {
+    const difference = +new Date(deadline) - +new Date()
+    const hours = difference / (1000 * 60 * 60)
+
+    if (hours < 24) return 'text-red-500' // менее 24 часов
+    if (hours < 48) return 'text-yellow-500' // менее 48 часов
+    if (hours < 72) return 'text-emerald-500' // менее 72 часов (можно изменить на 'text-green-500')
+    return 'text-gray-500' // более 72 часов
 }
 
 export const AnalyticsTable = ({ reviews, onEdit }: AnalyticsTableProps) => {
@@ -31,7 +86,7 @@ export const AnalyticsTable = ({ reviews, onEdit }: AnalyticsTableProps) => {
     }
 
     const handleDelete = async (id: string) => {
-        if (confirm('Are you sure you want to delete this review?')) {
+        if (confirm('Вы уверены, что хотите удалить этот обзор?')) {
             await deleteAnalyticsReview(id)
         }
     }
@@ -39,7 +94,7 @@ export const AnalyticsTable = ({ reviews, onEdit }: AnalyticsTableProps) => {
     if (reviews.length === 0) {
         return (
             <div className={`p-10 text-center rounded-2xl border border-dashed ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-gray-50'}`}>
-                <p className={subTextColor}>No analytical reviews found for this sphere.</p>
+                <p className={subTextColor}>Аналитических обзоров в этой сфере не найдено.</p>
             </div>
         )
     }
@@ -50,33 +105,37 @@ export const AnalyticsTable = ({ reviews, onEdit }: AnalyticsTableProps) => {
                 <table className="w-full border-collapse">
                     <thead>
                         <tr className={theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'}>
-                            <th className={`p-4 text-left text-[10px] font-bold uppercase tracking-wider ${subTextColor} w-32`}>Sphere</th>
-                            <th className={`p-4 text-left text-[10px] font-bold uppercase tracking-wider ${subTextColor}`}>Expert Comment</th>
-                            <th className={`p-4 text-left text-[10px] font-bold uppercase tracking-wider ${subTextColor}`}>Important Details</th>
-                            <th className={`p-4 text-center text-[10px] font-bold uppercase tracking-wider ${subTextColor} w-32`}>Deadline</th>
-                            <th className={`p-4 text-center text-[10px] font-bold uppercase tracking-wider ${subTextColor} w-24`}>Links</th>
-                            <th className={`p-4 text-left text-[10px] font-bold uppercase tracking-wider ${subTextColor} w-32`}>Expert</th>
-                            <th className={`p-4 text-right text-[10px] font-bold uppercase tracking-wider ${subTextColor} w-24`}>Actions</th>
+                            <th className={`p-4 text-center text-[10px] font-bold uppercase tracking-wider ${subTextColor} w-32`}>Сфера</th>
+                            <th className={`p-4 text-center text-[10px] font-bold uppercase tracking-wider ${subTextColor}`}>Комментарий эксперта</th>
+                            <th className={`p-4 text-center text-[10px] font-bold uppercase tracking-wider ${subTextColor}`}>Важные детали</th>
+                            <th className={`p-4 text-center text-[10px] font-bold uppercase tracking-wider ${subTextColor} w-32`}>Дата</th>
+                            <th className={`p-4 text-center text-[10px] font-bold uppercase tracking-wider ${subTextColor} w-32`}>Время</th>
+                            <th className={`p-4 text-center text-[10px] font-bold uppercase tracking-wider ${subTextColor} w-24`}>Ссылки</th>
+                            <th className={`p-4 text-center text-[10px] font-bold uppercase tracking-wider ${subTextColor} w-32`}>Эксперт</th>
+                            <th className={`p-4 text-center text-[10px] font-bold uppercase tracking-wider ${subTextColor} w-24`}>Действия</th>
                         </tr>
                     </thead>
                     <tbody className={`divide-y ${theme === 'dark' ? 'divide-white/5' : 'divide-gray-100'}`}>
                         {reviews.map((review) => (
                             <tr key={review.id} className="hover:bg-emerald-500/5 transition-colors group">
-                                <td className="p-4 align-top">
+                                <td className="p-4 align-top text-center">
                                     <span className={`text-[10px] px-2 py-1 rounded-full font-bold uppercase tracking-wider border ${theme === 'dark' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-emerald-50 border-emerald-100 text-emerald-600'
                                         }`}>
                                         {SLOT_CATEGORY_META[review.sphere as SlotCategory]?.label || review.sphere}
                                     </span>
                                 </td>
-                                <td className={`p-4 align-top text-sm font-medium ${headingColor} whitespace-pre-wrap max-w-sm`}>
+                                <td className={`p-4 align-top text-center text-sm font-medium ${headingColor} whitespace-pre-wrap max-w-sm`}>
                                     {review.expertComment}
                                 </td>
-                                <td className={`p-4 align-top text-sm ${subTextColor} whitespace-pre-wrap max-w-sm`}>
+                                <td className={`p-4 align-top text-center text-sm ${subTextColor} whitespace-pre-wrap max-w-sm`}>
                                     {review.importantDetails}
                                 </td>
-                                <td className="p-4 align-top text-center text-xs font-bold text-rose-500">
-                                    {review.deadline ? formatDate(new Date(review.deadline), 'dd.MM HH:mm') : '-'}
+                                <td className={`p-4 align-top text-center text-xs font-bold ${review.deadline ? getDeadlineColor(review.deadline) : 'text-gray-500'}`}>
+                                    {review.deadline ? formatDate(new Date(review.deadline), 'dd.MM.yyyy') : '-'}
                                 </td>
+                                <td className={`p-4 align-top text-center text-xs font-bold ${review.deadline ? getDeadlineColor(review.deadline) : 'text-gray-500'}`}>
+                                    {review.deadline ? formatDate(new Date(review.deadline), 'HH:mm:ss') : '-'}
+                                    {review.deadline && <CountdownTimer deadline={review.deadline} />}                                </td>
                                 <td className="p-4 align-top text-center">
                                     {review.links && review.links.length > 0 && (
                                         <div className="flex justify-center gap-1">
@@ -95,17 +154,19 @@ export const AnalyticsTable = ({ reviews, onEdit }: AnalyticsTableProps) => {
                                         </div>
                                     )}
                                 </td>
-                                <td className="p-4 align-top">
-                                    <div className="flex items-center gap-2">
+                                <td className="p-4 align-top text-center">
+                                    <div className="flex items-center gap-2 justify-center">
+                                        <Avatar userId={review.createdBy} size="sm" />
                                         <UserNickname userId={review.createdBy} className={`text-sm font-bold ${headingColor}`} />
                                     </div>
                                 </td>
-                                <td className="p-4 align-top text-right">
-                                    <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <td className="p-4 align-top text-center">
+                                    <div className="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                         {canEdit(review) && (
                                             <button
                                                 onClick={() => onEdit(review)}
                                                 className="p-1.5 rounded-lg bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 transition-all"
+                                                title="Редактировать"
                                             >
                                                 <Edit className="w-3.5 h-3.5" />
                                             </button>
@@ -114,6 +175,7 @@ export const AnalyticsTable = ({ reviews, onEdit }: AnalyticsTableProps) => {
                                             <button
                                                 onClick={() => handleDelete(review.id)}
                                                 className="p-1.5 rounded-lg bg-rose-500/10 text-rose-500 hover:bg-rose-500/20 transition-all"
+                                                title="Удалить"
                                             >
                                                 <Trash2 className="w-3.5 h-3.5" />
                                             </button>
