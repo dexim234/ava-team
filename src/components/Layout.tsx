@@ -35,6 +35,7 @@ import type { LucideIcon } from 'lucide-react'
 import logo from '@/assets/logo.png'
 import { useState, useEffect } from 'react'
 import { AccessBlockScreen } from '@/components/AccessBlockScreen'
+import Avatar from '@/components/Avatar'
 
 export const Layout = ({ children }: { children: React.ReactNode }) => {
   const { theme, toggleTheme } = useThemeStore()
@@ -116,12 +117,12 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
   )
 
   const toolsSubItems: { path: string; label: string; icon: LucideIcon; feature: string; isDev?: boolean }[] = [
-    { path: '/strategies', label: 'Контур', icon: TrendingUp, feature: 'tools_strategies' },
-    { path: '/calendar-dev', label: 'Календарь', icon: Clock, feature: 'tools_events', isDev: true },
-    { path: '/events', label: 'События', icon: CalendarDays, feature: 'tools_events' },
+    { path: '/strategies', label: 'Contour', icon: TrendingUp, feature: 'tools_strategies' },
+    { path: '/calendar-dev', label: 'Calendar', icon: Clock, feature: 'tools_events', isDev: true },
+    { path: '/events', label: 'Events', icon: CalendarDays, feature: 'tools_events' },
     { path: '/about', label: 'INFO', icon: Info, feature: 'ava_info' },
     { path: '/docs', label: 'Docs', icon: BookOpen, feature: 'tools_events' }, // Docs usually uses events access or similar
-    { path: '/analytics-dev', label: 'Analytics Deal', icon: BarChart3, feature: 'tools_strategies', isDev: true },
+    { path: '/analytics-dev', label: 'Analytics', icon: BarChart3, feature: 'tools_strategies' },
   ]
 
   const adminSubItems: { path: string; label: string; icon: LucideIcon }[] = [
@@ -223,7 +224,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                     <div className="absolute left-full top-0 invisible group-hover/tools:visible opacity-0 group-hover/tools:opacity-100 transition-all duration-300 translate-x-3 group-hover/tools:translate-x-1 z-[100]">
                       <div className="ml-2 glass-panel border border-white/40 dark:border-white/10 rounded-2xl p-2 min-w-[200px] shadow-2xl backdrop-blur-2xl">
                         <div className="px-3 py-2 mb-1 border-b border-white/10">
-                          <p className="text-[10px] font-black uppercase tracking-widest text-[#4E6E49]">Инструменты</p>
+                          <p className="text-[10px] font-black uppercase tracking-widest text-[#4E6E49]">Tools</p>
                         </div>
                         {accessibleToolsSubItems.map((item) => (
                           <Link
@@ -246,7 +247,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                   {showToolsMenu && !isCollapsed && (
                     <div className="absolute left-0 top-full mt-1 pl-4 pr-2 py-2 glass-panel border border-white/40 dark:border-white/10 rounded-xl shadow-2xl backdrop-blur-2xl z-[100] min-w-[200px] animate-in fade-in slide-in-from-top-2 duration-200">
                       <div className="px-3 py-2 mb-1 border-b border-white/10">
-                        <p className="text-[10px] font-black uppercase tracking-widest text-[#4E6E49]">Инструменты</p>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-[#4E6E49]">Tools</p>
                       </div>
                       {accessibleToolsSubItems.map((item) => (
                         <Link
@@ -287,7 +288,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                     <div className="absolute left-full top-0 invisible group-hover/admin:visible opacity-0 group-hover/admin:opacity-100 transition-all duration-300 translate-x-3 group-hover/admin:translate-x-1 z-[100]">
                       <div className="ml-2 glass-panel border border-white/40 dark:border-white/10 rounded-2xl p-2 min-w-[200px] shadow-2xl backdrop-blur-2xl">
                         <div className="px-3 py-2 mb-1 border-b border-white/10">
-                          <p className="text-[10px] font-black uppercase tracking-widest text-[#4E6E49]">Панель управления</p>
+                          <p className="text-[10px] font-black uppercase tracking-widest text-[#4E6E49]">Admin Panel</p>
                         </div>
                         {adminSubItems.map((item) => (
                           <Link
@@ -352,8 +353,8 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
               to="/profile"
               className={`p-4 rounded-2xl flex items-center gap-3 transition-all group ${location.pathname === '/profile' ? 'bg-[#4E6E49]/10 border border-[#4E6E49]/30' : 'border border-gray-200/50 dark:border-white/5 hover:bg-gray-100/50 dark:hover:bg-white/5'} ${isCollapsed ? 'p-0 h-12 w-12 items-center justify-center mx-auto border-0' : ''}`}
             >
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center text-[#4E6E49] font-bold shadow-inner shrink-0 ${theme === 'dark' ? 'bg-emerald-500/20 text-[#4E6E49]' : 'bg-[#4E6E49]/10 text-[#4E6E49]'}`}>
-                {user?.avatar ? <img src={user.avatar} className="w-full h-full rounded-full object-cover" /> : getInitials(user?.name || 'User')}
+              <div className={`w-10 h-10 shrink-0`}>
+                <Avatar userId={user?.id} user={user || undefined} size="sm" />
               </div>
               {!isCollapsed && (
                 <>
@@ -460,8 +461,8 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
             <div className="flex-1 overflow-y-auto p-4 space-y-6">
               {/* Profile Section */}
               <div className={`flex items-center gap-2 p-4 rounded-2xl border ${theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-100'}`}>
-                <div className="w-8 h-8 rounded-full flex items-center justify-center text-[#4E6E49] font-bold">
-                  {user?.avatar ? <img src={user.avatar} className="w-full h-full rounded-full object-cover" /> : getInitials(user?.name || 'User')}
+                <div className="w-8 h-8 shrink-0">
+                  <Avatar userId={user?.id} user={user || undefined} size="sm" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-bold truncate dark:text-white">{user?.name || 'Guest'}</p>

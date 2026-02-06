@@ -1,13 +1,17 @@
 import React from 'react'
 import { User } from '@/types'
+import { useUserAvatar } from '@/utils/userUtils'
 
 interface AvatarProps {
   user?: User
+  userId?: string
   size?: 'sm' | 'md' | 'lg'
   className?: string
 }
 
-const Avatar: React.FC<AvatarProps> = ({ user, size = 'md', className = '' }) => {
+const Avatar: React.FC<AvatarProps> = ({ user, userId, size = 'md', className = '' }) => {
+  const effectiveUserId = userId || user?.id || ''
+  const avatarUrl = useUserAvatar(effectiveUserId, user?.avatar)
   const getSizeClasses = () => {
     switch (size) {
       case 'sm': return 'w-8 h-8 text-sm'
@@ -19,13 +23,13 @@ const Avatar: React.FC<AvatarProps> = ({ user, size = 'md', className = '' }) =>
   const getInitials = () => {
     if (!user?.name) return '?'
     const names = user.name.split(' ')
-    return names.length > 1 
-      ? `${names[0][0]}${names[names.length - 1][0]}` 
+    return names.length > 1
+      ? `${names[0][0]}${names[names.length - 1][0]}`
       : names[0][0]
   }
 
   return (
-    <div 
+    <div
       className={`
         ${getSizeClasses()} 
         rounded-full flex items-center justify-center 
@@ -34,10 +38,10 @@ const Avatar: React.FC<AvatarProps> = ({ user, size = 'md', className = '' }) =>
         ${className}
       `}
     >
-      {user?.avatar ? (
-        <img 
-          src={user.avatar} 
-          alt={user.name} 
+      {avatarUrl ? (
+        <img
+          src={avatarUrl}
+          alt={user?.name || 'User'}
           className="w-full h-full rounded-full object-cover"
         />
       ) : (

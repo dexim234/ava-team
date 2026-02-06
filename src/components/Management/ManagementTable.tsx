@@ -6,6 +6,7 @@ import { useAdminStore } from '@/store/adminStore'
 import { getWorkSlots, getDayStatuses, addApprovalRequest, deleteWorkSlot, updateDayStatus, addDayStatus, deleteDayStatus } from '@/services/firestoreService'
 import { formatDate, calculateHours, getWeekDays, getMoscowTime, getWeekRange } from '@/utils/dateUtils'
 import { UserNickname } from '@/components/UserNickname'
+import Avatar from '@/components/Avatar'
 import { WorkSlot, DayStatus, SLOT_CATEGORY_META, SlotCategory } from '@/types'
 import { TEAM_MEMBERS } from '@/types'
 import { Edit, Trash2, Clock, Calendar as CalendarIcon, ChevronDown, ChevronUp, Info, ChevronLeft, ChevronRight, RotateCcw } from 'lucide-react'
@@ -571,27 +572,7 @@ export const ManagementTable = ({ selectedUserId, slotFilter, onEditSlot, onEdit
                     <td className={`p-2 sticky left-0 z-20 ${rowBg} group-hover:bg-[#1a2029] transition-colors align-middle`}>
                       <div className="flex items-center gap-2">
                         <div className="relative">
-                          {user.avatar ? (
-                            <img
-                              src={user.avatar}
-                              alt={user.name || user.id}
-                              className="w-8 h-8 rounded-full object-cover border border-emerald-500/20 shadow-sm"
-                              onError={(e) => {
-                                const target = e.target as HTMLImageElement
-                                target.style.display = 'none'
-                                const fallback = target.nextElementSibling as HTMLElement
-                                if (fallback) fallback.style.display = 'flex'
-                              }}
-                            />
-                          ) : null}
-                          <div
-                            className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs ${theme === 'dark'
-                              ? 'bg-[#1f2937] text-gray-300'
-                              : 'bg-gray-200 text-gray-600'
-                              } ${user.avatar ? 'absolute inset-0 hidden' : ''}`}
-                          >
-                            <UserNickname userId={user.id} formatter={(n: string) => n.charAt(0).toUpperCase()} />
-                          </div>
+                          <Avatar userId={user.id} user={user} size="sm" />
                         </div>
                         <div>
                           <div className={`font-bold text-[13px] leading-tight ${headingColor}`}>
