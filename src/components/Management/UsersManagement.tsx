@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Plus, Edit2, Trash2, User, X, Image, Save, RefreshCw, Eye, EyeOff, Copy, Check } from 'lucide-react'
-import { User as UserType, TEAM_MEMBERS, User as UserInterface, PREDEFINED_POSITIONS } from '@/types'
+import { User as UserType, TEAM_MEMBERS, User as UserInterface } from '@/types'
 import { getAllUsers, addUser, updateUser, deleteUser } from '@/services/firestoreService'
 import { useAdminStore } from '@/store/adminStore'
 import { useThemeStore } from '@/store/themeStore'
@@ -47,10 +47,6 @@ export const UsersManagement: React.FC = () => {
   const [generatedCredentials, setGeneratedCredentials] = useState<{ login: string; password: string } | null>(null)
   const [uploading, setUploading] = useState(false)
   const fileInputRef = React.useRef<HTMLInputElement>(null)
-
-  // Position management state
-  const [newPositionInput, setNewPositionInput] = useState('')
-  const [showCustomPositionInput, setShowCustomPositionInput] = useState(false)
 
   const loadUsers = async () => {
     try {
@@ -239,8 +235,6 @@ export const UsersManagement: React.FC = () => {
       primaryPosition: '',
     })
     setGeneratedCredentials(null)
-    setNewPositionInput('')
-    setShowCustomPositionInput(false)
   }
 
   const regenerateCredentials = () => {

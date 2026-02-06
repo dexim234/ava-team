@@ -1,4 +1,4 @@
-// Earnings statistics table
+ // Earnings statistics table
 import { useThemeStore } from '@/store/themeStore'
 import { formatDate, getWeekRange } from '@/utils/dateUtils'
 import { getUserNicknameSync } from '@/utils/userUtils'
@@ -73,8 +73,6 @@ export const EarningsTable = ({ earnings }: EarningsTableProps) => {
           {sortedMembers.map((member, index) => {
             const kpi = (member.weeklyNet / KPI_TARGET) * 100
             const rankColor = index === 0 ? 'text-amber-500' : index === 1 ? 'text-gray-400' : index === 2 ? 'text-orange-500' : 'text-gray-600'
-            const avatar = member.avatar
-
             return (
               <tr
                 key={member.id}
