@@ -10,6 +10,7 @@ import {
   Users,
   BookOpen,
   BarChart3,
+  Clock,
   Settings,
   Shield,
   CheckCircle2,
@@ -33,7 +34,7 @@ import {
 import type { LucideIcon } from 'lucide-react'
 import logo from '@/assets/logo.png'
 import { useState, useEffect } from 'react'
-// import { AccessBlockScreen } from '@/components/AccessBlockScreen' // Temporarily disabled
+import { AccessBlockScreen } from '@/components/AccessBlockScreen'
 
 export const Layout = ({ children }: { children: React.ReactNode }) => {
   const { theme, toggleTheme } = useThemeStore()
@@ -76,7 +77,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
 
         const features = [
           'ava_schedule', 'ava_profit', 'ava_tasks', 'ava_rating', 'ava_referrals',
-          'profile', 'ava_info', 'tools', 'tools_strategies', 'tools_strategies_view', 'tools_events',
+          'profile', 'ava_info', 'tools', 'tools_strategies', 'tools_events',
           'ava_hub', 'slots', 'earnings', 'tasks', 'rating', 'about' // Keep legacy for compatibility
         ]
         const accessible = new Set<string>()
@@ -116,10 +117,11 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
 
   const toolsSubItems: { path: string; label: string; icon: LucideIcon; feature: string; isDev?: boolean }[] = [
     { path: '/strategies', label: 'Контур', icon: TrendingUp, feature: 'tools_strategies' },
-    { path: '/analytics', label: 'Аналитика', icon: BarChart3, feature: 'tools_strategies_view' },
+    { path: '/calendar-dev', label: 'Календарь', icon: Clock, feature: 'tools_events', isDev: true },
     { path: '/events', label: 'События', icon: CalendarDays, feature: 'tools_events' },
     { path: '/about', label: 'INFO', icon: Info, feature: 'ava_info' },
     { path: '/docs', label: 'Docs', icon: BookOpen, feature: 'tools_events' }, // Docs usually uses events access or similar
+    { path: '/analytics-dev', label: 'Analytics Deal', icon: BarChart3, feature: 'tools_strategies', isDev: true },
   ]
 
   const adminSubItems: { path: string; label: string; icon: LucideIcon }[] = [
@@ -150,8 +152,8 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <div className={`min-h-screen ${theme === 'dark' ? 'dark bg-[#0b0f17]' : 'bg-[#f8fafc]'}`}>
-      {/* Site-wide Access Block Screen - temporarily disabled */}
-      {/* <AccessBlockScreen /> */}
+      {/* Site-wide Access Block Screen */}
+      <AccessBlockScreen />
 
       <div className="absolute inset-0 pointer-events-none -z-10 overflow-hidden">
         <div className="absolute -top-24 -left-12 w-80 h-80 bg-gradient-to-br from-[#4E6E49]/25 via-transparent to-transparent blur-3xl" />
