@@ -8,7 +8,25 @@ export interface User {
   nickname?: string
   recoveryCode?: string
   phone?: string
+  positions?: string[] // Array of positions (max 10)
+  primaryPosition?: string // Primary position displayed in schedule
 }
+
+// Predefined position options
+export const PREDEFINED_POSITIONS = [
+  'Founder',
+  'Co-Founder',
+  'Caller Ultima',
+  'Caller PRO',
+  'Caller Base',
+  'Analyst Ultima',
+  'Analyst PRO',
+  'Analyst Base',
+  'Trader Ultima',
+  'Trader Pro',
+  'Trader Base',
+  'Developer',
+] as const
 
 // Slot types
 export interface TimeSlot {

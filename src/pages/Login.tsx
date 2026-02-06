@@ -364,7 +364,7 @@ export const Login = () => {
                 onClick={() => setIsForgotModalOpen(true)}
                 className="text-sm font-bold text-emerald-500 hover:text-emerald-600 transition-colors"
               >
-                Забыли пароль?
+                Забыл данные?
               </button>
             </div>
 
