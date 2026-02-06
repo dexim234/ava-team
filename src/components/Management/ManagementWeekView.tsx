@@ -7,10 +7,11 @@ import { useAdminStore } from '@/store/adminStore'
 import { getWorkSlots, getDayStatuses, addApprovalRequest, deleteWorkSlot, updateDayStatus, addDayStatus, deleteDayStatus } from '@/services/firestoreService'
 import { formatDate, getWeekDays, isSameDate, getMoscowTime } from '@/utils/dateUtils'
 import { getUserNicknameSync } from '@/utils/userUtils'
-import { WorkSlot, DayStatus, SLOT_CATEGORY_META, SlotCategory, DayStatusType } from '@/types'
+import { WorkSlot, DayStatus, SLOT_CATEGORY_META, SlotCategory, DayStatusType, User as UserType } from '@/types'
 import { Edit, Trash2, CheckCircle2, Calendar as CalendarIcon, ChevronDown, ChevronUp, Info, ChevronLeft, ChevronRight, RotateCcw } from 'lucide-react'
 import { startOfWeek } from 'date-fns'
 import { useUsers } from '@/hooks/useUsers'
+import Avatar from '@/components/Avatar'
 
 type SlotFilter = 'all' | 'upcoming' | 'completed'
 
@@ -52,7 +53,7 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
   }
 
   const resolveUser = (userId: string) => {
-    const member = allMembers.find((u) => u.id === userId) || allMembers.find((u) => legacyIdMap[userId] === u.id)
+    const member = allMembers.find((u: UserType) => u.id === userId) || allMembers.find((u: UserType) => legacyIdMap[userId] === u.id)
     return {
       member,
       displayName: getUserNicknameSync(member?.id || userId),
@@ -100,9 +101,9 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
       ])
 
       // Filter by week range
-      const weekSlots = allSlots.filter((s: any) => s.date >= weekStart && s.date <= weekEnd)
+      const weekSlots = allSlots.filter((s: WorkSlot) => s.date >= weekStart && s.date <= weekEnd)
       // For statuses, check if any day in the status range overlaps with the week
-      const weekStatuses = allStatuses.filter((s: any) => {
+      const weekStatuses = allStatuses.filter((s: DayStatus) => {
         const statusStart = s.date
         const statusEnd = s.endDate || s.date
         // Status overlaps with week if statusStart <= weekEnd AND statusEnd >= weekStart
@@ -111,10 +112,10 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
 
       // If user filter is selected, filter by user
       const filteredSlots = selectedUserId
-        ? weekSlots.filter((s: any) => s.userId === selectedUserId)
+        ? weekSlots.filter((s: WorkSlot) => s.userId === selectedUserId)
         : weekSlots
       const filteredStatuses = selectedUserId
-        ? weekStatuses.filter((s: any) => s.userId === selectedUserId)
+        ? weekStatuses.filter((s: DayStatus) => s.userId === selectedUserId)
         : weekStatuses
 
       console.log('Loaded slots (week view):', {
@@ -434,7 +435,7 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
   }
 
   const toggleBreaksVisibility = (slotId: string) => {
-    setBreaksExpanded(prev => ({
+    setBreaksExpanded((prev: Record<string, boolean>) => ({
       ...prev,
       [slotId]: !prev[slotId]
     }))
@@ -648,31 +649,8 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
                     >
                       <div className="flex items-center justify-center sm:justify-start border-b border-white/20 pb-2 sm:pb-3">
                         <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
-                          <div className="relative flex-shrink-0 group/avatar">
-                            {slotUser?.avatar ? (
-                              <img
-                                src={slotUser.avatar}
-                                alt={displayName}
-                                className={`w-8 h-8 sm: w-9 sm: h-9 md: w-10 md: h-10 lg: w-11 lg: h-11 rounded-full object - cover border-2 shadow-xl transition - all duration-300 group-hover/avatar: scale-110 group-hover/avatar: shadow-2xl ${isUpcoming
-                                  ? 'border-white/50 ring-2 ring-white/40 ring-offset-2 ring-offset-emerald-400/30 group-hover/avatar:ring-4 group-hover/avatar:ring-white/60'
-                                  : 'border-white/40 ring-2 ring-white/30 ring-offset-2 ring-offset-slate-400/30 group-hover/avatar:ring-4 group-hover/avatar:ring-white/50'
-                                  } `}
-                                onError={(e) => {
-                                  const target = e.target as HTMLImageElement
-                                  target.style.display = 'none'
-                                  const fallback = target.nextElementSibling as HTMLElement
-                                  if (fallback) fallback.style.display = 'flex'
-                                }}
-                              />
-                            ) : null}
-                            <div
-                              className={`w-8 h-8 sm: w-9 sm: h-9 md: w-10 md: h-10 lg: w-11 lg: h-11 rounded-full flex items-center justify-center font-bold text-xs sm: text-sm transition - all duration-300 shadow-xl group-hover/avatar: scale-110 group-hover/avatar: shadow-2xl ${isUpcoming
-                                ? 'bg-white/25 backdrop-blur-md border-2 border-white/40 ring-2 ring-white/30 group-hover/avatar:ring-4 group-hover/avatar:ring-white/60'
-                                : 'bg-white/15 backdrop-blur-md border-2 border-white/30 ring-2 ring-white/20 group-hover/avatar:ring-4 group-hover/avatar:ring-white/50'
-                                } ${slotUser?.avatar ? 'absolute inset-0 hidden' : ''} `}
-                            >
-                              {displayName.charAt(0).toUpperCase()}
-                            </div>
+                          <div className="relative flex-shrink-0">
+                            <Avatar user={slotUser} userId={slot.userId} size="sm" className="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 lg:w-11 lg:h-11" />
                           </div>
                           <span className="text-white font-bold text-sm sm:text-base group-hover:scale-105 transition-transform duration-300 truncate text-center sm:text-left w-full sm:w-auto">{displayName}</span>
                         </div>
@@ -774,8 +752,8 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
                                     ? 'bg-gray-700/95'
                                     : 'bg-white'
                                     } ${theme === 'dark' ? 'text-gray-200' : 'text-gray-900'} border-2 ${theme === 'dark' ? 'border-orange-500/60' : 'border-orange-300'} rounded-md sm:rounded-lg px-2 sm:px-3 py-1 sm:py-1.5 text-[10px] sm:text-xs font-semibold shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl ${theme === 'dark'
-                                    ? 'hover:border-orange-400/80 hover:shadow-orange-500/30 ring-2 ring-orange-500/20 hover:ring-4 hover:ring-orange-400/40'
-                                    : 'hover:border-orange-400 hover:shadow-orange-400/30 ring-2 ring-orange-300/20 hover:ring-4 hover:ring-orange-300/40'
+                                      ? 'hover:border-orange-400/80 hover:shadow-orange-500/30 ring-2 ring-orange-500/20 hover:ring-4 hover:ring-orange-400/40'
+                                      : 'hover:border-orange-400 hover:shadow-orange-400/30 ring-2 ring-orange-300/20 hover:ring-4 hover:ring-orange-300/40'
                                     } w-full`}>
                                     <span className="flex items-center gap-1 sm:gap-1.5 justify-center flex-wrap w-full">
                                       <span className={`w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full ${theme === 'dark' ? 'bg-orange-400' : 'bg-orange-500'} animate-pulse flex-shrink-0`}></span>

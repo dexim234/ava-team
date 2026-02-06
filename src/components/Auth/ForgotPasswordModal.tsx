@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { X, Lock, AlertTriangle, ShieldCheck, Copy, Check, User as UserIcon, Smartphone, Key } from 'lucide-react'
-import { TEAM_MEMBERS, User } from '@/types'
+import { User } from '@/types'
+import { getAllUsers } from '@/services/firestoreService'
 
 interface ForgotPasswordModalProps {
     onClose: () => void
@@ -13,13 +14,31 @@ export const ForgotPasswordModal = ({ onClose, theme }: ForgotPasswordModalProps
     const [error, setError] = useState('')
     const [recoveredUser, setRecoveredUser] = useState<User | null>(null)
     const [copiedField, setCopiedField] = useState<string | null>(null)
+    const [users, setUsers] = useState<User[]>([])
+    const [loading, setLoading] = useState(true)
+
+    useEffect(() => {
+        const fetchUsers = async () => {
+            try {
+                const allUsers = await getAllUsers()
+                setUsers(allUsers)
+            } catch (err) {
+                console.error('Error fetching users for recovery:', err)
+            } finally {
+                setLoading(false)
+            }
+        }
+        fetchUsers()
+    }, [])
 
     const handleRecover = (e: React.FormEvent) => {
         e.preventDefault()
         setError('')
 
-        const user = TEAM_MEMBERS.find(u =>
-            u.phone === phone.replace(/\D/g, '') &&
+        if (loading) return
+
+        const user = users.find(u =>
+            u.phone?.replace(/\D/g, '') === phone.replace(/\D/g, '') &&
             u.recoveryCode === code
         )
 

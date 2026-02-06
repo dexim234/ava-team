@@ -3,6 +3,8 @@ import { useThemeStore } from '@/store/themeStore'
 import { formatDate, getWeekRange } from '@/utils/dateUtils'
 import { getUserNicknameSync } from '@/utils/userUtils'
 import { Earnings, TEAM_MEMBERS, EARNINGS_CATEGORY_META, EarningsCategory } from '@/types'
+import Avatar from '@/components/Avatar'
+import { useUsers } from '@/hooks/useUsers'
 
 interface EarningsTableProps {
   earnings: Earnings[]
@@ -10,6 +12,7 @@ interface EarningsTableProps {
 
 export const EarningsTable = ({ earnings }: EarningsTableProps) => {
   const { theme } = useThemeStore()
+  const { users } = useUsers()
   const POOL_RATE = 0.45
 
   const weekRange = getWeekRange()
@@ -85,17 +88,13 @@ export const EarningsTable = ({ earnings }: EarningsTableProps) => {
                 <td className="px-6 py-5">
                   <div className="flex items-center gap-3">
                     <div className="relative">
-                      {avatar ? (
-                        <img src={avatar} alt="" className="w-9 h-9 rounded-full object-cover ring-2 ring-white/5" />
-                      ) : (
-                        <div className="w-9 h-9 rounded-full bg-emerald-500/20 flex items-center justify-center text-sm font-black text-emerald-500">
-                          {member.name[0]}
-                        </div>
-                      )}
+                      <Avatar userId={member.id} size="sm" className="w-9 h-9 ring-2 ring-white/5" />
                     </div>
                     <div>
                       <p className={`text-sm font-black ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{getUserNicknameSync(member.id)}</p>
-                      <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Frontier Team</p>
+                      <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">
+                        {users.find(u => u.id === member.id)?.primaryPosition || 'Member'}
+                      </p>
                     </div>
                   </div>
                 </td>

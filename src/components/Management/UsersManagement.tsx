@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react'
 import { Plus, Edit2, Trash2, User, X, Image, Save, RefreshCw, Eye, EyeOff, Copy, Check } from 'lucide-react'
-import { User as UserType, TEAM_MEMBERS, User as UserInterface } from '@/types'
+import { User as UserType, TEAM_MEMBERS, User as UserInterface, PREDEFINED_POSITIONS } from '@/types'
 import { getAllUsers, addUser, updateUser, deleteUser } from '@/services/firestoreService'
 import { useAdminStore } from '@/store/adminStore'
 import { useThemeStore } from '@/store/themeStore'
 import { generateUserCredentials } from '@/utils/userUtils'
+import Avatar from '@/components/Avatar'
+import { PositionManagement } from './PositionManagement'
 
 // Merge Firestore users with TEAM_MEMBERS (same logic as useUsers hook)
 const mergeUsersWithTeamMembers = (firestoreUsers: UserInterface[]): UserInterface[] => {
@@ -30,7 +32,7 @@ export const UsersManagement: React.FC = () => {
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [editingUser, setEditingUser] = useState<UserType | null>(null)
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<Partial<UserType>>({
     name: '',
     login: '',
     password: '',
@@ -45,6 +47,10 @@ export const UsersManagement: React.FC = () => {
   const [generatedCredentials, setGeneratedCredentials] = useState<{ login: string; password: string } | null>(null)
   const [uploading, setUploading] = useState(false)
   const fileInputRef = React.useRef<HTMLInputElement>(null)
+
+  // Position management state
+  const [newPositionInput, setNewPositionInput] = useState('')
+  const [showCustomPositionInput, setShowCustomPositionInput] = useState(false)
 
   const loadUsers = async () => {
     try {
@@ -72,25 +78,40 @@ export const UsersManagement: React.FC = () => {
       return
     }
 
+    // Validate positions
+    if (formData.positions && formData.positions.length > 10) {
+      alert('Максимум 10 должностей на участника')
+      return
+    }
+
+    // Ensure primaryPosition is in positions array
+    if (formData.primaryPosition && formData.positions && !formData.positions.includes(formData.primaryPosition)) {
+      alert('Основная должность должна быть в списке должностей')
+      return
+    }
+
     try {
+      // Create complete user data object
+      const userData = {
+        name: formData.name,
+        login: formData.login,
+        password: formData.password,
+        nickname: formData.nickname || undefined,
+        avatar: formData.avatar || undefined,
+        phone: formData.phone || undefined,
+        recoveryCode: formData.recoveryCode || undefined,
+        positions: formData.positions || undefined,
+        primaryPosition: formData.primaryPosition || undefined,
+      }
+
       if (editingUser) {
-        await updateUser(editingUser.id, formData)
+        await updateUser(editingUser.id, userData)
         window.dispatchEvent(new CustomEvent('userUpdated', { detail: { userId: editingUser.id } }))
       } else {
-        const newUserRef = await addUser({
-          name: formData.name,
-          login: formData.login,
-          password: formData.password,
-          nickname: formData.nickname || undefined,
-          avatar: formData.avatar || undefined,
-          phone: formData.phone || undefined,
-          recoveryCode: formData.recoveryCode || undefined,
-        })
+        const newUserRef = await addUser(userData)
         window.dispatchEvent(new CustomEvent('userUpdated', { detail: { userId: newUserRef } }))
-        // Clear generated credentials after successful add
         setGeneratedCredentials(null)
       }
-      // Small delay to ensure Firestore has updated and the state is ready
       await new Promise(resolve => setTimeout(resolve, 800))
       await loadUsers()
       closeForm()
@@ -143,7 +164,7 @@ export const UsersManagement: React.FC = () => {
 
           // Get compressed Base64 string
           const base64String = canvas.toDataURL('image/jpeg', 0.7)
-          setFormData((prev: typeof formData) => ({ ...prev, avatar: base64String }))
+          setFormData((prev: Partial<UserType>) => ({ ...prev, avatar: base64String }))
           setUploading(false)
         }
         img.src = event.target?.result as string
@@ -179,6 +200,8 @@ export const UsersManagement: React.FC = () => {
       avatar: user.avatar || '',
       phone: user.phone || '',
       recoveryCode: user.recoveryCode || '',
+      positions: user.positions || [],
+      primaryPosition: user.primaryPosition || '',
     })
     setShowForm(true)
   }
@@ -186,7 +209,17 @@ export const UsersManagement: React.FC = () => {
   const openAddForm = () => {
     setEditingUser(null)
     const credentials = generateUserCredentials('', users)
-    setFormData({ name: '', login: credentials.login, password: credentials.password, nickname: '', avatar: '', phone: '', recoveryCode: '' })
+    setFormData({
+      name: '',
+      login: credentials.login,
+      password: credentials.password,
+      nickname: '',
+      avatar: '',
+      phone: '',
+      recoveryCode: '',
+      positions: [],
+      primaryPosition: '',
+    })
     setGeneratedCredentials(credentials)
     setShowForm(true)
   }
@@ -194,8 +227,20 @@ export const UsersManagement: React.FC = () => {
   const closeForm = () => {
     setShowForm(false)
     setEditingUser(null)
-    setFormData({ name: '', login: '', password: '', nickname: '', avatar: '', phone: '', recoveryCode: '' })
+    setFormData({
+      name: '',
+      login: '',
+      password: '',
+      nickname: '',
+      avatar: '',
+      phone: '',
+      recoveryCode: '',
+      positions: [],
+      primaryPosition: '',
+    })
     setGeneratedCredentials(null)
+    setNewPositionInput('')
+    setShowCustomPositionInput(false)
   }
 
   const regenerateCredentials = () => {
@@ -280,14 +325,7 @@ export const UsersManagement: React.FC = () => {
                   <tr key={user.id} className={hoverBg}>
                     <td className={`px-4 py-3 ${labelColor}`}>
                       <div className="flex items-center gap-3">
-                        {user.avatar ? (
-                          <img src={user.avatar} alt="" className="w-8 h-8 rounded-full object-cover" />
-                        ) : (
-                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${theme === 'dark' ? 'bg-gray-700 text-gray-300' : 'bg-gray-200 text-gray-700'
-                            }`}>
-                            {user.name[0]}
-                          </div>
-                        )}
+                        <Avatar user={user} size="sm" className="w-8 h-8" />
                         <span className="font-medium">{user.name}</span>
                       </div>
                     </td>
@@ -543,24 +581,24 @@ export const UsersManagement: React.FC = () => {
                 </div>
               </div>
 
+              {/* Position Management Section */}
+              <PositionManagement
+                positions={formData.positions || []}
+                primaryPosition={formData.primaryPosition || ''}
+                onPositionsChange={(positions) => setFormData({ ...formData, positions })}
+                onPrimaryChange={(primaryPosition) => setFormData({ ...formData, primaryPosition })}
+                theme={theme}
+                labelColor={labelColor}
+                subTextColor={subTextColor}
+              />
+
               <div className="space-y-2">
                 <label className={`block text-sm font-medium ${labelColor}`}>
                   Фото участника
                 </label>
                 <div className="flex items-center gap-4">
                   <div className="relative">
-                    {formData.avatar ? (
-                      <img
-                        src={formData.avatar}
-                        alt="Preview"
-                        className="w-16 h-16 rounded-full object-cover border-2 border-emerald-500"
-                      />
-                    ) : (
-                      <div className={`w-16 h-16 rounded-full flex items-center justify-center border-2 border-dashed ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-gray-50 border-gray-300'
-                        }`}>
-                        <User className={subTextColor} />
-                      </div>
-                    )}
+                    <Avatar user={{ ...formData, id: editingUser?.id || '' } as UserType} size="lg" className="w-16 h-16" />
                     {uploading && (
                       <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center">
                         <RefreshCw className="w-6 h-6 text-white animate-spin" />

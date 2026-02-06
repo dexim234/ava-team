@@ -122,7 +122,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
     { path: '/events', label: 'Events', icon: CalendarDays, feature: 'tools_events' },
     { path: '/about', label: 'INFO', icon: Info, feature: 'ava_info' },
     { path: '/docs', label: 'Docs', icon: BookOpen, feature: 'tools_events' }, // Docs usually uses events access or similar
-    { path: '/analytics-dev', label: 'Analytics', icon: BarChart3, feature: 'tools_strategies' },
+    { path: '/analytics', label: 'Analytics', icon: BarChart3, feature: 'tools_strategies' },
   ]
 
   const adminSubItems: { path: string; label: string; icon: LucideIcon }[] = [

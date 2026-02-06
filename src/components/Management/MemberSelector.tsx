@@ -4,6 +4,7 @@ import { User as UserType } from '@/types'
 import { useUserNickname } from '@/utils/userUtils'
 import { useThemeStore } from '@/store/themeStore'
 import { getAllUsers } from '@/services/firestoreService'
+import Avatar from '@/components/Avatar'
 import { TEAM_MEMBERS } from '@/types'
 
 interface MemberSelectorProps {
@@ -72,20 +73,14 @@ export const MemberSelector: React.FC<MemberSelectorProps> = ({ selectedUserId, 
             <button
                 onClick={() => setIsOpen(!isOpen)}
                 className={`w-full flex items-center justify-between gap-3 px-4 py-2.5 rounded-xl border transition-all ${theme === 'dark'
-                        ? 'bg-[#151a21] border-white/5 text-gray-300 hover:border-emerald-500/30'
-                        : 'bg-gray-50 border-gray-200 text-gray-700 hover:border-emerald-500'
+                    ? 'bg-[#151a21] border-white/5 text-gray-300 hover:border-emerald-500/30'
+                    : 'bg-gray-50 border-gray-200 text-gray-700 hover:border-emerald-500'
                     }`}
             >
                 <div className="flex items-center gap-2.5 overflow-hidden">
                     {selectedMember ? (
                         <>
-                            {selectedMember.avatar ? (
-                                <img src={selectedMember.avatar} alt="" className="w-5 h-5 rounded-full object-cover flex-shrink-0" />
-                            ) : (
-                                <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] bg-emerald-500/20 text-emerald-500 flex-shrink-0`}>
-                                    <User size={12} />
-                                </div>
-                            )}
+                            <Avatar user={selectedMember} size="sm" className="w-5 h-5" />
                             <span className="text-sm font-bold truncate">
                                 {selectedNickname || selectedMember.name}
                             </span>
@@ -115,8 +110,8 @@ export const MemberSelector: React.FC<MemberSelectorProps> = ({ selectedUserId, 
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
                                 className={`w-full pl-9 pr-8 py-2 rounded-lg text-xs font-medium outline-none transition-all ${theme === 'dark'
-                                        ? 'bg-black/20 text-gray-300 focus:bg-black/40'
-                                        : 'bg-gray-100 text-gray-700 focus:bg-gray-200'
+                                    ? 'bg-black/20 text-gray-300 focus:bg-black/40'
+                                    : 'bg-gray-100 text-gray-700 focus:bg-gray-200'
                                     }`}
                                 autoFocus
                             />
@@ -139,8 +134,8 @@ export const MemberSelector: React.FC<MemberSelectorProps> = ({ selectedUserId, 
                                 setIsOpen(false)
                             }}
                             className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-all text-left ${!selectedUserId
-                                    ? theme === 'dark' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-emerald-50 text-emerald-600'
-                                    : theme === 'dark' ? 'hover:bg-white/5 text-gray-400' : 'hover:bg-gray-50 text-gray-600'
+                                ? theme === 'dark' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-emerald-50 text-emerald-600'
+                                : theme === 'dark' ? 'hover:bg-white/5 text-gray-400' : 'hover:bg-gray-50 text-gray-600'
                                 }`}
                         >
                             <div className={`w-6 h-6 rounded-full flex items-center justify-center border border-dashed border-gray-500 text-[10px]`}>
@@ -186,19 +181,12 @@ const MemberItem: React.FC<{
         <button
             onClick={() => onSelect(member.id)}
             className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-all text-left group ${isSelected
-                    ? theme === 'dark' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-emerald-50 text-emerald-600'
-                    : theme === 'dark' ? 'hover:bg-white/5 text-gray-300' : 'hover:bg-gray-50 text-gray-700'
+                ? theme === 'dark' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-emerald-50 text-emerald-600'
+                : theme === 'dark' ? 'hover:bg-white/5 text-gray-300' : 'hover:bg-gray-50 text-gray-700'
                 }`}
         >
             <div className="relative">
-                {member.avatar ? (
-                    <img src={member.avatar} alt="" className="w-6 h-6 rounded-full object-cover group-hover:ring-2 ring-emerald-500/30 transition-all" />
-                ) : (
-                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] ${isSelected ? 'bg-emerald-500/20 text-emerald-500' : 'bg-gray-500/10 text-gray-500'
-                        }`}>
-                        {member.name[0]}
-                    </div>
-                )}
+                <Avatar user={member} size="sm" className="w-6 h-6" />
             </div>
             <div className="flex flex-col min-w-0">
                 <span className="text-xs font-bold truncate">{nickname || member.name}</span>
