@@ -10,7 +10,6 @@ import {
   Users,
   BookOpen,
   BarChart3,
-  Clock,
   Settings,
   Shield,
   CheckCircle2,
@@ -117,11 +116,10 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
 
   const toolsSubItems: { path: string; label: string; icon: LucideIcon; feature: string; isDev?: boolean }[] = [
     { path: '/strategies', label: 'Контур', icon: TrendingUp, feature: 'tools_strategies' },
-    { path: '/calendar-dev', label: 'Календарь', icon: Clock, feature: 'tools_events', isDev: true },
+    { path: '/analytics', label: 'Аналитика', icon: BarChart3, feature: 'tools_strategies', isDev: true },
     { path: '/events', label: 'События', icon: CalendarDays, feature: 'tools_events' },
     { path: '/about', label: 'INFO', icon: Info, feature: 'ava_info' },
     { path: '/docs', label: 'Docs', icon: BookOpen, feature: 'tools_events' }, // Docs usually uses events access or similar
-    { path: '/analytics-dev', label: 'Analytics Deal', icon: BarChart3, feature: 'tools_strategies', isDev: true },
   ]
 
   const adminSubItems: { path: string; label: string; icon: LucideIcon }[] = [

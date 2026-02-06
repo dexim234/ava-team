@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react'
 import { Plus, Edit2, Trash2, User, X, Image, Save, RefreshCw, Eye, EyeOff, Copy, Check } from 'lucide-react'
 import { User as UserType, TEAM_MEMBERS, User as UserInterface } from '@/types'
 import { getAllUsers, addUser, updateUser, deleteUser } from '@/services/firestoreService'
-import { uploadFile } from '@/services/storageService'
 import { useAdminStore } from '@/store/adminStore'
 import { useThemeStore } from '@/store/themeStore'
 import { generateUserCredentials } from '@/utils/userUtils'
@@ -103,15 +102,54 @@ export const UsersManagement: React.FC = () => {
     const file = e.target.files?.[0]
     if (!file) return
 
+    // Limit file size to 2MB before processing
+    if (file.size > 2 * 1024 * 1024) {
+      alert('Файл слишком большой. Выберите изображение до 2МБ')
+      return
+    }
+
     try {
       setUploading(true)
-      const path = `avatars/${Date.now()}_${file.name}`
-      const { url } = await uploadFile(file, path)
-      setFormData(prev => ({ ...prev, avatar: url }))
+
+      const reader = new FileReader()
+      reader.onload = (event) => {
+        const img = new Image()
+        img.onload = () => {
+          // Create a canvas to resize the image to a reasonable size (200x200)
+          // This keeps the Base64 string small enough for Firestore
+          const canvas = document.createElement('canvas')
+          const MAX_SIZE = 200
+          let width = img.width
+          let height = img.height
+
+          if (width > height) {
+            if (width > MAX_SIZE) {
+              height *= MAX_SIZE / width
+              width = MAX_SIZE
+            }
+          } else {
+            if (height > MAX_SIZE) {
+              width *= MAX_SIZE / height
+              height = MAX_SIZE
+            }
+          }
+
+          canvas.width = width
+          canvas.height = height
+          const ctx = canvas.getContext('2d')
+          ctx?.drawImage(img, 0, 0, width, height)
+
+          // Get compressed Base64 string
+          const base64String = canvas.toDataURL('image/jpeg', 0.7)
+          setFormData(prev => ({ ...prev, avatar: base64String }))
+          setUploading(false)
+        }
+        img.src = event.target?.result as string
+      }
+      reader.readAsDataURL(file)
     } catch (error) {
-      console.error('Error uploading file:', error)
-      alert('Ошибка при загрузке изображения')
-    } finally {
+      console.error('Error processing image:', error)
+      alert('Ошибка при обработке изображения')
       setUploading(false)
     }
   }
