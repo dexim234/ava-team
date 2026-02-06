@@ -26,7 +26,7 @@ import {
   countDaysInPeriod
 } from '@/utils/dateUtils'
 import { calculateRating, getRatingBreakdown } from '@/utils/ratingUtils'
-import { Task, RatingData, Note, Earnings, DayStatus } from '@/types'
+import { Task, RatingData, Note, Earnings, DayStatus, WorkSlot } from '@/types'
 import {
   User,
   LogOut,
@@ -94,7 +94,7 @@ export const Profile = () => {
   // Get viewed user info if viewing other user
   const viewedUserMember = effectiveUserId ? TEAM_MEMBERS.find(m => m.id === effectiveUserId) : null
 
-  const userData = user || (isAdmin ? { name: 'Администратор', login: 'admin', password: ADMIN_PASSWORD } : null)
+  const userData = user || (isAdmin ? { id: 'admin', name: 'Администратор', login: 'admin', password: ADMIN_PASSWORD, avatar: undefined } : null)
   const profileAvatar = useUserAvatar(targetUserId, userData?.id === targetUserId ? userData?.avatar : undefined)
   const profileInitial = userData?.name ? userData.name.charAt(0).toUpperCase() : 'A'
 
@@ -162,23 +162,23 @@ export const Profile = () => {
         })
 
         const daysOff = monthStatuses
-          .filter((s: any) => s.type === 'dayoff')
-          .reduce((sum: number, s: any) => sum + countDaysInPeriod(s.date, s.endDate, monthStart, monthEnd), 0)
+          .filter((s: DayStatus) => s.type === 'dayoff')
+          .reduce((sum: number, s: DayStatus) => sum + countDaysInPeriod(s.date, s.endDate, monthStart, monthEnd), 0)
         const sickDays = monthStatuses
-          .filter((s: any) => s.type === 'sick')
-          .reduce((sum: number, s: any) => sum + countDaysInPeriod(s.date, s.endDate, monthStart, monthEnd), 0)
+          .filter((s: DayStatus) => s.type === 'sick')
+          .reduce((sum: number, s: DayStatus) => sum + countDaysInPeriod(s.date, s.endDate, monthStart, monthEnd), 0)
         const vacationDays = monthStatuses
-          .filter((s: any) => s.type === 'vacation')
-          .reduce((sum: number, s: any) => sum + countDaysInPeriod(s.date, s.endDate, monthStart, monthEnd), 0)
+          .filter((s: DayStatus) => s.type === 'vacation')
+          .reduce((sum: number, s: DayStatus) => sum + countDaysInPeriod(s.date, s.endDate, monthStart, monthEnd), 0)
         const absenceDays = monthStatuses
-          .filter((s: any) => s.type === 'absence')
-          .reduce((sum: number, s: any) => sum + countDaysInPeriod(s.date, s.endDate, monthStart, monthEnd), 0)
+          .filter((s: DayStatus) => s.type === 'absence')
+          .reduce((sum: number, s: DayStatus) => sum + countDaysInPeriod(s.date, s.endDate, monthStart, monthEnd), 0)
         const truancyDays = monthStatuses
-          .filter((s: any) => s.type === 'truancy')
-          .reduce((sum: number, s: any) => sum + countDaysInPeriod(s.date, s.endDate, monthStart, monthEnd), 0)
+          .filter((s: DayStatus) => s.type === 'truancy')
+          .reduce((sum: number, s: DayStatus) => sum + countDaysInPeriod(s.date, s.endDate, monthStart, monthEnd), 0)
         const internshipDays = monthStatuses
-          .filter((s: any) => s.type === 'internship')
-          .reduce((sum: number, s: any) => sum + countDaysInPeriod(s.date, s.endDate, monthStart, monthEnd), 0)
+          .filter((s: DayStatus) => s.type === 'internship')
+          .reduce((sum: number, s: DayStatus) => sum + countDaysInPeriod(s.date, s.endDate, monthStart, monthEnd), 0)
 
         // Недельные выходные и больничные
         const weekStatuses = statuses.filter((s: any) => {
@@ -188,14 +188,14 @@ export const Profile = () => {
         })
 
         const weeklyDaysOff = weekStatuses
-          .filter((s: any) => s.type === 'dayoff')
-          .reduce((sum: number, s: any) => sum + countDaysInPeriod(s.date, s.endDate, weekStart, weekEnd), 0)
+          .filter((s: DayStatus) => s.type === 'dayoff')
+          .reduce((sum: number, s: DayStatus) => sum + countDaysInPeriod(s.date, s.endDate, weekStart, weekEnd), 0)
         const weeklySickDays = weekStatuses
-          .filter((s: any) => s.type === 'sick')
-          .reduce((sum: number, s: any) => sum + countDaysInPeriod(s.date, s.endDate, weekStart, weekEnd), 0)
+          .filter((s: DayStatus) => s.type === 'sick')
+          .reduce((sum: number, s: DayStatus) => sum + countDaysInPeriod(s.date, s.endDate, weekStart, weekEnd), 0)
 
         // Отпуск за 90 дней
-        const ninetyDayStatuses = statuses.filter((s: any) => {
+        const ninetyDayStatuses = statuses.filter((s: DayStatus) => {
           const statusStart = s.date
           const statusEnd = s.endDate || s.date
           return statusStart <= ninetyDayEnd && statusEnd >= ninetyDayStart
@@ -206,8 +206,8 @@ export const Profile = () => {
           .reduce((sum: number, s: any) => sum + countDaysInPeriod(s.date, s.endDate, ninetyDayStart, ninetyDayEnd), 0)
 
         const slots = await getWorkSlots(targetUserId)
-        const weekSlots = slots.filter((s: any) => s.date >= weekStart && s.date <= weekEnd)
-        const weeklyHours = weekSlots.reduce((sum: number, slot: any) => sum + calculateHours(slot.slots), 0)
+        const weekSlots = slots.filter((s: WorkSlot) => s.date >= weekStart && s.date <= weekEnd)
+        const weeklyHours = weekSlots.reduce((sum: number, slot: WorkSlot) => sum + calculateHours(slot.slots), 0)
 
         const existingRatings = await getRatingData(targetUserId)
         const ratingData = existingRatings[0] || {
