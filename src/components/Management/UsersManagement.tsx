@@ -52,7 +52,7 @@ export const UsersManagement: React.FC = () => {
       const firestoreUsers = await getAllUsers()
       const allUsers = mergeUsersWithTeamMembers(firestoreUsers)
       setUsers(allUsers)
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error loading users:', error)
       // Fallback to TEAM_MEMBERS on error
       setUsers(TEAM_MEMBERS)
@@ -86,7 +86,7 @@ export const UsersManagement: React.FC = () => {
           phone: formData.phone || undefined,
           recoveryCode: formData.recoveryCode || undefined,
         })
-        window.dispatchEvent(new CustomEvent('userUpdated', { detail: { userId: newUserRef.id } }))
+        window.dispatchEvent(new CustomEvent('userUpdated', { detail: { userId: newUserRef } }))
         // Clear generated credentials after successful add
         setGeneratedCredentials(null)
       }
@@ -94,7 +94,7 @@ export const UsersManagement: React.FC = () => {
       await new Promise(resolve => setTimeout(resolve, 800))
       await loadUsers()
       closeForm()
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving user:', error)
       alert('Ошибка при сохранении пользователя')
     }
@@ -114,8 +114,8 @@ export const UsersManagement: React.FC = () => {
       setUploading(true)
 
       const reader = new FileReader()
-      reader.onload = (event) => {
-        const img = new Image()
+      reader.onload = (event: any) => {
+        const img = new window.Image()
         img.onload = () => {
           // Create a canvas to resize the image to a reasonable size (200x200)
           // This keeps the Base64 string small enough for Firestore
@@ -143,13 +143,13 @@ export const UsersManagement: React.FC = () => {
 
           // Get compressed Base64 string
           const base64String = canvas.toDataURL('image/jpeg', 0.7)
-          setFormData(prev => ({ ...prev, avatar: base64String }))
+          setFormData((prev: typeof formData) => ({ ...prev, avatar: base64String }))
           setUploading(false)
         }
         img.src = event.target?.result as string
       }
       reader.readAsDataURL(file)
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error processing image:', error)
       alert('Ошибка при обработке изображения')
       setUploading(false)
@@ -163,7 +163,7 @@ export const UsersManagement: React.FC = () => {
         await loadUsers()
         setDeleteConfirm(null)
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error deleting user:', error)
       alert('Ошибка при удалении пользователя')
     }
@@ -207,7 +207,7 @@ export const UsersManagement: React.FC = () => {
   }
 
   const togglePasswordVisibility = (userId: string) => {
-    setShowPasswords(prev => ({ ...prev, [userId]: !prev[userId] }))
+    setShowPasswords((prev: Record<string, boolean>) => ({ ...prev, [userId]: !prev[userId] }))
   }
 
   const copyCredentials = (login: string, password: string, userId: string) => {

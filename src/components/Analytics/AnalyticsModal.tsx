@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useThemeStore } from '@/store/themeStore'
 import { useAuthStore } from '@/store/authStore'
 import { AnalyticsReview, addAnalyticsReview, updateAnalyticsReview } from '@/services/analyticsService'
-import { X, Save, AlertCircle } from 'lucide-react'
+import { X, Save } from 'lucide-react'
 import { SlotCategory, SLOT_CATEGORY_META } from '@/types'
 
 interface AnalyticsModalProps {

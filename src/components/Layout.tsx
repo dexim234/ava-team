@@ -147,9 +147,6 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
     localStorage.setItem('sidebarCollapsed', String(newState))
   }
 
-  const getInitials = (name: string) => {
-    return name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2)
-  }
 
   return (
     <div className={`min-h-screen ${theme === 'dark' ? 'dark bg-[#0b0f17]' : 'bg-[#f8fafc]'}`}>
@@ -230,7 +227,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                           <Link
                             key={item.path}
                             to={item.isDev ? '#' : item.path}
-                            onClick={(e) => item.isDev && e.preventDefault()}
+                            onClick={(e: React.MouseEvent<HTMLAnchorElement>) => item.isDev && e.preventDefault()}
                             className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-all relative ${location.pathname === item.path ? 'bg-[#4E6E49] text-white' : 'text-gray-500 hover:bg-[#4E6E49]/10 hover:text-[#4E6E49]'} ${item.isDev ? 'cursor-not-allowed opacity-80' : ''}`}
                           >
                             <item.icon className="w-3.5 h-3.5" />
@@ -253,7 +250,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                         <Link
                           key={item.path}
                           to={item.isDev ? '#' : item.path}
-                          onClick={(e) => item.isDev && e.preventDefault()}
+                          onClick={(e: React.MouseEvent<HTMLAnchorElement>) => item.isDev && e.preventDefault()}
                           className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-all ${location.pathname === item.path ? 'bg-[#4E6E49] text-white' : 'text-gray-500 hover:bg-[#4E6E49]/10 hover:text-[#4E6E49]'} ${item.isDev ? 'cursor-not-allowed opacity-80' : ''}`}
                         >
                           <item.icon className="w-3.5 h-3.5" />
