@@ -49,7 +49,7 @@ import {
 } from 'lucide-react'
 import { useNavigate, Link } from 'react-router-dom'
 import { TEAM_MEMBERS } from '@/types'
-import { useUserNickname } from '@/utils/userUtils'
+import { useUserNickname, useUserAvatar } from '@/utils/userUtils'
 import { UserNickname } from '@/components/UserNickname'
 
 export const Profile = () => {
@@ -95,7 +95,7 @@ export const Profile = () => {
   const viewedUserMember = effectiveUserId ? TEAM_MEMBERS.find(m => m.id === effectiveUserId) : null
 
   const userData = user || (isAdmin ? { name: 'Администратор', login: 'admin', password: ADMIN_PASSWORD } : null)
-  const profileAvatar = effectiveUserId ? TEAM_MEMBERS.find((m) => m.id === effectiveUserId)?.avatar : undefined
+  const profileAvatar = useUserAvatar(targetUserId, userData?.id === targetUserId ? userData?.avatar : undefined)
   const profileInitial = userData?.name ? userData.name.charAt(0).toUpperCase() : 'A'
 
   const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'

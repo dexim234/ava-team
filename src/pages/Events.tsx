@@ -184,8 +184,8 @@ export const EventsPage = () => {
               <Calendar size={24} />
             </div>
             <div>
-              <h1 className={`text-2xl font-bold ${textColor}`}>События</h1>
-              <p className={`text-sm ${subtleColor}`}>Анонсы мероприятий и важные даты</p>
+              <h1 className={`text-2xl font-bold ${textColor}`}>Events</h1>
+              <p className={`text-sm ${subtleColor}`}>Event announcements and important dates</p>
             </div>
           </div>
 

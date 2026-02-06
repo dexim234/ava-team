@@ -17,27 +17,36 @@ export const useAuthStore = create<AuthState>()(
       isAuthenticated: false,
       login: async (login: string, password: string) => {
         try {
-          // 1. Check dynamic users from Firestore
-          const users = await getAllUsers()
-          let user = users.find(
+          // 1. Get all users from Firestore to find a match or check if user is managed
+          const firestoreUsers = await getAllUsers()
+
+          // Find user by login in Firestore
+          const firestoreUser = firestoreUsers.find((u) => u.login === login)
+
+          if (firestoreUser) {
+            // User exists in Firestore - strictly check password from Firestore
+            if (firestoreUser.password === password) {
+              set({ user: firestoreUser, isAuthenticated: true })
+              return true
+            }
+            // Wrong password for a managed user
+            return false
+          }
+
+          // 2. Fallback to TEAM_MEMBERS ONLY if user is NOT in Firestore
+          const teamMember = TEAM_MEMBERS.find(
             (u) => u.login === login && u.password === password
           )
 
-          // 2. Fallback to hardcoded TEAM_MEMBERS if not found in Firestore
-          if (!user) {
-            user = TEAM_MEMBERS.find(
-              (u) => u.login === login && u.password === password
-            )
-          }
-
-          if (user) {
-            set({ user, isAuthenticated: true })
+          if (teamMember) {
+            set({ user: teamMember, isAuthenticated: true })
             return true
           }
+
           return false
         } catch (error) {
           console.error('Login error:', error)
-          // Final fallback to hardcoded members even if Firestore fails
+          // Final desperate fallback if Firestore fails COMPLETELY
           const user = TEAM_MEMBERS.find(
             (u) => u.login === login && u.password === password
           )

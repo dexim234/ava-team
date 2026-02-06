@@ -18,6 +18,7 @@ import { Approvals } from './pages/Approvals'
 import { Strategies } from './pages/Strategies'
 import { EventsPage } from './pages/Events'
 import { Referrals } from './pages/Referrals'
+import { Analytics } from './pages/Analytics'
 import { NotFound } from './pages/NotFound'
 
 import { ProtectedRoute } from './components/ProtectedRoute'
@@ -25,11 +26,15 @@ import { AccessBlockScreen } from './components/AccessBlockScreen'
 import { cleanupOldData } from './services/firestoreService'
 
 import { AppLayout } from './components/AppLayout'
+import { useAuthSecurity } from './hooks/useAuthSecurity'
 
 function App() {
   const { isAuthenticated } = useAuthStore()
   const { isAdmin } = useAdminStore()
   const { theme } = useThemeStore()
+
+  // Monitor session security and auto-logout if credentials change
+  useAuthSecurity()
 
   useEffect(() => {
     // Apply theme on mount
@@ -166,6 +171,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <EventsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/analytics"
+            element={
+              <ProtectedRoute>
+                <Analytics />
               </ProtectedRoute>
             }
           />

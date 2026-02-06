@@ -47,6 +47,7 @@ export const cleanupOldData = async () => {
       cleanupCollectionByField('dayStatuses', 'date', dateOnly),
       cleanupCollectionByField('earnings', 'date', dateOnly),
       cleanupCollectionByField('referrals', 'createdAt', iso),
+      cleanupCollectionByField('analytics', 'createdAt', iso),
     ])
   } catch (error) {
     console.error('Failed to cleanup old data', error)

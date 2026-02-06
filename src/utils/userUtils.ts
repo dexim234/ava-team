@@ -1,6 +1,6 @@
 // Utility functions for user data
 import { TEAM_MEMBERS } from '@/types'
-import { getUserNicknameValue } from '@/services/firestoreService'
+import { getUserNicknameValue, getAllUsers } from '@/services/firestoreService'
 
 // Default nickname map (from ManagementTable)
 const defaultNicknameMap: Record<string, string> = {
@@ -158,27 +158,69 @@ export const useUserNickname = (userId: string): string => {
   const [nickname, setNickname] = useState(() => getUserNicknameSync(userId))
 
   useEffect(() => {
-    // Initial fetch if not in cache or if it's currently a fallback
-    // We check if the cache has the exact userId to see if we've ever fetched it
-    if (!nicknameCache.has(userId)) {
-      getUserNicknameAsync(userId).then(val => setNickname(val))
-    }
+    // Initial fetch
+    getUserNicknameAsync(userId).then(val => setNickname(val))
 
-    const handleNicknameUpdate = (event: Event) => {
+    const handleUpdate = (event: Event) => {
       const customEvent = event as CustomEvent<{ userId: string }>
-      const { userId: updatedUserId } = customEvent.detail || {}
-
-      // Update if it's our userId or if it's a global update (no userId in detail)
-      if (!updatedUserId || updatedUserId === userId) {
-        setNickname(getUserNicknameSync(userId))
+      if (!customEvent.detail?.userId || customEvent.detail.userId === userId) {
+        getUserNicknameAsync(userId).then(val => setNickname(val))
       }
     }
 
-    window.addEventListener('nicknameUpdated', handleNicknameUpdate)
-    return () => window.removeEventListener('nicknameUpdated', handleNicknameUpdate)
+    window.addEventListener('nicknameUpdated', handleUpdate)
+    window.addEventListener('userUpdated', handleUpdate)
+    return () => {
+      window.removeEventListener('nicknameUpdated', handleUpdate)
+      window.removeEventListener('userUpdated', handleUpdate)
+    }
   }, [userId])
 
   return nickname
+}
+
+/**
+ * React hook for user avatar that automatically updates
+ */
+export const useUserAvatar = (userId: string, initialAvatar?: string): string | undefined => {
+  const [avatar, setAvatar] = useState(initialAvatar)
+
+  useEffect(() => {
+    const fetchAvatar = async () => {
+      // Find in TEAM_MEMBERS first
+      const member = TEAM_MEMBERS.find(m => m.id === userId)
+      let currentAvatar = member?.avatar
+
+      // Then check Firestore (could be improved by adding getUserAvatar to firestoreService)
+      try {
+        const { users } = await getAllUsers().then(u => ({ users: u }))
+        const firestoreUser = users.find(u => u.id === userId)
+        if (firestoreUser?.avatar) {
+          currentAvatar = firestoreUser.avatar
+        }
+      } catch (e) { /* ignore */ }
+
+      setAvatar(currentAvatar)
+    }
+
+    if (!initialAvatar) fetchAvatar()
+
+    const handleUpdate = (event: Event) => {
+      const customEvent = event as CustomEvent<{ userId: string }>
+      if (!customEvent.detail?.userId || customEvent.detail.userId === userId) {
+        fetchAvatar()
+      }
+    }
+
+    window.addEventListener('avatarUpdated', handleUpdate)
+    window.addEventListener('userUpdated', handleUpdate)
+    return () => {
+      window.removeEventListener('avatarUpdated', handleUpdate)
+      window.removeEventListener('userUpdated', handleUpdate)
+    }
+  }, [userId, initialAvatar])
+
+  return avatar
 }
 
 
