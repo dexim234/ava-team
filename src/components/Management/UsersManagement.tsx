@@ -111,9 +111,9 @@ export const UsersManagement: React.FC = () => {
     try {
       setUploading(true)
 
-      const reader = new FileReader()
-      reader.onload = (event) => {
-        const img = new Image()
+      const reader = new (window as any).FileReader()
+      reader.onload = (event: any) => {
+        const img = new (window as any).Image()
         img.onload = () => {
           // Create a canvas to resize the image to a reasonable size (200x200)
           // This keeps the Base64 string small enough for Firestore
