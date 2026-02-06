@@ -79,7 +79,6 @@ export const AnalyticsTable = ({ reviews, onEdit }: AnalyticsTableProps) => {
         if (isAdmin) return true
         if (user?.id !== review.createdBy) return false
 
-        // Expert can edit only within 30 minutes
         const createdAt = new Date(review.createdAt).getTime()
         const now = new Date().getTime()
         return (now - createdAt) < 30 * 60 * 1000
@@ -134,7 +133,6 @@ export const AnalyticsTable = ({ reviews, onEdit }: AnalyticsTableProps) => {
                                     {review.deadline ? formatDate(new Date(review.deadline), 'dd.MM.yyyy') : '-'}
                                 </td>
                                 <td className={`p-4 align-top text-center text-xs font-bold ${review.deadline ? getDeadlineColor(review.deadline) : 'text-gray-500'}`}>
-                                    {review.deadline ? formatDate(new Date(review.deadline), 'HH:mm:ss') : '-'}
                                     {review.deadline && <CountdownTimer deadline={review.deadline} />}                                </td>
                                 <td className="p-4 align-top text-center">
                                     {review.links && review.links.length > 0 && (

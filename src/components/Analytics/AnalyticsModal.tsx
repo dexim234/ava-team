@@ -2,13 +2,18 @@ import { useState, useEffect } from 'react'
 import { useThemeStore } from '@/store/themeStore'
 import { useAuthStore } from '@/store/authStore'
 import { AnalyticsReview, addAnalyticsReview, updateAnalyticsReview } from '@/services/analyticsService'
-import { X, Save } from 'lucide-react'
+import { X, Save, Plus, Trash2 } from 'lucide-react'
 import { SlotCategory, SLOT_CATEGORY_META } from '@/types'
 
 interface AnalyticsModalProps {
     isOpen: boolean
     onClose: () => void
     review: AnalyticsReview | null
+}
+
+interface LinkInput {
+    url: string
+    title: string
 }
 
 export const AnalyticsModal = ({ isOpen, onClose, review }: AnalyticsModalProps) => {
@@ -22,12 +27,16 @@ export const AnalyticsModal = ({ isOpen, onClose, review }: AnalyticsModalProps)
         deadline: '',
         links: []
     })
-    const [linksText, setLinksText] = useState('')
+    const [linkInputs, setLinkInputs] = useState<LinkInput[]>([])
 
     useEffect(() => {
         if (review) {
             setFormData(review)
-            setLinksText(review.links?.join('\n') || '')
+            const parsedLinks = review.links?.map(link => {
+                const parts = link.split(' - ')
+                return { url: parts[0] || '', title: parts[1] || '' }
+            }) || []
+            setLinkInputs(parsedLinks.length > 0 ? parsedLinks : [{ url: '', title: '' }])
         } else {
             setFormData({
                 sphere: 'memecoins',
@@ -36,18 +45,38 @@ export const AnalyticsModal = ({ isOpen, onClose, review }: AnalyticsModalProps)
                 deadline: '',
                 links: []
             })
-            setLinksText('')
+            setLinkInputs([{ url: '', title: '' }])
         }
     }, [review, isOpen])
 
     if (!isOpen) return null
 
+    const handleAddLinkInput = () => {
+        if (linkInputs.length < 10) {
+            setLinkInputs([...linkInputs, { url: '', title: '' }])
+        }
+    }
+
+    const handleRemoveLinkInput = (index: number) => {
+        const newLinkInputs = linkInputs.filter((_, i) => i !== index)
+        setLinkInputs(newLinkInputs)
+    }
+
+    const handleLinkInputChange = (index: number, field: keyof LinkInput, value: string) => {
+        const newLinkInputs = [...linkInputs]
+        newLinkInputs[index] = { ...newLinkInputs[index], [field]: value }
+        setLinkInputs(newLinkInputs)
+    }
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         setLoading(true)
         try {
-            const links = linksText.split('\n').map(l => l.trim()).filter(l => l !== '')
-            const data = { ...formData, links, createdBy: user?.id || '' } as Omit<AnalyticsReview, 'id' | 'createdAt' | 'updatedAt'>
+            const formattedLinks = linkInputs
+                .filter(link => !(link.url.trim() === '' && link.title.trim() === '')) // Отфильтровываем пустые пары
+                .map(link => `${link.url.trim()} - ${link.title.trim()}`)
+
+            const data = { ...formData, links: formattedLinks, createdBy: user?.id || '' } as Omit<AnalyticsReview, 'id' | 'createdAt' | 'updatedAt'>
 
             if (review) {
                 await updateAnalyticsReview(review.id, data)
@@ -130,14 +159,43 @@ export const AnalyticsModal = ({ isOpen, onClose, review }: AnalyticsModalProps)
                     </div>
 
                     <div className="space-y-1.5">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-emerald-500">Links (one per line)</label>
-                        <textarea
-                            rows={2}
-                            placeholder="https://..."
-                            value={linksText}
-                            onChange={(e) => setLinksText(e.target.value)}
-                            className={`w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-emerald-500 outline-none transition-all resize-none ${inputBg} ${textColor}`}
-                        />
+                        <label className="text-[10px] font-black uppercase tracking-widest text-emerald-500">Links</label>
+                        {linkInputs.map((linkInput, index) => (
+                            <div key={index} className="flex gap-2">
+                                <input
+                                    type="text"
+                                    placeholder="Link URL"
+                                    value={linkInput.url}
+                                    onChange={(e) => handleLinkInputChange(index, 'url', e.target.value)}
+                                    className={`w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-emerald-500 outline-none transition-all ${inputBg} ${textColor}`}
+                                />
+                                <input
+                                    type="text"
+                                    placeholder="Link Title"
+                                    value={linkInput.title}
+                                    onChange={(e) => handleLinkInputChange(index, 'title', e.target.value)}
+                                    className={`w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-emerald-500 outline-none transition-all ${inputBg} ${textColor}`}
+                                />
+                                {linkInputs.length > 1 && (
+                                    <button
+                                        type="button"
+                                        onClick={() => handleRemoveLinkInput(index)}
+                                        className="p-3 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-all"
+                                    >
+                                        <Trash2 className="w-5 h-5" />
+                                    </button>
+                                )}
+                            </div>
+                        ))}
+                        {linkInputs.length < 10 && (
+                            <button
+                                type="button"
+                                onClick={handleAddLinkInput}
+                                className="w-full px-4 py-3 mt-2 rounded-xl border border-dashed border-emerald-500 text-emerald-500 hover:bg-emerald-500/10 transition-all flex items-center justify-center gap-2"
+                            >
+                                <Plus className="w-5 h-5" /> Add Link
+                            </button>
+                        )}
                     </div>
 
                     <div className="pt-4 flex items-center justify-end gap-3">
