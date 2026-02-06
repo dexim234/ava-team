@@ -2,35 +2,33 @@ import { useState } from 'react'
 import { useThemeStore } from '@/store/themeStore'
 import { useAccessControl } from '@/hooks/useAccessControl'
 import {
-    Zap,
-    Image as ImageIcon,
-    Database,
-    Wallet2,
-    Gift,
-    BarChart3
+    BarChart3,
+    Plus,
+    Wallet2
 } from 'lucide-react'
 import { SphereSelector } from '@/components/Strategies/SphereSelector'
+import { CreateAnalyticsModal } from '@/components/Analytics/CreateAnalyticsModal'
+import { AnalyticsList } from '@/components/Analytics/AnalyticsList'
+import { analyticsService } from '@/services/analyticsService'
 
-type TabType = 'meme' | 'polymatker' | 'nft' | 'staking' | 'spot' | 'airdrop'
+type TabType = 'polymatker' | 'spot'
 
 export const Analytics = () => {
     const { theme } = useThemeStore()
-    const [activeTab, setActiveTab] = useState<TabType>('meme')
+    const [activeTab, setActiveTab] = useState<TabType>('polymatker')
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+
+    // Service for analytics management
+
 
     const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
-    const cardBg = theme === 'dark' ? 'bg-gray-800' : 'bg-white'
-    const borderColor = theme === 'dark' ? 'border-white/10' : 'border-gray-200'
     const subtleColor = theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
 
     const pageAccess = useAccessControl('tools_strategies_view')
 
     const tabs: { id: TabType; label: string; icon: any }[] = [
-        { id: 'meme', label: 'Meme', icon: <Zap className="w-4 h-4" /> },
-        { id: 'polymatker', label: 'Polymatker', icon: <BarChart3 className="w-4 h-4" /> },
-        { id: 'nft', label: 'NFT', icon: <ImageIcon className="w-4 h-4" /> },
-        { id: 'staking', label: 'Стейкинг', icon: <Database className="w-4 h-4" /> },
-        { id: 'spot', label: 'Спот и фьючи', icon: <Wallet2 className="w-4 h-4" /> },
-        { id: 'airdrop', label: 'AirDrop', icon: <Gift className="w-4 h-4" /> },
+        { id: 'polymatker', label: 'Polymarket', icon: <BarChart3 className="w-4 h-4" /> },
+        { id: 'spot', label: 'Спот и Фьючерсы', icon: <Wallet2 className="w-4 h-4" /> },
     ]
 
     const spheres = tabs.map(t => ({
@@ -39,43 +37,21 @@ export const Analytics = () => {
         icon: t.icon
     }))
 
-    const renderContent = () => {
-        const currentTab = tabs.find(t => t.id === activeTab)
-        
-        return (
-            <div className={`rounded-2xl border ${borderColor} ${cardBg} shadow-sm overflow-hidden`}>
-                <div className={`p-6 border-b ${borderColor} bg-gradient-to-r from-blue-500/5 to-purple-500/5`}>
-                    <div className="flex items-center gap-4">
-                        <div className="p-3 rounded-xl bg-gradient-to-br from-blue-500 to-purple-500 text-white shadow-lg">
-                            {currentTab?.icon}
-                        </div>
-                        <div>
-                            <h2 className={`text-xl font-bold ${headingColor}`}>
-                                Аналитика {currentTab?.label}
-                            </h2>
-                            <p className={`text-sm ${subtleColor}`}>
-                                Подробная аналитика по направлению {currentTab?.label.toLowerCase()}
-                            </p>
-                        </div>
-                    </div>
-                </div>
+    const handleCreateAnalytics = async (data: any) => {
+        try {
+            const id = await analyticsService.createAnalytics(data)
+            if (id) {
+                console.log('Analytics created successfully:', id)
+                // Analytics will be automatically refreshed through the AnalyticsList component
+            }
+        } catch (error) {
+            console.error('Failed to create analytics:', error)
+            throw error
+        }
+    }
 
-                <div className="p-6">
-                    <div className="text-center py-12">
-                        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-500/10 mb-4">
-                            {currentTab?.icon}
-                        </div>
-                        <h3 className={`text-lg font-bold ${headingColor} mb-2`}>
-                            Аналитика {currentTab?.label} — В разработке
-                        </h3>
-                        <p className={`text-sm ${subtleColor} max-w-md mx-auto`}>
-                            Мы готовим детальную аналитику и инструменты для данного направления. 
-                            Здесь будут представлены ключевые метрики, тренды и аналитические материалы.
-                        </p>
-                    </div>
-                </div>
-            </div>
-        )
+    const renderContent = () => {
+        return <AnalyticsList sphere={activeTab} />
     }
 
     if (pageAccess.loading) {
@@ -116,12 +92,21 @@ export const Analytics = () => {
                     </div>
                 </div>
 
-                <div className="w-full sm:w-auto">
-                    <SphereSelector
-                        spheres={spheres}
-                        activeSphere={activeTab}
-                        setActiveSphere={(id) => setActiveTab(id as TabType)}
-                    />
+                <div className="flex items-center gap-4">
+                    <button 
+                        onClick={() => setIsCreateModalOpen(true)}
+                        className="flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-xl transition-all"
+                    >
+                        <Plus className="w-4 h-4" />
+                        Создать аналитику
+                    </button>
+                    <div className="w-full sm:w-auto">
+                        <SphereSelector
+                            spheres={spheres}
+                            activeSphere={activeTab}
+                            setActiveSphere={(id) => setActiveTab(id as TabType)}
+                        />
+                    </div>
                 </div>
             </div>
 
@@ -129,6 +114,13 @@ export const Analytics = () => {
             <div className="animate-fade-in">
                 {renderContent()}
             </div>
+
+            {/* Create Analytics Modal */}
+            <CreateAnalyticsModal
+                isOpen={isCreateModalOpen}
+                onClose={() => setIsCreateModalOpen(false)}
+                onSubmit={handleCreateAnalytics}
+            />
         </div>
     )
 }
