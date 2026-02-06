@@ -61,10 +61,10 @@ const getDeadlineColor = (deadline: string) => {
     const difference = +new Date(deadline) - +new Date()
     const hours = difference / (1000 * 60 * 60)
 
-    if (hours < 24) return 'text-red-500' // менее 24 часов
-    if (hours < 48) return 'text-yellow-500' // менее 48 часов
-    if (hours < 72) return 'text-emerald-500' // менее 72 часов (можно изменить на 'text-green-500')
-    return 'text-gray-500' // более 72 часов
+    if (hours < 24) return 'text-red-500' // less than 24 hours
+    if (hours < 48) return 'text-yellow-500' // less than 48 hours
+    if (hours < 72) return 'text-emerald-500' // less than 72 hours
+    return 'text-gray-500' // more than 72 hours
 }
 
 export const AnalyticsTable = ({ reviews, onEdit }: AnalyticsTableProps) => {

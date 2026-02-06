@@ -73,7 +73,7 @@ export const AnalyticsModal = ({ isOpen, onClose, review }: AnalyticsModalProps)
         setLoading(true)
         try {
             const formattedLinks = linkInputs
-                .filter(link => !(link.url.trim() === '' && link.title.trim() === '')) // Отфильтровываем пустые пары
+                .filter(link => !(link.url.trim() === '' && link.title.trim() === ''))
                 .map(link => `${link.url.trim()} - ${link.title.trim()}`)
 
             const data = { ...formData, links: formattedLinks, createdBy: user?.id || '' } as Omit<AnalyticsReview, 'id' | 'createdAt' | 'updatedAt'>
@@ -120,7 +120,7 @@ export const AnalyticsModal = ({ isOpen, onClose, review }: AnalyticsModalProps)
                                 {Object.keys(SLOT_CATEGORY_META).map((key) => (
                                     <option key={key} value={key}>{SLOT_CATEGORY_META[key as SlotCategory].label}</option>
                                 ))}
-                                <option value="other">Прочее</option>
+                                <option value="other">Other</option>
                             </select>
                         </div>
 
