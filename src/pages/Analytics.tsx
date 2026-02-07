@@ -64,13 +64,13 @@ export const Analytics = () => {
                         {user && (
                             <button
                                 onClick={openModal}
-                                className={`flex items-center justify-center p-2 rounded-xl font-medium transition-all ${theme === 'dark'
+                                className={`flex items-center justify-center w-10 h-10 p-0 rounded-xl font-medium transition-all ${theme === 'dark'
                                     ? 'bg-emerald-600 hover:bg-emerald-500 text-white'
                                     : 'bg-emerald-500 hover:bg-emerald-600 text-white'
                                     }`}
                                 title="Add Review"
                             >
-                                <Plus size={18} />
+                                <Plus size={20} />
                             </button>
                         )}
                     </div>
