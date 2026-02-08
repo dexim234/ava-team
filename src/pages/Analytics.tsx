@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { AnalyticsModal } from '@/components/Analytics/AnalyticsModal'
 import { AnalyticsReview, subscribeToAnalyticsReviews } from '@/services/analyticsService'
-import { SphereSelector } from '@/components/Strategies/SphereSelector'
+import { StrategyTabSelector } from '@/components/Strategies/StrategyTabSelector'
 import { useThemeStore } from '@/store/themeStore'
 import { useAuthStore } from '@/store/authStore'
 import { Plus, BarChart3 } from 'lucide-react'
@@ -39,13 +39,13 @@ export const Analytics = () => {
     }
 
     const sphereOptions = [
-        { id: 'all', label: 'Все', icon: <BarChart3 size={20} /> },
+        { id: 'all', name: 'Все', icon: <BarChart3 size={20} /> },
         ...Object.keys(SLOT_CATEGORY_META).map(key => ({
             id: key as SphereType,
-            label: SLOT_CATEGORY_META[key as SlotCategory].label,
+            name: SLOT_CATEGORY_META[key as SlotCategory].label,
             icon: <BarChart3 size={20} />
         })),
-        { id: 'other', label: 'Прочее', icon: <BarChart3 size={20} /> }
+        { id: 'other', name: 'Крипто-рынок', icon: <BarChart3 size={20} /> }
     ];
 
     const filterReviewsByDeadline = (allReviews: AnalyticsReview[]) => {
@@ -77,10 +77,10 @@ export const Analytics = () => {
                         </h1>
                     </div>
                     <div className="flex flex-col sm:flex-row gap-4">
-                        <SphereSelector
-                            spheres={sphereOptions}
-                            activeSphere={activeSphere}
-                            setActiveSphere={handleSetActiveSphere}
+                        <StrategyTabSelector
+                            strategies={sphereOptions}
+                            activeStrategy={activeSphere}
+                            setActiveStrategy={handleSetActiveSphere}
                         />
                         {user && (
                             <button
