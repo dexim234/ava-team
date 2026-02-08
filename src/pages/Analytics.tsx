@@ -1,11 +1,11 @@
-Для категориimport { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { AnalyticsModal } from '@/components/Analytics/AnalyticsModal'
 import { AnalyticsReview, subscribeToAnalyticsReviews } from '@/services/analyticsService'
 import { SphereSelector } from '@/components/Analytics/SphereSelector'
 import { useThemeStore } from '@/store/themeStore'
 import { useAuthStore } from '@/store/authStore'
 import { Plus, BarChart3, Coins } from 'lucide-react' // Добавляем Coins
-import { SLOT_CATEGORY_META, SlotCategory } from '@/types'
+import { SLOT_CATEGORY_META, SlotCategory, CallCategory } from '@/types' // Добавляем CallCategory
 import { DeadlineFilter } from '@/components/Analytics/DeadlineFilter'
 import { AnalyticsCards } from '@/components/Analytics/AnalyticsCards'
 import { CATEGORY_META } from '@/components/Call/CallForm' // Импортируем CATEGORY_META из CallForm.tsx
