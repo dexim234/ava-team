@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react'
 import { AnalyticsModal } from '@/components/Analytics/AnalyticsModal'
 import { AnalyticsReview, subscribeToAnalyticsReviews } from '@/services/analyticsService'
-import { SphereSelector } from '@/components/Analytics/SphereSelector'
 import { useThemeStore } from '@/store/themeStore'
-import { useAuthStore } from '@/store/authStore'
-import { Plus, BarChart3, Coins } from 'lucide-react' // Добавляем Coins
-import { SLOT_CATEGORY_META, SlotCategory, CallCategory } from '@/types' // Добавляем CallCategory
+import { Plus, BarChart3 } from 'lucide-react' // BarChart3 нужен для CustomSelect
+import { SLOT_CATEGORY_META, SlotCategory } from '@/types'
 import { DeadlineFilter } from '@/components/Analytics/DeadlineFilter'
 import { AnalyticsCards } from '@/components/Analytics/AnalyticsCards'
-import { CATEGORY_META } from '@/components/Call/CallForm' // Импортируем CATEGORY_META из CallForm.tsx
+import { CATEGORY_ICONS } from '@/constants/common.tsx'
+import { CustomSelect } from '@/components/Call/CustomSelect' // Раскомментируем CustomSelect
+import { useAuthStore } from '@/store/authStore'
 
 type SphereType = 'all' | 'memecoins' | 'polymarket' | 'nft' | 'staking' | 'spot' | 'futures' | 'airdrop' | 'other'
 type DeadlineFilterType = 'all' | '<24h' | '<48h' | '<72h'
@@ -30,24 +30,46 @@ export const Analytics = () => {
     }
 
     useEffect(() => {
-        console.log('Current user:', user) // Diagnostic log
-        const unsubscribe = subscribeToAnalyticsReviews(setReviews, activeSphere)
-        return () => unsubscribe()
-    }, [activeSphere, user])
+        if (!user?.id) return
+        const unsubscribe = subscribeToAnalyticsReviews(setReviews, activeSphere); // Раскомментируем
+        return () => unsubscribe();
+    }, [user, activeSphere])
 
-    const handleSetActiveSphere = (id: string | null) => {
+    const handleSetActiveSphere = (id: string | null) => { // Раскомментируем
         setActiveSphere(id as SphereType)
     }
 
     const sphereOptions = [
-        { id: 'all', name: 'Все сферы', icon: <BarChart3 className="w-5 h-5" /> },
+        { id: 'all', name: 'Все', icon: CATEGORY_ICONS.all },
+        { id: 'other', name: 'Крипто-рынок', icon: CATEGORY_ICONS.other },
         ...Object.keys(SLOT_CATEGORY_META).map(key => ({
             id: key as SphereType,
             name: SLOT_CATEGORY_META[key as SlotCategory].label,
-            icon: CATEGORY_META[key as CallCategory]?.icon || <BarChart3 className="w-5 h-5" />
-        })),
-        { id: 'other', name: 'Крипто-рынок', icon: <Coins className="w-5 h-5" /> } // Используем иконку Coins
-    ];
+            icon: CATEGORY_ICONS[key] || CATEGORY_ICONS.all
+        }))
+    ].sort((a, b) => {
+        const order = [
+            'Крипто-рынок',
+            'Мемкоины',
+            'Polymarket',
+            'NFT',
+            'Стейкинг',
+            'Спот',
+            'Фьючерсы',
+            'AirDrop',
+        ]
+        if (a.id === 'all') return -1
+        if (b.id === 'all') return 1
+        
+        const aIndex = order.indexOf(a.name)
+        const bIndex = order.indexOf(b.name)
+        
+        if (aIndex === -1 && bIndex === -1) return 0
+        if (aIndex === -1) return 1
+        if (bIndex === -1) return -1
+        
+        return aIndex - bIndex
+    })
 
     const filterReviewsByDeadline = (allReviews: AnalyticsReview[]) => {
         const now = new Date().getTime()
@@ -55,12 +77,12 @@ export const Analytics = () => {
             if (!review.deadline || activeDeadlineFilter === 'all') return true
 
             const deadlineTime = new Date(review.deadline).getTime()
-            const diffHours = (deadlineTime - now) / (1000 * 60 * 60)
+            const diff = deadlineTime - now
 
-            if (activeDeadlineFilter === '<24h') return diffHours < 24 && diffHours > 0
-            if (activeDeadlineFilter === '<48h') return diffHours < 48 && diffHours > 0
-            if (activeDeadlineFilter === '<72h') return diffHours < 72 && diffHours > 0
-            
+            if (activeDeadlineFilter === '<24h') return diff < 24 * 60 * 60 * 1000
+            if (activeDeadlineFilter === '<48h') return diff < 48 * 60 * 60 * 1000
+            if (activeDeadlineFilter === '<72h') return diff < 72 * 60 * 60 * 1000
+
             return true
         })
     }
@@ -73,32 +95,36 @@ export const Analytics = () => {
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                     <div className="flex-1">
                         <h1 className={`flex items-center gap-2 text-2xl md:text-3xl font-black tracking-tight ${headingColor}`}>
-                            <BarChart3 size={28} className="text-emerald-500" />
+                            {CATEGORY_ICONS.all}
                             Analytics
                         </h1>
                     </div>
-                    <div className="flex flex-col sm:flex-row gap-4">
-                        <SphereSelector
-                            spheres={sphereOptions}
-                            activeSphere={activeSphere}
-                            setActiveSphere={handleSetActiveSphere}
-                        />
-                        {user && (
-                            <button
-                                onClick={openModal}
-                                className={`flex items-center justify-center w-10 h-10 rounded-xl font-medium transition-all ${theme === 'dark'
-                                    ? 'bg-emerald-600 hover:bg-emerald-500 text-white'
-                                    : 'bg-emerald-500 hover:bg-emerald-600 text-white'
-                                    }`}
-                                title="Add Review"
-                            >
-                                <Plus size={20} />
-                            </button>
-                        )}
+                    <div className="flex items-center gap-2">
+                        <div className="w-[180px]"> {/* Раскомментируем использование CustomSelect */}
+                            <CustomSelect
+                                value={activeSphere}
+                                onChange={(val) => handleSetActiveSphere(val)}
+                                options={sphereOptions.map(sphere => ({ value: sphere.id, label: sphere.name, icon: sphere.icon }))}
+                                placeholder="Все сферы"
+                                searchable={true}
+                                icon={<BarChart3 size={16} />}
+                            />
+                        </div>
+                        <button
+                            onClick={openModal}
+                            className={`flex items-center justify-center w-10 h-10 rounded-xl font-medium transition-all ${theme === 'dark'
+                                ? 'bg-emerald-600 hover:bg-emerald-500 text-white'
+                                : 'bg-emerald-500 hover:bg-emerald-600 text-white'
+                            }`}
+                            title="Add Review"
+                        >
+                            <Plus size={20} />
+                        </button>
                     </div>
                 </div>
 
                 <div className="flex flex-col space-y-4 md:flex-row md:space-y-0 md:space-x-4">
+                    {/* Активный фильтр дедлайна */}
                     <DeadlineFilter activeFilter={activeDeadlineFilter} setActiveFilter={setActiveDeadlineFilter} />
                 </div>
 
@@ -114,6 +140,7 @@ export const Analytics = () => {
                     isOpen={isModalOpen}
                     onClose={() => setIsModalOpen(false)}
                     review={editingReview}
+                    sphereOptions={sphereOptions}
                 />
             </div>
         </div>
