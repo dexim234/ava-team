@@ -1,18 +1,14 @@
-import { useState, useEffect, useCallback } from 'react'
+Для категориimport { useState, useEffect } from 'react'
 import { AnalyticsModal } from '@/components/Analytics/AnalyticsModal'
-import {
-    AnalyticsReview,
-    subscribeToAnalyticsReviews,
-} from '@/services/analyticsService'
+import { AnalyticsReview, subscribeToAnalyticsReviews } from '@/services/analyticsService'
 import { SphereSelector } from '@/components/Analytics/SphereSelector'
 import { useThemeStore } from '@/store/themeStore'
 import { useAuthStore } from '@/store/authStore'
-import { Plus, BarChart3 } from 'lucide-react' // ArchiveIcon удален отсюда
+import { Plus, BarChart3, Coins } from 'lucide-react' // Добавляем Coins
 import { SLOT_CATEGORY_META, SlotCategory } from '@/types'
 import { DeadlineFilter } from '@/components/Analytics/DeadlineFilter'
 import { AnalyticsCards } from '@/components/Analytics/AnalyticsCards'
-// import { Switch } from '@/components/ui/Switch' 
-// import { Label } from '@/components/ui/Label'  
+import { CATEGORY_META } from '@/components/Call/CallForm' // Импортируем CATEGORY_META из CallForm.tsx
 
 type SphereType = 'all' | 'memecoins' | 'polymarket' | 'nft' | 'staking' | 'spot' | 'futures' | 'airdrop' | 'other'
 type DeadlineFilterType = 'all' | '<24h' | '<48h' | '<72h'
@@ -25,8 +21,6 @@ export const Analytics = () => {
     const [reviews, setReviews] = useState<AnalyticsReview[]>([])
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [editingReview, setEditingReview] = useState<AnalyticsReview | null>(null)
-    // const [showArchived, setShowArchived] = useState(false) // Удалено объявление состояния
-
 
     const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
 
@@ -37,30 +31,22 @@ export const Analytics = () => {
 
     useEffect(() => {
         console.log('Current user:', user) // Diagnostic log
-        const unsubscribe = subscribeToAnalyticsReviews(
-            (fetchedReviews) => {
-                // fetchedReviews.forEach(archiveReviewIfNeeded); // Закомментируем, пока не решим проблему с импортом
-                setReviews(fetchedReviews);
-            },
-            // { sphere: activeSphere, showArchived: showArchived } // showArchived удалено отсюда
-            { sphere: activeSphere } 
-        );
-
+        const unsubscribe = subscribeToAnalyticsReviews(setReviews, activeSphere)
         return () => unsubscribe()
-    }, [activeSphere, user]) // showArchived удален из зависимостей
+    }, [activeSphere, user])
 
-    const handleSetActiveSphere = useCallback((id: string | null) => {
+    const handleSetActiveSphere = (id: string | null) => {
         setActiveSphere(id as SphereType)
-    }, [])
+    }
 
     const sphereOptions = [
-        { id: 'all', name: 'Все', icon: <BarChart3 size={20} /> },
+        { id: 'all', name: 'Все сферы', icon: <BarChart3 className="w-5 h-5" /> },
         ...Object.keys(SLOT_CATEGORY_META).map(key => ({
             id: key as SphereType,
             name: SLOT_CATEGORY_META[key as SlotCategory].label,
-            icon: <BarChart3 size={20} />
+            icon: CATEGORY_META[key as CallCategory]?.icon || <BarChart3 className="w-5 h-5" />
         })),
-        { id: 'other', name: 'Крипто-рынок', icon: <BarChart3 size={20} /> }
+        { id: 'other', name: 'Крипто-рынок', icon: <Coins className="w-5 h-5" /> } // Используем иконку Coins
     ];
 
     const filterReviewsByDeadline = (allReviews: AnalyticsReview[]) => {
@@ -84,30 +70,19 @@ export const Analytics = () => {
     return (
         <div className="flex min-h-screen">
             <div className="w-full space-y-6 p-4 md:p-6">
-                <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                     <div className="flex-1">
                         <h1 className={`flex items-center gap-2 text-2xl md:text-3xl font-black tracking-tight ${headingColor}`}>
                             <BarChart3 size={28} className="text-emerald-500" />
                             Analytics
                         </h1>
                     </div>
-                    <div className="flex flex-col sm:flex-row gap-4 items-center">
+                    <div className="flex flex-col sm:flex-row gap-4">
                         <SphereSelector
                             spheres={sphereOptions}
                             activeSphere={activeSphere}
                             setActiveSphere={handleSetActiveSphere}
                         />
-                        {/* <div className="flex items-center space-x-2">
-                            <Switch
-                                id="show-archived"
-                                checked={showArchived}
-                                onCheckedChange={setShowArchived}
-                                className="data-[state=checked]:bg-emerald-500"
-                            />
-                            <Label htmlFor="show-archived" className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>
-                                <ArchiveIcon size={16} className="inline-block mr-1" /> Архив
-                            </Label>
-                        </div> */}
                         {user && (
                             <button
                                 onClick={openModal}
