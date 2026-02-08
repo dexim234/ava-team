@@ -2,21 +2,21 @@ import { useState, useEffect } from 'react'
 import { AnalyticsModal } from '@/components/Analytics/AnalyticsModal'
 import { AnalyticsReview, subscribeToAnalyticsReviews } from '@/services/analyticsService'
 import { useThemeStore } from '@/store/themeStore'
-import { Plus, BarChart3 } from 'lucide-react' // BarChart3 нужен для CustomSelect
+import { Plus, BarChart3 } from 'lucide-react'
 import { SLOT_CATEGORY_META, SlotCategory } from '@/types'
 import { DeadlineFilter } from '@/components/Analytics/DeadlineFilter'
 import { AnalyticsCards } from '@/components/Analytics/AnalyticsCards'
 import { CATEGORY_ICONS } from '@/constants/common.tsx'
-import { CustomSelect } from '@/components/Call/CustomSelect' // Раскомментируем CustomSelect
+import { MultiSelect } from '@/components/Call/MultiSelect' // Импортируем MultiSelect
 import { useAuthStore } from '@/store/authStore'
 
-type SphereType = 'all' | 'memecoins' | 'polymarket' | 'nft' | 'staking' | 'spot' | 'futures' | 'airdrop' | 'other'
+type SphereType = 'all' | SlotCategory // Определяем SphereType как 'all' или один из SlotCategory
 type DeadlineFilterType = 'all' | '<24h' | '<48h' | '<72h'
 
 export const Analytics = () => {
     const { theme } = useThemeStore()
     const { user } = useAuthStore()
-    const [activeSphere, setActiveSphere] = useState<SphereType>('all')
+    const [activeSphere, setActiveSphere] = useState<SphereType[]>(['all']) // Изменено на массив строк, по умолчанию 'all'
     const [activeDeadlineFilter, setActiveDeadlineFilter] = useState<DeadlineFilterType>('all')
     const [reviews, setReviews] = useState<AnalyticsReview[]>([])
     const [isModalOpen, setIsModalOpen] = useState(false)
@@ -31,19 +31,21 @@ export const Analytics = () => {
 
     useEffect(() => {
         if (!user?.id) return
-        const unsubscribe = subscribeToAnalyticsReviews(setReviews, activeSphere); // Раскомментируем
+        // Передаем activeSphere как массив в subscribeToAnalyticsReviews
+        const unsubscribe = subscribeToAnalyticsReviews(setReviews, activeSphere);
         return () => unsubscribe();
     }, [user, activeSphere])
 
-    const handleSetActiveSphere = (id: string | null) => { // Раскомментируем
-        setActiveSphere(id as SphereType)
+    // Обновляем обработчик для multi-select
+    const handleSetActiveSphere = (ids: string[]) => {
+        setActiveSphere(ids as SphereType[])
     }
 
     const sphereOptions = [
         { id: 'all', name: 'Все', icon: CATEGORY_ICONS.all },
         { id: 'other', name: 'Крипто-рынок', icon: CATEGORY_ICONS.other },
         ...Object.keys(SLOT_CATEGORY_META).map(key => ({
-            id: key as SphereType,
+            id: key as SlotCategory,
             name: SLOT_CATEGORY_META[key as SlotCategory].label,
             icon: CATEGORY_ICONS[key] || CATEGORY_ICONS.all
         }))
@@ -100,11 +102,11 @@ export const Analytics = () => {
                         </h1>
                     </div>
                     <div className="flex items-center gap-2">
-                        <div className="w-[180px]"> {/* Раскомментируем использование CustomSelect */}
-                            <CustomSelect
-                                value={activeSphere}
+                        <div className="w-[180px]">
+                            <MultiSelect // Используем MultiSelect
+                                value={activeSphere as string[]}
                                 onChange={(val) => handleSetActiveSphere(val)}
-                                options={sphereOptions.map(sphere => ({ value: sphere.id, label: sphere.name, icon: sphere.icon }))}
+                                options={sphereOptions.map(sphere => ({ value: sphere.id || '', label: sphere.name, icon: sphere.icon }))}
                                 placeholder="Все сферы"
                                 searchable={true}
                                 icon={<BarChart3 size={16} />}
@@ -124,7 +126,6 @@ export const Analytics = () => {
                 </div>
 
                 <div className="flex flex-col space-y-4 md:flex-row md:space-y-0 md:space-x-4">
-                    {/* Активный фильтр дедлайна */}
                     <DeadlineFilter activeFilter={activeDeadlineFilter} setActiveFilter={setActiveDeadlineFilter} />
                 </div>
 

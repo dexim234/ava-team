@@ -14,7 +14,7 @@ import { db } from '@/firebase/config'
 
 export interface AnalyticsReview {
     id: string
-    sphere: string
+    sphere: string[] // Изменено на массив строк
     expertComment?: string
     importantDetails?: string
     deadline?: string // ISO date string
@@ -26,12 +26,17 @@ export interface AnalyticsReview {
 
 const COLLECTION_NAME = 'analytics'
 
-export const getAnalyticsReviews = async (sphere?: string): Promise<AnalyticsReview[]> => {
+export const getAnalyticsReviews = async (sphere?: string[]): Promise<AnalyticsReview[]> => { // Изменено на массив строк
     const analyticsRef = collection(db, COLLECTION_NAME)
     let q = query(analyticsRef, orderBy('createdAt', 'desc'))
 
-    if (sphere && sphere !== 'all') {
-        q = query(analyticsRef, where('sphere', '==', sphere), orderBy('createdAt', 'desc'))
+    if (sphere && sphere.length > 0 && !sphere.includes('all')) { // Изменено для работы с массивом
+        q = query(analyticsRef, where('sphere', 'array-contains-any', sphere), orderBy('createdAt', 'desc')) // Используем array-contains-any
+    }
+
+    // Если sphere содержит 'all' или пуст, то не добавляем фильтр по сфере
+    if (sphere && sphere.includes('all')) {
+        // не добавляем фильтр по сфере, потому что 'all' означает все
     }
 
     const snapshot = await getDocs(q)
@@ -41,12 +46,12 @@ export const getAnalyticsReviews = async (sphere?: string): Promise<AnalyticsRev
     } as AnalyticsReview))
 }
 
-export const subscribeToAnalyticsReviews = (callback: (reviews: AnalyticsReview[]) => void, sphere?: string) => {
+export const subscribeToAnalyticsReviews = (callback: (reviews: AnalyticsReview[]) => void, sphere?: string[]) => { // Изменено на массив строк
     const analyticsRef = collection(db, COLLECTION_NAME)
     let q = query(analyticsRef, orderBy('createdAt', 'desc'))
 
-    if (sphere && sphere !== 'all') {
-        q = query(analyticsRef, where('sphere', '==', sphere), orderBy('createdAt', 'desc'))
+    if (sphere && sphere.length > 0 && !sphere.includes('all')) { // Изменено для работы с массивом
+        q = query(analyticsRef, where('sphere', 'array-contains-any', sphere), orderBy('createdAt', 'desc')) // Используем array-contains-any
     }
 
     return onSnapshot(q, (snapshot) => {
