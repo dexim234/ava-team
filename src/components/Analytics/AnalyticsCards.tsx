@@ -1,4 +1,3 @@
-import React from 'react'
 import { useThemeStore } from '@/store/themeStore'
 import { useAdminStore } from '@/store/adminStore'
 import { useAuthStore } from '@/store/authStore'
