@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { Search, ChevronDown, BarChart3, X } from 'lucide-react'
 import { useThemeStore } from '@/store/themeStore'
-import { SlotCategory, SLOT_CATEGORY_META } from '@/types'
 
 interface SphereItem {
     id: string | null;
