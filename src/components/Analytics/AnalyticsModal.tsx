@@ -153,7 +153,6 @@ export const AnalyticsModal = ({ isOpen, onClose, review }: AnalyticsModalProps)
                                     value={deadlineDate}
                                     onChange={(e) => setDeadlineDate(e.target.value)}
                                     className={`w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-emerald-500 outline-none transition-all ${inputBg} ${textColor}`}
-                                    placeholder="Дедлайн"
                                 />
                             </div>
                             <div className="space-y-1.5">
@@ -164,7 +163,6 @@ export const AnalyticsModal = ({ isOpen, onClose, review }: AnalyticsModalProps)
                                     onChange={(e) => setDeadlineTime(e.target.value)}
                                     className={`w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-emerald-500 outline-none transition-all ${inputBg} ${textColor}`}
                                 />
-                                <p className="text-[10px] text-gray-400 mt-1">Часто актуален лишь короткое время.</p>
                             </div>
                         </div>
                     </div>
