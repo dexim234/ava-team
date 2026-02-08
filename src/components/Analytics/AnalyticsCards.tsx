@@ -8,7 +8,7 @@ import { Edit, Trash2, ExternalLink } from 'lucide-react'
 import { formatDate } from '@/utils/dateUtils'
 import { SLOT_CATEGORY_META, SlotCategory } from '@/types'
 import Avatar from '@/components/Avatar'
-import { CountdownTimer, getDeadlineColor } from '@/utils/deadlineUtils'
+import { CountdownTimer, getDeadlineColor } from '@/components/Analytics/AnalyticsTable'
 
 interface AnalyticsCardsProps {
     reviews: AnalyticsReview[]

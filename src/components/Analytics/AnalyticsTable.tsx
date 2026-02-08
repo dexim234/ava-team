@@ -14,7 +14,7 @@ interface AnalyticsTableProps {
     onEdit: (review: AnalyticsReview) => void
 }
 
-const CountdownTimer = ({ deadline }: { deadline: string }) => {
+export const CountdownTimer = ({ deadline }: { deadline: string }) => {
     const calculateTimeLeft = () => {
         const difference = +new Date(deadline) - +new Date()
         let timeLeft = {
@@ -57,7 +57,7 @@ const CountdownTimer = ({ deadline }: { deadline: string }) => {
     )
 }
 
-const getDeadlineColor = (deadline: string) => {
+export const getDeadlineColor = (deadline: string) => {
     const difference = +new Date(deadline) - +new Date()
     const hours = difference / (1000 * 60 * 60)
 
