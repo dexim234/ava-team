@@ -8,6 +8,7 @@ import { formatDate } from '@/utils/dateUtils'
 import { SLOT_CATEGORY_META, SlotCategory } from '@/types'
 import Avatar from '@/components/Avatar'
 import { CountdownTimer, getDeadlineColor } from '@/components/Analytics/AnalyticsTable'
+import { useState } from 'react'
 
 interface AnalyticsCardsProps {
     reviews: AnalyticsReview[]
@@ -23,6 +24,15 @@ export const AnalyticsCards = ({ reviews, onEdit }: AnalyticsCardsProps) => {
     const textColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
     const subTextColor = theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
     const borderColor = theme === 'dark' ? 'border-white/10' : 'border-gray-200'
+
+    const [expandedCards, setExpandedCards] = useState<Record<string, boolean>>({}) 
+
+    const toggleExpanded = (id: string) => {
+        setExpandedCards(prev => ({
+            ...prev,
+            [id]: !prev[id]
+        }))
+    }
 
     const canEdit = (review: AnalyticsReview) => {
         if (isAdmin) return true
@@ -77,8 +87,12 @@ export const AnalyticsCards = ({ reviews, onEdit }: AnalyticsCardsProps) => {
                         </div>
                     </div>
 
-                    <p className={`text-lg font-bold mb-2 ${textColor}`}>{review.expertComment}</p>
-                    <p className={`text-sm mb-4 ${subTextColor}`}>{review.importantDetails}</p>
+                    {expandedCards[review.id] && (
+                        <>
+                            <p className={`text-lg font-bold mb-2 ${textColor} whitespace-pre-wrap`}>{review.expertComment}</p>
+                            <p className={`text-sm mb-4 ${subTextColor} whitespace-pre-wrap`}>{review.importantDetails}</p>
+                        </>
+                    )}
 
                     <div className="flex items-center justify-between border-t border-b py-3 mb-4">
                         <div className="flex items-center gap-2">
@@ -93,7 +107,7 @@ export const AnalyticsCards = ({ reviews, onEdit }: AnalyticsCardsProps) => {
                         )}
                     </div>
 
-                    {review.links && review.links.length > 0 && (
+                    {review.links && review.links.length > 0 && expandedCards[review.id] && (
                         <div className="flex flex-wrap gap-2">
                             {review.links.map((link, idx) => {
                                 const parts = link.split(' - ')
@@ -113,6 +127,12 @@ export const AnalyticsCards = ({ reviews, onEdit }: AnalyticsCardsProps) => {
                             })}
                         </div>
                     )}
+                     <button
+                        onClick={() => toggleExpanded(review.id)}
+                        className={`mt-4 w-full text-center py-2 rounded-lg transition-colors ${theme === 'dark' ? 'bg-gray-700 hover:bg-gray-600 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-800'}`}
+                    >
+                        {expandedCards[review.id] ? 'Скрыть детали' : 'Показать детали'}
+                    </button>
                 </div>
             ))}
         </div>

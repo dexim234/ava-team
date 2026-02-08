@@ -140,7 +140,7 @@ export const AnalyticsModal = ({ isOpen, onClose, review }: AnalyticsModalProps)
                                 {Object.keys(SLOT_CATEGORY_META).map((key) => (
                                     <option key={key} value={key}>{SLOT_CATEGORY_META[key as SlotCategory].label}</option>
                                 ))}
-                                <option value="other">Прочее</option>
+                                <option value="other">Крипто-рынок</option>
                             </select>
                         </div>
 
