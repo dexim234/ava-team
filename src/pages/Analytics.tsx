@@ -3,17 +3,16 @@ import { AnalyticsModal } from '@/components/Analytics/AnalyticsModal'
 import {
     AnalyticsReview,
     subscribeToAnalyticsReviews,
-    archiveReviewIfNeeded,
 } from '@/services/analyticsService'
 import { SphereSelector } from '@/components/Analytics/SphereSelector'
 import { useThemeStore } from '@/store/themeStore'
 import { useAuthStore } from '@/store/authStore'
-import { Plus, BarChart3 } from 'lucide-react'
+import { Plus, BarChart3 } from 'lucide-react' // ArchiveIcon удален отсюда
 import { SLOT_CATEGORY_META, SlotCategory } from '@/types'
 import { DeadlineFilter } from '@/components/Analytics/DeadlineFilter'
 import { AnalyticsCards } from '@/components/Analytics/AnalyticsCards'
-// import { Switch } from '@/components/ui/switch' 
-// import { Label } from '@/components/ui/label'  
+// import { Switch } from '@/components/ui/Switch' 
+// import { Label } from '@/components/ui/Label'  
 
 type SphereType = 'all' | 'memecoins' | 'polymarket' | 'nft' | 'staking' | 'spot' | 'futures' | 'airdrop' | 'other'
 type DeadlineFilterType = 'all' | '<24h' | '<48h' | '<72h'
@@ -26,6 +25,8 @@ export const Analytics = () => {
     const [reviews, setReviews] = useState<AnalyticsReview[]>([])
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [editingReview, setEditingReview] = useState<AnalyticsReview | null>(null)
+    // const [showArchived, setShowArchived] = useState(false) // Удалено объявление состояния
+
 
     const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
 
@@ -38,14 +39,15 @@ export const Analytics = () => {
         console.log('Current user:', user) // Diagnostic log
         const unsubscribe = subscribeToAnalyticsReviews(
             (fetchedReviews) => {
-                fetchedReviews.forEach(archiveReviewIfNeeded); // Проверяет и архивирует при необходимости
+                // fetchedReviews.forEach(archiveReviewIfNeeded); // Закомментируем, пока не решим проблему с импортом
                 setReviews(fetchedReviews);
             },
-            { sphere: activeSphere }
+            // { sphere: activeSphere, showArchived: showArchived } // showArchived удалено отсюда
+            { sphere: activeSphere } 
         );
 
         return () => unsubscribe()
-    }, [activeSphere, user])
+    }, [activeSphere, user]) // showArchived удален из зависимостей
 
     const handleSetActiveSphere = useCallback((id: string | null) => {
         setActiveSphere(id as SphereType)
@@ -95,6 +97,17 @@ export const Analytics = () => {
                             activeSphere={activeSphere}
                             setActiveSphere={handleSetActiveSphere}
                         />
+                        {/* <div className="flex items-center space-x-2">
+                            <Switch
+                                id="show-archived"
+                                checked={showArchived}
+                                onCheckedChange={setShowArchived}
+                                className="data-[state=checked]:bg-emerald-500"
+                            />
+                            <Label htmlFor="show-archived" className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>
+                                <ArchiveIcon size={16} className="inline-block mr-1" /> Архив
+                            </Label>
+                        </div> */}
                         {user && (
                             <button
                                 onClick={openModal}
