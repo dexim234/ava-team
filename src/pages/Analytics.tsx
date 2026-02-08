@@ -34,7 +34,7 @@ export const Analytics = () => {
         return () => unsubscribe()
     }, [activeSphere, user])
 
-    const handleSetActiveSphere = (id: string) => {
+    const handleSetActiveSphere = (id: string | null) => {
         setActiveSphere(id as SphereType)
     }
 
