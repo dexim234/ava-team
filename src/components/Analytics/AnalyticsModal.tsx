@@ -2,14 +2,17 @@ import { useState, useEffect } from 'react'
 import { useThemeStore } from '@/store/themeStore'
 import { useAuthStore } from '@/store/authStore'
 import { AnalyticsReview, addAnalyticsReview, updateAnalyticsReview } from '@/services/analyticsService'
-import { X, Save, Plus, Trash2 } from 'lucide-react'
-import { SlotCategory, SLOT_CATEGORY_META } from '@/types'
+import { X, Save, Plus, Trash2, BarChart3 } from 'lucide-react'
+import { SlotCategory } from '@/types' // Удален SLOT_CATEGORY_META
 import { format, parseISO } from 'date-fns'
+import { CustomSelect, SelectOption } from '@/components/Call/CustomSelect'
+// Удален import CATEGORY_ICONS
 
 interface AnalyticsModalProps {
     isOpen: boolean
     onClose: () => void
     review: AnalyticsReview | null
+    sphereOptions: { id: string | null; name: string; icon: React.ReactNode }[]
 }
 
 interface LinkInput {
@@ -17,7 +20,7 @@ interface LinkInput {
     title: string
 }
 
-export const AnalyticsModal = ({ isOpen, onClose, review }: AnalyticsModalProps) => {
+export const AnalyticsModal = ({ isOpen, onClose, review, sphereOptions }: AnalyticsModalProps) => {
     const { theme } = useThemeStore()
     const { user } = useAuthStore()
     const [loading, setLoading] = useState(false)
@@ -35,7 +38,7 @@ export const AnalyticsModal = ({ isOpen, onClose, review }: AnalyticsModalProps)
         if (review) {
             setFormData(review)
             const parsedLinks = review.links?.map(link => {
-                const parts = link.split(' - ')
+                const parts = link.slice(-1) === '-' ? [link.slice(0, -1).trim()] : link.split(' - ');
                 return { url: parts[0] || '', title: parts[1] || '' }
             }) || []
             setLinkInputs(parsedLinks.length > 0 ? parsedLinks : [{ url: '', title: '' }])
@@ -113,6 +116,13 @@ export const AnalyticsModal = ({ isOpen, onClose, review }: AnalyticsModalProps)
     const textColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
     const inputBg = theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'
 
+    // Преобразуем sphereOptions в формат SelectOption для CustomSelect
+    const customSelectOptions: SelectOption[] = sphereOptions.map(sphere => ({
+        value: sphere.id || '',
+        label: sphere.name,
+        icon: sphere.icon,
+    }))
+
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
             <div className={`${bgColor} w-full max-w-2xl rounded-3xl overflow-hidden shadow-2xl border ${theme === 'dark' ? 'border-white/10' : 'border-gray-100'}`}>
@@ -129,17 +139,14 @@ export const AnalyticsModal = ({ isOpen, onClose, review }: AnalyticsModalProps)
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-1.5">
                             <label className="text-[10px] font-black uppercase tracking-widest text-emerald-500">Сфера</label>
-                            <select
-                                required
-                                value={formData.sphere}
-                                onChange={(e) => setFormData({ ...formData, sphere: e.target.value })}
-                                className={`w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-emerald-500 outline-none transition-all ${inputBg} ${textColor}`}
-                            >
-                                {Object.keys(SLOT_CATEGORY_META).map((key) => (
-                                    <option key={key} value={key}>{SLOT_CATEGORY_META[key as SlotCategory].label}</option>
-                                ))}
-                                <option value="other">Крипто-рынок</option>
-                            </select>
+                            <CustomSelect
+                                value={formData.sphere || 'all'} // Устанавливаем значение по умолчанию, если sphere не определено
+                                onChange={(val) => setFormData({ ...formData, sphere: val as SlotCategory })}
+                                options={customSelectOptions}
+                                placeholder="Выберите сферу"
+                                searchable={true}
+                                icon={<BarChart3 size={16} />} // Общая иконка для селектора
+                            />
                         </div>
 
                         {/* Separate Date and Time fields for Deadline */}
