@@ -4,7 +4,7 @@ import { useAuthStore } from '@/store/authStore'
 import { AnalyticsReview, deleteAnalyticsReview } from '@/services/analyticsService'
 import { UserNickname } from '@/components/UserNickname'
 import { Edit, Trash2, ExternalLink } from 'lucide-react'
-import { formatDate } from '@/utils/dateUtils'
+// import { formatDate } from '@/utils/dateUtils' 
 import { SLOT_CATEGORY_META, SlotCategory } from '@/types'
 import { useEffect, useState } from 'react'
 import Avatar from '@/components/Avatar'
@@ -106,7 +106,7 @@ export const AnalyticsTable = ({ reviews, onEdit }: AnalyticsTableProps) => {
                         <tr className={theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'}>
                             <th className={`p-4 text-center text-[10px] font-bold uppercase tracking-wider ${subTextColor} w-32`}>Сфера</th>
                             <th className={`p-4 text-center text-[10px] font-bold uppercase tracking-wider ${subTextColor}`}>Комментарий эксперта</th>
-                            <th className={`p-4 text-center text-[10px] font-bold uppercase tracking-wider ${subTextColor}`}>Важные детали</th>
+                            {/* <th className={`p-4 text-center text-[10px] font-bold uppercase tracking-wider ${subTextColor}`}>Важные детали</th> */}
                             <th className={`p-4 text-center text-[10px] font-bold uppercase tracking-wider ${subTextColor} w-32`}>Дата</th>
                             <th className={`p-4 text-center text-[10px] font-bold uppercase tracking-wider ${subTextColor} w-32`}>Время</th>
                             <th className={`p-4 text-center text-[10px] font-bold uppercase tracking-wider ${subTextColor} w-24`}>Ссылки</th>
@@ -126,11 +126,10 @@ export const AnalyticsTable = ({ reviews, onEdit }: AnalyticsTableProps) => {
                                 <td className={`p-4 align-top text-center text-sm font-medium ${headingColor} whitespace-pre-wrap max-w-sm`}>
                                     {review.expertComment}
                                 </td>
-                                <td className={`p-4 align-top text-center text-sm ${subTextColor} whitespace-pre-wrap max-w-sm`}>
+                                {/* <td className={`p-4 align-top text-center text-sm ${subTextColor} whitespace-pre-wrap max-w-sm`}>
                                     {review.importantDetails}
-                                </td>
+                                </td> */}
                                 <td className={`p-4 align-top text-center text-xs font-bold ${review.deadline ? getDeadlineColor(review.deadline) : 'text-gray-500'}`}>
-                                    {review.deadline ? formatDate(new Date(review.deadline), 'dd.MM.yyyy') : '-'}
                                 </td>
                                 <td className={`p-4 align-top text-center text-xs font-bold ${review.deadline ? getDeadlineColor(review.deadline) : 'text-gray-500'}`}>
                                     {review.deadline && <CountdownTimer deadline={review.deadline} />}                                </td>
