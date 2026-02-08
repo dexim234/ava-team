@@ -1,11 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react'
-import { Search, ChevronDown, BarChart3, X } from 'lucide-react'
+import { Search, ChevronDown, BarChart3, X, LucideIcon } from 'lucide-react'
 import { useThemeStore } from '@/store/themeStore'
 
 interface SphereItem {
     id: string | null;
     name: string;
-    icon: React.ReactNode;
+    icon: LucideIcon; // Изменено на LucideIcon
 }
 
 interface SphereSelectorProps {
@@ -42,6 +42,8 @@ export const SphereSelector: React.FC<SphereSelectorProps> = ({
         return name.includes(query)
     })
 
+    const IconComponent = selectedSphere?.icon || BarChart3; // Получаем компонент иконки
+
     return (
         <div className="relative w-full lg:w-72" ref={containerRef}>
             <button
@@ -54,7 +56,7 @@ export const SphereSelector: React.FC<SphereSelectorProps> = ({
                 <div className="flex items-center gap-2.5 overflow-hidden relative z-10">
                     <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${theme === 'dark' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-emerald-50 text-emerald-500'
                         } flex-shrink-0`}>
-                        {selectedSphere?.icon || <BarChart3 size={20} />}
+                        <IconComponent size={20} /> {/* Используем IconComponent */}
                     </div>
                     <div className="text-left min-w-0">
                         <p className="text-[10px] uppercase tracking-widest font-bold text-emerald-500/60 leading-none mb-1">Сфера</p>

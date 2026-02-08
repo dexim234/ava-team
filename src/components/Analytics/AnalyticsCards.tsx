@@ -90,6 +90,7 @@ export const AnalyticsCards = ({ reviews, onEdit }: AnalyticsCardsProps) => {
                     {expandedCards[review.id] && (
                         <>
                             <p className={`text-lg font-bold mb-2 ${textColor} whitespace-pre-wrap`}>{review.expertComment}</p>
+                            <p className={`text-sm mb-4 ${subTextColor} whitespace-pre-wrap`}>{review.importantDetails}</p>
                         </>
                     )}
 
