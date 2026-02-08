@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react'
 import { AnalyticsModal } from '@/components/Analytics/AnalyticsModal'
 import { AnalyticsReview, subscribeToAnalyticsReviews } from '@/services/analyticsService'
-import { StrategyTabSelector } from '@/components/Strategies/StrategyTabSelector'
+import { SphereSelector } from '@/components/Analytics/SphereSelector'
 import { useThemeStore } from '@/store/themeStore'
 import { useAuthStore } from '@/store/authStore'
 import { Plus, BarChart3 } from 'lucide-react'
 import { SLOT_CATEGORY_META, SlotCategory } from '@/types'
 import { DeadlineFilter } from '@/components/Analytics/DeadlineFilter'
-import { AnalyticsCards } from '@/components/Analytics/AnalyticsCards' // Будет создан
+import { AnalyticsCards } from '@/components/Analytics/AnalyticsCards'
 
 type SphereType = 'all' | 'memecoins' | 'polymarket' | 'nft' | 'staking' | 'spot' | 'futures' | 'airdrop' | 'other'
 type DeadlineFilterType = 'all' | '<24h' | '<48h' | '<72h'
@@ -77,10 +77,10 @@ export const Analytics = () => {
                         </h1>
                     </div>
                     <div className="flex flex-col sm:flex-row gap-4">
-                        <StrategyTabSelector
-                            strategies={sphereOptions}
-                            activeStrategy={activeSphere}
-                            setActiveStrategy={handleSetActiveSphere}
+                        <SphereSelector
+                            spheres={sphereOptions}
+                            activeSphere={activeSphere}
+                            setActiveSphere={handleSetActiveSphere}
                         />
                         {user && (
                             <button
