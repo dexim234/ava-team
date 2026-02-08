@@ -1,6 +1,10 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { AnalyticsModal } from '@/components/Analytics/AnalyticsModal'
-import { AnalyticsReview, subscribeToAnalyticsReviews } from '@/services/analyticsService'
+import {
+    AnalyticsReview,
+    subscribeToAnalyticsReviews,
+    archiveReviewIfNeeded,
+} from '@/services/analyticsService'
 import { SphereSelector } from '@/components/Analytics/SphereSelector'
 import { useThemeStore } from '@/store/themeStore'
 import { useAuthStore } from '@/store/authStore'
@@ -8,6 +12,8 @@ import { Plus, BarChart3 } from 'lucide-react'
 import { SLOT_CATEGORY_META, SlotCategory } from '@/types'
 import { DeadlineFilter } from '@/components/Analytics/DeadlineFilter'
 import { AnalyticsCards } from '@/components/Analytics/AnalyticsCards'
+// import { Switch } from '@/components/ui/switch' 
+// import { Label } from '@/components/ui/label'  
 
 type SphereType = 'all' | 'memecoins' | 'polymarket' | 'nft' | 'staking' | 'spot' | 'futures' | 'airdrop' | 'other'
 type DeadlineFilterType = 'all' | '<24h' | '<48h' | '<72h'
@@ -30,13 +36,20 @@ export const Analytics = () => {
 
     useEffect(() => {
         console.log('Current user:', user) // Diagnostic log
-        const unsubscribe = subscribeToAnalyticsReviews(setReviews, activeSphere)
+        const unsubscribe = subscribeToAnalyticsReviews(
+            (fetchedReviews) => {
+                fetchedReviews.forEach(archiveReviewIfNeeded); // Проверяет и архивирует при необходимости
+                setReviews(fetchedReviews);
+            },
+            { sphere: activeSphere }
+        );
+
         return () => unsubscribe()
     }, [activeSphere, user])
 
-    const handleSetActiveSphere = (id: string | null) => {
+    const handleSetActiveSphere = useCallback((id: string | null) => {
         setActiveSphere(id as SphereType)
-    }
+    }, [])
 
     const sphereOptions = [
         { id: 'all', name: 'Все', icon: <BarChart3 size={20} /> },
@@ -69,14 +82,14 @@ export const Analytics = () => {
     return (
         <div className="flex min-h-screen">
             <div className="w-full space-y-6 p-4 md:p-6">
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
                     <div className="flex-1">
                         <h1 className={`flex items-center gap-2 text-2xl md:text-3xl font-black tracking-tight ${headingColor}`}>
                             <BarChart3 size={28} className="text-emerald-500" />
                             Analytics
                         </h1>
                     </div>
-                    <div className="flex flex-col sm:flex-row gap-4">
+                    <div className="flex flex-col sm:flex-row gap-4 items-center">
                         <SphereSelector
                             spheres={sphereOptions}
                             activeSphere={activeSphere}
