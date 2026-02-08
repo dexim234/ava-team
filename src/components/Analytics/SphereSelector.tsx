@@ -1,11 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react'
-import { Search, ChevronDown, BarChart3, X, LucideIcon } from 'lucide-react'
+import { Search, ChevronDown, BarChart3, X } from 'lucide-react'
 import { useThemeStore } from '@/store/themeStore'
 
 interface SphereItem {
     id: string | null;
     name: string;
-    icon: LucideIcon; // Изменено на LucideIcon
+    icon: React.ReactNode;
 }
 
 interface SphereSelectorProps {
@@ -42,7 +42,12 @@ export const SphereSelector: React.FC<SphereSelectorProps> = ({
         return name.includes(query)
     })
 
-    const IconComponent = selectedSphere?.icon || BarChart3; // Получаем компонент иконки
+    const renderIcon = (icon: React.ReactNode) => {
+        if (React.isValidElement(icon)) {
+            return icon
+        }
+        return <BarChart3 size={20} />
+    }
 
     return (
         <div className="relative w-full lg:w-72" ref={containerRef}>
@@ -56,7 +61,7 @@ export const SphereSelector: React.FC<SphereSelectorProps> = ({
                 <div className="flex items-center gap-2.5 overflow-hidden relative z-10">
                     <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${theme === 'dark' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-emerald-50 text-emerald-500'
                         } flex-shrink-0`}>
-                        <IconComponent size={20} /> {/* Используем IconComponent */}
+                        {renderIcon(selectedSphere?.icon)}
                     </div>
                     <div className="text-left min-w-0">
                         <p className="text-[10px] uppercase tracking-widest font-bold text-emerald-500/60 leading-none mb-1">Сфера</p>
@@ -70,104 +75,78 @@ export const SphereSelector: React.FC<SphereSelectorProps> = ({
             </button>
 
             {isOpen && (
-                <div className={`absolute z-50 top-full mt-2 w-full min-w-[240px] rounded-2xl border shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-300 ${theme === 'dark' ? 'bg-[#1a1f26] border-white/10' : 'bg-white border-gray-200'
+                <div className={`absolute z-50 w-full mt-2 rounded-2xl shadow-2xl border transition-all duration-300 ${theme === 'dark'
+                    ? 'bg-[#151a21]/95 border-white/5 backdrop-blur-xl'
+                    : 'bg-white border-gray-200'
                     }`}>
-                    {/* Search bar */}
-                    <div className="p-3 border-b border-white/5">
-                        <div className="relative">
-                            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+                    {/* Search input */}
+                    <div className={`p-3 border-b ${theme === 'dark' ? 'border-white/5' : 'border-gray-100'}`}>
+                        <div className={`relative ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2" />
                             <input
                                 type="text"
                                 placeholder="Поиск сферы..."
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
-                                className={`w-full pl-9 pr-8 py-2 rounded-lg text-xs font-medium outline-none transition-all ${theme === 'dark'
-                                    ? 'bg-black/20 text-gray-300 focus:bg-black/40'
-                                    : 'bg-gray-100 text-gray-700 focus:bg-gray-200'
-                                    }`}
-                                autoFocus
+                                className={`w-full pl-9 pr-3 py-2 rounded-xl text-sm border ${theme === 'dark'
+                                    ? 'bg-white/5 border-white/10 text-white placeholder-gray-500 focus:border-emerald-500/50'
+                                    : 'bg-gray-50 border-gray-200 text-gray-700 placeholder-gray-400 focus:border-emerald-500'
+                                    } focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all`}
                             />
                             {search && (
                                 <button
                                     onClick={() => setSearch('')}
-                                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1 hover:text-rose-500"
+                                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-lg hover:bg-gray-500/20 transition-colors"
                                 >
-                                    <X size={12} />
+                                    <X size={14} />
                                 </button>
                             )}
                         </div>
                     </div>
 
-                    {/* Spheres list */}
-                    <div className="max-h-[300px] overflow-y-auto p-1.5 custom-scrollbar">
-                        <button
-                            onClick={() => {
-                                setActiveSphere('all')
-                                setIsOpen(false)
-                            }}
-                            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all ${activeSphere === 'all'
-                                ? theme === 'dark' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-emerald-50 text-emerald-600'
-                                : theme === 'dark' ? 'hover:bg-white/5 text-gray-400' : 'hover:bg-gray-50 text-gray-600'
-                                }`}
-                        >
-                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${activeSphere === 'all'
-                                ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20'
-                                : theme === 'dark' ? 'bg-white/5' : 'bg-gray-100'
-                                }`}>
-                                <BarChart3 size={20} />
+                    {/* Sphere list */}
+                    <div className="max-h-64 overflow-y-auto py-2">
+                        {filteredSpheres.length === 0 ? (
+                            <div className={`px-4 py-8 text-center text-sm ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`}>
+                                Сферы не найдены
                             </div>
-                            <span className="text-sm font-black tracking-tight">Все сферы</span>
-                        </button>
-
-                        {filteredSpheres.map(sphere => ( sphere.id !== 'all' &&
-                            <SphereItemComponent
-                                key={sphere.id}
-                                sphere={sphere}
-                                isSelected={activeSphere === sphere.id}
-                                onSelect={(id) => {
-                                    setActiveSphere(id)
-                                    setIsOpen(false)
-                                }}
-                                theme={theme}
-                            />
-                        ))}
-
-                        {filteredSpheres.length === 0 && (
-                            <div className="p-4 text-center">
-                                <p className="text-[10px] text-gray-500">Ничего не нашли :(</p>
-                            </div>
+                        ) : (
+                            filteredSpheres.map((sphere) => (
+                                <button
+                                    key={sphere.id}
+                                    onClick={() => {
+                                        setActiveSphere(sphere.id)
+                                        setIsOpen(false)
+                                    }}
+                                    className={`w-full flex items-center gap-3 px-4 py-2.5 transition-all duration-200 ${activeSphere === sphere.id
+                                        ? theme === 'dark'
+                                            ? 'bg-emerald-500/10 text-emerald-400'
+                                            : 'bg-emerald-50 text-emerald-600'
+                                        : theme === 'dark'
+                                            ? 'text-gray-300 hover:bg-white/5'
+                                            : 'text-gray-700 hover:bg-gray-50'
+                                        }`}
+                                >
+                                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${activeSphere === sphere.id
+                                        ? theme === 'dark'
+                                            ? 'bg-emerald-500/20'
+                                            : 'bg-emerald-100'
+                                        : theme === 'dark'
+                                            ? 'bg-white/5'
+                                            : 'bg-gray-100'
+                                        }`}>
+                                        {renderIcon(sphere.icon)}
+                                    </div>
+                                    <span className="text-sm font-medium">{sphere.name}</span>
+                                    {activeSphere === sphere.id && (
+                                        <div className="ml-auto w-2 h-2 rounded-full bg-emerald-500" />
+                                    )}
+                                </button>
+                            ))
                         )}
                     </div>
                 </div>
             )}
         </div>
-    )
-}
-
-const SphereItemComponent: React.FC<{
-    sphere: SphereItem
-    isSelected: boolean
-    onSelect: (id: string | null) => void
-    theme: string
-}> = ({ sphere, isSelected, onSelect, theme }) => {
-    return (
-        <button
-            onClick={() => onSelect(sphere.id)}
-            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all ${isSelected
-                ? theme === 'dark' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-emerald-50 text-emerald-600'
-                : theme === 'dark' ? 'hover:bg-white/5 text-gray-300' : 'hover:bg-gray-50 text-gray-700'
-                }`}
-        >
-            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isSelected
-                ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20'
-                : theme === 'dark' ? 'bg-white/5' : 'bg-gray-100'
-                }`}>
-                {sphere.icon}
-            </div>
-            <span className="text-sm font-black tracking-tight">{sphere.name}</span>
-            {isSelected && (
-                <div className="ml-auto w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            )}
-        </button>
     )
 }
