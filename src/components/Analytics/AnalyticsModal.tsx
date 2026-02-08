@@ -24,7 +24,6 @@ export const AnalyticsModal = ({ isOpen, onClose, review }: AnalyticsModalProps)
     const [formData, setFormData] = useState<Partial<AnalyticsReview>>({
         sphere: 'memecoins',
         expertComment: '',
-        importantDetails: '',
         deadline: '',
         links: []
     })
@@ -53,7 +52,6 @@ export const AnalyticsModal = ({ isOpen, onClose, review }: AnalyticsModalProps)
             setFormData({
                 sphere: 'memecoins',
                 expertComment: '',
-                importantDetails: '',
                 deadline: '',
                 links: []
             })
@@ -175,17 +173,6 @@ export const AnalyticsModal = ({ isOpen, onClose, review }: AnalyticsModalProps)
                             placeholder="Введите ваш аналитический обзор..."
                             value={formData.expertComment}
                             onChange={(e) => setFormData({ ...formData, expertComment: e.target.value })}
-                            className={`w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-emerald-500 outline-none transition-all resize-none ${inputBg} ${textColor}`}
-                        />
-                    </div>
-
-                    <div className="space-y-1.5">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-emerald-500">Важные детали</label>
-                        <textarea
-                            rows={2}
-                            placeholder="Дополнительная информация, риски и т.д."
-                            value={formData.importantDetails}
-                            onChange={(e) => setFormData({ ...formData, importantDetails: e.target.value })}
                             className={`w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-emerald-500 outline-none transition-all resize-none ${inputBg} ${textColor}`}
                         />
                     </div>
