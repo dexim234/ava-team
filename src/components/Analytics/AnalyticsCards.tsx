@@ -1,28 +1,25 @@
 import { useThemeStore } from '@/store/themeStore'
 import { useAdminStore } from '@/store/adminStore'
 import { useAuthStore } from '@/store/authStore'
-import { AnalyticsReview, deleteAnalyticsReview, addOrUpdateReviewRating } from '@/services/analyticsService' // Добавляем addOrUpdateReviewRating
+import { AnalyticsReview, deleteAnalyticsReview } from '@/services/analyticsService'
 import { UserNickname } from '@/components/UserNickname'
-import { Edit, Trash2, ExternalLink, Share } from 'lucide-react'
+import { Edit, Trash2, Share } from 'lucide-react'
 import { formatDate } from '@/utils/dateUtils'
 import { SLOT_CATEGORY_META, SlotCategory } from '@/types'
 import Avatar from '@/components/Avatar'
 import { CountdownTimer, getDeadlineColor } from '@/components/Analytics/AnalyticsTable'
-import { useState } from 'react'
 import { RatingDisplay } from './RatingDisplay'
-import { RatingInput } from './RatingInput' // Импортируем RatingInput
 
 interface AnalyticsCardsProps {
     reviews: AnalyticsReview[]
     onEdit: (review: AnalyticsReview) => void
-    onView: (id: string) => void // Новая проп-функция для открытия модалки просмотра
+    onView: (id: string) => void
 }
 
 export const AnalyticsCards = ({ reviews, onEdit, onView }: AnalyticsCardsProps) => {
     const { theme } = useThemeStore()
     const { isAdmin } = useAdminStore()
     const { user } = useAuthStore()
-    const [loadingRatings, setLoadingRatings] = useState<Record<string, boolean>>({}) // Состояние для загрузки оценки
 
     const cardBg = theme === 'dark' ? 'bg-[#0f141a]' : 'bg-white'
     const textColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
@@ -55,20 +52,6 @@ export const AnalyticsCards = ({ reviews, onEdit, onView }: AnalyticsCardsProps)
         }
     }
 
-    const handleRateReview = async (reviewId: string, ratingValue: number) => {
-        if (!user || !reviewId) return
-        setLoadingRatings(prev => ({ ...prev, [reviewId]: true }))
-        try {
-            await addOrUpdateReviewRating(reviewId, user.id, ratingValue)
-            console.log('Оценка успешно сохранена!')
-            // Здесь не нужно обновлять состояние reviews, так как это делается через subscribeToAnalyticsReviews в Analytics.tsx
-        } catch (error) {
-            console.error('Ошибка при сохранении оценки:', error)
-        } finally {
-            setLoadingRatings(prev => ({ ...prev, [reviewId]: false }))
-        }
-    }
-
     if (reviews.length === 0) {
         return (
             <div className={`p-10 text-center rounded-2xl border border-dashed ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-gray-50'}`}>
@@ -80,7 +63,6 @@ export const AnalyticsCards = ({ reviews, onEdit, onView }: AnalyticsCardsProps)
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {reviews.map((review) => {
-                const userRating = review.ratings?.find(r => r.userId === user?.id)?.value || null
                 return (
                     <div
                         key={review.id}
@@ -121,19 +103,8 @@ export const AnalyticsCards = ({ reviews, onEdit, onView }: AnalyticsCardsProps)
                             </span>
                         </div>
 
-                        <p className={`text-lg font-bold mb-2 ${textColor} whitespace-pre-wrap`}>{review.expertComment}</p>
-                        {review.importantDetails && <p className={`text-sm mb-4 ${subTextColor} whitespace-pre-wrap`}>{review.importantDetails}</p>}
-
-                        <div className="mb-4 flex items-center justify-between">
+                        <div className="mb-4">
                             <RatingDisplay ratings={review.ratings} theme={theme} />
-                            {user && user.id !== review.createdBy && (
-                                <RatingInput
-                                    currentRating={userRating}
-                                    onRate={(ratingValue) => handleRateReview(review.id, ratingValue)}
-                                    theme={theme}
-                                    disabled={loadingRatings[review.id] || false}
-                                />
-                            )}
                         </div>
 
                         <div className="flex items-center justify-between border-t border-b py-3 mb-4">
@@ -148,28 +119,6 @@ export const AnalyticsCards = ({ reviews, onEdit, onView }: AnalyticsCardsProps)
                                 </div>
                             )}
                         </div>
-
-                        {review.links && review.links.length > 0 && (
-                            <div className="flex flex-wrap gap-2">
-                                {review.links.map((link, idx) => {
-                                    const parts = link.split(' - ')
-                                    const url = parts[0]
-                                    const title = parts[1] || 'Ссылка'
-                                    return (
-                                        <a
-                                            key={idx}
-                                            href={url}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            onClick={(e) => e.stopPropagation()}
-                                            className="px-3 py-1 rounded-full text-xs font-medium bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 transition-all flex items-center gap-1"
-                                        >
-                                            <ExternalLink className="w-3 h-3" /> {title}
-                                        </a>
-                                    )
-                                })}
-                            </div>
-                        )}
                     </div>
                 )
             })}

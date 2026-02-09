@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useThemeStore } from '@/store/themeStore'
 import { useAuthStore } from '@/store/authStore'
 import { AnalyticsReview, addOrUpdateReviewRating } from '@/services/analyticsService'
-import { X, ExternalLink } from 'lucide-react'
+import { X, ExternalLink, Edit } from 'lucide-react'
 import { SlotCategory } from '@/types'
 import { format, parseISO } from 'date-fns'
 import { SLOT_CATEGORY_META } from '@/types'
@@ -11,16 +11,20 @@ import { RatingInput } from './RatingInput'
 import { UserNickname } from '@/components/UserNickname'
 import Avatar from '@/components/Avatar'
 import { formatDate } from '@/utils/dateUtils'
+import { useAdminStore } from '@/store/adminStore'
 
 interface AnalyticsViewModalProps {
     isOpen: boolean
     onClose: () => void
     review: AnalyticsReview | null
+    onEditFromView: (review: AnalyticsReview) => void
+    onRatingSuccess: (reviewId: string) => void // НОВАЯ ПРОПС: функция для уведомления о новом рейтинге
 }
 
-export const AnalyticsViewModal = ({ isOpen, onClose, review }: AnalyticsViewModalProps) => {
+export const AnalyticsViewModal = ({ isOpen, onClose, review, onEditFromView, onRatingSuccess }: AnalyticsViewModalProps) => {
     const { theme } = useThemeStore()
     const { user } = useAuthStore()
+    const { isAdmin } = useAdminStore()
     const [loading, setLoading] = useState(false)
 
     if (!isOpen || !review) return null
@@ -31,11 +35,21 @@ export const AnalyticsViewModal = ({ isOpen, onClose, review }: AnalyticsViewMod
         try {
             await addOrUpdateReviewRating(review.id, user.id, ratingValue)
             console.log('Оценка успешно сохранена!')
+            onRatingSuccess(review.id) // ОБНОВЛЕНИЕ: Вызываем onRatingSuccess с reviewId
         } catch (error) {
             console.error('Ошибка при сохранении оценки:', error)
         } finally {
             setLoading(false)
         }
+    }
+
+    const canEditReview = (currentReview: AnalyticsReview) => {
+        if (isAdmin) return true
+        if (user?.id !== currentReview.createdBy) return false
+
+        const createdAt = new Date(currentReview.createdAt).getTime()
+        const now = new Date().getTime()
+        return (now - createdAt) < 30 * 60 * 1000
     }
 
     const bgColor = theme === 'dark' ? 'bg-[#0f141a]' : 'bg-white'
@@ -56,9 +70,20 @@ export const AnalyticsViewModal = ({ isOpen, onClose, review }: AnalyticsViewMod
                     <h2 className={`text-xl font-black tracking-tight ${textColor}`}>
                         Аналитический обзор
                     </h2>
-                    <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-xl transition-colors">
-                        <X className="w-5 h-5 text-gray-500" />
-                    </button>
+                    <div className="flex items-center gap-2">
+                        {canEditReview(review) && (
+                            <button
+                                onClick={() => onEditFromView(review)}
+                                className="p-2 hover:bg-white/10 rounded-xl transition-colors"
+                                title="Редактировать"
+                            >
+                                <Edit className="w-5 h-5 text-gray-500" />
+                            </button>
+                        )}
+                        <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-xl transition-colors">
+                            <X className="w-5 h-5 text-gray-500" />
+                        </button>
+                    </div>
                 </div>
 
                 <div className="p-6 space-y-4">
