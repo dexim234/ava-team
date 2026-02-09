@@ -36,20 +36,34 @@ export const Analytics = () => {
         navigate(location.pathname, { replace: true })
     }
 
-    // Новая функция для открытия модалки просмотра из AnalyticsCards
     const openViewModalFromCard = async (reviewId: string) => {
         const reviewData = await getAnalyticsReviewById(reviewId)
         if (reviewData) {
             setEditingReview(reviewData)
             setIsViewMode(true)
             setIsModalOpen(true)
-            navigate(`${location.pathname}?reviewId=${reviewId}`, { replace: true }) // Обновляем URL
+            navigate(`${location.pathname}?reviewId=${reviewId}`, { replace: true })
         } else {
             console.error('Обзор не найден:', reviewId)
         }
     }
 
-    // Эффект для обработки параметра reviewId в URL
+    const handleEditFromView = (review: AnalyticsReview) => {
+        setEditingReview(review)
+        setIsViewMode(false)
+        setIsModalOpen(true)
+        navigate(`${location.pathname}?reviewId=${review.id}`, { replace: true })
+    }
+
+    // Функция для обработки успешного сохранения оценки
+    const handleRatingSuccess = async (reviewId: string) => {
+        // Переполучаем обновленный обзор с сервера
+        const updatedReview = await getAnalyticsReviewById(reviewId)
+        if (updatedReview) {
+            setEditingReview(updatedReview) // Обновляем editingReview, чтобы модалка показывала актуальные данные
+        }
+    }
+
     useEffect(() => {
         const params = new URLSearchParams(location.search)
         const reviewId = params.get('reviewId')
@@ -60,19 +74,17 @@ export const Analytics = () => {
                 setEditingReview(reviewData)
                 setIsViewMode(true)
                 setIsModalOpen(true)
-            } else {
-                navigate(location.pathname, { replace: true })
             }
         }
 
         if (reviewId && !isModalOpen) {
             fetchAndOpenReview(reviewId)
-        } else if (!reviewId && isModalOpen && isViewMode) {
+        } else if (!reviewId && isModalOpen) {
             setIsModalOpen(false)
             setEditingReview(null)
             setIsViewMode(false)
         }
-    }, [location.search, isModalOpen, isViewMode])
+    }, [location.search, isModalOpen])
 
     useEffect(() => {
         if (!user?.id) return
@@ -188,7 +200,7 @@ export const Analytics = () => {
                         setIsModalOpen(true)
                         navigate(`${location.pathname}?reviewId=${review.id}`, { replace: true })
                     }}
-                    onView={openViewModalFromCard} // Передаем новую функцию
+                    onView={openViewModalFromCard}
                 />
 
                 {isViewMode ? (
@@ -196,6 +208,8 @@ export const Analytics = () => {
                         isOpen={isModalOpen}
                         onClose={closeAnalyticsModal}
                         review={editingReview}
+                        onEditFromView={handleEditFromView}
+                        onRatingSuccess={handleRatingSuccess} // НОВАЯ ПРОПС: передаем функцию
                     />
                 ) : (
                     <AnalyticsModal
