@@ -20,11 +20,13 @@ export interface Rating {
 
 export interface AnalyticsReview {
     id: string
+    number?: number // Порядковый номер для отображения
     sphere: string[] // Изменено на массив строк
     expertComment?: string
     importantDetails?: string
     deadline?: string // ISO date string
     links?: string[]
+    asset?: string // Актив, под который делается аналитический разбор
     createdBy: string
     createdAt: string // ISO date string
     updatedAt: string // ISO date string
@@ -32,6 +34,28 @@ export interface AnalyticsReview {
 }
 
 const COLLECTION_NAME = 'analytics'
+
+// Функция для получения следующего свободного номера
+const getNextFreeNumber = async (): Promise<number> => {
+    const analyticsRef = collection(db, COLLECTION_NAME)
+    const snapshot = await getDocs(analyticsRef)
+
+    const usedNumbers = new Set<number>()
+    snapshot.docs.forEach(doc => {
+        const data = doc.data()
+        if (data.number !== undefined) {
+            usedNumbers.add(data.number)
+        }
+    })
+
+    // Находим минимальный свободный номер
+    let nextNumber = 1
+    while (usedNumbers.has(nextNumber)) {
+        nextNumber++
+    }
+
+    return nextNumber
+}
 
 export const getAnalyticsReviews = async (sphere?: string[]): Promise<AnalyticsReview[]> => {
     const analyticsRef = collection(db, COLLECTION_NAME)
@@ -81,11 +105,13 @@ export const subscribeToAnalyticsReviews = (callback: (reviews: AnalyticsReview[
     })
 }
 
-export const addAnalyticsReview = async (review: Omit<AnalyticsReview, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> => {
+export const addAnalyticsReview = async (review: Omit<AnalyticsReview, 'id' | 'createdAt' | 'updatedAt' | 'number'>): Promise<string> => {
     const analyticsRef = collection(db, COLLECTION_NAME)
     const now = new Date().toISOString()
+    const nextNumber = await getNextFreeNumber()
     const result = await addDoc(analyticsRef, {
         ...review,
+        number: nextNumber,
         createdAt: now,
         updatedAt: now,
         ratings: [] // Инициализируем массив оценок при создании
