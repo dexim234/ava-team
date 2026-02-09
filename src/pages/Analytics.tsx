@@ -77,14 +77,18 @@ export const Analytics = () => {
             }
         }
 
+        // Открываем модальное окно только если есть reviewId и окно закрыто
         if (reviewId && !isModalOpen) {
             fetchAndOpenReview(reviewId)
-        } else if (!reviewId && isModalOpen) {
+        }
+        // Закрываем модальное окно только если нет reviewId, нет редактируемого обзора и окно открыто
+        // Это позволяет создавать новый обзор (когда editingReview === null)
+        else if (!reviewId && isModalOpen && editingReview) {
             setIsModalOpen(false)
             setEditingReview(null)
             setIsViewMode(false)
         }
-    }, [location.search, isModalOpen])
+    }, [location.search, isModalOpen, editingReview])
 
     useEffect(() => {
         if (!user?.id) return
