@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { AnalyticsModal } from '@/components/Analytics/AnalyticsModal'
-import { AnalyticsReview, subscribeToAnalyticsReviews, getAnalyticsReviewById } from '@/services/analyticsService' // Добавляем getAnalyticsReviewById
+import { AnalyticsViewModal } from '@/components/Analytics/AnalyticsViewModal'
+import { AnalyticsReview, subscribeToAnalyticsReviews, getAnalyticsReviewById } from '@/services/analyticsService'
 import { useThemeStore } from '@/store/themeStore'
 import { Plus, BarChart3 } from 'lucide-react'
 import { SLOT_CATEGORY_META, SlotCategory } from '@/types'
@@ -9,7 +10,7 @@ import { AnalyticsCards } from '@/components/Analytics/AnalyticsCards'
 import { CATEGORY_ICONS } from '@/constants/common.tsx'
 import { MultiSelect } from '@/components/Call/MultiSelect'
 import { useAuthStore } from '@/store/authStore'
-import { useLocation, useNavigate } from 'react-router-dom' // Импортируем useLocation и useNavigate
+import { useLocation, useNavigate } from 'react-router-dom'
 
 type SphereType = 'all' | SlotCategory
 type DeadlineFilterType = 'all' | '<24h' | '<48h' | '<72h'
@@ -21,16 +22,31 @@ export const Analytics = () => {
     const [activeDeadlineFilter, setActiveDeadlineFilter] = useState<DeadlineFilterType>('all')
     const [reviews, setReviews] = useState<AnalyticsReview[]>([])
     const [isModalOpen, setIsModalOpen] = useState(false)
+    const [isViewMode, setIsViewMode] = useState(false)
     const [editingReview, setEditingReview] = useState<AnalyticsReview | null>(null)
-    const location = useLocation() // Хук для доступа к текущему URL
-    const navigate = useNavigate() // Хук для программной навигации
+    const location = useLocation()
+    const navigate = useNavigate()
 
     const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
 
     const openModal = () => {
         setEditingReview(null)
+        setIsViewMode(false)
         setIsModalOpen(true)
-        navigate(location.pathname, { replace: true }) // Очищаем reviewId из URL при открытии обычной модалки
+        navigate(location.pathname, { replace: true })
+    }
+
+    // Новая функция для открытия модалки просмотра из AnalyticsCards
+    const openViewModalFromCard = async (reviewId: string) => {
+        const reviewData = await getAnalyticsReviewById(reviewId)
+        if (reviewData) {
+            setEditingReview(reviewData)
+            setIsViewMode(true)
+            setIsModalOpen(true)
+            navigate(`${location.pathname}?reviewId=${reviewId}`, { replace: true }) // Обновляем URL
+        } else {
+            console.error('Обзор не найден:', reviewId)
+        }
     }
 
     // Эффект для обработки параметра reviewId в URL
@@ -42,21 +58,21 @@ export const Analytics = () => {
             const reviewData = await getAnalyticsReviewById(id)
             if (reviewData) {
                 setEditingReview(reviewData)
+                setIsViewMode(true)
                 setIsModalOpen(true)
             } else {
-                // Если обзор не найден, очищаем reviewId из URL
                 navigate(location.pathname, { replace: true })
             }
         }
 
-        if (reviewId && !isModalOpen) { // Открываем модальное окно только если оно еще не открыто
+        if (reviewId && !isModalOpen) {
             fetchAndOpenReview(reviewId)
-        } else if (!reviewId && isModalOpen && editingReview) {
-            // Если reviewId убран из URL, но модалка открыта с обзором, закрываем ее
-            setIsModalOpen(false);
-            setEditingReview(null);
+        } else if (!reviewId && isModalOpen && isViewMode) {
+            setIsModalOpen(false)
+            setEditingReview(null)
+            setIsViewMode(false)
         }
-    }, [location.search, isModalOpen]) // Запускаем эффект при изменении URL и состояния модального окна
+    }, [location.search, isModalOpen, isViewMode])
 
     useEffect(() => {
         if (!user?.id) return
@@ -66,13 +82,14 @@ export const Analytics = () => {
 
     const handleSetActiveSphere = (ids: string[]) => {
         setActiveSphere(ids as SphereType[])
-        navigate(location.pathname, { replace: true }) // Очищаем reviewId при смене сферы
+        navigate(location.pathname, { replace: true })
     }
 
     const closeAnalyticsModal = () => {
         setIsModalOpen(false)
         setEditingReview(null)
-        navigate(location.pathname, { replace: true }) // Очищаем reviewId из URL при закрытии модалки
+        setIsViewMode(false)
+        navigate(location.pathname, { replace: true })
     }
 
     const sphereOptions = [
@@ -167,18 +184,27 @@ export const Analytics = () => {
                     reviews={filteredReviews}
                     onEdit={(review) => {
                         setEditingReview(review)
+                        setIsViewMode(false)
                         setIsModalOpen(true)
-                        // Добавляем reviewId в URL при редактировании
                         navigate(`${location.pathname}?reviewId=${review.id}`, { replace: true })
                     }}
+                    onView={openViewModalFromCard} // Передаем новую функцию
                 />
 
-                <AnalyticsModal
-                    isOpen={isModalOpen}
-                    onClose={closeAnalyticsModal}
-                    review={editingReview}
-                    sphereOptions={sphereOptions}
-                />
+                {isViewMode ? (
+                    <AnalyticsViewModal
+                        isOpen={isModalOpen}
+                        onClose={closeAnalyticsModal}
+                        review={editingReview}
+                    />
+                ) : (
+                    <AnalyticsModal
+                        isOpen={isModalOpen}
+                        onClose={closeAnalyticsModal}
+                        review={editingReview}
+                        sphereOptions={sphereOptions}
+                    />
+                )}
             </div>
         </div>
     )
