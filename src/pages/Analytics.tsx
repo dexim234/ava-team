@@ -1,44 +1,78 @@
 import { useState, useEffect } from 'react'
 import { AnalyticsModal } from '@/components/Analytics/AnalyticsModal'
-import { AnalyticsReview, subscribeToAnalyticsReviews } from '@/services/analyticsService'
+import { AnalyticsReview, subscribeToAnalyticsReviews, getAnalyticsReviewById } from '@/services/analyticsService' // Добавляем getAnalyticsReviewById
 import { useThemeStore } from '@/store/themeStore'
 import { Plus, BarChart3 } from 'lucide-react'
 import { SLOT_CATEGORY_META, SlotCategory } from '@/types'
 import { DeadlineFilter } from '@/components/Analytics/DeadlineFilter'
 import { AnalyticsCards } from '@/components/Analytics/AnalyticsCards'
 import { CATEGORY_ICONS } from '@/constants/common.tsx'
-import { MultiSelect } from '@/components/Call/MultiSelect' // Импортируем MultiSelect
+import { MultiSelect } from '@/components/Call/MultiSelect'
 import { useAuthStore } from '@/store/authStore'
+import { useLocation, useNavigate } from 'react-router-dom' // Импортируем useLocation и useNavigate
 
-type SphereType = 'all' | SlotCategory // Определяем SphereType как 'all' или один из SlotCategory
+type SphereType = 'all' | SlotCategory
 type DeadlineFilterType = 'all' | '<24h' | '<48h' | '<72h'
 
 export const Analytics = () => {
     const { theme } = useThemeStore()
     const { user } = useAuthStore()
-    const [activeSphere, setActiveSphere] = useState<SphereType[]>(['all']) // Изменено на массив строк, по умолчанию 'all'
+    const [activeSphere, setActiveSphere] = useState<SphereType[]>(['all'])
     const [activeDeadlineFilter, setActiveDeadlineFilter] = useState<DeadlineFilterType>('all')
     const [reviews, setReviews] = useState<AnalyticsReview[]>([])
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [editingReview, setEditingReview] = useState<AnalyticsReview | null>(null)
+    const location = useLocation() // Хук для доступа к текущему URL
+    const navigate = useNavigate() // Хук для программной навигации
 
     const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
 
     const openModal = () => {
         setEditingReview(null)
         setIsModalOpen(true)
+        navigate(location.pathname, { replace: true }) // Очищаем reviewId из URL при открытии обычной модалки
     }
+
+    // Эффект для обработки параметра reviewId в URL
+    useEffect(() => {
+        const params = new URLSearchParams(location.search)
+        const reviewId = params.get('reviewId')
+
+        const fetchAndOpenReview = async (id: string) => {
+            const reviewData = await getAnalyticsReviewById(id)
+            if (reviewData) {
+                setEditingReview(reviewData)
+                setIsModalOpen(true)
+            } else {
+                // Если обзор не найден, очищаем reviewId из URL
+                navigate(location.pathname, { replace: true })
+            }
+        }
+
+        if (reviewId && !isModalOpen) { // Открываем модальное окно только если оно еще не открыто
+            fetchAndOpenReview(reviewId)
+        } else if (!reviewId && isModalOpen && editingReview) {
+            // Если reviewId убран из URL, но модалка открыта с обзором, закрываем ее
+            setIsModalOpen(false);
+            setEditingReview(null);
+        }
+    }, [location.search, isModalOpen]) // Запускаем эффект при изменении URL и состояния модального окна
 
     useEffect(() => {
         if (!user?.id) return
-        // Передаем activeSphere как массив в subscribeToAnalyticsReviews
         const unsubscribe = subscribeToAnalyticsReviews(setReviews, activeSphere);
         return () => unsubscribe();
     }, [user, activeSphere])
 
-    // Обновляем обработчик для multi-select
     const handleSetActiveSphere = (ids: string[]) => {
         setActiveSphere(ids as SphereType[])
+        navigate(location.pathname, { replace: true }) // Очищаем reviewId при смене сферы
+    }
+
+    const closeAnalyticsModal = () => {
+        setIsModalOpen(false)
+        setEditingReview(null)
+        navigate(location.pathname, { replace: true }) // Очищаем reviewId из URL при закрытии модалки
     }
 
     const sphereOptions = [
@@ -103,7 +137,7 @@ export const Analytics = () => {
                     </div>
                     <div className="flex items-center gap-2">
                         <div className="w-[180px]">
-                            <MultiSelect // Используем MultiSelect
+                            <MultiSelect
                                 value={activeSphere as string[]}
                                 onChange={(val) => handleSetActiveSphere(val)}
                                 options={sphereOptions.map(sphere => ({ value: sphere.id || '', label: sphere.name, icon: sphere.icon }))}
@@ -134,12 +168,14 @@ export const Analytics = () => {
                     onEdit={(review) => {
                         setEditingReview(review)
                         setIsModalOpen(true)
+                        // Добавляем reviewId в URL при редактировании
+                        navigate(`${location.pathname}?reviewId=${review.id}`, { replace: true })
                     }}
                 />
 
                 <AnalyticsModal
                     isOpen={isModalOpen}
-                    onClose={() => setIsModalOpen(false)}
+                    onClose={closeAnalyticsModal}
                     review={editingReview}
                     sphereOptions={sphereOptions}
                 />
