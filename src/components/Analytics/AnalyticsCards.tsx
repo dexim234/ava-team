@@ -63,7 +63,7 @@ export const AnalyticsCards = ({ reviews, onEdit }: AnalyticsCardsProps) => {
                 <div key={review.id} className={`${cardBg} rounded-2xl p-5 border ${borderColor} shadow-lg transition-all hover:shadow-xl`}>
                     <div className="flex items-center justify-between mb-4">
                         <span className={`text-[10px] px-2 py-1 rounded-full font-bold uppercase tracking-wider border ${theme === 'dark' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-emerald-50 border-emerald-100 text-emerald-600'}`}>
-                            {SLOT_CATEGORY_META[review.sphere as SlotCategory]?.label || review.sphere}
+                            {review.sphere.map((s, _) => SLOT_CATEGORY_META[s as SlotCategory]?.label || s).join(', ')}
                         </span>
                         <div className="flex items-center gap-2">
                             {canEdit(review) && (

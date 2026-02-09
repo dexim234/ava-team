@@ -118,10 +118,11 @@ export const AnalyticsTable = ({ reviews, onEdit }: AnalyticsTableProps) => {
                         {reviews.map((review) => (
                             <tr key={review.id} className="hover:bg-emerald-500/5 transition-colors group">
                                 <td className="p-4 align-top text-center">
-                                    <span className={`text-[10px] px-2 py-1 rounded-full font-bold uppercase tracking-wider border ${theme === 'dark' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-emerald-50 border-emerald-100 text-emerald-600'
-                                        }`}>
-                                        {SLOT_CATEGORY_META[review.sphere as SlotCategory]?.label || review.sphere}
-                                    </span>
+                                    {review.sphere.map((s, index) => (
+                                        <span key={index} className={`text-[10px] px-2 py-1 rounded-full font-bold uppercase tracking-wider border ${theme === 'dark' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-emerald-50 border-emerald-100 text-emerald-600'} ${index > 0 ? 'ml-1' : ''}`}>
+                                            {SLOT_CATEGORY_META[s as SlotCategory]?.label || s}
+                                        </span>
+                                    ))}
                                 </td>
                                 <td className={`p-4 align-top text-center text-sm font-medium ${headingColor} whitespace-pre-wrap max-w-sm`}>
                                     {review.expertComment}

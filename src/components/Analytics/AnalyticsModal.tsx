@@ -3,10 +3,10 @@ import { useThemeStore } from '@/store/themeStore'
 import { useAuthStore } from '@/store/authStore'
 import { AnalyticsReview, addAnalyticsReview, updateAnalyticsReview } from '@/services/analyticsService'
 import { X, Save, Plus, Trash2, BarChart3 } from 'lucide-react'
-import { SlotCategory } from '@/types' // Удален SLOT_CATEGORY_META
+import { SlotCategory } from '@/types'
 import { format, parseISO } from 'date-fns'
-import { CustomSelect, SelectOption } from '@/components/Call/CustomSelect'
-// Удален import CATEGORY_ICONS
+import { SelectOption } from '@/components/Call/CustomSelect' // Оставляем SelectOption, если используется
+import { MultiSelect } from '@/components/Call/MultiSelect'
 
 interface AnalyticsModalProps {
     isOpen: boolean
@@ -25,7 +25,7 @@ export const AnalyticsModal = ({ isOpen, onClose, review, sphereOptions }: Analy
     const { user } = useAuthStore()
     const [loading, setLoading] = useState(false)
     const [formData, setFormData] = useState<Partial<AnalyticsReview>>({
-        sphere: 'memecoins',
+        sphere: [], // Изменено на пустой массив
         expertComment: '',
         deadline: '',
         links: []
@@ -36,7 +36,8 @@ export const AnalyticsModal = ({ isOpen, onClose, review, sphereOptions }: Analy
 
     useEffect(() => {
         if (review) {
-            setFormData(review)
+            // Обновляем sphere в formData, если review.sphere существует и не является массивом, оборачиваем его в массив
+            setFormData({ ...review, sphere: Array.isArray(review.sphere) ? review.sphere : (review.sphere ? [review.sphere] : []) })
             const parsedLinks = review.links?.map(link => {
                 const parts = link.slice(-1) === '-' ? [link.slice(0, -1).trim()] : link.split(' - ');
                 return { url: parts[0] || '', title: parts[1] || '' }
@@ -53,7 +54,7 @@ export const AnalyticsModal = ({ isOpen, onClose, review, sphereOptions }: Analy
             }
         } else {
             setFormData({
-                sphere: 'memecoins',
+                sphere: [], // Изменено на пустой массив
                 expertComment: '',
                 deadline: '',
                 links: []
@@ -96,7 +97,7 @@ export const AnalyticsModal = ({ isOpen, onClose, review, sphereOptions }: Analy
             if (deadlineDate && deadlineTime) {
                 fullDeadline = `${deadlineDate}T${deadlineTime}:00`
             }
-
+            // Передаем formData.sphere без изменений, так как он уже массив строк
             const data = { ...formData, links: formattedLinks, deadline: fullDeadline, createdBy: user?.id || '' } as Omit<AnalyticsReview, 'id' | 'createdAt' | 'updatedAt'>
 
             if (review) {
@@ -116,7 +117,7 @@ export const AnalyticsModal = ({ isOpen, onClose, review, sphereOptions }: Analy
     const textColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
     const inputBg = theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'
 
-    // Преобразуем sphereOptions в формат SelectOption для CustomSelect
+    // Преобразуем sphereOptions в формат SelectOption для MultiSelect
     const customSelectOptions: SelectOption[] = sphereOptions.map(sphere => ({
         value: sphere.id || '',
         label: sphere.name,
@@ -139,11 +140,11 @@ export const AnalyticsModal = ({ isOpen, onClose, review, sphereOptions }: Analy
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-1.5">
                             <label className="text-[10px] font-black uppercase tracking-widest text-emerald-500">Сфера</label>
-                            <CustomSelect
-                                value={formData.sphere || 'all'} // Устанавливаем значение по умолчанию, если sphere не определено
-                                onChange={(val) => setFormData({ ...formData, sphere: val as SlotCategory })}
+                            <MultiSelect // Заменяем CustomSelect на MultiSelect
+                                value={formData.sphere as string[]} // Приводим к типу string[]
+                                onChange={(val) => setFormData({ ...formData, sphere: val as SlotCategory[] })} // Обновляем onChange
                                 options={customSelectOptions}
-                                placeholder="Выберите сферу"
+                                placeholder="Выберите сферы"
                                 searchable={true}
                                 icon={<BarChart3 size={16} />} // Общая иконка для селектора
                             />
@@ -175,7 +176,6 @@ export const AnalyticsModal = ({ isOpen, onClose, review, sphereOptions }: Analy
                     <div className="space-y-1.5">
                         <label className="text-[10px] font-black uppercase tracking-widest text-emerald-500">Комментарий эксперта</label>
                         <textarea
-                            required
                             rows={3}
                             placeholder="Введите ваш аналитический обзор..."
                             value={formData.expertComment}
