@@ -1,12 +1,16 @@
 import { useState, useEffect } from 'react'
 import { useThemeStore } from '@/store/themeStore'
 import { useAuthStore } from '@/store/authStore'
-import { AnalyticsReview, addAnalyticsReview, updateAnalyticsReview } from '@/services/analyticsService'
+import { AnalyticsReview, addAnalyticsReview, updateAnalyticsReview, addOrUpdateReviewRating } from '@/services/analyticsService' // Добавляем addOrUpdateReviewRating
 import { X, Save, Plus, Trash2, BarChart3 } from 'lucide-react'
 import { SlotCategory } from '@/types'
 import { format, parseISO } from 'date-fns'
-import { SelectOption } from '@/components/Call/CustomSelect' // Оставляем SelectOption, если используется
+import { SelectOption } from '@/components/Call/CustomSelect'
 import { MultiSelect } from '@/components/Call/MultiSelect'
+import { RatingDisplay } from './RatingDisplay' // Импортируем RatingDisplay
+import { RatingInput } from './RatingInput' // Импортируем RatingInput
+import { UserNickname } from '@/components/UserNickname'
+import Avatar from '@/components/Avatar'
 
 interface AnalyticsModalProps {
     isOpen: boolean
@@ -25,10 +29,12 @@ export const AnalyticsModal = ({ isOpen, onClose, review, sphereOptions }: Analy
     const { user } = useAuthStore()
     const [loading, setLoading] = useState(false)
     const [formData, setFormData] = useState<Partial<AnalyticsReview>>({
-        sphere: [], // Изменено на пустой массив
+        sphere: [],
         expertComment: '',
+        importantDetails: '', // Добавляем importantDetails сюда
         deadline: '',
-        links: []
+        links: [],
+        ratings: []
     })
     const [linkInputs, setLinkInputs] = useState<LinkInput[]>([])
     const [deadlineDate, setDeadlineDate] = useState('')
@@ -36,8 +42,11 @@ export const AnalyticsModal = ({ isOpen, onClose, review, sphereOptions }: Analy
 
     useEffect(() => {
         if (review) {
-            // Обновляем sphere в formData, если review.sphere существует и не является массивом, оборачиваем его в массив
-            setFormData({ ...review, sphere: Array.isArray(review.sphere) ? review.sphere : (review.sphere ? [review.sphere] : []) })
+            setFormData({
+                ...review,
+                sphere: Array.isArray(review.sphere) ? review.sphere : (review.sphere ? [review.sphere] : []),
+                importantDetails: review.importantDetails || '' // Устанавливаем importantDetails
+            })
             const parsedLinks = review.links?.map(link => {
                 const parts = link.slice(-1) === '-' ? [link.slice(0, -1).trim()] : link.split(' - ');
                 return { url: parts[0] || '', title: parts[1] || '' }
@@ -54,10 +63,12 @@ export const AnalyticsModal = ({ isOpen, onClose, review, sphereOptions }: Analy
             }
         } else {
             setFormData({
-                sphere: [], // Изменено на пустой массив
+                sphere: [],
                 expertComment: '',
+                importantDetails: '', // Идентично пустому значению при создании
                 deadline: '',
-                links: []
+                links: [],
+                ratings: []
             })
             setLinkInputs([{ url: '', title: '' }])
             const now = new Date()
@@ -85,6 +96,34 @@ export const AnalyticsModal = ({ isOpen, onClose, review, sphereOptions }: Analy
         setLinkInputs(newLinkInputs)
     }
 
+    const handleRateReview = async (ratingValue: number) => {
+        if (!user || !review?.id) return
+        setLoading(true)
+        try {
+            await addOrUpdateReviewRating(review.id, user.id, ratingValue)
+            // Обновляем review в formData, чтобы отобразить новую оценку
+            if (formData.ratings) {
+                const existingRatingIndex = formData.ratings.findIndex(r => r.userId === user.id)
+                let updatedRatings;
+                if (existingRatingIndex !== -1) {
+                    updatedRatings = formData.ratings.map((r, index) =>
+                        index === existingRatingIndex ? { ...r, value: ratingValue } : r
+                    )
+                } else {
+                    updatedRatings = [...formData.ratings, { userId: user.id, value: ratingValue }]
+                }
+                setFormData(prev => ({ ...prev, ratings: updatedRatings }))
+            } else {
+                setFormData(prev => ({ ...prev, ratings: [{ userId: user.id, value: ratingValue }] }))
+            }
+            console.log('Оценка успешно сохранена!')
+        } catch (error) {
+            console.error('Ошибка при сохранении оценки:', error)
+        } finally {
+            setLoading(false)
+        }
+    }
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         setLoading(true)
@@ -97,7 +136,6 @@ export const AnalyticsModal = ({ isOpen, onClose, review, sphereOptions }: Analy
             if (deadlineDate && deadlineTime) {
                 fullDeadline = `${deadlineDate}T${deadlineTime}:00`
             }
-            // Передаем formData.sphere без изменений, так как он уже массив строк
             const data = { ...formData, links: formattedLinks, deadline: fullDeadline, createdBy: user?.id || '' } as Omit<AnalyticsReview, 'id' | 'createdAt' | 'updatedAt'>
 
             if (review) {
@@ -117,12 +155,13 @@ export const AnalyticsModal = ({ isOpen, onClose, review, sphereOptions }: Analy
     const textColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
     const inputBg = theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'
 
-    // Преобразуем sphereOptions в формат SelectOption для MultiSelect
     const customSelectOptions: SelectOption[] = sphereOptions.map(sphere => ({
         value: sphere.id || '',
         label: sphere.name,
         icon: sphere.icon,
     }))
+
+    const userRating = formData.ratings?.find(r => r.userId === user?.id)?.value || null;
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
@@ -137,20 +176,40 @@ export const AnalyticsModal = ({ isOpen, onClose, review, sphereOptions }: Analy
                 </div>
 
                 <form onSubmit={handleSubmit} className="p-6 space-y-4">
+                    {review && (
+                         <div className="flex items-center justify-between p-3 rounded-xl border border-white/5 bg-white/5">
+                            <div className="flex items-center gap-3">
+                                <Avatar userId={review.createdBy} size="md" />
+                                <div>
+                                    <UserNickname userId={review.createdBy} className={`text-sm font-bold ${textColor}`} />
+                                    <p className={`text-[10px] uppercase font-bold tracking-widest ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Автор обзора</p>
+                                </div>
+                            </div>
+                            <div className="flex flex-col items-end gap-1">
+                                <RatingDisplay ratings={formData.ratings} theme={theme} />
+                                <RatingInput
+                                    currentRating={userRating}
+                                    onRate={handleRateReview}
+                                    theme={theme}
+                                    disabled={loading || !user || user.id === review.createdBy} // Пользователь не может оценить свой обзор
+                                />
+                            </div>
+                        </div>
+                    )}
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-1.5">
                             <label className="text-[10px] font-black uppercase tracking-widest text-emerald-500">Сфера</label>
-                            <MultiSelect // Заменяем CustomSelect на MultiSelect
-                                value={formData.sphere as string[]} // Приводим к типу string[]
-                                onChange={(val) => setFormData({ ...formData, sphere: val as SlotCategory[] })} // Обновляем onChange
+                            <MultiSelect
+                                value={formData.sphere as string[]}
+                                onChange={(val) => setFormData({ ...formData, sphere: val as SlotCategory[] })}
                                 options={customSelectOptions}
                                 placeholder="Выберите сферы"
                                 searchable={true}
-                                icon={<BarChart3 size={16} />} // Общая иконка для селектора
+                                icon={<BarChart3 size={16} />}
                             />
                         </div>
 
-                        {/* Separate Date and Time fields for Deadline */}
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-1.5">
                                 <label className="text-[10px] font-black uppercase tracking-widest text-emerald-500">Дата</label>
@@ -180,6 +239,17 @@ export const AnalyticsModal = ({ isOpen, onClose, review, sphereOptions }: Analy
                             placeholder="Введите ваш аналитический обзор..."
                             value={formData.expertComment}
                             onChange={(e) => setFormData({ ...formData, expertComment: e.target.value })}
+                            className={`w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-emerald-500 outline-none transition-all resize-none ${inputBg} ${textColor}`}
+                        />
+                    </div>
+
+                    <div className="space-y-1.5">
+                        <label className="text-[10px] font-black uppercase tracking-widest text-emerald-500">Важные детали (необязательно)</label>
+                        <textarea
+                            rows={3}
+                            placeholder="Дополнительные важные детали..."
+                            value={formData.importantDetails}
+                            onChange={(e) => setFormData({ ...formData, importantDetails: e.target.value })}
                             className={`w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-emerald-500 outline-none transition-all resize-none ${inputBg} ${textColor}`}
                         />
                     </div>

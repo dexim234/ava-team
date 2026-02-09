@@ -3,12 +3,13 @@ import { useAdminStore } from '@/store/adminStore'
 import { useAuthStore } from '@/store/authStore'
 import { AnalyticsReview, deleteAnalyticsReview } from '@/services/analyticsService'
 import { UserNickname } from '@/components/UserNickname'
-import { Edit, Trash2, ExternalLink } from 'lucide-react'
+import { Edit, Trash2, ExternalLink, Share } from 'lucide-react'
 import { formatDate } from '@/utils/dateUtils'
 import { SLOT_CATEGORY_META, SlotCategory } from '@/types'
 import Avatar from '@/components/Avatar'
 import { CountdownTimer, getDeadlineColor } from '@/components/Analytics/AnalyticsTable'
 import { useState } from 'react'
+import { RatingDisplay } from './RatingDisplay' // Импортируем RatingDisplay
 
 interface AnalyticsCardsProps {
     reviews: AnalyticsReview[]
@@ -32,6 +33,18 @@ export const AnalyticsCards = ({ reviews, onEdit }: AnalyticsCardsProps) => {
             ...prev,
             [id]: !prev[id]
         }))
+    }
+
+    const handleCopyLink = (reviewId: string) => {
+        const link = `${window.location.origin}/analytics?reviewId=${reviewId}`
+        navigator.clipboard.writeText(link)
+            .then(() => {
+                
+                console.log('Ссылка скопирована!', link)
+            })
+            .catch(err => {
+                console.error('Не удалось скопировать ссылку: ', err)
+            })
     }
 
     const canEdit = (review: AnalyticsReview) => {
@@ -66,6 +79,13 @@ export const AnalyticsCards = ({ reviews, onEdit }: AnalyticsCardsProps) => {
                             {review.sphere.map((s, _) => SLOT_CATEGORY_META[s as SlotCategory]?.label || s).join(', ')}
                         </span>
                         <div className="flex items-center gap-2">
+                            <button
+                                onClick={() => handleCopyLink(review.id)}
+                                className="p-1.5 rounded-lg text-gray-400 hover:bg-white/10 transition-all"
+                                title="Копировать ссылку"
+                            >
+                                <Share className="w-4 h-4" />
+                            </button>
                             {canEdit(review) && (
                                 <button
                                     onClick={() => onEdit(review)}
@@ -93,6 +113,9 @@ export const AnalyticsCards = ({ reviews, onEdit }: AnalyticsCardsProps) => {
                             <p className={`text-sm mb-4 ${subTextColor} whitespace-pre-wrap`}>{review.importantDetails}</p>
                         </>
                     )}
+                     <div className="mb-4">
+                        <RatingDisplay ratings={review.ratings} theme={theme} />
+                    </div>
 
                     <div className="flex items-center justify-between border-t border-b py-3 mb-4">
                         <div className="flex items-center gap-2">

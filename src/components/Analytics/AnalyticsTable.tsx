@@ -3,11 +3,12 @@ import { useAdminStore } from '@/store/adminStore'
 import { useAuthStore } from '@/store/authStore'
 import { AnalyticsReview, deleteAnalyticsReview } from '@/services/analyticsService'
 import { UserNickname } from '@/components/UserNickname'
-import { Edit, Trash2, ExternalLink } from 'lucide-react'
+import { Edit, Trash2, ExternalLink, Share } from 'lucide-react'
 import { formatDate } from '@/utils/dateUtils'
 import { SLOT_CATEGORY_META, SlotCategory } from '@/types'
 import { useEffect, useState } from 'react'
 import Avatar from '@/components/Avatar'
+import { RatingDisplay } from './RatingDisplay' // Импортируем RatingDisplay
 
 interface AnalyticsTableProps {
     reviews: AnalyticsReview[]
@@ -75,6 +76,17 @@ export const AnalyticsTable = ({ reviews, onEdit }: AnalyticsTableProps) => {
     const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
     const subTextColor = theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
 
+    const handleCopyLink = (reviewId: string) => {
+        const link = `${window.location.origin}/analytics?reviewId=${reviewId}`
+        navigator.clipboard.writeText(link)
+            .then(() => {
+                console.log('Ссылка скопирована!', link)
+            })
+            .catch(err => {
+                console.error('Не удалось скопировать ссылку: ', err)
+            })
+    }
+
     const canEdit = (review: AnalyticsReview) => {
         if (isAdmin) return true
         if (user?.id !== review.createdBy) return false
@@ -111,6 +123,7 @@ export const AnalyticsTable = ({ reviews, onEdit }: AnalyticsTableProps) => {
                             <th className={`p-4 text-center text-[10px] font-bold uppercase tracking-wider ${subTextColor} w-32`}>Время</th>
                             <th className={`p-4 text-center text-[10px] font-bold uppercase tracking-wider ${subTextColor} w-24`}>Ссылки</th>
                             <th className={`p-4 text-center text-[10px] font-bold uppercase tracking-wider ${subTextColor} w-32`}>Эксперт</th>
+                            <th className={`p-4 text-center text-[10px] font-bold uppercase tracking-wider ${subTextColor} w-24`}>Оценка</th> // Добавляем столбец для оценки
                             <th className={`p-4 text-center text-[10px] font-bold uppercase tracking-wider ${subTextColor} w-24`}>Действия</th>
                         </tr>
                     </thead>
@@ -138,18 +151,23 @@ export const AnalyticsTable = ({ reviews, onEdit }: AnalyticsTableProps) => {
                                 <td className="p-4 align-top text-center">
                                     {review.links && review.links.length > 0 && (
                                         <div className="flex justify-center gap-1">
-                                            {review.links.map((link, idx) => (
-                                                <a
-                                                    key={idx}
-                                                    href={link}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="p-1.5 rounded-lg bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 transition-all"
-                                                    title={link}
-                                                >
-                                                    <ExternalLink className="w-3.5 h-3.5" />
-                                                </a>
-                                            ))}
+                                            {review.links.map((link, idx) => {
+                                                const parts = link.split(' - ')
+                                                const url = parts[0]
+                                                const title = parts[1] || 'Ссылка'
+                                                return (
+                                                    <a
+                                                        key={idx}
+                                                        href={url}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="p-1.5 rounded-lg bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 transition-all"
+                                                        title={title}
+                                                    >
+                                                        <ExternalLink className="w-3.5 h-3.5" />
+                                                    </a>
+                                                )
+                                            })}
                                         </div>
                                     )}
                                 </td>
@@ -160,7 +178,17 @@ export const AnalyticsTable = ({ reviews, onEdit }: AnalyticsTableProps) => {
                                     </div>
                                 </td>
                                 <td className="p-4 align-top text-center">
+                                    <RatingDisplay ratings={review.ratings} theme={theme} />
+                                </td>
+                                <td className="p-4 align-top text-center">
                                     <div className="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <button
+                                            onClick={() => handleCopyLink(review.id)}
+                                            className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 transition-all"
+                                            title="Копировать ссылку"
+                                        >
+                                            <Share className="w-3.5 h-3.5" />
+                                        </button>
                                         {canEdit(review) && (
                                             <button
                                                 onClick={() => onEdit(review)}
