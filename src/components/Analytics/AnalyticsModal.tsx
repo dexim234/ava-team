@@ -43,11 +43,15 @@ export const AnalyticsModal = ({ isOpen, onClose, review, sphereOptions }: Analy
 
     useEffect(() => {
         if (review) {
+            // Копируем только редактируемые поля, исключая системные
             setFormData({
-                ...review,
                 sphere: Array.isArray(review.sphere) ? review.sphere : (review.sphere ? [review.sphere] : []),
+                expertComment: review.expertComment || '',
+                importantDetails: review.importantDetails || '',
                 asset: review.asset || '',
-                importantDetails: review.importantDetails || ''
+                deadline: review.deadline || '',
+                links: review.links || [],
+                ratings: review.ratings || []
             })
             const parsedLinks = review.links?.map(link => {
                 const parts = link.slice(-1) === '-' ? [link.slice(0, -1).trim()] : link.split(' - ');
@@ -140,18 +144,28 @@ export const AnalyticsModal = ({ isOpen, onClose, review, sphereOptions }: Analy
                 fullDeadline = `${deadlineDate}T${deadlineTime}:00`
             }
 
-            // При редактировании сохраняем номер, при создании он будет назначен автоматически
-            const data = {
-                ...formData,
-                links: formattedLinks,
-                deadline: fullDeadline,
-                createdBy: user?.id || '',
-                number: review?.number // Сохраняем номер при редактировании
-            } as Omit<AnalyticsReview, 'id' | 'createdAt' | 'updatedAt'>
-
             if (review) {
-                await updateAnalyticsReview(review.id, data)
+                // При редактировании обновляем только изменяемые поля
+                const updateData = {
+                    sphere: formData.sphere,
+                    expertComment: formData.expertComment,
+                    importantDetails: formData.importantDetails,
+                    links: formattedLinks,
+                    deadline: fullDeadline || undefined,
+                    asset: formData.asset
+                }
+                await updateAnalyticsReview(review.id, updateData)
             } else {
+                // При создании передаем все данные
+                const data = {
+                    sphere: formData.sphere || [],
+                    expertComment: formData.expertComment || '',
+                    importantDetails: formData.importantDetails || '',
+                    asset: formData.asset || '',
+                    links: formattedLinks,
+                    deadline: fullDeadline || undefined,
+                    createdBy: user?.id || ''
+                }
                 await addAnalyticsReview(data)
             }
             onClose()
