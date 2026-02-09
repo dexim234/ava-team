@@ -67,9 +67,16 @@ export const AnalyticsViewModal = ({ isOpen, onClose, review, onEditFromView, on
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
             <div className={`${bgColor} w-full max-w-2xl rounded-3xl overflow-hidden shadow-2xl border ${theme === 'dark' ? 'border-white/10' : 'border-gray-100'}`}>
                 <div className="flex items-center justify-between p-6 border-b border-white/5">
-                    <h2 className={`text-xl font-black tracking-tight ${textColor}`}>
-                        Аналитический обзор
-                    </h2>
+                    <div className="flex items-center gap-3">
+                        <h2 className={`text-xl font-black tracking-tight ${textColor}`}>
+                            Аналитический обзор
+                        </h2>
+                        {review.number && (
+                            <span className={`text-xs font-black px-2 py-1 rounded-lg ${theme === 'dark' ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-100 text-blue-600'}`}>
+                                #{review.number}
+                            </span>
+                        )}
+                    </div>
                     <div className="flex items-center gap-2">
                         {canEditReview(review) && (
                             <button

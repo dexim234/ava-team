@@ -38,12 +38,11 @@ export const AnalyticsCards = ({ reviews, onEdit, onView }: AnalyticsCardsProps)
     }
 
     const canEdit = (review: AnalyticsReview) => {
+        // Админ может редактировать всё
         if (isAdmin) return true
-        if (user?.id !== review.createdBy) return false
-
-        const createdAt = new Date(review.createdAt).getTime()
-        const now = new Date().getTime()
-        return (now - createdAt) < 30 * 60 * 1000
+        // Автор может редактировать свои обзоры без ограничений по времени
+        if (user?.id === review.createdBy) return true
+        return false
     }
 
     const handleDelete = async (id: string) => {
@@ -98,10 +97,23 @@ export const AnalyticsCards = ({ reviews, onEdit, onView }: AnalyticsCardsProps)
                         </div>
 
                         <div className="flex items-center justify-between mb-4">
+                            {review.number && (
+                                <span className={`text-xs font-black px-2 py-1 rounded-lg ${theme === 'dark' ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-100 text-blue-600'}`}>
+                                    #{review.number}
+                                </span>
+                            )}
                             <span className={`text-[10px] px-2 py-1 rounded-full font-bold uppercase tracking-wider border ${theme === 'dark' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-emerald-50 border-emerald-100 text-emerald-600'}`}>
                                 {review.sphere.map((s, _) => SLOT_CATEGORY_META[s as SlotCategory]?.label || s).join(', ')}
                             </span>
                         </div>
+
+                        {review.asset && (
+                            <div className="mb-3">
+                                <span className={`text-lg font-black tracking-tight ${textColor}`}>
+                                    {review.asset}
+                                </span>
+                            </div>
+                        )}
 
                         <div className="mb-4">
                             <RatingDisplay ratings={review.ratings} theme={theme} />

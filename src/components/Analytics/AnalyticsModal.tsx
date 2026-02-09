@@ -4,7 +4,7 @@ import { useAuthStore } from '@/store/authStore'
 import { AnalyticsReview, addAnalyticsReview, updateAnalyticsReview, addOrUpdateReviewRating } from '@/services/analyticsService' // Добавляем addOrUpdateReviewRating
 import { X, Save, Plus, Trash2, BarChart3 } from 'lucide-react'
 import { SlotCategory } from '@/types'
-import { format, parseISO } from 'date-fns'
+import { format, parseISO, addHours, addDays } from 'date-fns'
 import { SelectOption } from '@/components/Call/CustomSelect'
 import { MultiSelect } from '@/components/Call/MultiSelect'
 import { RatingDisplay } from './RatingDisplay' // Импортируем RatingDisplay
@@ -31,8 +31,9 @@ export const AnalyticsModal = ({ isOpen, onClose, review, sphereOptions }: Analy
     const [formData, setFormData] = useState<Partial<AnalyticsReview>>({
         sphere: [],
         expertComment: '',
-        importantDetails: '', // Добавляем importantDetails сюда
+        importantDetails: '',
         deadline: '',
+        asset: '',
         links: [],
         ratings: []
     })
@@ -45,7 +46,8 @@ export const AnalyticsModal = ({ isOpen, onClose, review, sphereOptions }: Analy
             setFormData({
                 ...review,
                 sphere: Array.isArray(review.sphere) ? review.sphere : (review.sphere ? [review.sphere] : []),
-                importantDetails: review.importantDetails || '' // Устанавливаем importantDetails
+                asset: review.asset || '',
+                importantDetails: review.importantDetails || ''
             })
             const parsedLinks = review.links?.map(link => {
                 const parts = link.slice(-1) === '-' ? [link.slice(0, -1).trim()] : link.split(' - ');
@@ -65,7 +67,8 @@ export const AnalyticsModal = ({ isOpen, onClose, review, sphereOptions }: Analy
             setFormData({
                 sphere: [],
                 expertComment: '',
-                importantDetails: '', // Идентично пустому значению при создании
+                importantDetails: '',
+                asset: '',
                 deadline: '',
                 links: [],
                 ratings: []
@@ -136,7 +139,15 @@ export const AnalyticsModal = ({ isOpen, onClose, review, sphereOptions }: Analy
             if (deadlineDate && deadlineTime) {
                 fullDeadline = `${deadlineDate}T${deadlineTime}:00`
             }
-            const data = { ...formData, links: formattedLinks, deadline: fullDeadline, createdBy: user?.id || '' } as Omit<AnalyticsReview, 'id' | 'createdAt' | 'updatedAt'>
+
+            // При редактировании сохраняем номер, при создании он будет назначен автоматически
+            const data = {
+                ...formData,
+                links: formattedLinks,
+                deadline: fullDeadline,
+                createdBy: user?.id || '',
+                number: review?.number // Сохраняем номер при редактировании
+            } as Omit<AnalyticsReview, 'id' | 'createdAt' | 'updatedAt'>
 
             if (review) {
                 await updateAnalyticsReview(review.id, data)
@@ -177,7 +188,7 @@ export const AnalyticsModal = ({ isOpen, onClose, review, sphereOptions }: Analy
 
                 <form onSubmit={handleSubmit} className="p-6 space-y-4">
                     {review && (
-                         <div className="flex items-center justify-between p-3 rounded-xl border border-white/5 bg-white/5">
+                        <div className="flex items-center justify-between p-3 rounded-xl border border-white/5 bg-white/5">
                             <div className="flex items-center gap-3">
                                 <Avatar userId={review.createdBy} size="md" />
                                 <div>
@@ -196,6 +207,17 @@ export const AnalyticsModal = ({ isOpen, onClose, review, sphereOptions }: Analy
                             </div>
                         </div>
                     )}
+
+                    <div className="space-y-1.5">
+                        <label className="text-[10px] font-black uppercase tracking-widest text-emerald-500">Актив</label>
+                        <input
+                            type="text"
+                            placeholder="Например: BTC, ETH, S&P 500"
+                            value={formData.asset}
+                            onChange={(e) => setFormData({ ...formData, asset: e.target.value })}
+                            className={`w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-emerald-500 outline-none transition-all ${inputBg} ${textColor}`}
+                        />
+                    </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-1.5">
@@ -229,6 +251,43 @@ export const AnalyticsModal = ({ isOpen, onClose, review, sphereOptions }: Analy
                                     className={`w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-emerald-500 outline-none transition-all ${inputBg} ${textColor}`}
                                 />
                             </div>
+                        </div>
+                    </div>
+
+                    <div className="space-y-2">
+                        <div className="flex flex-wrap gap-2">
+                            {[
+                                { label: '1ч', value: 1, type: 'hour' },
+                                { label: '3ч', value: 3, type: 'hour' },
+                                { label: '6ч', value: 6, type: 'hour' },
+                                { label: '9ч', value: 9, type: 'hour' },
+                                { label: '12ч', value: 12, type: 'hour' },
+                                { label: '1д', value: 1, type: 'day' },
+                                { label: '2д', value: 2, type: 'day' },
+                                { label: '3д', value: 3, type: 'day' },
+                                { label: '7д', value: 7, type: 'day' },
+                                { label: '14д', value: 14, type: 'day' },
+                                { label: '30д', value: 30, type: 'day' },
+                            ].map((option) => (
+                                <button
+                                    key={`${option.type}-${option.value}`}
+                                    type="button"
+                                    onClick={() => {
+                                        const now = new Date()
+                                        const newDate = option.type === 'hour'
+                                            ? addHours(now, option.value)
+                                            : addDays(now, option.value)
+                                        setDeadlineDate(format(newDate, 'yyyy-MM-dd'))
+                                        setDeadlineTime(format(newDate, 'HH:mm'))
+                                    }}
+                                    className={`px-3 py-1.5 text-xs font-bold rounded-lg border transition-all ${theme === 'dark'
+                                            ? 'bg-white/5 border-white/10 hover:bg-white/10 text-gray-300'
+                                            : 'bg-gray-50 border-gray-200 hover:bg-gray-100 text-gray-600'
+                                        }`}
+                                >
+                                    +{option.label}
+                                </button>
+                            ))}
                         </div>
                     </div>
 
