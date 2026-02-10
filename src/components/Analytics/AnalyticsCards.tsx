@@ -71,7 +71,7 @@ export const AnalyticsCards = ({ reviews, onEdit, onView }: AnalyticsCardsProps)
                             onClick={() => onView(review.id)}
                             className={`${cardBg} rounded-2xl p-5 pt-12 border ${borderColor} shadow-lg transition-all hover:shadow-xl cursor-pointer relative`}
                         >
-                            <div className="absolute top-4 left-4 right-4 flex items-center justify-between bg-transparent z-10">
+                            <div className="absolute top-4 left-5 right-5 flex items-center justify-between bg-transparent z-10">
                                 {review.number && (
                                     <span className={`text-xs font-black px-2 py-1 rounded-lg ${theme === 'dark' ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-100 text-blue-600'}`}>
                                         #{review.number}
@@ -142,9 +142,13 @@ export const AnalyticsCards = ({ reviews, onEdit, onView }: AnalyticsCardsProps)
                                     <UserNickname userId={review.createdBy} className={`text-sm font-bold ${textColor}`} />
                                 </div>
                                 {review.deadline && (
-                                    <div className={`text-sm font-bold ${getDeadlineColor(review.deadline)}`}>
-                                        {formatDate(new Date(review.deadline), 'dd.MM.yyyy HH:mm')}
-                                        <span className="ml-2"><CountdownTimer deadline={review.deadline} /></span>
+                                    <div className={`text-right ${getDeadlineColor(review.deadline)}`}>
+                                        <div className="text-xs font-bold">
+                                            {formatDate(new Date(review.deadline), 'dd.MM.yyyy HH:mm')}
+                                        </div>
+                                        <div className="text-[10px] font-medium">
+                                            <CountdownTimer deadline={review.deadline} />
+                                        </div>
                                     </div>
                                 )}
                             </div>
