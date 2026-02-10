@@ -1,6 +1,5 @@
 // UserNickname component that automatically updates when nickname changes
 import { useUserNickname } from '@/utils/userUtils'
-import React from 'react' // Import React
 
 interface UserNicknameProps {
   userId: string
