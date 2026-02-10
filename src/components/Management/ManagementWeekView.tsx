@@ -1,4 +1,4 @@
-// Week view for management
+Week view for management
 import { useState, useEffect } from 'react'
 import { parseISO } from 'date-fns'
 import { useThemeStore } from '@/store/themeStore'
@@ -631,7 +631,7 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
 
                 {/* Slots */}
                 {daySlots.map((slot) => {
-                  const { member: slotUser, displayName } = resolveUser(slot.userId)
+                  const { displayName } = resolveUser(slot.userId)
                   const isUpcoming = isSlotUpcoming(slot)
                   const slotBg = isUpcoming
                     ? 'bg-gradient-to-r from-emerald-500 to-teal-600 border-emerald-300/40'
