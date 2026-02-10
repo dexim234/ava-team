@@ -7,6 +7,7 @@ import { Plus, BarChart3 } from 'lucide-react'
 import { SLOT_CATEGORY_META, SlotCategory } from '@/types'
 import { DeadlineFilter } from '@/components/Analytics/DeadlineFilter'
 import { AnalyticsCards } from '@/components/Analytics/AnalyticsCards'
+import { AnalyticsStatsCards } from '@/components/Analytics/AnalyticsStatsCards'
 import { CATEGORY_ICONS } from '@/constants/common.tsx'
 import { MultiSelect } from '@/components/Call/MultiSelect'
 import { useAuthStore } from '@/store/authStore'
@@ -195,6 +196,8 @@ export const Analytics = () => {
                 <div className="flex flex-col space-y-4 md:flex-row md:space-y-0 md:space-x-4">
                     <DeadlineFilter activeFilter={activeDeadlineFilter} setActiveFilter={setActiveDeadlineFilter} />
                 </div>
+
+                <AnalyticsStatsCards reviews={filteredReviews} />
 
                 <AnalyticsCards
                     reviews={filteredReviews}
