@@ -160,19 +160,33 @@ export const Analytics = () => {
 
     const filterReviewsBySearchQuery = (allReviews: AnalyticsReview[]) => {
         if (!searchQuery) return allReviews
-        const query = searchQuery.toLowerCase()
+        const queryTerm = searchQuery.toLowerCase()
 
         return allReviews.filter(review => {
-            // Поиск по номеру
-            if (review.number && review.number.toString().includes(query)) return true
+            // Поиск по номеру (поддерживается ввод '#N' или просто 'N')
+            const reviewNumber = review.number?.toString()
+            if (reviewNumber && (`#${reviewNumber}`.includes(queryTerm) || reviewNumber.includes(queryTerm))) return true
+
+            // Поиск по автору (userId) или никнейму (если доступен)
+            if (review.createdBy.toLowerCase().includes(queryTerm)) return true
+            // Если есть возможность получить никнейм по userId, можно добавить:
+            // const authorNickname = getUserNicknameById(review.createdBy).toLowerCase();
+            // if (authorNickname.includes(queryTerm)) return true;
+
             // Поиск по активу
-            if (review.asset && review.asset.toLowerCase().includes(query)) return true
+            if (review.asset && review.asset.toLowerCase().includes(queryTerm)) return true
+
             // Поиск по комментарию эксперта
-            if (review.expertComment && review.expertComment.toLowerCase().includes(query)) return true
+            if (review.expertComment && review.expertComment.toLowerCase().includes(queryTerm)) return true
+
             // Поиск по ссылкам
-            if (review.links && review.links.some(link => link.toLowerCase().includes(query))) return true
-            // Поиск по сферам
-            if (review.sphere && review.sphere.some(s => SLOT_CATEGORY_META[s as SlotCategory]?.label.toLowerCase().includes(query))) return true
+            if (review.links && review.links.some(link => link.toLowerCase().includes(queryTerm))) return true
+
+            // Поиск по сферам (по id и по отображаемому названию)
+            if (review.sphere && review.sphere.some(s =>
+                s.toLowerCase().includes(queryTerm) ||
+                (SLOT_CATEGORY_META[s as SlotCategory]?.label || '').toLowerCase().includes(queryTerm)
+            )) return true
             
             return false
         })
@@ -199,14 +213,13 @@ export const Analytics = () => {
                         <div className="relative w-48">
                             <input
                                 type="text"
-                                placeholder="Поиск по разборам..."
+                                placeholder="Поиск"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 className={`w-full pl-9 pr-3 py-2 rounded-xl border outline-none transition-all ${theme === 'dark' ? 'bg-white/5 border-white/10 text-white focus:border-emerald-500/50' : 'bg-gray-50 border-gray-200 text-gray-900 focus:border-emerald-500/30'}`}
                             />
                             <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} />
                         </div>
-
                         <div className="w-[180px]">
                             <MultiSelect
                                 value={activeSphere as string[]}
