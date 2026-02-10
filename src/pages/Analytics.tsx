@@ -3,7 +3,7 @@ import { AnalyticsModal } from '@/components/Analytics/AnalyticsModal'
 import { AnalyticsViewModal } from '@/components/Analytics/AnalyticsViewModal'
 import { AnalyticsReview, subscribeToAnalyticsReviews, getAnalyticsReviewById } from '@/services/analyticsService'
 import { useThemeStore } from '@/store/themeStore'
-import { Plus, BarChart3 } from 'lucide-react'
+import { Plus, BarChart3, Search } from 'lucide-react'
 import { SLOT_CATEGORY_META, SlotCategory } from '@/types'
 import { DeadlineFilter } from '@/components/Analytics/DeadlineFilter'
 import { AnalyticsCards } from '@/components/Analytics/AnalyticsCards'
@@ -21,6 +21,7 @@ export const Analytics = () => {
     const { user } = useAuthStore()
     const [activeSphere, setActiveSphere] = useState<SphereType[]>(['all'])
     const [activeDeadlineFilter, setActiveDeadlineFilter] = useState<DeadlineFilterType>('all')
+    const [searchQuery, setSearchQuery] = useState('') // Новое состояние для поискового запроса
     const [reviews, setReviews] = useState<AnalyticsReview[]>([])
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [isViewMode, setIsViewMode] = useState(false)
@@ -56,12 +57,10 @@ export const Analytics = () => {
         navigate(`${location.pathname}?reviewId=${review.id}`, { replace: true })
     }
 
-    // Функция для обработки успешного сохранения оценки
     const handleRatingSuccess = async (reviewId: string) => {
-        // Переполучаем обновленный обзор с сервера
         const updatedReview = await getAnalyticsReviewById(reviewId)
         if (updatedReview) {
-            setEditingReview(updatedReview) // Обновляем editingReview, чтобы модалка показывала актуальные данные
+            setEditingReview(updatedReview)
         }
     }
 
@@ -78,13 +77,9 @@ export const Analytics = () => {
             }
         }
 
-        // Открываем модальное окно только если есть reviewId и окно закрыто
         if (reviewId && !isModalOpen) {
             fetchAndOpenReview(reviewId)
-        }
-        // Закрываем модальное окно только если нет reviewId, нет редактируемого обзора и окно открыто
-        // Это позволяет создавать новый обзор (когда editingReview === null)
-        else if (!reviewId && isModalOpen && editingReview) {
+        } else if (!reviewId && isModalOpen && editingReview) {
             setIsModalOpen(false)
             setEditingReview(null)
             setIsViewMode(false)
@@ -147,17 +142,45 @@ export const Analytics = () => {
             if (!review.deadline || activeDeadlineFilter === 'all') return true
 
             const deadlineTime = new Date(review.deadline).getTime()
-            const diff = deadlineTime - now
+            const diff = deadlineTime - now // Разница в миллисекундах
 
-            if (activeDeadlineFilter === '<24h') return diff < 24 * 60 * 60 * 1000
-            if (activeDeadlineFilter === '<48h') return diff < 48 * 60 * 60 * 1000
-            if (activeDeadlineFilter === '<72h') return diff < 72 * 60 * 60 * 1000
+            const diffHours = diff / (1000 * 60 * 60)
+
+            if (activeDeadlineFilter === '<24h') {
+                return diffHours < 24 // Меньше 24 часов
+            } else if (activeDeadlineFilter === '<48h') {
+                return diffHours >= 24 && diffHours < 48 // От 24 до 48 часов
+            } else if (activeDeadlineFilter === '<72h') {
+                return diffHours >= 48 && diffHours < 72 // От 48 до 72 часов
+            }
 
             return true
         })
     }
 
-    const filteredReviews = filterReviewsByDeadline(reviews)
+    const filterReviewsBySearchQuery = (allReviews: AnalyticsReview[]) => {
+        if (!searchQuery) return allReviews
+        const query = searchQuery.toLowerCase()
+
+        return allReviews.filter(review => {
+            // Поиск по номеру
+            if (review.number && review.number.toString().includes(query)) return true
+            // Поиск по активу
+            if (review.asset && review.asset.toLowerCase().includes(query)) return true
+            // Поиск по комментарию эксперта
+            if (review.expertComment && review.expertComment.toLowerCase().includes(query)) return true
+            // Поиск по ссылкам
+            if (review.links && review.links.some(link => link.toLowerCase().includes(query))) return true
+            // Поиск по сферам
+            if (review.sphere && review.sphere.some(s => SLOT_CATEGORY_META[s as SlotCategory]?.label.toLowerCase().includes(query))) return true
+            
+            return false
+        })
+    }
+
+    let filteredReviews = filterReviewsByDeadline(reviews)
+    filteredReviews = filterReviewsBySearchQuery(filteredReviews)
+
 
     return (
         <div className="flex min-h-screen">
@@ -172,6 +195,18 @@ export const Analytics = () => {
                         </h1>
                     </div>
                     <div className="flex items-center gap-2">
+                        {/* Поиск */}
+                        <div className="relative w-48">
+                            <input
+                                type="text"
+                                placeholder="Поиск по разборам..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className={`w-full pl-9 pr-3 py-2 rounded-xl border outline-none transition-all ${theme === 'dark' ? 'bg-white/5 border-white/10 text-white focus:border-emerald-500/50' : 'bg-gray-50 border-gray-200 text-gray-900 focus:border-emerald-500/30'}`}
+                            />
+                            <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} />
+                        </div>
+
                         <div className="w-[180px]">
                             <MultiSelect
                                 value={activeSphere as string[]}
@@ -218,7 +253,7 @@ export const Analytics = () => {
                         onClose={closeAnalyticsModal}
                         review={editingReview}
                         onEditFromView={handleEditFromView}
-                        onRatingSuccess={handleRatingSuccess} // НОВАЯ ПРОПС: передаем функцию
+                        onRatingSuccess={handleRatingSuccess}
                     />
                 ) : (
                     <AnalyticsModal
