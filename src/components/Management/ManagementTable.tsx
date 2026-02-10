@@ -5,9 +5,11 @@ import { useAdminStore } from '@/store/adminStore'
 import { getWorkSlots, getDayStatuses, addApprovalRequest, deleteWorkSlot, updateDayStatus, addDayStatus, deleteDayStatus } from '@/services/firestoreService'
 import { formatDate, calculateHours, getWeekDays, getMoscowTime, getWeekRange } from '@/utils/dateUtils'
 import { UserNickname } from '@/components/UserNickname'
-import { WorkSlot, DayStatus, SLOT_CATEGORY_META, SlotCategory, TEAM_MEMBERS } from '@/types' // Импортируем TEAM_MEMBERS
+import { WorkSlot, DayStatus, SLOT_CATEGORY_META, SlotCategory, TEAM_MEMBERS, User as UserType } from '@/types' // Добавляем User as UserType
 import { Edit, Trash2, Clock, Calendar as CalendarIcon, ChevronDown, ChevronUp, Info, ChevronLeft, ChevronRight, RotateCcw } from 'lucide-react'
 import { format, startOfWeek } from 'date-fns'
+import { useUsers } from '@/hooks/useUsers' // Импортируем useUsers
+import { getUserNicknameSync } from '@/utils/userUtils'
 
 type SlotFilter = 'all' | 'upcoming' | 'completed'
 
@@ -25,6 +27,7 @@ export const ManagementTable = ({ selectedUserId, slotFilter, onEditSlot, onEdit
   const { theme } = useThemeStore()
   const { user } = useAuthStore()
   const { isAdmin } = useAdminStore()
+  const { users: allMembers } = useUsers() // Используем useUsers для получения актуальных данных о пользователях
   // Типы статусов, которые может удалять только админ
   const adminOnlyTypes = ['truancy', 'absence', 'internship']
   const [slots, setSlots] = useState<WorkSlot[]>([])
@@ -41,7 +44,30 @@ export const ManagementTable = ({ selectedUserId, slotFilter, onEditSlot, onEdit
   const todayStr = formatDate(new Date(), 'yyyy-MM-dd')
 
   const weekDays = getWeekDays(selectedWeek)
-  const displayUsers = selectedUserId ? TEAM_MEMBERS.filter((u) => u.id === selectedUserId) : TEAM_MEMBERS
+
+  const legacyIdMap: Record<string, string> = {
+    artyom: '1',
+    adel: '2',
+    kseniya: '3',
+    olga: '4',
+    anastasia: '5',
+  }
+
+  const resolveUser = (userId: string) => {
+    const memberFromAllMembers = allMembers.find((u: UserType) => u.id === userId)
+    const memberFromTeamMembers = TEAM_MEMBERS.find((u: UserType) => u.id === userId) || TEAM_MEMBERS.find((u: UserType) => legacyIdMap[userId] === u.id)
+
+    const member = memberFromAllMembers || memberFromTeamMembers
+    return {
+      member,
+      displayName: getUserNicknameSync(member?.id || userId),
+      avatar: member?.avatar,
+    }
+  }
+
+  // Вместо displayUsers напрямую фильтруем allMembers или TEAM_MEMBERS
+  const availableUsers = allMembers.length > 0 ? allMembers : TEAM_MEMBERS;
+  const displayUsers = selectedUserId ? availableUsers.filter((u) => u.id === selectedUserId) : availableUsers;
 
   useEffect(() => {
     if (initialWeekStart) {
@@ -554,6 +580,7 @@ export const ManagementTable = ({ selectedUserId, slotFilter, onEditSlot, onEdit
             <tbody className={`divide-y ${theme === 'dark' ? 'divide-white/5' : 'divide-gray-100'}`}>
               {displayUsers.map((user, index) => {
                 const stats = getUserStats(user.id)
+                const userInfo = resolveUser(user.id) // Получаем информацию о пользователе через resolveUser, как в ManagementWeekView
                 // Zebra striping
                 const rowBg = index % 2 === 0
                   ? theme === 'dark' ? 'bg-[#0f141a]' : 'bg-gray-50/30'
@@ -566,8 +593,8 @@ export const ManagementTable = ({ selectedUserId, slotFilter, onEditSlot, onEdit
                   >
                     <td className={`p-2 sticky left-0 z-20 ${rowBg} group-hover:bg-[#1a2029] transition-colors align-middle`}>
                       <div className="flex items-center gap-2">
-                        {/* Передаем avatarUrl в UserNickname */}
-                        <UserNickname userId={user.id} avatarUrl={user.avatar} />
+                        {/* Передаем avatarUrl в UserNickname из userInfo */}
+                        <UserNickname userId={user.id} avatarUrl={userInfo.avatar} />
                         <div>
                           <div className="text-[9px] text-gray-500 font-medium uppercase tracking-tight">
                             Member
