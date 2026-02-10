@@ -11,7 +11,6 @@ import { WorkSlot, DayStatus, SLOT_CATEGORY_META, SlotCategory, DayStatusType, U
 import { Edit, Trash2, CheckCircle2, Calendar as CalendarIcon, ChevronDown, ChevronUp, Info, ChevronLeft, ChevronRight, RotateCcw } from 'lucide-react'
 import { startOfWeek } from 'date-fns'
 import { useUsers } from '@/hooks/useUsers'
-import Avatar from '@/components/Avatar'
 
 type SlotFilter = 'all' | 'upcoming' | 'completed'
 
@@ -649,9 +648,6 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
                     >
                       <div className="flex items-center justify-center sm:justify-start border-b border-white/20 pb-2 sm:pb-3">
                         <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
-                          <div className="relative flex-shrink-0">
-                            <Avatar user={slotUser} userId={slot.userId} size="sm" className="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 lg:w-11 lg:h-11" />
-                          </div>
                           <span className="text-white font-bold text-sm sm:text-base group-hover:scale-105 transition-transform duration-300 truncate text-center sm:text-left w-full sm:w-auto">{displayName}</span>
                         </div>
                         <div className="flex gap-2">

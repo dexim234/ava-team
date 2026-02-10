@@ -6,7 +6,6 @@ import { useAdminStore } from '@/store/adminStore'
 import { getWorkSlots, getDayStatuses, addApprovalRequest, deleteWorkSlot, updateDayStatus, addDayStatus, deleteDayStatus } from '@/services/firestoreService'
 import { formatDate, calculateHours, getWeekDays, getMoscowTime, getWeekRange } from '@/utils/dateUtils'
 import { UserNickname } from '@/components/UserNickname'
-import Avatar from '@/components/Avatar'
 import { WorkSlot, DayStatus, SLOT_CATEGORY_META, SlotCategory } from '@/types'
 import { TEAM_MEMBERS } from '@/types'
 import { Edit, Trash2, Clock, Calendar as CalendarIcon, ChevronDown, ChevronUp, Info, ChevronLeft, ChevronRight, RotateCcw } from 'lucide-react'
@@ -571,9 +570,6 @@ export const ManagementTable = ({ selectedUserId, slotFilter, onEditSlot, onEdit
                   >
                     <td className={`p-2 sticky left-0 z-20 ${rowBg} group-hover:bg-[#1a2029] transition-colors align-middle`}>
                       <div className="flex items-center gap-2">
-                        <div className="relative">
-                          <Avatar userId={user.id} user={user} size="sm" />
-                        </div>
                         <div>
                           <div className={`font-bold text-[13px] leading-tight ${headingColor}`}>
                             <UserNickname userId={user.id} />
