@@ -3,7 +3,6 @@ import { useThemeStore } from '@/store/themeStore'
 import { useAccessControl } from '@/hooks/useAccessControl'
 import {
     TrendingUp,
-    Rocket,
     LineChart,
     BarChart3,
     Image as ImageIcon,
@@ -11,7 +10,9 @@ import {
     Wallet2,
     Zap,
     Gift,
-    MoreHorizontal
+    MoreHorizontal,
+    Code,
+    Briefcase,
 } from 'lucide-react'
 import { SphereSelector } from '@/components/Strategies/SphereSelector'
 import { MemecoinStrategies } from '@/components/Strategies/MemecoinStrategies'
@@ -21,31 +22,35 @@ import { FuturesStrategies } from '@/components/Strategies/FuturesStrategies'
 import { AirDropStrategies } from '@/components/Strategies/AirDropStrategies'
 import { OtherStrategies } from '@/components/Strategies/OtherStrategies'
 
-type TabType = 'memecoins' | 'polymarket' | 'nft' | 'staking' | 'spot' | 'futures' | 'airdrop' | 'other'
+type TabType = 'memecoins_trading' | 'memecoins_deving' | 'polymarket' | 'futures' | 'prop_trading' | 'spot' | 'nft' | 'staking' | 'airdrop' | 'other'
 
 export const Strategies = () => {
     const { theme } = useThemeStore()
-    const [activeTab, setActiveTab] = useState<TabType>('memecoins')
+    const [activeTab, setActiveTab] = useState<TabType>('memecoins_trading')
 
     const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
 
     const pageAccess = useAccessControl('tools_strategies_view')
-    const memecoinsAccess = useAccessControl('tools_kontur_memecoins')
+    const memecoinsTradingAccess = useAccessControl('tools_kontur_memecoins_trading')
+    const memecoinsDevingAccess = useAccessControl('tools_kontur_memecoins_deving')
     const polymarketAccess = useAccessControl('tools_kontur_polymarket')
     const nftAccess = useAccessControl('tools_kontur_nft')
     const stakingAccess = useAccessControl('tools_kontur_staking')
     const spotAccess = useAccessControl('tools_kontur_spot')
     const futuresAccess = useAccessControl('tools_kontur_futures')
     const airdropAccess = useAccessControl('tools_kontur_airdrop')
+    const propTradingAccess = useAccessControl('tools_kontur_prop_trading')
     const otherAccess = useAccessControl('tools_kontur_other')
 
     const tabs: { id: TabType; label: string; icon: any; access: { hasAccess: boolean; loading: boolean } }[] = [
-        { id: 'memecoins', label: 'Мемкоины', icon: <Rocket className="w-4 h-4" />, access: memecoinsAccess },
+        { id: 'memecoins_trading', label: 'Мемкоины (торговля)', icon: <TrendingUp className="w-4 h-4" />, access: memecoinsTradingAccess },
+        { id: 'memecoins_deving', label: 'Мемкоины (девинг)', icon: <Code className="w-4 h-4" />, access: memecoinsDevingAccess },
         { id: 'polymarket', label: 'Polymarket', icon: <BarChart3 className="w-4 h-4" />, access: polymarketAccess },
+        { id: 'futures', label: 'Фьючерсы', icon: <Zap className="w-4 h-4" />, access: futuresAccess },
+        { id: 'prop_trading', label: 'Проп-трейдинг', icon: <Briefcase className="w-4 h-4" />, access: propTradingAccess },
+        { id: 'spot', label: 'Спот', icon: <Wallet2 className="w-4 h-4" />, access: spotAccess },
         { id: 'nft', label: 'NFT', icon: <ImageIcon className="w-4 h-4" />, access: nftAccess },
         { id: 'staking', label: 'Стейкинг', icon: <Database className="w-4 h-4" />, access: stakingAccess },
-        { id: 'spot', label: 'Спот', icon: <Wallet2 className="w-4 h-4" />, access: spotAccess },
-        { id: 'futures', label: 'Фьючерсы', icon: <Zap className="w-4 h-4" />, access: futuresAccess },
         { id: 'airdrop', label: 'AirDrop', icon: <Gift className="w-4 h-4" />, access: airdropAccess },
         { id: 'other', label: 'Прочее', icon: <MoreHorizontal className="w-4 h-4" />, access: otherAccess },
     ]
@@ -112,17 +117,64 @@ export const Strategies = () => {
                 </div>
             </div>
 
-
             {/* Tab Content */}
             <div className="animate-fade-in">
-                {activeTab === 'memecoins' ? (
+                {activeTab === 'memecoins_trading' ? (
                     <MemecoinStrategies />
+                ) : activeTab === 'memecoins_deving' ? (
+                    <div className="py-20 text-center space-y-4">
+                        <div className="flex justify-center">
+                            <Code className="w-16 h-16 text-gray-700 animate-pulse" />
+                        </div>
+                        <h3 className={`text-xl font-black ${headingColor}`}>
+                            {'Мемкоины (девинг)'} — В разработке
+                        </h3>
+                        <p className="text-gray-500 max-w-md mx-auto px-4">
+                            Мы готовим новые контентные модули и стратегии для данного направления. Следите за обновлениями в AVA Контур.
+                        </p>
+                    </div>
                 ) : activeTab === 'polymarket' ? (
                     <PolymarketStrategies />
-                ) : activeTab === 'nft' ? (
-                    <NftStrategies />
                 ) : activeTab === 'futures' ? (
                     <FuturesStrategies />
+                ) : activeTab === 'prop_trading' ? (
+                     <div className="py-20 text-center space-y-4">
+                        <div className="flex justify-center">
+                            <Briefcase className="w-16 h-16 text-gray-700 animate-pulse" />
+                        </div>
+                        <h3 className={`text-xl font-black ${headingColor}`}>
+                            {'Проп-трейдинг'} — В разработке
+                        </h3>
+                        <p className="text-gray-500 max-w-md mx-auto px-4">
+                            Мы готовим новые контентные модули и стратегии для данного направления. Следите за обновлениями в AVA Контур.
+                        </p>
+                    </div>
+                ) : activeTab === 'spot' ? (
+                    <div className="py-20 text-center space-y-4">
+                        <div className="flex justify-center">
+                            <Wallet2 className="w-16 h-16 text-gray-700 animate-pulse" />
+                        </div>
+                        <h3 className={`text-xl font-black ${headingColor}`}>
+                            {'Спот'} — В разработке
+                        </h3>
+                        <p className="text-gray-500 max-w-md mx-auto px-4">
+                            Мы готовим новые контентные модули и стратегии для данного направления. Следите за обновлениями в AVA Контур.
+                        </p>
+                    </div>
+                ) : activeTab === 'nft' ? (
+                    <NftStrategies />
+                ) : activeTab === 'staking' ? (
+                    <div className="py-20 text-center space-y-4">
+                        <div className="flex justify-center">
+                            <Database className="w-16 h-16 text-gray-700 animate-pulse" />
+                        </div>
+                        <h3 className={`text-xl font-black ${headingColor}`}>
+                            {'Стейкинг'} — В разработке
+                        </h3>
+                        <p className="text-gray-500 max-w-md mx-auto px-4">
+                            Мы готовим новые контентные модули и стратегии для данного направления. Следите за обновлениями в AVA Контур.
+                        </p>
+                    </div>
                 ) : activeTab === 'airdrop' ? (
                     <AirDropStrategies />
                 ) : activeTab === 'other' ? (
