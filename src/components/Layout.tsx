@@ -250,13 +250,19 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                         <Link
                           key={item.path}
                           to={item.isDev ? '#' : item.path}
-                          onClick={(e: React.MouseEvent<HTMLAnchorElement>) => item.isDev && e.preventDefault()}
-                          className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-all ${location.pathname === item.path ? 'bg-[#4E6E49] text-white' : 'text-gray-500 hover:bg-[#4E6E49]/10 hover:text-[#4E6E49]'} ${item.isDev ? 'cursor-not-allowed opacity-80' : ''}`}
+                          onClick={(e) => {
+                            if (item.isDev) {
+                              e.preventDefault()
+                            } else {
+                              setIsMobileMenuOpen(false)
+                            }
+                          }}
+                          className={`flex flex-col items-center justify-center gap-2 p-3 rounded-xl border transition-all relative ${location.pathname === item.path ? 'border-[#4E6E49]/50 bg-[#4E6E49]/10' : theme === 'dark' ? 'border-white/10 bg-white/5 hover:bg-white/10' : 'border-gray-100 bg-gray-50 hover:bg-gray-100'} ${item.isDev ? 'opacity-70 grayscale' : ''}`}
                         >
-                          <item.icon className="w-3.5 h-3.5" />
-                          <span>{item.label}</span>
+                          <item.icon className={`w-6 h-6 ${location.pathname === item.path ? 'text-[#4E6E49]' : 'text-gray-400'}`} />
+                          <span className={`text-xs font-medium text-center ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>{item.label}</span>
                           {item.isDev && (
-                            <span className="absolute -top-1 -right-1 px-1.5 py-0.5 rounded-full bg-amber-500 text-[8px] text-white font-black animate-pulse">DEV</span>
+                            <span className="absolute top-1 right-1 px-1.5 py-0.5 rounded-full bg-amber-500 text-[8px] text-white font-black">DEV</span>
                           )}
                         </Link>
                       ))}

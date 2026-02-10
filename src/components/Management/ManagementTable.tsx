@@ -595,11 +595,7 @@ export const ManagementTable = ({ selectedUserId, slotFilter, onEditSlot, onEdit
                       <div className="flex items-center gap-2">
                         {/* Передаем avatarUrl в UserNickname из userInfo */}
                         <UserNickname userId={user.id} avatarUrl={userInfo.avatar} />
-                        <div>
-                          <div className="text-[9px] text-gray-500 font-medium uppercase tracking-tight">
-                            Member
-                          </div>
-                        </div>
+                        {/* Удалена отметка "Member" */}
                       </div>
                     </td>
                     {weekDays.map((day: Date) => {

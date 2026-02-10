@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { Search, ChevronDown, User, X } from 'lucide-react'
-import { User as UserType } from '@/types'
+import { User as UserType }
 import { useUserNickname } from '@/utils/userUtils'
 import { useThemeStore } from '@/store/themeStore'
 import { getAllUsers } from '@/services/firestoreService'
@@ -190,7 +190,6 @@ const MemberItem: React.FC<{
             </div>
             <div className="flex flex-col min-w-0">
                 <span className="text-xs font-bold truncate">{nickname || member.name}</span>
-                <span className="text-[9px] opacity-50 truncate">{member.login}</span>
             </div>
         </button>
     )
