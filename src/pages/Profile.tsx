@@ -713,7 +713,14 @@ export const Profile = () => {
                     ) : (
                       <div className="flex items-center gap-2 mt-1">
                         <p className={`text-lg font-black ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                          {user?.id ? <UserNickname userId={user.id} /> : '—'}
+                          {user?.id ? (
+                            <UserNickname
+                              userId={user.id}
+                              avatarUrl={profileAvatar} // Передача актуального аватара
+                            />
+                          ) : (
+                            '—'
+                          )}
                         </p>
                       </div>
                     )}
@@ -733,7 +740,7 @@ export const Profile = () => {
                   </div>
                 </div>
                 <div className="mt-4 space-y-2">
-                  <label className={`text-[10px] font-black uppercase tracking-widest ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'} block`}>Пароль</label>
+                  <label className={`text-[10px] font-black ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'} block`}>Пароль</label>
                   <div className="flex items-center gap-2">
                     <div className={`flex-1 px-4 py-3 rounded-xl border ${theme === 'dark' ? 'border-white/5 bg-black/20 text-white' : 'border-gray-200 bg-white text-gray-900'} font-mono text-sm`}>
                       {showPassword ? userData.password : '•'.repeat(userData.password.length)}
@@ -754,8 +761,8 @@ export const Profile = () => {
                     </button>
                   </div>
                 </div>
-                <div className="mt-4 grid gap-3 sm:grid-cols-1">
-                  <div className={`p-4 rounded-xl border ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-white'} shadow-sm`}>
+                <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                  <div className={`p-4 rounded-xl border ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-gray-100 bg-white'} shadow-sm`}>
                     <p className={`text-xs font-semibold uppercase tracking-wide ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Учебная панель (преподаватель)</p>
                     <div className="mt-2 space-y-2 text-sm">
                       <div className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
@@ -798,7 +805,7 @@ export const Profile = () => {
                 </div>
                 {tasks.length > 0 && (
                   <div className="space-y-3 mb-6">
-                    <p className={`text-[10px] font-black uppercase tracking-widest ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`}>
+                    <p className={`text-[10px] font-black tracking-widest ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`}>
                       Активные задачи
                     </p>
                     <div className="space-y-2">
@@ -923,14 +930,14 @@ export const Profile = () => {
                               </span>
                               <button
                                 onClick={() => handleEditNote(n.id)}
-                                className={`p-1 rounded border ${theme === 'dark' ? 'border-white/10 text-gray-200' : 'border-gray-200 text-gray-700'}`}
+                                className={`p-1 rounded border transition-all ${theme === 'dark' ? 'border-white/10 text-gray-200' : 'border-gray-200 text-gray-700'}`}
                                 title="Редактировать"
                               >
                                 <Edit3 className="w-4 h-4" />
                               </button>
                               <button
                                 onClick={() => handleDeleteNote(n.id)}
-                                className={`p-1 rounded border ${theme === 'dark' ? 'border-white/10 text-red-200' : 'border-gray-200 text-red-600'}`}
+                                className={`p-1 rounded border transition-all ${theme === 'dark' ? 'border-white/10 text-red-200' : 'border-gray-200 text-red-600'}`}
                                 title="Удалить"
                               >
                                 <Trash2 className="w-4 h-4" />
@@ -1011,7 +1018,7 @@ export const Profile = () => {
                           key={item.label}
                           className={`p-3 rounded-lg border ${theme === 'dark' ? 'border-white/5 bg-white/5' : 'border-white/80 bg-white/80'} shadow-sm`}
                         >
-                          <p className="text-[9px] font-black uppercase tracking-widest opacity-70">{item.label}</p>
+                          <p className="text-[8px] font-black uppercase tracking-widest opacity-70">{item.label}</p>
                           <p className={`text-base font-black ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{Math.round(item.value).toLocaleString('ru-RU')} ₽</p>
                         </div>
                       ))}
