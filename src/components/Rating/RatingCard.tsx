@@ -1,4 +1,3 @@
-// Rating card component
 import { useThemeStore } from '@/store/themeStore'
 import { getRatingBreakdown, getExclusionStatus } from '@/utils/ratingUtils'
 import { RatingData } from '@/types'
@@ -6,6 +5,7 @@ import { formatHours } from '@/utils/dateUtils'
 import { UserNickname } from '@/components/UserNickname'
 import { Calendar, Heart, Plane, Clock, DollarSign, Users, TrendingUp, Info, AlertTriangle, Zap, Lightbulb } from 'lucide-react'
 import React, { useState } from 'react'
+import { useUserNickname, useUserAvatar } from '@/utils/userUtils'
 
 interface RatingCardProps {
   rating: RatingData & { breakdown?: ReturnType<typeof getRatingBreakdown> }
@@ -43,6 +43,9 @@ export const RatingCard = ({ rating, place }: RatingCardProps) => {
         : rating.rating >= 40
           ? 'bg-amber-500'
           : 'bg-rose-500'
+
+  const nickname = useUserNickname(rating.userId)
+  const avatarUrl = useUserAvatar(rating.userId); // Исправлено
 
   const metrics: MetricInfo[] = rating.breakdown ? [
     {
@@ -136,7 +139,7 @@ export const RatingCard = ({ rating, place }: RatingCardProps) => {
       value: `${rating.breakdown.sickDays} дн.`,
       points: rating.breakdown.sickDaysPoints,
       maxPoints: 5,
-      what: `Всего ${rating.breakdown.sickDays} дней больничного за месяц (из них ${rating.breakdown.sickDays} на неделе).`, // Note: breakdown might need updating if weeklySickDays needed explicitly here but lets reuse logic
+      what: `Всего ${rating.breakdown.sickDays} дней больничного за месяц (из них ${rating.breakdown.sickDays} на неделе).`,
       why: 'Здоровье важно, но длительные отсутствия влияют на процесс.',
       how: rating.breakdown.sickDaysPoints <= 0
         ? 'Выздоравливай! Но следи, чтобы больничные не становились частой практикой без причины.'
@@ -158,12 +161,12 @@ export const RatingCard = ({ rating, place }: RatingCardProps) => {
     },
     {
       icon: <AlertTriangle className="w-5 h-5" />,
-      label: 'Прогулы (Absence)',
+      label: 'Отсутствия',
       value: `${rating.breakdown.absenceDays} дн.`,
       points: rating.breakdown.absenceDaysPoints,
       maxPoints: 0,
-      what: `Зафиксировано ${rating.breakdown.absenceDays} дней отсутствия (Absence).`,
-      why: 'Отсутствие без уважительной причины влияет на рейтинг.',
+      what: `Отсутствия - это пропуск рабочего дня с уважительной причиной, когда отвественный за сообщество согласовал такой пропуск в установленном порядке, зафиксировано на данный момент: ${rating.breakdown.absenceDays} дней отсутствия.`,
+      why: 'Отсутствия по уважительным причинам не влияют на рейтинг в негативном плане, но если у вас меньше 3 отсутствий за месяц, то к рейтингу прибавляется 5 баллов',
       how: rating.breakdown.absenceDays > 0
         ? 'Избегай отсутствия без предупреждения.'
         : 'Дисциплина в норме.',
@@ -171,12 +174,12 @@ export const RatingCard = ({ rating, place }: RatingCardProps) => {
     },
     {
       icon: <AlertTriangle className="w-5 h-5" />,
-      label: 'Прогулы (Truancy)',
+      label: 'Прогулы',
       value: `${rating.breakdown.truancyDays} дн.`,
       points: 0,
       maxPoints: 0,
-      what: `Зафиксировано ${rating.breakdown.truancyDays} прогулов (Truancy).`,
-      why: 'Грубое нарушение дисциплины.',
+      what: `Прогул - это пропуск рабочего дня по неуважительным причинам или без согласования с отвественным за сообщество, на данный момент зафиксировано: ${rating.breakdown.truancyDays} прогулов.`,
+      why: 'Прогул - это грубое нарушение дисциплины и показатель отвественности к общему труду, более 5 прогулов за месяц приводит к автоматическому исключению из команды на 3 месяца, а повторное нарушение - навсегда после 1 прогула.',
       how: rating.breakdown.truancyDays > 0
         ? 'Прогулы недопустимы.'
         : 'Прогулов нет.',
@@ -184,11 +187,10 @@ export const RatingCard = ({ rating, place }: RatingCardProps) => {
     },
   ] : []
 
-  // Рассчитываем итоговый рейтинг с учетом штрафов за прогулы
   const basePoints = metrics
     .filter(m => !m.label.includes('Прогулы'))
     .reduce((sum, m) => sum + m.points, 0)
-  const absencePenalty = metrics.find(m => m.label === 'Прогулы (Absence)')?.points || 0
+  const absencePenalty = metrics.find(m => m.label === 'Отсутствия')?.points || 0
   const totalPoints = Math.max(0, Math.min(100, basePoints + absencePenalty))
   const exclusionStatus = getExclusionStatus(rating.rating)
 
@@ -222,9 +224,18 @@ export const RatingCard = ({ rating, place }: RatingCardProps) => {
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
             <p className={`text-[10px] uppercase tracking-[0.15em] font-bold ${mutedColor} mb-2`}>Участник команды</p>
-            <h3 className={`text-3xl font-black ${headingColor} truncate mb-2 bg-gradient-to-r from-emerald-600 to-blue-600 bg-clip-text text-transparent dark:from-emerald-400 dark:to-blue-400`}>
-              <UserNickname userId={rating.userId} fallback="unknown" />
-            </h3>
+            <div className="flex items-center gap-2 mb-2"> {/* New div for avatar and nickname */}
+              {avatarUrl ? (
+                <img src={avatarUrl} alt="Avatar" className="w-8 h-8 rounded-full object-cover" />
+              ) : (
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm font-bold`}>
+                  {nickname ? nickname.charAt(0).toUpperCase() : '-'}
+                </div>
+              )}
+              <h3 className={`text-3xl font-black ${headingColor} truncate bg-gradient-to-r from-emerald-600 to-blue-600 bg-clip-text text-transparent dark:from-emerald-400 dark:to-blue-400`}>
+                <UserNickname userId={rating.userId} fallback="unknown" />
+              </h3>
+            </div>
             {placeBadge}
           </div>
           <div className="flex flex-col items-end gap-1">
@@ -304,7 +315,9 @@ export const RatingCard = ({ rating, place }: RatingCardProps) => {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between mb-1">
-                        <span className={`font-semibold ${headingColor} truncate`}>{metric.label}</span>
+                        <span className={`font-semibold ${headingColor} truncate`}>
+                          {metric.label}
+                        </span>
                         <span className={`font-bold ml-2 ${metric.points > 0 ? 'text-[#4E6E49]' : 'text-red-500'}`}>
                           {metric.points}/{metric.maxPoints}
                         </span>
@@ -350,32 +363,6 @@ export const RatingCard = ({ rating, place }: RatingCardProps) => {
           })}
         </div>
       )}
-
-      {/* Additional Statistics */}
-      <div className={`pt-4 border-t ${borderColor}`}>
-        <h4 className={`text-sm font-semibold mb-3 ${headingColor}`}>Дополнительная статистика</h4>
-        <div className="grid grid-cols-2 gap-3 text-sm">
-          <div className={`p-3 rounded-lg ${softSurface}`}>
-            <div className={`text-xs ${mutedColor} mb-1`}>Заработок (месяц)</div>
-            <div className={`text-lg font-bold ${headingColor}`}>{rating.earnings.toFixed(0)} ₽</div>
-          </div>
-          <div className={`p-3 rounded-lg ${softSurface}`}>
-            <div className={`text-xs ${mutedColor} mb-1`}>В пул</div>
-            <div className={`text-lg font-bold ${headingColor}`}>{rating.poolAmount.toFixed(0)} ₽</div>
-          </div>
-          <div className={`p-3 rounded-lg ${softSurface}`}>
-            <div className={`text-xs ${mutedColor} mb-1`}>Прогулы (неделя)</div>
-            <div className={`text-lg font-bold ${headingColor}`}>{rating.absenceDays} дней</div>
-          </div>
-          <div className={`p-3 rounded-lg ${softSurface}`}>
-            <div className={`text-xs ${mutedColor} mb-1`}>Сигналы</div>
-            <div className={`text-lg font-bold ${headingColor}`}>{rating.signals}/{rating.profitableSignals}</div>
-          </div>
-        </div>
-      </div>
     </div>
   )
 }
-
-
-
