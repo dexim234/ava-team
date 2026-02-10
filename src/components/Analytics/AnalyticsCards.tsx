@@ -72,11 +72,16 @@ export const AnalyticsCards = ({ reviews, onEdit, onView }: AnalyticsCardsProps)
                             className={`${cardBg} rounded-2xl p-5 pt-12 border ${borderColor} shadow-lg transition-all hover:shadow-xl cursor-pointer relative`}
                         >
                             <div className="absolute top-4 left-4 right-4 flex items-center justify-between bg-transparent z-10">
-                                {review.number && (
-                                    <span className={`text-xs font-black px-2 py-1 rounded-lg ${theme === 'dark' ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-100 text-blue-600'}`}>
-                                        #{review.number}
+                                <div className="flex flex-col gap-2">
+                                    {review.number && (
+                                        <span className={`text-xs font-black px-2 py-1 rounded-lg ${theme === 'dark' ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-100 text-blue-600'}`}>
+                                            #{review.number}
+                                        </span>
+                                    )}
+                                    <span className={`text-[10px] px-2 py-1 rounded-lg font-bold uppercase tracking-wider border ${theme === 'dark' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-emerald-50 border-emerald-100 text-emerald-600'}`}>
+                                        {review.sphere.map((s, _) => SLOT_CATEGORY_META[s as SlotCategory]?.label || s).join(', ')}
                                     </span>
-                                )}
+                                </div>
                                 <div className="flex items-center gap-2">
                                     {review.screenshot && (
                                         <button
@@ -116,12 +121,6 @@ export const AnalyticsCards = ({ reviews, onEdit, onView }: AnalyticsCardsProps)
                                         </button>
                                     )}
                                 </div>
-                            </div>
-
-                            <div className="flex flex-col gap-3 mb-4">
-                                <span className={`text-[10px] px-2 py-1 rounded-full font-bold uppercase tracking-wider border w-fit ${theme === 'dark' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-emerald-50 border-emerald-100 text-emerald-600'}`}>
-                                    {review.sphere.map((s, _) => SLOT_CATEGORY_META[s as SlotCategory]?.label || s).join(', ')}
-                                </span>
                             </div>
 
                             {review.asset && (
