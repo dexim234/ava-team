@@ -165,7 +165,9 @@ export const Analytics = () => {
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                     <div className="flex-1">
                         <h1 className={`flex items-center gap-2 text-2xl md:text-3xl font-black tracking-tight ${headingColor}`}>
-                            {CATEGORY_ICONS.all}
+                            <span className={theme === 'dark' ? 'text-emerald-400' : 'text-emerald-500'}>
+                                {CATEGORY_ICONS.all}
+                            </span>
                             Analytics
                         </h1>
                     </div>
