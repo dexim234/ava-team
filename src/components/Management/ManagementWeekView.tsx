@@ -1,4 +1,4 @@
-Week view for management
+// Week view for management
 import { useState, useEffect } from 'react'
 import { parseISO } from 'date-fns'
 import { useThemeStore } from '@/store/themeStore'
