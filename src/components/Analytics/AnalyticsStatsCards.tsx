@@ -137,7 +137,7 @@ export const AnalyticsStatsCards = ({ reviews }: AnalyticsStatsCardsProps) => {
             )
         },
         {
-            label: 'Самый популярный разбор',
+            label: 'Популярный разбор',
             icon: <Star className="w-5 h-5 text-yellow-400" />,
             tone: 'yellow',
             bgClass: 'bg-yellow-500/5',
@@ -180,7 +180,7 @@ export const AnalyticsStatsCards = ({ reviews }: AnalyticsStatsCardsProps) => {
             )
         },
         {
-            label: 'Всего разборов за сегодня',
+            label: 'Разборов за сегодня',
             icon: <BarChart3 className="w-5 h-5 text-blue-400" />,
             tone: 'blue',
             bgClass: 'bg-blue-500/5',
