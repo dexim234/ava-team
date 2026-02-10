@@ -3,26 +3,21 @@ import { AnalyticsModal } from '@/components/Analytics/AnalyticsModal'
 import { AnalyticsViewModal } from '@/components/Analytics/AnalyticsViewModal'
 import { AnalyticsReview, subscribeToAnalyticsReviews, getAnalyticsReviewById } from '@/services/analyticsService'
 import { useThemeStore } from '@/store/themeStore'
-import { Plus, BarChart3, Search } from 'lucide-react' // Удалил Users
+import { Plus, Search, BarChart3 } from 'lucide-react'
 import { SLOT_CATEGORY_META, SlotCategory, TEAM_MEMBERS } from '@/types'
 import { DeadlineFilter } from '@/components/Analytics/DeadlineFilter'
 import { AnalyticsCards } from '@/components/Analytics/AnalyticsCards'
 import { AnalyticsStatsCards } from '@/components/Analytics/AnalyticsStatsCards'
 import { CATEGORY_ICONS } from '@/constants/common.tsx'
-import { MultiSelect } from '@/components/Call/MultiSelect' // Удалил SelectOption
-import { TraderSelector } from '@/components/Analytics/TraderSelector' // Импорт нового компонента
 import { useAuthStore } from '@/store/authStore'
-import { useLocation, useNavigate } from 'react-router-dom' // Исправил импорт
+import { useLocation, useNavigate } from 'react-router-dom'
 
-type SphereType = 'all' | SlotCategory
 type DeadlineFilterType = 'all' | '<24h' | '<48h' | '<72h'
 
 export const Analytics = () => {
     const { theme } = useThemeStore()
     const { user } = useAuthStore()
-    const [activeSphere, setActiveSphere] = useState<SphereType[]>(['all'])
     const [activeDeadlineFilter, setActiveDeadlineFilter] = useState<DeadlineFilterType>('all')
-    const [activeTraders, setActiveTraders] = useState<string[]>(['all']) // Новое состояние для фильтра по трейдерам
     const [searchQuery, setSearchQuery] = useState('')
     const [reviews, setReviews] = useState<AnalyticsReview[]>([])
     const [isModalOpen, setIsModalOpen] = useState(false)
@@ -90,24 +85,9 @@ export const Analytics = () => {
 
     useEffect(() => {
         if (!user?.id) return
-        // Если фильтр по трейдерам не 'all', добавляем userId в запрос
-        const unsubscribe = subscribeToAnalyticsReviews(
-            setReviews, 
-            activeSphere,
-            activeTraders.includes('all') ? undefined : activeTraders
-        );
+        const unsubscribe = subscribeToAnalyticsReviews(setReviews);
         return () => unsubscribe();
-    }, [user, activeSphere, activeTraders]) // Добавим activeTraders в зависимости
-
-    const handleSetActiveSphere = (ids: string[]) => {
-        setActiveSphere(ids as SphereType[])
-        navigate(location.pathname, { replace: true })
-    }
-
-    const handleSetActiveTraders = (ids: string[]) => {
-        setActiveTraders(ids)
-        navigate(location.pathname, { replace: true })
-    }
+    }, [user])
 
     const closeAnalyticsModal = () => {
         setIsModalOpen(false)
@@ -199,14 +179,8 @@ export const Analytics = () => {
         })
     }
 
-    const filterReviewsByTraders = (allReviews: AnalyticsReview[]) => {
-        if (activeTraders.includes('all')) return allReviews
-        return allReviews.filter(review => activeTraders.includes(review.createdBy))
-    }
-
     let filteredReviews = filterReviewsByDeadline(reviews)
     filteredReviews = filterReviewsBySearchQuery(filteredReviews)
-    filteredReviews = filterReviewsByTraders(filteredReviews) // Применение фильтра по трейдерам
 
 
     return (
@@ -232,22 +206,6 @@ export const Analytics = () => {
                                 className={`w-full pl-9 pr-3 py-2 rounded-xl border outline-none transition-all ${theme === 'dark' ? 'bg-white/5 border-white/10 text-white focus:border-emerald-500/50' : 'bg-gray-50 border-gray-200 text-gray-900 focus:border-emerald-500/30'}`}
                             />
                             <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} />
-                        </div>
-                        <div className="w-[180px]">
-                            <TraderSelector
-                                selectedTraders={activeTraders}
-                                onSelect={handleSetActiveTraders}
-                            />
-                        </div>
-                        <div className="w-[180px]">
-                            <MultiSelect
-                                value={activeSphere as string[]}
-                                onChange={(val) => handleSetActiveSphere(val)}
-                                options={sphereOptions.map(sphere => ({ value: sphere.id || '', label: sphere.name, icon: sphere.icon }))}
-                                placeholder="Все сферы"
-                                searchable={true}
-                                icon={<BarChart3 size={16} />}
-                            />
                         </div>
                         <button
                             onClick={openModal}
