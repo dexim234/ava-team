@@ -27,6 +27,7 @@ export interface AnalyticsReview {
     deadline?: string // ISO date string
     links?: string[]
     asset?: string // Актив, под который делается аналитический разбор
+    screenshot?: string // URL скриншота (base64)
     createdBy: string
     createdAt: string // ISO date string
     updatedAt: string // ISO date string
@@ -68,7 +69,6 @@ export const getAnalyticsReviews = async (sphere?: string[]): Promise<AnalyticsR
     if (sphere && sphere.includes('all')) {
         
     }
-
 
     const snapshot = await getDocs(q)
     return snapshot.docs.map(doc => ({
