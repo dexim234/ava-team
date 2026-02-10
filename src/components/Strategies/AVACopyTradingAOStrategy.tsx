@@ -72,7 +72,6 @@ export const AVACopyTradingAOStrategy: React.FC = () => {
 
     const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
     const textColor = theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
-    const secondaryTextColor = theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
 
 
     return (
@@ -99,7 +98,7 @@ export const AVACopyTradingAOStrategy: React.FC = () => {
                                 <Users className="w-3.5 h-3.5" />
                                 COPY TRADING
                             </div>
-                            <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold ${theme === 'dark' ? 'bg-white/5 text-gray-400 border border-white/10' : 'bg-gray-100 text-gray-600 border border-gray-200'
+                            <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold ${theme === 'dark' ? 'bg-white/5 text-blue-400 border border-white/10' : 'bg-gray-100 text-gray-600 border border-gray-200'
                                 }`}>
                                 <BarChart3 className="w-3.5 h-3.5" />
                                 ALPHA ONE HUB
@@ -168,14 +167,14 @@ export const AVACopyTradingAOStrategy: React.FC = () => {
                             <ul className="list-disc list-inside space-y-2 ml-4 text-sm">
                                 <li>дожидаемся окончания падения;</li>
                                 <li>следим, чтобы объёмы покупок превышали продажи;</li>
-                                <li>появяются первые уверенные зелёные свечи;</li>
+                                <li>появляются первые уверенные зелёные свечи;</li>
                                 <li>в ленте — покупки от $50–100+;</li>
                                 <li>в идеале дев уже полностью зафиксировался.</li>
                             </ul>
                             <p className="text-sm font-bold mt-2">После этого:</p>
                             <ul className="list-disc list-inside space-y-2 ml-4 text-sm">
                                 <li>ищем точку входа (в том числе по Fibonacci);</li>
-                                <li>заходим аккуратно, без FOMO.</li>
+                                <li>заходим аккуратно, без FOMO;</li>
                             </ul>
                         </div>
 
