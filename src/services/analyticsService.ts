@@ -9,7 +9,8 @@ import {
     orderBy,
     onSnapshot,
     where,
-    getDoc // Импортируем getDoc
+    getDoc, // Импортируем getDoc
+    Query, DocumentData, QueryConstraint
 } from 'firebase/firestore'
 import { db } from '@/firebase/config'
 
@@ -88,13 +89,21 @@ export const getAnalyticsReviewById = async (id: string): Promise<AnalyticsRevie
     }
 }
 
-export const subscribeToAnalyticsReviews = (callback: (reviews: AnalyticsReview[]) => void, sphere?: string[]) => {
+export const subscribeToAnalyticsReviews = (callback: (reviews: AnalyticsReview[]) => void, sphere?: string[], traderIds?: string[]) => {
     const analyticsRef = collection(db, COLLECTION_NAME)
-    let q = query(analyticsRef, orderBy('createdAt', 'desc'))
+    let q: Query<DocumentData> = query(analyticsRef, orderBy('createdAt', 'desc'))
+
+    const queryConstraints: QueryConstraint[] = [orderBy('createdAt', 'desc')];
 
     if (sphere && sphere.length > 0 && !sphere.includes('all')) {
-        q = query(analyticsRef, where('sphere', 'array-contains-any', sphere), orderBy('createdAt', 'desc'))
+        queryConstraints.push(where('sphere', 'array-contains-any', sphere))
     }
+
+    if (traderIds && traderIds.length > 0 && !traderIds.includes('all')) {
+        queryConstraints.push(where('createdBy', 'in', traderIds))
+    }
+
+    q = query(analyticsRef, ...queryConstraints)
 
     return onSnapshot(q, (snapshot) => {
         const reviews = snapshot.docs.map(doc => ({
