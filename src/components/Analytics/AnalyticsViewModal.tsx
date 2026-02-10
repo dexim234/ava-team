@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useThemeStore } from '@/store/themeStore'
 import { useAuthStore } from '@/store/authStore'
 import { AnalyticsReview, addOrUpdateReviewRating } from '@/services/analyticsService'
-import { X, ExternalLink, Edit } from 'lucide-react'
+import { X, ExternalLink, Edit, Camera } from 'lucide-react'
 import { SlotCategory } from '@/types'
 import { format, parseISO } from 'date-fns'
 import { SLOT_CATEGORY_META } from '@/types'
@@ -18,7 +18,7 @@ interface AnalyticsViewModalProps {
     onClose: () => void
     review: AnalyticsReview | null
     onEditFromView: (review: AnalyticsReview) => void
-    onRatingSuccess: (reviewId: string) => void // НОВАЯ ПРОПС: функция для уведомления о новом рейтинге
+    onRatingSuccess: (reviewId: string) => void
 }
 
 export const AnalyticsViewModal = ({ isOpen, onClose, review, onEditFromView, onRatingSuccess }: AnalyticsViewModalProps) => {
@@ -26,6 +26,7 @@ export const AnalyticsViewModal = ({ isOpen, onClose, review, onEditFromView, on
     const { user } = useAuthStore()
     const { isAdmin } = useAdminStore()
     const [loading, setLoading] = useState(false)
+    const [showScreenshot, setShowScreenshot] = useState(false)
 
     if (!isOpen || !review) return null
 
@@ -35,7 +36,7 @@ export const AnalyticsViewModal = ({ isOpen, onClose, review, onEditFromView, on
         try {
             await addOrUpdateReviewRating(review.id, user.id, ratingValue)
             console.log('Оценка успешно сохранена!')
-            onRatingSuccess(review.id) // ОБНОВЛЕНИЕ: Вызываем onRatingSuccess с reviewId
+            onRatingSuccess(review.id)
         } catch (error) {
             console.error('Ошибка при сохранении оценки:', error)
         } finally {
@@ -65,8 +66,8 @@ export const AnalyticsViewModal = ({ isOpen, onClose, review, onEditFromView, on
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
-            <div className={`${bgColor} w-full max-w-2xl rounded-3xl overflow-hidden shadow-2xl border ${theme === 'dark' ? 'border-white/10' : 'border-gray-100'}`}>
-                <div className="flex items-center justify-between p-6 border-b border-white/5">
+            <div className={`${bgColor} w-full max-w-2xl rounded-3xl overflow-hidden shadow-2xl border ${theme === 'dark' ? 'border-white/10' : 'border-gray-100'} max-h-[90vh] overflow-y-auto`}>
+                <div className="flex items-center justify-between p-6 border-b border-white/5 sticky top-0 bg-inherit z-10">
                     <div className="flex items-center gap-3">
                         <h2 className={`text-xl font-black tracking-tight ${textColor}`}>
                             Аналитический обзор
@@ -94,6 +95,39 @@ export const AnalyticsViewModal = ({ isOpen, onClose, review, onEditFromView, on
                 </div>
 
                 <div className="p-6 space-y-4">
+                    {/* Скриншот */}
+                    {review.screenshot && (
+                        <div className="space-y-1.5">
+                            <div className={`p-4 rounded-xl border border-white/10 bg-white/5 ${textColor}`}>
+                                {showScreenshot ? (
+                                    <div className="relative">
+                                        <img
+                                            src={review.screenshot}
+                                            alt="Screenshot"
+                                            className="w-full h-auto rounded-lg"
+                                        />
+                                        <button
+                                            onClick={() => setShowScreenshot(false)}
+                                            className="absolute top-2 right-2 p-2 rounded-lg bg-black/50 text-white hover:bg-black/70 transition-colors"
+                                        >
+                                            <X className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <div className="flex items-center justify-center gap-3 py-8">
+                                        <Camera className={`w-6 h-6 ${subTextColor}`} />
+                                        <button
+                                            onClick={() => setShowScreenshot(true)}
+                                            className={`px-4 py-2 rounded-lg font-medium transition-colors ${theme === 'dark' ? 'bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30' : 'bg-emerald-100 text-emerald-600 hover:bg-emerald-200'}`}
+                                        >
+                                            Показать скриншот
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
                     {/* Автор и рейтинг */}
                     <div className="flex items-center justify-between p-3 rounded-xl border border-white/5 bg-white/5">
                         <div className="flex items-center gap-3">

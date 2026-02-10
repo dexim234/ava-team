@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react'
 import { useThemeStore } from '@/store/themeStore'
 import { useAuthStore } from '@/store/authStore'
-import { AnalyticsReview, addAnalyticsReview, updateAnalyticsReview, addOrUpdateReviewRating } from '@/services/analyticsService' // Добавляем addOrUpdateReviewRating
-import { X, Save, Plus, Trash2, BarChart3 } from 'lucide-react'
+import { AnalyticsReview, addAnalyticsReview, updateAnalyticsReview, addOrUpdateReviewRating } from '@/services/analyticsService'
+import { X, Save, Plus, Trash2, BarChart3, ImageIcon } from 'lucide-react'
 import { SlotCategory } from '@/types'
 import { format, parseISO, addHours, addDays } from 'date-fns'
 import { SelectOption } from '@/components/Call/CustomSelect'
 import { MultiSelect } from '@/components/Call/MultiSelect'
-import { RatingDisplay } from './RatingDisplay' // Импортируем RatingDisplay
-import { RatingInput } from './RatingInput' // Импортируем RatingInput
+import { RatingDisplay } from './RatingDisplay'
+import { RatingInput } from './RatingInput'
 import { UserNickname } from '@/components/UserNickname'
 import Avatar from '@/components/Avatar'
 
@@ -35,11 +35,40 @@ export const AnalyticsModal = ({ isOpen, onClose, review, sphereOptions }: Analy
         deadline: '',
         asset: '',
         links: [],
-        ratings: []
+        ratings: [],
+        screenshot: ''
     })
     const [linkInputs, setLinkInputs] = useState<LinkInput[]>([])
     const [deadlineDate, setDeadlineDate] = useState('')
     const [deadlineTime, setDeadlineTime] = useState('')
+
+    const handleScreenshotUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0]
+        if (file) {
+            const reader = new FileReader()
+            reader.onloadend = () => setFormData({ ...formData, screenshot: reader.result as string })
+            reader.readAsDataURL(file)
+        }
+    }
+
+    const handleScreenshotPaste = (e: React.ClipboardEvent) => {
+        const file = e.clipboardData.files[0]
+        if (file && file.type.startsWith('image/')) {
+            const reader = new FileReader()
+            reader.onloadend = () => setFormData({ ...formData, screenshot: reader.result as string })
+            reader.readAsDataURL(file)
+        }
+    }
+
+    const handleScreenshotDrop = (e: React.DragEvent) => {
+        e.preventDefault()
+        const file = e.dataTransfer.files[0]
+        if (file && file.type.startsWith('image/')) {
+            const reader = new FileReader()
+            reader.onloadend = () => setFormData({ ...formData, screenshot: reader.result as string })
+            reader.readAsDataURL(file)
+        }
+    }
 
     useEffect(() => {
         if (review) {
@@ -51,7 +80,8 @@ export const AnalyticsModal = ({ isOpen, onClose, review, sphereOptions }: Analy
                 asset: review.asset || '',
                 deadline: review.deadline || '',
                 links: review.links || [],
-                ratings: review.ratings || []
+                ratings: review.ratings || [],
+                screenshot: review.screenshot || ''
             })
             const parsedLinks = review.links?.map(link => {
                 const parts = link.slice(-1) === '-' ? [link.slice(0, -1).trim()] : link.split(' - ');
@@ -75,7 +105,8 @@ export const AnalyticsModal = ({ isOpen, onClose, review, sphereOptions }: Analy
                 asset: '',
                 deadline: '',
                 links: [],
-                ratings: []
+                ratings: [],
+                screenshot: ''
             })
             setLinkInputs([{ url: '', title: '' }])
             const now = new Date()
@@ -152,7 +183,8 @@ export const AnalyticsModal = ({ isOpen, onClose, review, sphereOptions }: Analy
                     importantDetails: formData.importantDetails,
                     links: formattedLinks,
                     deadline: fullDeadline || undefined,
-                    asset: formData.asset
+                    asset: formData.asset,
+                    screenshot: formData.screenshot
                 }
                 await updateAnalyticsReview(review.id, updateData)
             } else {
@@ -164,6 +196,7 @@ export const AnalyticsModal = ({ isOpen, onClose, review, sphereOptions }: Analy
                     asset: formData.asset || '',
                     links: formattedLinks,
                     deadline: fullDeadline || undefined,
+                    screenshot: formData.screenshot,
                     createdBy: user?.id || ''
                 }
                 await addAnalyticsReview(data)
@@ -179,6 +212,7 @@ export const AnalyticsModal = ({ isOpen, onClose, review, sphereOptions }: Analy
     const bgColor = theme === 'dark' ? 'bg-[#0f141a]' : 'bg-white'
     const textColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
     const inputBg = theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'
+    const subTextColor = theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
 
     const customSelectOptions: SelectOption[] = sphereOptions.map(sphere => ({
         value: sphere.id || '',
@@ -216,7 +250,7 @@ export const AnalyticsModal = ({ isOpen, onClose, review, sphereOptions }: Analy
                                     currentRating={userRating}
                                     onRate={handleRateReview}
                                     theme={theme}
-                                    disabled={loading || !user || user.id === review.createdBy} // Пользователь не может оценить свой обзор
+                                    disabled={loading || !user || user.id === review.createdBy}
                                 />
                             </div>
                         </div>
@@ -317,14 +351,47 @@ export const AnalyticsModal = ({ isOpen, onClose, review, sphereOptions }: Analy
                     </div>
 
                     <div className="space-y-1.5">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-emerald-500">Важные детали (необязательно)</label>
-                        <textarea
-                            rows={3}
-                            placeholder="Дополнительные важные детали..."
-                            value={formData.importantDetails}
-                            onChange={(e) => setFormData({ ...formData, importantDetails: e.target.value })}
-                            className={`w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-emerald-500 outline-none transition-all resize-none ${inputBg} ${textColor}`}
-                        />
+                        <label className="text-[10px] font-black uppercase tracking-widest text-emerald-500">Скриншот</label>
+                        <div className="space-y-3">
+                            {formData.screenshot && (
+                                <div className="relative">
+                                    <img
+                                        src={formData.screenshot}
+                                        alt="Screenshot preview"
+                                        className="w-full h-40 object-cover rounded-xl border border-white/10"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setFormData({ ...formData, screenshot: '' })}
+                                        className="absolute top-2 right-2 p-1.5 rounded-lg bg-rose-500 text-white hover:bg-rose-600 transition-colors"
+                                    >
+                                        <X className="w-4 h-4" />
+                                    </button>
+                                </div>
+                            )}
+                            <div
+                                className={`relative flex items-center justify-center gap-2 px-4 py-4 rounded-xl border border-dashed cursor-pointer transition-all ${theme === 'dark' ? 'border-white/20 hover:border-emerald-500/50 hover:bg-white/5' : 'border-gray-300 hover:border-emerald-500/50 hover:bg-gray-50'}`}
+                                onPaste={handleScreenshotPaste}
+                                onDrop={handleScreenshotDrop}
+                                onDragOver={(e) => e.preventDefault()}
+                            >
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={handleScreenshotUpload}
+                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                />
+                                <ImageIcon className={`w-5 h-5 ${subTextColor}`} />
+                                <div className="text-center">
+                                    <span className={`text-sm ${subTextColor}`}>
+                                        {formData.screenshot ? 'Заменить файл' : 'Перетащите, вставьте или загрузите'}
+                                    </span>
+                                    <p className={`text-xs ${subTextColor} mt-1 opacity-60`}>
+                                        Поддерживается drag & drop, Ctrl+V, загрузка файла
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <div className="space-y-1.5">
