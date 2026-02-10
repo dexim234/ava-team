@@ -12,8 +12,8 @@ export const DeadlineFilter: React.FC<DeadlineFilterProps> = ({ activeFilter, se
     const filters = [
         { label: 'Все', value: 'all' },
         { label: '< 24 ч', value: '<24h' },
-        { label: '< 48 ч', value: '<48h' },
-        { label: '< 72 ч', value: '<72h' },
+        { label: '24-48 ч', value: '<48h' }, // Изменено название
+        { label: '48-72 ч', value: '<72h' }, // Изменено название
     ]
 
     return (
@@ -24,7 +24,7 @@ export const DeadlineFilter: React.FC<DeadlineFilterProps> = ({ activeFilter, se
                     onClick={() => setActiveFilter(filter.value as any)} // will fix type later
                     className={`px-3 py-1.5 rounded-lg flex items-center gap-2 text-sm font-medium transition-all ${activeFilter === filter.value
                         ? (theme === 'dark' ? 'bg-white/10 text-white' : 'bg-white text-gray-900 shadow')
-                        : 'text-gray-500 hover:text-gray-300' // Changed hover color for dark mode
+                        : 'text-gray-500 hover:text-gray-300'
                         }`}
                 >
                     {filter.label}
@@ -33,4 +33,3 @@ export const DeadlineFilter: React.FC<DeadlineFilterProps> = ({ activeFilter, se
         </div>
     )
 }
-
