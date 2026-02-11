@@ -203,7 +203,14 @@ export const useUserAvatar = (userId: string, initialAvatar?: string): string | 
       setAvatar(currentAvatar)
     }
 
-    if (!initialAvatar) fetchAvatar()
+    // Сброс аватара при изменении userId, чтобы не показывать аватар предыдущего пользователя
+    if (userId) {
+      if (!initialAvatar) {
+        fetchAvatar()
+      }
+    } else {
+      setAvatar(undefined)
+    }
 
     const handleUpdate = (event: Event) => {
       const customEvent = event as CustomEvent<{ userId: string }>
@@ -222,17 +229,3 @@ export const useUserAvatar = (userId: string, initialAvatar?: string): string | 
 
   return avatar
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
