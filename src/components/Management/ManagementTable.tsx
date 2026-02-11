@@ -558,7 +558,7 @@ export const ManagementTable = ({ selectedUserId, slotFilter, onEditSlot, onEdit
           <table className="w-full border-collapse">
             <thead className="sticky top-0 z-30">
               <tr className={`${theme === 'dark' ? 'bg-[#0b1015]' : 'bg-white'}`}>
-                <th className={`p-3 text-left text-[10px] font-bold uppercase tracking-wider ${subTextColor} sticky left-0 z-30 ${theme === 'dark' ? 'bg-[#0b1015]' : 'bg-white'
+                <th className={`p-3 text-center text-[10px] font-bold uppercase tracking-wider ${subTextColor} sticky left-0 z-30 ${theme === 'dark' ? 'bg-[#0b1015]' : 'bg-white'
                   }`}>Участник</th>
                 {weekDays.map((day) => {
                   const isToday = formatDate(day, 'yyyy-MM-dd') === todayStr
@@ -592,10 +592,9 @@ export const ManagementTable = ({ selectedUserId, slotFilter, onEditSlot, onEdit
                     className={`${rowBg} hover:bg-emerald-500/5 transition-colors group`}
                   >
                     <td className={`p-2 sticky left-0 z-20 ${rowBg} group-hover:bg-[#1a2029] transition-colors align-middle`}>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 justify-center">
                         {/* Передаем avatarUrl в UserNickname из userInfo */}
-                        <UserNickname userId={user.id} avatarUrl={userInfo.avatar} />
-                        {/* Удалена отметка "Member" */}
+                        <UserNickname userId={user.id} avatarUrl={userInfo.avatar} className="text-xs font-semibold" />
                       </div>
                     </td>
                     {weekDays.map((day: Date) => {

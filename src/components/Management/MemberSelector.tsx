@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { Search, ChevronDown, User, X } from 'lucide-react'
-import { User as UserType }
+import { User as UserType } from '@/types'
 import { useUserNickname } from '@/utils/userUtils'
 import { useThemeStore } from '@/store/themeStore'
 import { getAllUsers } from '@/services/firestoreService'
@@ -63,9 +63,8 @@ export const MemberSelector: React.FC<MemberSelectorProps> = ({ selectedUserId, 
 
     const filteredMembers = allUsers.filter(m => {
         const name = m.name.toLowerCase()
-        const login = m.login.toLowerCase()
         const query = search.toLowerCase()
-        return name.includes(query) || login.includes(query)
+        return name.includes(query)
     })
 
     return (
@@ -188,9 +187,7 @@ const MemberItem: React.FC<{
             <div className="relative">
                 <Avatar user={member} size="sm" className="w-6 h-6" />
             </div>
-            <div className="flex flex-col min-w-0">
-                <span className="text-xs font-bold truncate">{nickname || member.name}</span>
-            </div>
+            <span className="text-xs font-bold truncate">{nickname || member.name}</span>
         </button>
     )
 }
