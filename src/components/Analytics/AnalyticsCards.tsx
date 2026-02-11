@@ -125,10 +125,15 @@ export const AnalyticsCards = ({ reviews, onEdit, onView }: AnalyticsCardsProps)
                             </div>
 
                             {review.asset && (
-                                <div className="mb-3">
+                                <div className="mb-3 flex items-center justify-between">
                                     <span className={`text-lg font-black tracking-tight ${textColor}`}>
                                         {review.asset}
                                     </span>
+                                    {review.currentPrice && (
+                                        <span className={`text-sm font-bold px-2 py-1 rounded-lg ${theme === 'dark' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-emerald-100 text-emerald-600'}`}>
+                                            {review.currentPrice}
+                                        </span>
+                                    )}
                                 </div>
                             )}
 

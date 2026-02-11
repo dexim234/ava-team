@@ -33,6 +33,7 @@ export const AnalyticsModal = ({ isOpen, onClose, review, sphereOptions }: Analy
         expertComment: '',
         importantDetails: '',
         strategy: '',
+        currentPrice: '',
         deadline: '',
         asset: '',
         links: [],
@@ -79,6 +80,7 @@ export const AnalyticsModal = ({ isOpen, onClose, review, sphereOptions }: Analy
                 expertComment: review.expertComment || '',
                 importantDetails: review.importantDetails || '',
                 strategy: review.strategy || '',
+                currentPrice: review.currentPrice || '',
                 asset: review.asset || '',
                 deadline: review.deadline || '',
                 links: review.links || [],
@@ -105,6 +107,7 @@ export const AnalyticsModal = ({ isOpen, onClose, review, sphereOptions }: Analy
                 expertComment: '',
                 importantDetails: '',
                 strategy: '',
+                currentPrice: '',
                 asset: '',
                 deadline: '',
                 links: [],
@@ -185,6 +188,7 @@ export const AnalyticsModal = ({ isOpen, onClose, review, sphereOptions }: Analy
                     expertComment: formData.expertComment,
                     importantDetails: formData.importantDetails,
                     strategy: formData.strategy,
+                    currentPrice: formData.currentPrice,
                     links: formattedLinks,
                     deadline: fullDeadline || undefined,
                     asset: formData.asset,
@@ -198,6 +202,7 @@ export const AnalyticsModal = ({ isOpen, onClose, review, sphereOptions }: Analy
                     expertComment: formData.expertComment || '',
                     importantDetails: formData.importantDetails || '',
                     strategy: formData.strategy || '',
+                    currentPrice: formData.currentPrice || '',
                     asset: formData.asset || '',
                     links: formattedLinks,
                     deadline: fullDeadline || undefined,
@@ -261,15 +266,28 @@ export const AnalyticsModal = ({ isOpen, onClose, review, sphereOptions }: Analy
                         </div>
                     )}
 
-                    <div className="space-y-1.5">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-emerald-500">Актив</label>
-                        <input
-                            type="text"
-                            placeholder="Например: BTC, ETH, S&P 500"
-                            value={formData.asset}
-                            onChange={(e) => setFormData({ ...formData, asset: e.target.value })}
-                            className={`w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-emerald-500 outline-none transition-all ${inputBg} ${textColor}`}
-                        />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-emerald-500">Актив</label>
+                            <input
+                                type="text"
+                                placeholder="Например: BTC, ETH, S&P 500"
+                                value={formData.asset}
+                                onChange={(e) => setFormData({ ...formData, asset: e.target.value })}
+                                className={`w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-emerald-500 outline-none transition-all ${inputBg} ${textColor}`}
+                            />
+                        </div>
+
+                        <div className="space-y-1.5">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-emerald-500">Актуальная цена</label>
+                            <input
+                                type="text"
+                                placeholder="Например: $45,000"
+                                value={formData.currentPrice}
+                                onChange={(e) => setFormData({ ...formData, currentPrice: e.target.value })}
+                                className={`w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-emerald-500 outline-none transition-all ${inputBg} ${textColor}`}
+                            />
+                        </div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

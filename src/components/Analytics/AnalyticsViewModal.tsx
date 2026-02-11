@@ -179,6 +179,16 @@ export const AnalyticsViewModal = ({ isOpen, onClose, review, onEditFromView, on
                         </div>
                     )}
 
+                    {/* Актуальная цена */}
+                    {review.currentPrice && (
+                        <div className="space-y-1.5">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-emerald-500">Актуальная цена</label>
+                            <div className={`px-4 py-3 rounded-xl border border-white/10 bg-emerald-500/10 ${textColor} font-bold`}>
+                                {review.currentPrice}
+                            </div>
+                        </div>
+                    )}
+
                     {/* Комментарий эксперта */}
                     <div className="space-y-1.5">
                         <label className="text-[10px] font-black uppercase tracking-widest text-emerald-500">Комментарий эксперта</label>
