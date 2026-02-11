@@ -203,11 +203,9 @@ export const useUserAvatar = (userId: string, initialAvatar?: string): string | 
       setAvatar(currentAvatar)
     }
 
-    // Сброс аватара при изменении userId, чтобы не показывать аватар предыдущего пользователя
+    // Всегда сбрасываем аватар при изменении userId, чтобы не показывать аватар предыдущего пользователя
     if (userId) {
-      if (!initialAvatar) {
-        fetchAvatar()
-      }
+      fetchAvatar()
     } else {
       setAvatar(undefined)
     }
