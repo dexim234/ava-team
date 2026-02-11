@@ -25,6 +25,7 @@ export interface AnalyticsReview {
     sphere: string[] // Изменено на массив строк
     expertComment?: string
     importantDetails?: string
+    strategy?: string // Данные о стратегии
     deadline?: string // ISO date string
     links?: string[]
     asset?: string // Актив, под который делается аналитический разбор
