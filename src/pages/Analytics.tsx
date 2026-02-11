@@ -167,7 +167,7 @@ export const Analytics = () => {
         return allReviews.filter(review => {
             // Поиск по номеру карточки
             const reviewNumber = review.number?.toString()
-            if (reviewNumber && (`#${reviewNumber}`.includes(queryTerm) || reviewNumber.includes(queryTerm))) return true
+            if (reviewNumber && (`#${reviewNumber}`.includes(queryTerm) || `№${reviewNumber}`.includes(queryTerm) || reviewNumber.includes(queryTerm))) return true
 
             // Поиск по имени пользователя из TEAM_MEMBERS
             const authorMember = TEAM_MEMBERS.find(member => member.id === review.createdBy)
@@ -222,11 +222,18 @@ export const Analytics = () => {
                         </h1>
                     </div>
                     <div className="flex items-center gap-2">
+                        {/* Селектор трейдеров */}
+                        <div className="w-full md:w-48">
+                            <MemberSelector
+                                selectedUserId={selectedTraderId}
+                                onSelect={setSelectedTraderId}
+                            />
+                        </div>
                         {/* Поиск */}
                         <div className="relative w-48">
                             <input
                                 type="text"
-                                placeholder="Поиск по нику, имени, #номеру"
+                                placeholder="Поиск"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 className={`w-full pl-9 pr-3 py-2 rounded-xl border outline-none transition-all ${theme === 'dark' ? 'bg-white/5 border-white/10 text-white focus:border-emerald-500/50' : 'bg-gray-50 border-gray-200 text-gray-900 focus:border-emerald-500/30'}`}
@@ -248,12 +255,6 @@ export const Analytics = () => {
 
                 <div className="flex flex-col space-y-4 md:flex-row md:space-y-0 md:space-x-4">
                     <DeadlineFilter activeFilter={activeDeadlineFilter} setActiveFilter={setActiveDeadlineFilter} />
-                    <div className="w-full md:w-48">
-                        <MemberSelector
-                            selectedUserId={selectedTraderId}
-                            onSelect={setSelectedTraderId}
-                        />
-                    </div>
                 </div>
 
                 <AnalyticsStatsCards reviews={filteredReviews} />
