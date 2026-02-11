@@ -61,7 +61,6 @@ export const Earnings = () => {
   const POOL_RATE = 0.45
   const categoryKeys = Object.keys(EARNINGS_CATEGORY_META) as EarningsCategory[]
 
-  const cardBg = theme === 'dark' ? 'bg-[#1a1a1a]' : 'bg-white'
   const getPoolValue = (earning: EarningsType) => earning.poolAmount || earning.amount * POOL_RATE
   const getNetValue = (earning: EarningsType) => Math.max(earning.amount - getPoolValue(earning), 0)
   const getParticipants = (earning: EarningsType) => earning.participants?.length ? earning.participants : [earning.userId]
@@ -332,7 +331,7 @@ export const Earnings = () => {
       {/* Split layout: Shares vs Details */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left: Shares */}
-        <div className={`lg:col-span-3 rounded-2xl p-6 ${cardBg} border ${theme === 'dark' ? 'border-white/5' : 'border-gray-100'} shadow-xl`}>
+        <div className={`lg:col-span-3 glass-panel rounded-2xl p-6 border border-white/40 dark:border-white/10 shadow-xl backdrop-blur-2xl`}>
           <div className="flex items-center gap-3 mb-8">
             <div className="p-2 bg-[#4E6E49]/10 rounded-lg">
               <PieChart className="w-5 h-5 text-[#4E6E49]" />
@@ -379,7 +378,7 @@ export const Earnings = () => {
         </div>
 
         {/* Right: Category Details Grid */}
-        <div className={`lg:col-span-9 rounded-2xl p-6 ${cardBg} border ${theme === 'dark' ? 'border-white/5' : 'border-gray-100'} shadow-xl`}>
+        <div className={`lg:col-span-9 glass-panel rounded-2xl p-6 border border-white/40 dark:border-white/10 shadow-xl backdrop-blur-2xl`}>
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-blue-500/10 rounded-lg">
