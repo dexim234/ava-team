@@ -721,7 +721,7 @@ export const Profile = () => {
                       ].map((item) => (
                         <div
                           key={item.label}
-                          className={`p-3 rounded-lg border shadow-sm ${theme === 'dark' ? 'border-white/5 bg-black/20' : 'border-gray-100 bg-gray-50'}`}
+                          className={`p-3 rounded-lg border shadow-sm ${theme === 'dark' ? 'border-white/5 bg-[#151a21]' : 'border-gray-100 bg-gray-50'}`}
                         >
                           <p className="text-[8px] font-black uppercase tracking-widest opacity-70">{item.label}</p>
                           <p className={`text-base font-black ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{Math.round(item.value).toLocaleString('ru-RU')} ₽</p>

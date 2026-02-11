@@ -8,9 +8,11 @@ import { SLOT_CATEGORY_META, SlotCategory, TEAM_MEMBERS } from '@/types'
 import { DeadlineFilter } from '@/components/Analytics/DeadlineFilter'
 import { AnalyticsCards } from '@/components/Analytics/AnalyticsCards'
 import { AnalyticsStatsCards } from '@/components/Analytics/AnalyticsStatsCards'
+import { MemberSelector } from '@/components/Management/MemberSelector'
 import { CATEGORY_ICONS } from '@/constants/common.tsx'
 import { useAuthStore } from '@/store/authStore'
 import { useLocation, useNavigate } from 'react-router-dom'
+import { getUserNicknameAsync, getUserNicknameSync } from '@/utils/userUtils'
 
 type DeadlineFilterType = 'all' | '<24h' | '<48h' | '<72h'
 
@@ -19,6 +21,7 @@ export const Analytics = () => {
     const { user } = useAuthStore()
     const [activeDeadlineFilter, setActiveDeadlineFilter] = useState<DeadlineFilterType>('all')
     const [searchQuery, setSearchQuery] = useState('')
+    const [selectedTraderId, setSelectedTraderId] = useState<string | null>(null)
     const [reviews, setReviews] = useState<AnalyticsReview[]>([])
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [isViewMode, setIsViewMode] = useState(false)
@@ -89,6 +92,14 @@ export const Analytics = () => {
         return () => unsubscribe();
     }, [user])
 
+    // Load nicknames for all authors when reviews change
+    useEffect(() => {
+        const authorIds = [...new Set(reviews.map(r => r.createdBy))]
+        authorIds.forEach(userId => {
+            getUserNicknameAsync(userId)
+        })
+    }, [reviews])
+
     const closeAnalyticsModal = () => {
         setIsModalOpen(false)
         setEditingReview(null)
@@ -154,21 +165,31 @@ export const Analytics = () => {
         const queryTerm = searchQuery.toLowerCase()
 
         return allReviews.filter(review => {
+            // Поиск по номеру карточки
             const reviewNumber = review.number?.toString()
             if (reviewNumber && (`#${reviewNumber}`.includes(queryTerm) || reviewNumber.includes(queryTerm))) return true
 
-            // Поиск по автору (userId) или никнейму (если доступен)
-            if (review.createdBy.toLowerCase().includes(queryTerm)) return true
-
+            // Поиск по имени пользователя из TEAM_MEMBERS
             const authorMember = TEAM_MEMBERS.find(member => member.id === review.createdBy)
             if (authorMember && authorMember.name.toLowerCase().includes(queryTerm)) return true
 
+            // Поиск по никнейму пользователя
+            const authorNickname = getUserNicknameSync(review.createdBy)
+            if (authorNickname && authorNickname.toLowerCase().includes(queryTerm)) return true
+
+            // Поиск по ID автора
+            if (review.createdBy.toLowerCase().includes(queryTerm)) return true
+
+            // Поиск по активу
             if (review.asset && review.asset.toLowerCase().includes(queryTerm)) return true
 
+            // Поиск по комментарию эксперта
             if (review.expertComment && review.expertComment.toLowerCase().includes(queryTerm)) return true
 
+            // Поиск по ссылкам
             if (review.links && review.links.some(link => link.toLowerCase().includes(queryTerm))) return true
 
+            // Поиск по сфере
             if (review.sphere && review.sphere.some(s =>
                 s.toLowerCase().includes(queryTerm) ||
                 (SLOT_CATEGORY_META[s as SlotCategory]?.label || '').toLowerCase().includes(queryTerm)
@@ -178,8 +199,14 @@ export const Analytics = () => {
         })
     }
 
+    const filterReviewsByTrader = (allReviews: AnalyticsReview[]) => {
+        if (!selectedTraderId) return allReviews
+        return allReviews.filter(review => review.createdBy === selectedTraderId)
+    }
+
     let filteredReviews = filterReviewsByDeadline(reviews)
     filteredReviews = filterReviewsBySearchQuery(filteredReviews)
+    filteredReviews = filterReviewsByTrader(filteredReviews)
 
 
     return (
@@ -199,7 +226,7 @@ export const Analytics = () => {
                         <div className="relative w-48">
                             <input
                                 type="text"
-                                placeholder="Поиск"
+                                placeholder="Поиск по нику, имени, #номеру"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 className={`w-full pl-9 pr-3 py-2 rounded-xl border outline-none transition-all ${theme === 'dark' ? 'bg-white/5 border-white/10 text-white focus:border-emerald-500/50' : 'bg-gray-50 border-gray-200 text-gray-900 focus:border-emerald-500/30'}`}
@@ -221,6 +248,12 @@ export const Analytics = () => {
 
                 <div className="flex flex-col space-y-4 md:flex-row md:space-y-0 md:space-x-4">
                     <DeadlineFilter activeFilter={activeDeadlineFilter} setActiveFilter={setActiveDeadlineFilter} />
+                    <div className="w-full md:w-48">
+                        <MemberSelector
+                            selectedUserId={selectedTraderId}
+                            onSelect={setSelectedTraderId}
+                        />
+                    </div>
                 </div>
 
                 <AnalyticsStatsCards reviews={filteredReviews} />
