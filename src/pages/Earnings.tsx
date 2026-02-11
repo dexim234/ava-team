@@ -540,7 +540,6 @@ export const Earnings = () => {
                           </div>
                           <div>
                             <p className={`text-sm font-black truncate max-w-[100px] ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{member.name}</p>
-                            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">{member.login}</p>
                           </div>
                         </div>
 
