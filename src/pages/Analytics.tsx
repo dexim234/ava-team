@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react'
 import { AnalyticsModal } from '@/components/Analytics/AnalyticsModal'
 import { AnalyticsViewModal } from '@/components/Analytics/AnalyticsViewModal'
-import { AnalyticsReview, subscribeToAnalyticsReviews, getAnalyticsReviewById } from '@/services/analyticsService'
+import { AnalyticsReview, subscribeToAnalyticsReviews, getAnalyticsReviewById, deleteAnalyticsReview } from '@/services/analyticsService'
 import { useThemeStore } from '@/store/themeStore'
-import { Plus, Search } from 'lucide-react'
+import { Plus, Search, Archive } from 'lucide-react'
 import { SLOT_CATEGORY_META, SlotCategory, TEAM_MEMBERS } from '@/types'
 import { DeadlineFilter } from '@/components/Analytics/DeadlineFilter'
 import { AnalyticsCards } from '@/components/Analytics/AnalyticsCards'
@@ -24,6 +24,7 @@ export const Analytics = () => {
     const [selectedTraderId, setSelectedTraderId] = useState<string | null>(null)
     const [reviews, setReviews] = useState<AnalyticsReview[]>([])
     const [isModalOpen, setIsModalOpen] = useState(false)
+    const [showArchive, setShowArchive] = useState(false)
     const [isViewMode, setIsViewMode] = useState(false)
     const [editingReview, setEditingReview] = useState<AnalyticsReview | null>(null)
     const location = useLocation()
@@ -204,9 +205,50 @@ export const Analytics = () => {
         return allReviews.filter(review => review.createdBy === selectedTraderId)
     }
 
+    // Проверка, является ли карточка архивной (дедлайн истёк)
+    const isArchivedReview = (review: AnalyticsReview): boolean => {
+        if (!review.deadline) return false
+        const now = new Date().getTime()
+        const deadlineTime = new Date(review.deadline).getTime()
+        return deadlineTime <= now
+    }
+
+    // Проверка, истек ли срок хранения в архиве (7 дней после дедлайна)
+    const isArchiveExpired = (review: AnalyticsReview): boolean => {
+        if (!review.deadline) return false
+        const now = new Date().getTime()
+        const deadlineTime = new Date(review.deadline).getTime()
+        const sevenDaysInMs = 7 * 24 * 60 * 60 * 1000
+        return (now - deadlineTime) > sevenDaysInMs
+    }
+
+    // Автоматическое удаление архивных карточек, которые хранятся более 7 дней
+    useEffect(() => {
+        const cleanupExpiredReviews = async () => {
+            const expiredReviews = reviews.filter(review =>
+                isArchivedReview(review) && isArchiveExpired(review)
+            )
+
+            for (const review of expiredReviews) {
+                try {
+                    await deleteAnalyticsReview(review.id)
+                    console.log(`Автоматически удалён архивный обзор: ${review.id}`)
+                } catch (error) {
+                    console.error(`Ошибка при удалении архивного обзора ${review.id}:`, error)
+                }
+            }
+        }
+
+        cleanupExpiredReviews()
+    }, [reviews])
+
     let filteredReviews = filterReviewsByDeadline(reviews)
     filteredReviews = filterReviewsBySearchQuery(filteredReviews)
     filteredReviews = filterReviewsByTrader(filteredReviews)
+
+    // Разделяем на активные и архивные карточки
+    const activeReviews = filteredReviews.filter(review => !isArchivedReview(review))
+    const archivedReviews = filteredReviews.filter(review => isArchivedReview(review))
 
 
     return (
@@ -251,24 +293,62 @@ export const Analytics = () => {
                             <Plus size={20} />
                         </button>
                     </div>
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={() => setShowArchive(!showArchive)}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-all ${
+                                showArchive
+                                    ? theme === 'dark'
+                                        ? 'bg-amber-600 hover:bg-amber-500 text-white'
+                                        : 'bg-amber-500 hover:bg-amber-600 text-white'
+                                    : theme === 'dark'
+                                        ? 'bg-white/10 hover:bg-white/20 text-gray-300'
+                                        : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                            }`}
+                            title="Показать/скрыть архив"
+                        >
+                            <Archive size={18} />
+                            <span>Архив</span>
+                        </button>
+                    </div>
                 </div>
 
                 <div className="flex flex-col space-y-4 md:flex-row md:space-y-0 md:space-x-4">
                     <DeadlineFilter activeFilter={activeDeadlineFilter} setActiveFilter={setActiveDeadlineFilter} />
                 </div>
 
-                <AnalyticsStatsCards reviews={filteredReviews} />
+                <AnalyticsStatsCards reviews={showArchive ? archivedReviews : activeReviews} />
 
-                <AnalyticsCards
-                    reviews={filteredReviews}
-                    onEdit={(review) => {
-                        setEditingReview(review)
-                        setIsViewMode(false)
-                        setIsModalOpen(true)
-                        navigate(`${location.pathname}?reviewId=${review.id}`, { replace: true })
-                    }}
-                    onView={openViewModalFromCard}
-                />
+                {showArchive ? (
+                    <>
+                        <h2 className={`text-xl font-bold ${headingColor} mt-6`}>
+                            Архив - Analytics
+                        </h2>
+                        <AnalyticsCards
+                            reviews={archivedReviews}
+                            isArchive={true}
+                            onEdit={(review) => {
+                                setEditingReview(review)
+                                setIsViewMode(false)
+                                setIsModalOpen(true)
+                                navigate(`${location.pathname}?reviewId=${review.id}`, { replace: true })
+                            }}
+                            onView={openViewModalFromCard}
+                        />
+                    </>
+                ) : (
+                    <AnalyticsCards
+                        reviews={activeReviews}
+                        isArchive={false}
+                        onEdit={(review) => {
+                            setEditingReview(review)
+                            setIsViewMode(false)
+                            setIsModalOpen(true)
+                            navigate(`${location.pathname}?reviewId=${review.id}`, { replace: true })
+                        }}
+                        onView={openViewModalFromCard}
+                    />
+                )}
 
                 {isViewMode ? (
                     <AnalyticsViewModal
