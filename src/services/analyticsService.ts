@@ -26,6 +26,7 @@ export interface AnalyticsReview {
     expertComment?: string
     importantDetails?: string
     strategy?: string // Данные о стратегии
+    currentPrice?: string // Актуальная цена при создании разбора
     deadline?: string // ISO date string
     links?: string[]
     asset?: string // Актив, под который делается аналитический разбор
