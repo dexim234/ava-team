@@ -293,28 +293,27 @@ export const Analytics = () => {
                             <Plus size={20} />
                         </button>
                     </div>
-                    <div className="flex items-center gap-2">
-                        <button
-                            onClick={() => setShowArchive(!showArchive)}
-                            className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-all ${
-                                showArchive
-                                    ? theme === 'dark'
-                                        ? 'bg-amber-600 hover:bg-amber-500 text-white'
-                                        : 'bg-amber-500 hover:bg-amber-600 text-white'
-                                    : theme === 'dark'
-                                        ? 'bg-white/10 hover:bg-white/20 text-gray-300'
-                                        : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
-                            }`}
-                            title="Показать/скрыть архив"
-                        >
-                            <Archive size={18} />
-                            <span>Архив</span>
-                        </button>
-                    </div>
                 </div>
 
-                <div className="flex flex-col space-y-4 md:flex-row md:space-y-0 md:space-x-4">
+                {/* Фильтр дедлайна слева, кнопка Архив справа */}
+                <div className="flex items-center justify-between">
                     <DeadlineFilter activeFilter={activeDeadlineFilter} setActiveFilter={setActiveDeadlineFilter} />
+                    <button
+                        onClick={() => setShowArchive(!showArchive)}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-all ${
+                            showArchive
+                                ? theme === 'dark'
+                                    ? 'bg-amber-600 hover:bg-amber-500 text-white'
+                                    : 'bg-amber-500 hover:bg-amber-600 text-white'
+                                : theme === 'dark'
+                                    ? 'bg-white/10 hover:bg-white/20 text-gray-300'
+                                    : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                        }`}
+                        title="Показать/скрыть архив"
+                    >
+                        <Archive size={18} />
+                        <span>Архив</span>
+                    </button>
                 </div>
 
                 <AnalyticsStatsCards reviews={showArchive ? archivedReviews : activeReviews} />
