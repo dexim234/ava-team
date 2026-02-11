@@ -39,7 +39,7 @@ export interface TimeSlot {
   }[]
 }
 
-export type SlotCategory = 'memecoins' | 'futures' | 'nft' | 'spot' | 'airdrop' | 'polymarket' | 'staking'
+export type SlotCategory = 'memecoins' | 'futures' | 'nft' | 'spot' | 'airdrop' | 'polymarket' | 'staking' | 'other'
 
 export const SLOT_CATEGORY_META: Record<SlotCategory, { label: string; accent: string; icon: string }> = {
   memecoins: { label: 'Мемкоины', accent: 'emerald', icon: 'rocket' },
@@ -49,6 +49,7 @@ export const SLOT_CATEGORY_META: Record<SlotCategory, { label: string; accent: s
   airdrop: { label: 'AirDrop', accent: 'cyan', icon: 'gift' },
   polymarket: { label: 'Polymarket', accent: 'pink', icon: 'barchart' },
   staking: { label: 'Стейкинг', accent: 'indigo', icon: 'shield' },
+  other: { label: 'Крипто-рынок', accent: 'gray', icon: 'sparkles' },
 }
 
 export interface WorkSlot {

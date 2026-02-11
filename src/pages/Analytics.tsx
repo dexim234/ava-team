@@ -98,7 +98,6 @@ export const Analytics = () => {
 
     const sphereOptions = [
         { id: 'all', name: 'Все', icon: CATEGORY_ICONS.all },
-        { id: 'other', name: 'Крипто-рынок', icon: CATEGORY_ICONS.other },
         ...Object.keys(SLOT_CATEGORY_META).map(key => ({
             id: key as SlotCategory,
             name: SLOT_CATEGORY_META[key as SlotCategory].label,
