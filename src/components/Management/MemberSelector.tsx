@@ -89,7 +89,7 @@ export const MemberSelector: React.FC<MemberSelectorProps> = ({ selectedUserId, 
                             <div className={`w-5 h-5 rounded-full flex items-center justify-center border border-dashed border-gray-500 flex-shrink-0`}>
                                 <User size={12} className="text-gray-500" />
                             </div>
-                            <span className="text-sm font-semibold text-gray-500">Все участники...</span>
+                            <span className="text-sm font-semibold text-gray-500">Трейдеры</span>
                         </>
                     )}
                 </div>
@@ -140,7 +140,7 @@ export const MemberSelector: React.FC<MemberSelectorProps> = ({ selectedUserId, 
                             <div className={`w-6 h-6 rounded-full flex items-center justify-center border border-dashed border-gray-500 text-[10px]`}>
                                 <User size={12} />
                             </div>
-                            <span className="text-xs font-bold">Все участники</span>
+                            <span className="text-xs font-bold">Трейдеры</span>
                         </button>
 
                         {filteredMembers.map(member => (
