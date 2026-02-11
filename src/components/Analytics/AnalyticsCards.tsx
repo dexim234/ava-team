@@ -131,7 +131,7 @@ export const AnalyticsCards = ({ reviews, onEdit, onView }: AnalyticsCardsProps)
                                     </span>
                                     {review.currentPrice && (
                                         <span className={`text-sm font-bold px-2 py-1 rounded-lg ${theme === 'dark' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-emerald-100 text-emerald-600'}`}>
-                                            {review.currentPrice}
+                                            ${review.currentPrice}
                                         </span>
                                     )}
                                 </div>

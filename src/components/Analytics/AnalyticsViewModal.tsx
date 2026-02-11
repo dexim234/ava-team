@@ -184,7 +184,7 @@ export const AnalyticsViewModal = ({ isOpen, onClose, review, onEditFromView, on
                         <div className="space-y-1.5">
                             <label className="text-[10px] font-black uppercase tracking-widest text-emerald-500">Актуальная цена</label>
                             <div className={`px-4 py-3 rounded-xl border border-white/10 bg-emerald-500/10 ${textColor} font-bold`}>
-                                {review.currentPrice}
+                                ${review.currentPrice}
                             </div>
                         </div>
                     )}
