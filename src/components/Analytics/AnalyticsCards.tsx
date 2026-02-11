@@ -13,11 +13,12 @@ import { RatingDisplay } from './RatingDisplay'
 
 interface AnalyticsCardsProps {
     reviews: AnalyticsReview[]
+    isArchive: boolean
     onEdit: (review: AnalyticsReview) => void
     onView: (id: string) => void
 }
 
-export const AnalyticsCards = ({ reviews, onEdit, onView }: AnalyticsCardsProps) => {
+export const AnalyticsCards = ({ reviews, isArchive, onEdit, onView }: AnalyticsCardsProps) => {
     const { theme } = useThemeStore()
     const { isAdmin } = useAdminStore()
     const { user } = useAuthStore()
@@ -40,11 +41,20 @@ export const AnalyticsCards = ({ reviews, onEdit, onView }: AnalyticsCardsProps)
     }
 
     const canEdit = (review: AnalyticsReview) => {
+        // В архиве редактирование запрещено для всех
+        if (isArchive) return false
         // Админ может редактировать всё
         if (isAdmin) return true
         // Автор может редактировать свои обзоры без ограничений по времени
         if (user?.id === review.createdBy) return true
         return false
+    }
+
+    const canDelete = (review: AnalyticsReview) => {
+        // В архиве удалять может только администратор
+        if (isArchive) return isAdmin
+        // В активных карточках админ или автор могут удалять
+        return isAdmin || user?.id === review.createdBy
     }
 
     const handleDelete = async (id: string) => {
@@ -106,7 +116,7 @@ export const AnalyticsCards = ({ reviews, onEdit, onView }: AnalyticsCardsProps)
                                             <Edit className="w-4 h-4" />
                                         </button>
                                     )}
-                                    {(isAdmin || user?.id === review.createdBy) && (
+                                    {canDelete(review) && (
                                         <button
                                             onClick={(e) => { e.stopPropagation(); handleDelete(review.id) }}
                                             className="p-1.5 rounded-lg text-gray-400 hover:bg-white/10 transition-all"
