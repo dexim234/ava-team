@@ -32,6 +32,7 @@ export const AnalyticsModal = ({ isOpen, onClose, review, sphereOptions }: Analy
         sphere: [],
         expertComment: '',
         importantDetails: '',
+        strategy: '',
         deadline: '',
         asset: '',
         links: [],
@@ -77,6 +78,7 @@ export const AnalyticsModal = ({ isOpen, onClose, review, sphereOptions }: Analy
                 sphere: Array.isArray(review.sphere) ? review.sphere : (review.sphere ? [review.sphere] : []),
                 expertComment: review.expertComment || '',
                 importantDetails: review.importantDetails || '',
+                strategy: review.strategy || '',
                 asset: review.asset || '',
                 deadline: review.deadline || '',
                 links: review.links || [],
@@ -102,6 +104,7 @@ export const AnalyticsModal = ({ isOpen, onClose, review, sphereOptions }: Analy
                 sphere: [],
                 expertComment: '',
                 importantDetails: '',
+                strategy: '',
                 asset: '',
                 deadline: '',
                 links: [],
@@ -181,6 +184,7 @@ export const AnalyticsModal = ({ isOpen, onClose, review, sphereOptions }: Analy
                     sphere: formData.sphere,
                     expertComment: formData.expertComment,
                     importantDetails: formData.importantDetails,
+                    strategy: formData.strategy,
                     links: formattedLinks,
                     deadline: fullDeadline || undefined,
                     asset: formData.asset,
@@ -193,6 +197,7 @@ export const AnalyticsModal = ({ isOpen, onClose, review, sphereOptions }: Analy
                     sphere: formData.sphere || [],
                     expertComment: formData.expertComment || '',
                     importantDetails: formData.importantDetails || '',
+                    strategy: formData.strategy || '',
                     asset: formData.asset || '',
                     links: formattedLinks,
                     deadline: fullDeadline || undefined,
@@ -346,6 +351,17 @@ export const AnalyticsModal = ({ isOpen, onClose, review, sphereOptions }: Analy
                             placeholder="Введите ваш аналитический обзор..."
                             value={formData.expertComment}
                             onChange={(e) => setFormData({ ...formData, expertComment: e.target.value })}
+                            className={`w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-emerald-500 outline-none transition-all resize-none ${inputBg} ${textColor}`}
+                        />
+                    </div>
+
+                    <div className="space-y-1.5">
+                        <label className="text-[10px] font-black uppercase tracking-widest text-emerald-500">Стратегия</label>
+                        <textarea
+                            rows={2}
+                            placeholder="Опишите стратегию трейдинга..."
+                            value={formData.strategy}
+                            onChange={(e) => setFormData({ ...formData, strategy: e.target.value })}
                             className={`w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-emerald-500 outline-none transition-all resize-none ${inputBg} ${textColor}`}
                         />
                     </div>

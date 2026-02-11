@@ -187,6 +187,16 @@ export const AnalyticsViewModal = ({ isOpen, onClose, review, onEditFromView, on
                         </div>
                     </div>
 
+                    {/* Стратегия */}
+                    {review.strategy && (
+                        <div className="space-y-1.5">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-emerald-500">Стратегия</label>
+                            <div className={`px-4 py-3 rounded-xl border border-white/10 bg-white/5 ${textColor} whitespace-pre-wrap`}>
+                                {review.strategy}
+                            </div>
+                        </div>
+                    )}
+
                     {/* Важные детали */}
                     {review.importantDetails && (
                         <div className="space-y-1.5">
