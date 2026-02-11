@@ -81,8 +81,8 @@ export const EarningsTable = ({ earnings }: EarningsTableProps) => {
                     #{index + 1}
                   </span>
                 </td>
-                <td className="px-6 py-5">
-                  <div className="flex items-center gap-3">
+                <td className="px-6 py-5 text-center">
+                  <div className="flex items-center justify-center gap-3">
                     <div className="relative">
                       <Avatar userId={member.id} size="sm" className="w-9 h-9 ring-2 ring-white/5" />
                     </div>
