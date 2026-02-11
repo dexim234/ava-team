@@ -714,10 +714,7 @@ export const Profile = () => {
                       <div className="flex items-center gap-2 mt-1">
                         <p className={`text-lg font-black ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                           {user?.id ? (
-                            <UserNickname
-                              userId={user.id}
-                              avatarUrl={profileAvatar} // Передача актуального аватара
-                            />
+                            <UserNickname userId={user.id} />
                           ) : (
                             '—'
                           )}
@@ -759,25 +756,6 @@ export const Profile = () => {
                     >
                       {passwordCopied ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
                     </button>
-                  </div>
-                </div>
-                <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                  <div className={`p-4 rounded-xl border ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-gray-100 bg-white'} shadow-sm`}>
-                    <p className={`text-xs font-semibold uppercase tracking-wide ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Учебная панель (преподаватель)</p>
-                    <div className="mt-2 space-y-2 text-sm">
-                      <div className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                        <span className="font-semibold">Имя: </span>
-                        <span className="font-medium">в разработке</span>
-                      </div>
-                      <div className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                        <span className="font-semibold">Логин: </span>
-                        <span className="font-medium">в разработке</span>
-                      </div>
-                      <div className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                        <span className="font-semibold">Пароль: </span>
-                        <span className="font-medium">в разработке</span>
-                      </div>
-                    </div>
                   </div>
                 </div>
               </div>
