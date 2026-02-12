@@ -479,7 +479,7 @@ export const Referrals = () => {
                                 <thead>
                                     <tr className={theme === 'dark' ? 'bg-white/[0.02]' : 'bg-gray-50'}>
                                         {['Кто пригласил', 'ID', 'Имя', 'Телефон', 'Источник', 'TG', 'Статус', ''].map(h => (
-                                            <th key={h} className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-gray-500">{h}</th>
+                                            <th key={h} className="px-6 py-5 text-center text-[10px] font-black uppercase tracking-widest text-gray-500">{h}</th>
                                         ))}
                                     </tr>
                                 </thead>
@@ -548,7 +548,7 @@ export const Referrals = () => {
                                 <thead>
                                     <tr className={theme === 'dark' ? 'bg-white/[0.02]' : 'bg-gray-50'}>
                                         {['ID', 'Имя', 'Телефон', 'Источник', 'TG', 'Статус'].map(h => (
-                                            <th key={h} className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-gray-500">{h}</th>
+                                            <th key={h} className="px-6 py-5 text-center text-[10px] font-black uppercase tracking-widest text-gray-500">{h}</th>
                                         ))}
                                     </tr>
                                 </thead>
@@ -597,7 +597,7 @@ export const Referrals = () => {
                             <thead>
                                 <tr className={theme === 'dark' ? 'bg-white/[0.02]' : 'bg-gray-50'}>
                                     {['Участник', 'Всего', 'Активные', 'Неактивные', 'Удаленные'].map(h => (
-                                        <th key={h} className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-gray-500">{h}</th>
+                                        <th key={h} className="px-6 py-5 text-center text-[10px] font-black uppercase tracking-widest text-gray-500">{h}</th>
                                     ))}
                                 </tr>
                             </thead>
