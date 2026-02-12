@@ -1,9 +1,8 @@
 import { useThemeStore } from '@/store/themeStore'
 import { getRatingBreakdown, getExclusionStatus } from '@/utils/ratingUtils'
 import { RatingData } from '@/types'
-import { formatHours } from '@/utils/dateUtils'
 import { UserNickname } from '@/components/UserNickname'
-import { Calendar, Heart, Plane, Clock, DollarSign, Users, TrendingUp, Info, AlertTriangle, Zap, Lightbulb } from 'lucide-react'
+import { Clock, DollarSign, Users, TrendingUp, AlertTriangle, Lightbulb, Shield } from 'lucide-react'
 import React, { useState } from 'react'
 import { useUserNickname, useUserAvatar } from '@/utils/userUtils'
 
@@ -34,167 +33,112 @@ export const RatingCard = ({ rating, place }: RatingCardProps) => {
   const borderColor = theme === 'dark' ? 'border-white/10' : 'border-gray-200'
   const hoverBg = theme === 'dark' ? 'hover:bg-white/5' : 'hover:bg-gray-50'
   const softSurface = theme === 'dark' ? 'bg-white/5' : 'bg-gray-50/80'
-  const barWidth = rating.rating <= 0 ? '4%' : `${Math.min(rating.rating, 100)}%`
+
+  // Максимальное количество баллов не ограничено, поэтому показываем прогресс относительно 100 как ориентир
+  const barWidth = rating.rating <= 0 ? '4%' : `${Math.min(Math.max(rating.rating, 5), 100)}%`
   const bandColor =
     rating.rating >= 80
       ? 'bg-emerald-500'
       : rating.rating >= 60
         ? 'bg-blue-500'
-        : rating.rating >= 40
+        : rating.rating >= 50
           ? 'bg-amber-500'
           : 'bg-rose-500'
 
   const nickname = useUserNickname(rating.userId)
-  const avatarUrl = useUserAvatar(rating.userId); // Исправлено
+  const avatarUrl = useUserAvatar(rating.userId)
 
   const metrics: MetricInfo[] = rating.breakdown ? [
     {
       icon: <Clock className="w-5 h-5" />,
       label: 'Часы работы',
-      value: formatHours(rating.breakdown.weeklyHours),
+      value: `${rating.breakdown.weeklyHours.toFixed(1)} ч/нед`,
       points: rating.breakdown.weeklyHoursPoints,
-      maxPoints: 25,
-      what: `Отработано ${formatHours(rating.breakdown.weeklyHours)} за неделю.`,
-      why: 'Часы показывают твой вклад в общее время команды. Норма — 20+ часов.',
-      how: rating.breakdown.weeklyHoursPoints < 25
-        ? 'Увеличь активность, бери больше слотов или задач. Цель: 20+ часов.'
-        : 'Отличный результат, поддерживай этот темп!',
-      color: 'bg-blue-200 text-blue-900'
+      maxPoints: 15,
+      what: `Отработано ${rating.breakdown.weeklyHours.toFixed(1)} часов за неделю.`,
+      why: 'Часы показывают твой вклад в общее время команды. Больше часов — выше вклад.',
+      how: rating.breakdown.weeklyHoursPoints < 15
+        ? 'Увеличивай активность, бери больше слотов или задач. Цель: 20+ часов.'
+        : 'Отличный результат! Ты активно работаешь.',
+      color: 'bg-blue-200 text-blue-900 dark:bg-blue-500/20 dark:text-blue-400'
     },
     {
       icon: <DollarSign className="w-5 h-5" />,
-      label: 'Заработок',
-      value: `${rating.breakdown.weeklyEarnings.toFixed(2)} ₽`,
+      label: 'Заработок (неделя)',
+      value: `${Math.round(rating.breakdown.weeklyEarnings).toLocaleString()} ₽`,
       points: rating.breakdown.weeklyEarningsPoints,
       maxPoints: 30,
-      what: `Заработано ${rating.breakdown.weeklyEarnings.toFixed(2)} ₽ за неделю.`,
-      why: 'Доход — ключевой показатель эффективности твоих действий.',
+      what: `Заработано ${Math.round(rating.breakdown.weeklyEarnings).toLocaleString()} ₽ за неделю.`,
+      why: 'Недельный доход — ключевой показатель эффективности твоих действий.',
       how: rating.breakdown.weeklyEarningsPoints < 30
-        ? 'Анализируй рынок, ищи профитные сигналы, участвуй в активностях. Цель: 6000+ ₽.'
+        ? 'Анализируй рынок, ищи профитные сигналы, участвуй в активностях. Цель: 40 000+ ₽.'
         : 'Супер! Твой доход на высоте.',
-      color: 'bg-emerald-200 text-emerald-900'
+      color: 'bg-emerald-200 text-emerald-900 dark:bg-emerald-500/20 dark:text-emerald-400'
     },
     {
       icon: <Users className="w-5 h-5" />,
-      label: 'Рефералы',
+      label: 'Рефералы (месяц)',
       value: `${rating.breakdown.referrals} чел.`,
       points: rating.breakdown.referralsPoints,
-      maxPoints: 30,
+      maxPoints: 20,
       what: `Привлечено ${rating.breakdown.referrals} рефералов за 30 дней.`,
       why: 'Рост комьюнити важен для масштабирования и новых возможностей.',
-      how: rating.breakdown.referralsPoints < 30
-        ? 'Приглашай активных друзей, делись ссылкой. Цель: 6 человек.'
+      how: rating.breakdown.referralsPoints < 20
+        ? 'Приглашай активных друзей, делись ссылкой. Цель: 30+ человек.'
         : 'Отличная работа по расширению команды!',
-      color: 'bg-pink-200 text-pink-900'
-    },
-    {
-      icon: <Zap className="w-5 h-5" />,
-      label: 'Сигналы/Коллы',
-      value: `${rating.breakdown.signals}`,
-      points: 0,
-      maxPoints: 0,
-      what: `Дано ${rating.breakdown.signals} сигналов.`,
-      why: 'Активность в трейдинге и генерация идей.',
-      how: 'Продолжай искать и публиковать качественные сигналы.',
-      color: 'bg-yellow-200 text-yellow-900'
+      color: 'bg-pink-200 text-pink-900 dark:bg-pink-500/20 dark:text-pink-400'
     },
     {
       icon: <Lightbulb className="w-5 h-5" />,
-      label: 'Инициативы',
+      label: 'Инициативы (месяц)',
       value: `${rating.breakdown.initiatives}`,
-      points: 0,
-      maxPoints: 0,
-      what: `Предложено ${rating.breakdown.initiatives} инициатив.`,
-      why: 'Проактивность помогает развивать проект.',
-      how: 'Предлагай идеи по улучшению процессов.',
-      color: 'bg-indigo-200 text-indigo-900'
+      points: rating.breakdown.initiativesPoints,
+      maxPoints: 15,
+      what: `Предложено ${rating.breakdown.initiatives} инициатив за месяц.`,
+      why: 'Проактивность помогает развивать проект и улучшать процессы.',
+      how: rating.breakdown.initiativesPoints < 15
+        ? 'Предлагай идеи по улучшению процессов. Цель: 10+ инициатив.'
+        : 'Отлично! Ты вносишь вклад в развитие проекта.',
+      color: 'bg-indigo-200 text-indigo-900 dark:bg-indigo-500/20 dark:text-indigo-400'
     },
     {
-      icon: <DollarSign className="w-5 h-5" />,
-      label: 'Пул',
-      value: `${rating.breakdown.poolAmount.toFixed(2)} ₽`,
-      points: 0,
-      maxPoints: 0,
-      what: `Отправлено в пул: ${rating.breakdown.poolAmount.toFixed(2)} ₽.`,
-      why: 'Вклад в общий пул команды.',
-      how: 'Увеличивай отчисления с доходов.',
-      color: 'bg-green-200 text-green-900'
-    },
-    {
-      icon: <Calendar className="w-5 h-5" />,
-      label: 'Выходные',
-      value: `${rating.breakdown.daysOff} дн.`,
-      points: rating.breakdown.daysOffPoints,
-      maxPoints: 5,
-      what: `Использовано ${rating.breakdown.daysOff} выходных на этой неделе.`,
-      why: 'Важен баланс, но частые выходные снижают вовлеченность.',
-      how: rating.breakdown.daysOffPoints <= 0
-        ? 'Старайся брать не более 2-3 выходных в неделю.'
-        : 'График в норме.',
-      color: 'bg-amber-200 text-amber-900'
-    },
-    {
-      icon: <Heart className="w-5 h-5" />,
-      label: 'Больничные',
-      value: `${rating.breakdown.sickDays} дн.`,
-      points: rating.breakdown.sickDaysPoints,
-      maxPoints: 5,
-      what: `Всего ${rating.breakdown.sickDays} дней больничного за месяц (из них ${rating.breakdown.sickDays} на неделе).`,
-      why: 'Здоровье важно, но длительные отсутствия влияют на процесс.',
-      how: rating.breakdown.sickDaysPoints <= 0
-        ? 'Выздоравливай! Но следи, чтобы больничные не становились частой практикой без причины.'
-        : 'Всё в порядке.',
-      color: 'bg-purple-200 text-purple-900'
-    },
-    {
-      icon: <Plane className="w-5 h-5" />,
-      label: 'Отпуск',
-      value: `${rating.breakdown.vacationDays} дн.`,
-      points: rating.breakdown.vacationDaysPoints,
-      maxPoints: 10,
-      what: `Использовано ${rating.breakdown.vacationDays} дней отпуска за месяц.`,
-      why: 'Отдых нужен для перезагрузки, но в меру.',
-      how: rating.breakdown.vacationDaysPoints <= 0
-        ? 'Планируй отпуск заранее и не превышай лимиты (12 дней/мес).'
-        : 'Режим отдыха соблюдается.',
-      color: 'bg-orange-200 text-orange-900'
-    },
-    {
-      icon: <AlertTriangle className="w-5 h-5" />,
-      label: 'Отсутствия',
+      icon: <Shield className="w-5 h-5" />,
+      label: 'Отсутствия (месяц)',
       value: `${rating.breakdown.absenceDays} дн.`,
       points: rating.breakdown.absenceDaysPoints,
-      maxPoints: 0,
-      what: `Отсутствия - это пропуск рабочего дня с уважительной причиной, когда отвественный за сообщество согласовал такой пропуск в установленном порядке, зафиксировано на данный момент: ${rating.breakdown.absenceDays} дней отсутствия.`,
-      why: 'Отсутствия по уважительным причинам не влияют на рейтинг в негативном плане, но если у вас меньше 3 отсутствий за месяц, то к рейтингу прибавляется 5 баллов',
-      how: rating.breakdown.absenceDays > 0
-        ? 'Избегай отсутствия без предупреждения.'
-        : 'Дисциплина в норме.',
-      color: 'bg-red-100 text-red-800'
+      maxPoints: 10,
+      what: `Отсутствий: ${rating.breakdown.absenceDays} за месяц (с согласованием).`,
+      why: 'Минимум отсутствий показывает твою ответственность. Меньше 5 — бонус.',
+      how: rating.breakdown.absenceDaysPoints < 10
+        ? rating.breakdown.absenceDays > 10
+          ? 'Слишком много отсутствий! Это влияет на рейтинг.'
+          : 'Постарайся минимизировать отсутствия.'
+        : 'Отличная посещаемость!',
+      color: rating.breakdown.absenceDaysPoints < 0
+        ? 'bg-red-200 text-red-900 dark:bg-red-500/20 dark:text-red-400'
+        : 'bg-amber-200 text-amber-900 dark:bg-amber-500/20 dark:text-amber-400'
     },
     {
       icon: <AlertTriangle className="w-5 h-5" />,
-      label: 'Прогулы',
+      label: 'Прогулы (месяц)',
       value: `${rating.breakdown.truancyDays} дн.`,
-      points: 0,
+      points: rating.breakdown.truancyDaysPoints,
       maxPoints: 0,
-      what: `Прогул - это пропуск рабочего дня по неуважительным причинам или без согласования с отвественным за сообщество, на данный момент зафиксировано: ${rating.breakdown.truancyDays} прогулов.`,
-      why: 'Прогул - это грубое нарушение дисциплины и показатель отвественности к общему труду, более 5 прогулов за месяц приводит к автоматическому исключению из команды на 3 месяца, а повторное нарушение - навсегда после 1 прогула.',
-      how: rating.breakdown.truancyDays > 0
-        ? 'Прогулы недопустимы.'
-        : 'Прогулов нет.',
-      color: 'bg-red-300 text-red-900'
+      what: `Прогулов: ${rating.breakdown.truancyDays} за месяц (без согласования).`,
+      why: 'Прогул — нарушение дисциплины. >3 прогулов — штраф, >6 — двойной штраф.',
+      how: rating.breakdown.truancyDaysPoints < 0
+        ? 'Прогулы недопустимы! Предупреждай об отсутствиях заранее.'
+        : 'Дисциплина в норме.',
+      color: rating.breakdown.truancyDaysPoints < 0
+        ? 'bg-red-300 text-red-900 dark:bg-red-500/30 dark:text-red-400'
+        : 'bg-green-200 text-green-900 dark:bg-green-500/20 dark:text-green-400'
     },
   ] : []
 
-  const basePoints = metrics
-    .filter(m => !m.label.includes('Прогулы'))
-    .reduce((sum, m) => sum + m.points, 0)
-  const absencePenalty = metrics.find(m => m.label === 'Отсутствия')?.points || 0
-  const totalPoints = Math.max(0, Math.min(100, basePoints + absencePenalty))
+  const totalPoints = rating.breakdown?.totalRating || rating.rating
   const exclusionStatus = getExclusionStatus(rating.rating)
 
-  // Place badge - показываем только место без медали
+  // Place badge
   const placeBadge = (() => {
     if (!place) return null
     const rank = place.rank
@@ -224,7 +168,7 @@ export const RatingCard = ({ rating, place }: RatingCardProps) => {
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
             <p className={`text-[10px] uppercase tracking-[0.15em] font-bold ${mutedColor} mb-2`}>Участник команды</p>
-            <div className="flex items-center gap-2 mb-2"> {/* New div for avatar and nickname */}
+            <div className="flex items-center gap-2 mb-2">
               {avatarUrl ? (
                 <img src={avatarUrl} alt="Avatar" className="w-8 h-8 rounded-full object-cover" />
               ) : (
@@ -240,9 +184,9 @@ export const RatingCard = ({ rating, place }: RatingCardProps) => {
           </div>
           <div className="flex flex-col items-end gap-1">
             <span className={`text-4xl font-black bg-gradient-to-br from-emerald-600 to-blue-600 bg-clip-text text-transparent dark:from-emerald-400 dark:to-blue-400`}>
-              {rating.rating.toFixed(1)}%
+              {rating.rating.toFixed(1)}
             </span>
-            <span className={`text-[10px] uppercase tracking-wider font-bold ${mutedColor}`}>Рейтинг</span>
+            <span className={`text-[10px] uppercase tracking-wider font-bold ${mutedColor}`}>баллов</span>
           </div>
         </div>
 
@@ -257,13 +201,13 @@ export const RatingCard = ({ rating, place }: RatingCardProps) => {
               }}
             >
               <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent" />
-              {rating.rating >= 5 && <span className="text-sm font-black text-white drop-shadow-lg relative z-10">{rating.rating.toFixed(1)}%</span>}
+              {rating.rating >= 5 && <span className="text-sm font-black text-white drop-shadow-lg relative z-10">{rating.rating.toFixed(1)}</span>}
             </div>
           </div>
           <div className="flex justify-between items-center">
-            <span className={`text-xs font-semibold ${mutedColor}`}>Общий прогресс</span>
+            <span className={`text-xs font-semibold ${mutedColor}`}>Общий рейтинг</span>
             <span className={`text-xs font-black ${headingColor} px-2 py-0.5 rounded-lg ${theme === 'dark' ? 'bg-white/10' : 'bg-gray-100'}`}>
-              {totalPoints}/100
+              {totalPoints} баллов
             </span>
           </div>
         </div>
@@ -293,11 +237,11 @@ export const RatingCard = ({ rating, place }: RatingCardProps) => {
         <div className="space-y-3 mb-6">
           <div className="flex items-center gap-2 mb-4">
             <TrendingUp className={`w-5 h-5 ${mutedColor}`} />
-            <h4 className={`text-lg font-semibold ${headingColor}`}>Детальный разбор рейтинга</h4>
+            <h4 className={`text-lg font-semibold ${headingColor}`}>Детальный разбор</h4>
           </div>
 
           {metrics.map((metric, index) => {
-            const percentage = metric.maxPoints > 0 ? (metric.points / metric.maxPoints) * 100 : 0
+            const percentage = metric.maxPoints > 0 ? Math.min(Math.max((metric.points / metric.maxPoints) * 100, 0), 100) : 0
             const isExpanded = expandedMetric === index
 
             return (
@@ -318,21 +262,23 @@ export const RatingCard = ({ rating, place }: RatingCardProps) => {
                         <span className={`font-semibold ${headingColor} truncate`}>
                           {metric.label}
                         </span>
-                        <span className={`font-bold ml-2 ${metric.points > 0 ? 'text-[#4E6E49]' : 'text-red-500'}`}>
-                          {metric.points}/{metric.maxPoints}
+                        <span className={`font-bold ml-2 ${metric.points > 0 ? 'text-[#4E6E49]' : metric.points < 0 ? 'text-red-500' : 'text-gray-400'}`}>
+                          {metric.points > 0 ? '+' : ''}{metric.points}{metric.maxPoints > 0 ? `/${metric.maxPoints}` : ''}
                         </span>
                       </div>
-                      <div className="w-full bg-gray-200 dark:bg-gray-800 rounded-full h-2 overflow-hidden">
-                        <div
-                          className={`h-full transition-all duration-300 ${metric.color}`}
-                          style={{ width: `${percentage}%` }}
-                        />
-                      </div>
+                      {metric.maxPoints > 0 && (
+                        <div className="w-full bg-gray-200 dark:bg-gray-800 rounded-full h-2 overflow-hidden">
+                          <div
+                            className={`h-full transition-all duration-300 ${metric.color}`}
+                            style={{ width: `${percentage}%` }}
+                          />
+                        </div>
+                      )}
                       <div className="flex items-center justify-between mt-1">
                         <span className={`text-xs ${mutedColor} truncate mr-2`}>{metric.value}</span>
                       </div>
                     </div>
-                    <Info className={`w-4 h-4 flex-shrink-0 ml-2 ${mutedColor} transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                    <AlertTriangle className={`w-4 h-4 flex-shrink-0 ml-2 ${mutedColor} transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
                   </div>
                 </button>
 
@@ -350,7 +296,7 @@ export const RatingCard = ({ rating, place }: RatingCardProps) => {
                       <div>
                         <span className={`text-[10px] uppercase font-bold tracking-wider opacity-60 ${headingColor}`}>Как улучшить</span>
                         <div className={`mt-1 p-2 rounded-lg border ${theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-emerald-50 border-emerald-100'}`}>
-                          <p className={`text-sm ${metric.points < metric.maxPoints ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-500 dark:text-gray-400'} font-medium`}>
+                          <p className={`text-sm ${metric.points >= metric.maxPoints && metric.maxPoints > 0 ? 'text-gray-500 dark:text-gray-400' : 'text-emerald-600 dark:text-emerald-400'} font-medium`}>
                             {metric.how}
                           </p>
                         </div>
