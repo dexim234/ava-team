@@ -61,29 +61,51 @@ const PenguinIcon: React.FC<{ className?: string }> = ({ className = '' }) => (
 const RatingScale: React.FC<{ scale: ScaleLevel[]; currentPoints: number; theme: string }> = ({ scale, currentPoints, theme }) => {
   const mutedColor = theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
   
-  // Находим индекс текущего уровня (ближайшего снизу или равного)
-  const currentLevelIndex = scale.findIndex((_, idx) => {
-    if (idx === scale.length - 1) return true
-    return currentPoints < scale[idx + 1].points
+  // Сортируем шкалу по возрастанию баллов для универсальной обработки
+  const sortedScale = [...scale].sort((a, b) => a.points - b.points)
+  
+  // Определяем направление шкалы (возрастающая или убывающая в оригинале)
+  const isDescending = scale[0].points > scale[scale.length - 1].points
+  
+  // Находим индекс текущего уровня в отсортированной шкале
+  const currentLevelIndex = sortedScale.findIndex((_, idx) => {
+    if (idx === sortedScale.length - 1) return true
+    return currentPoints < sortedScale[idx + 1].points
   })
   
   // Вычисляем позицию пингвина внутри сегмента
-  const segmentWidth = 100 / scale.length
+  const segmentWidth = 100 / sortedScale.length
   let penguinPosition = 0
   
   if (currentLevelIndex >= 0) {
-    const currentLevel = scale[currentLevelIndex]
-    const nextLevel = scale[currentLevelIndex + 1]
+    const currentLevel = sortedScale[currentLevelIndex]
+    const nextLevel = sortedScale[currentLevelIndex + 1]
     
     if (nextLevel) {
-      // Если есть следующий уровень, рассчитываем прогресс внутри сегмента
+      // Вычисляем прогресс внутри сегмента
       const range = nextLevel.points - currentLevel.points
-      const progress = range > 0 ? (currentPoints - currentLevel.points) / range : 0
-      // Пингвин движется от начала сегмента к его концу
-      penguinPosition = (currentLevelIndex * segmentWidth) + (segmentWidth * Math.max(0, Math.min(1, progress)))
+      let progress = 0
+      
+      if (isDescending) {
+        // Для убывающих шкал инвертируем прогресс
+        progress = range > 0 ? (currentLevel.points - currentPoints) / range : 0
+      } else {
+        // Для возрастающих шкал используем обычную логику
+        progress = range > 0 ? (currentPoints - currentLevel.points) / range : 0
+      }
+      
+      progress = Math.max(0, Math.min(1, progress))
+      
+      if (isDescending) {
+        // Для убывающих шкал пингвин идет от конца сегмента к началу
+        penguinPosition = (currentLevelIndex * segmentWidth) + (segmentWidth * (1 - progress))
+      } else {
+        // Для возрастающих шкал пингвин идет от начала сегмента к концу
+        penguinPosition = (currentLevelIndex * segmentWidth) + (segmentWidth * progress)
+      }
     } else {
-      // Если это последний уровень, пингвин в конце шкалы
-      penguinPosition = 100
+      // Если это последний уровень в отсортированном порядке
+      penguinPosition = isDescending ? 0 : 100
     }
   }
 
