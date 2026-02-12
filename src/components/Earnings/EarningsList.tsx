@@ -1,3 +1,4 @@
+// List of all earnings with edit/delete buttons
 import { useState } from 'react'
 import { useThemeStore } from '@/store/themeStore'
 import { useAuthStore } from '@/store/authStore'
@@ -6,7 +7,7 @@ import { deleteEarnings, addApprovalRequest } from '@/services/firestoreService'
 import { Earnings, EARNINGS_CATEGORY_META, EarningsCategory } from '@/types'
 import { formatDate } from '@/utils/dateUtils'
 import { getUserNicknameSync } from '@/utils/userUtils'
-import { Edit2, Trash2, Rocket, LineChart, Image, Coins, BarChart3, ShieldCheck, Sparkles, Gift } from 'lucide-react'
+import { Edit2, Trash2, Rocket, LineChart, Image, Coins, BarChart3, ShieldCheck, Sparkles, Gift, Zap, Briefcase } from 'lucide-react'
 
 interface EarningsListProps {
   earnings: Earnings[]
@@ -23,10 +24,14 @@ export const EarningsList = ({ earnings, onEdit, onDelete }: EarningsListProps) 
 
   const getCategoryIcon = (key: EarningsCategory, className = 'w-4 h-4') => {
     switch (key) {
-      case 'memecoins':
+      case 'memes_trading':
         return <Rocket className={className} />
+      case 'memes_dev':
+        return <Zap className={className} />
       case 'futures':
         return <LineChart className={className} />
+      case 'prop_trading':
+        return <Briefcase className={className} />
       case 'nft':
         return <Image className={className} />
       case 'spot':
@@ -82,8 +87,7 @@ export const EarningsList = ({ earnings, onEdit, onDelete }: EarningsListProps) 
   }
 
   const getCategoryMeta = (category: EarningsCategory) => {
-    const meta = EARNINGS_CATEGORY_META[category]
-    return meta
+    return EARNINGS_CATEGORY_META[category] || EARNINGS_CATEGORY_META.other
   }
 
   const getUserName = (userId: string) => {
@@ -228,3 +232,4 @@ export const EarningsList = ({ earnings, onEdit, onDelete }: EarningsListProps) 
     </div>
   )
 }
+

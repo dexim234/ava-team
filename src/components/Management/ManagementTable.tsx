@@ -1,3 +1,4 @@
+// Table view for management
 import { useState, useEffect } from 'react'
 import { useThemeStore } from '@/store/themeStore'
 import { useAuthStore } from '@/store/authStore'
@@ -5,11 +6,11 @@ import { useAdminStore } from '@/store/adminStore'
 import { getWorkSlots, getDayStatuses, addApprovalRequest, deleteWorkSlot, updateDayStatus, addDayStatus, deleteDayStatus } from '@/services/firestoreService'
 import { formatDate, calculateHours, getWeekDays, getMoscowTime, getWeekRange } from '@/utils/dateUtils'
 import { UserNickname } from '@/components/UserNickname'
-import { WorkSlot, DayStatus, SLOT_CATEGORY_META, SlotCategory, TEAM_MEMBERS, User as UserType } from '@/types' // Добавляем User as UserType
+import Avatar from '@/components/Avatar'
+import { WorkSlot, DayStatus, SLOT_CATEGORY_META, SlotCategory } from '@/types'
+import { TEAM_MEMBERS } from '@/types'
 import { Edit, Trash2, Clock, Calendar as CalendarIcon, ChevronDown, ChevronUp, Info, ChevronLeft, ChevronRight, RotateCcw } from 'lucide-react'
 import { format, startOfWeek } from 'date-fns'
-import { useUsers } from '@/hooks/useUsers' // Импортируем useUsers
-import { getUserNicknameSync } from '@/utils/userUtils'
 
 type SlotFilter = 'all' | 'upcoming' | 'completed'
 
@@ -27,7 +28,6 @@ export const ManagementTable = ({ selectedUserId, slotFilter, onEditSlot, onEdit
   const { theme } = useThemeStore()
   const { user } = useAuthStore()
   const { isAdmin } = useAdminStore()
-  const { users: allMembers } = useUsers() // Используем useUsers для получения актуальных данных о пользователях
   // Типы статусов, которые может удалять только админ
   const adminOnlyTypes = ['truancy', 'absence', 'internship']
   const [slots, setSlots] = useState<WorkSlot[]>([])
@@ -44,30 +44,7 @@ export const ManagementTable = ({ selectedUserId, slotFilter, onEditSlot, onEdit
   const todayStr = formatDate(new Date(), 'yyyy-MM-dd')
 
   const weekDays = getWeekDays(selectedWeek)
-
-  const legacyIdMap: Record<string, string> = {
-    artyom: '1',
-    adel: '2',
-    kseniya: '3',
-    olga: '4',
-    anastasia: '5',
-  }
-
-  const resolveUser = (userId: string) => {
-    const memberFromAllMembers = allMembers.find((u: UserType) => u.id === userId)
-    const memberFromTeamMembers = TEAM_MEMBERS.find((u: UserType) => u.id === userId) || TEAM_MEMBERS.find((u: UserType) => legacyIdMap[userId] === u.id)
-
-    const member = memberFromAllMembers || memberFromTeamMembers
-    return {
-      member,
-      displayName: getUserNicknameSync(member?.id || userId),
-      avatar: member?.avatar,
-    }
-  }
-
-  // Вместо displayUsers напрямую фильтруем allMembers или TEAM_MEMBERS
-  const availableUsers = allMembers.length > 0 ? allMembers : TEAM_MEMBERS;
-  const displayUsers = selectedUserId ? availableUsers.filter((u) => u.id === selectedUserId) : availableUsers;
+  const displayUsers = selectedUserId ? TEAM_MEMBERS.filter((u) => u.id === selectedUserId) : TEAM_MEMBERS
 
   useEffect(() => {
     if (initialWeekStart) {
@@ -468,6 +445,8 @@ export const ManagementTable = ({ selectedUserId, slotFilter, onEditSlot, onEdit
     }))
   }
 
+
+
   if (loading) {
     return (
       <div className={`rounded-lg p-8 text-center ${theme === 'dark' ? 'bg-[#1a1a1a]' : 'bg-white'}`}>
@@ -497,7 +476,6 @@ export const ManagementTable = ({ selectedUserId, slotFilter, onEditSlot, onEdit
     airdrop: { bg: 'bg-cyan-100 dark:bg-cyan-900/40', text: 'text-cyan-700 dark:text-cyan-300', border: 'border-cyan-300 dark:border-cyan-700' },
     polymarket: { bg: 'bg-pink-100 dark:bg-pink-900/40', text: 'text-pink-700 dark:text-pink-300', border: 'border-pink-300 dark:border-pink-700' },
     staking: { bg: 'bg-indigo-100 dark:bg-indigo-900/40', text: 'text-indigo-700 dark:text-indigo-300', border: 'border-indigo-300 dark:border-indigo-700' },
-    other: { bg: 'bg-gray-100 dark:bg-gray-900/40', text: 'text-gray-700 dark:text-gray-300', border: 'border-gray-300 dark:border-gray-700' },
   }
 
   return (
@@ -559,7 +537,7 @@ export const ManagementTable = ({ selectedUserId, slotFilter, onEditSlot, onEdit
           <table className="w-full border-collapse">
             <thead className="sticky top-0 z-30">
               <tr className={`${theme === 'dark' ? 'bg-[#0b1015]' : 'bg-white'}`}>
-                <th className={`p-3 text-center text-[10px] font-bold uppercase tracking-wider ${subTextColor} sticky left-0 z-30 ${theme === 'dark' ? 'bg-[#0b1015]' : 'bg-white'
+                <th className={`p-3 text-left text-[10px] font-bold uppercase tracking-wider ${subTextColor} sticky left-0 z-30 ${theme === 'dark' ? 'bg-[#0b1015]' : 'bg-white'
                   }`}>Участник</th>
                 {weekDays.map((day) => {
                   const isToday = formatDate(day, 'yyyy-MM-dd') === todayStr
@@ -581,7 +559,6 @@ export const ManagementTable = ({ selectedUserId, slotFilter, onEditSlot, onEdit
             <tbody className={`divide-y ${theme === 'dark' ? 'divide-white/5' : 'divide-gray-100'}`}>
               {displayUsers.map((user, index) => {
                 const stats = getUserStats(user.id)
-                const userInfo = resolveUser(user.id) // Получаем информацию о пользователе через resolveUser, как в ManagementWeekView
                 // Zebra striping
                 const rowBg = index % 2 === 0
                   ? theme === 'dark' ? 'bg-[#0f141a]' : 'bg-gray-50/30'
@@ -593,9 +570,18 @@ export const ManagementTable = ({ selectedUserId, slotFilter, onEditSlot, onEdit
                     className={`${rowBg} hover:bg-emerald-500/5 transition-colors group`}
                   >
                     <td className={`p-2 sticky left-0 z-20 ${rowBg} group-hover:bg-[#1a2029] transition-colors align-middle`}>
-                      <div className="flex items-center gap-2 justify-center">
-                        {/* Передаем avatarUrl в UserNickname из userInfo */}
-                        <UserNickname userId={user.id} avatarUrl={userInfo.avatar} className="text-xs font-semibold" />
+                      <div className="flex items-center gap-2">
+                        <div className="relative">
+                          <Avatar userId={user.id} user={user} size="sm" />
+                        </div>
+                        <div>
+                          <div className={`font-bold text-[13px] leading-tight ${headingColor}`}>
+                            <UserNickname userId={user.id} />
+                          </div>
+                          <div className="text-[9px] text-gray-500 font-medium uppercase tracking-tight">
+                            Member
+                          </div>
+                        </div>
                       </div>
                     </td>
                     {weekDays.map((day: Date) => {
@@ -755,3 +741,4 @@ export const ManagementTable = ({ selectedUserId, slotFilter, onEditSlot, onEdit
     </div >
   )
 }
+

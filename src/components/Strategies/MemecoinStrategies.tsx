@@ -18,7 +18,7 @@ import {
     Database,
     Share2,
     ShieldAlert,
-    Users, // Добавлено для новой стратегии
+    Users,
     ShieldCheck,
     Activity,
     TrendingUp,
@@ -33,10 +33,9 @@ import { AVAIntradayStrategy } from './AVAIntradayStrategy'
 import { AVAFlipStrategy } from './AVAFlipStrategy'
 import { AVAFlipFibaStrategy } from './AVAFlipFibaStrategy'
 import { AVAFibaModeStrategy } from './AVAFibaModeStrategy'
-import { AVACopyTradingAOStrategy } from './AVACopyTradingAOStrategy' // Новый импорт
-import { StrategyDropdownSelector } from './StrategyDropdownSelector'
+import { StrategyDropdownSelector } from './StrategyDropdownSelector' // Импорт нового компонента
 
-type StrategyId = 'late-volume' | 'intraday' | 'flip' | 'flip-fiba' | 'fiba-mode' | 'copy-trading-ao' | null;
+type StrategyId = 'late-volume' | 'intraday' | 'flip' | 'flip-fiba' | 'fiba-mode' | null;
 
 export const MemecoinStrategies: React.FC = () => {
     const { theme } = useThemeStore()
@@ -76,7 +75,6 @@ export const MemecoinStrategies: React.FC = () => {
         { id: 'flip', name: 'AVA FLIP-1S', icon: <Timer className="w-4 h-4" /> },
         { id: 'flip-fiba', name: 'AVA FLIP + FIBA', icon: <Zap className="w-4 h-4" /> },
         { id: 'fiba-mode', name: 'AVA - FIBA MODE', icon: <Layers className="w-4 h-4" /> },
-        { id: 'copy-trading-ao', name: 'AVA — Copy Trading AO', icon: <Users className="w-4 h-4" /> }, // Новая стратегия
     ]
 
     if (loading) {
@@ -129,9 +127,7 @@ export const MemecoinStrategies: React.FC = () => {
                                         {s.id === 'late-volume' ? 'Работа с аномальными объемами на поздних стадиях.' :
                                             s.id === 'intraday' ? 'Внутридневная торговля на основе технического анализа.' :
                                                 s.id === 'flip' ? 'Скоростная торговля на изменениях цены в 1 секунду.' :
-                                                    s.id === 'flip-fiba' ? 'Интрадей-флип токенов Solana pre-migration.' :
-                                                        s.id === 'fiba-mode' ? 'Торговля по фибоначчи и уровням.' : 
-                                                            'Копирование высокопотенциальных сделок с ручной проверкой.'}
+                                                    'Интрадей-флип токенов Solana pre-migration.'}
                                     </p>
                                     <div className="mt-6 flex items-center gap-2 text-blue-500 font-bold text-xs uppercase tracking-wider">
                                         Подробнее <ExternalLink className="w-3 h-3" />
@@ -161,10 +157,8 @@ export const MemecoinStrategies: React.FC = () => {
                                     <AVAFlipStrategy />
                                 ) : activeStrategy === 'flip-fiba' ? (
                                     <AVAFlipFibaStrategy />
-                                ) : activeStrategy === 'fiba-mode' ? (
-                                    <AVAFibaModeStrategy />
                                 ) : (
-                                    <AVACopyTradingAOStrategy />
+                                    <AVAFibaModeStrategy />
                                 )}
                             </div>
                         </div>
