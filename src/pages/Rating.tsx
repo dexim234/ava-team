@@ -4,12 +4,53 @@ import { RatingCard } from '@/components/Rating/RatingCard'
 import { getRatingData, getEarnings, getDayStatuses, getReferrals, getWorkSlots } from '@/services/firestoreService'
 import { getLastNDaysRange, getWeekRange, formatDate, calculateHours, countDaysInPeriod } from '@/utils/dateUtils'
 import { calculateRating, getRatingBreakdown } from '@/utils/ratingUtils'
-import { getUserNicknameAsync, clearAllNicknameCache, getUserNicknameSync } from '@/utils/userUtils'
+import { getUserNicknameAsync, clearAllNicknameCache, getUserNicknameSync, useUserAvatar } from '@/utils/userUtils'
 import { RatingData, Referral, Earnings, DayStatus } from '@/types'
 import { useUsers } from '@/hooks/useUsers'
 import { TrendingUp, Award, Target, UserPlus, BarChart3, Lock } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
 import { useAccessControl } from '@/hooks/useAccessControl'
+
+// Компонент для отображения трёх лидеров
+const TopThreeLeaders = ({ leaders, theme }: { leaders: Array<{ userId: string; rating: number }>, theme: string }) => {
+  const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
+  const mutedColor = theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+
+  if (leaders.length === 0) {
+    return (
+      <div className={`text-sm ${mutedColor}`}>
+        Нет участников с 50+ баллов
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-2">
+      {leaders.map((leader) => {
+        const avatarUrl = useUserAvatar(leader.userId)
+        const nickname = getUserNicknameSync(leader.userId)
+        
+        return (
+          <div key={leader.userId} className="flex items-center gap-2">
+            {avatarUrl ? (
+              <img src={avatarUrl} alt="Avatar" className="w-6 h-6 rounded-full object-cover flex-shrink-0" />
+            ) : (
+              <div className={`w-6 h-6 rounded-full flex items-center justify-center bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs font-bold flex-shrink-0`}>
+                {nickname ? nickname.charAt(0).toUpperCase() : '-'}
+              </div>
+            )}
+            <span className={`text-sm font-semibold ${headingColor} truncate flex-1`}>
+              {nickname || '—'}
+            </span>
+            <span className={`text-xs font-bold ${theme === 'dark' ? 'text-amber-400' : 'text-amber-600'} flex-shrink-0`}>
+              {leader.rating.toFixed(1)}
+            </span>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
 
 export const Rating = () => {
   const { user } = useAuthStore()
@@ -24,7 +65,6 @@ export const Rating = () => {
   const pageAccess = useAccessControl('ava_rating')
   const othersAccess = useAccessControl('rating_others_view')
   const selfAccess = useAccessControl('rating_self_view')
-
 
   useEffect(() => {
     if (!usersLoading) {
@@ -210,8 +250,13 @@ export const Rating = () => {
     return { top, median, count: sortedRatings.length, high }
   }, [sortedRatings])
 
-  const topMember = sortedRatings[0]
-  const topMemberName = topMember ? getUserNicknameSync(topMember.userId) : '—'
+  // Три лидера с рейтингом >= 50
+  const topThreeLeaders = useMemo(() => {
+    return sortedRatings
+      .filter(r => r.rating >= 50)
+      .slice(0, 3)
+      .map(r => ({ userId: r.userId, rating: r.rating }))
+  }, [sortedRatings])
 
   // Load custom nicknames on mount
   useEffect(() => {
@@ -280,9 +325,9 @@ export const Rating = () => {
       borderClass: 'border-emerald-500/20'
     },
     {
-      label: 'Лидер',
-      value: topMemberName,
-      note: topMember ? `${topMember.rating.toFixed(1)} баллов` : '—',
+      label: 'Три лидера',
+      value: <TopThreeLeaders leaders={topThreeLeaders} theme={theme} />,
+      note: 'минимум 50 баллов',
       icon: <Award className="w-5 h-5 text-amber-400" />,
       bgClass: 'bg-amber-500/5',
       borderClass: 'border-amber-500/20'
@@ -345,7 +390,7 @@ export const Rating = () => {
               </div>
               <div className="space-y-1">
                 <div className={`text-2xl font-black tracking-tight ${headingColor}`}>
-                  {item.value}
+                  {typeof item.value === 'string' ? item.value : item.value}
                 </div>
                 <div className={`text-[11px] font-medium ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
                   {item.note}
