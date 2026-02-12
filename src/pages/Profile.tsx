@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { useThemeStore } from '@/store/themeStore'
 import { useAuthStore } from '@/store/authStore'
 import { useAdminStore, ADMIN_PASSWORD } from '@/store/adminStore'
@@ -10,8 +10,6 @@ import {
   getDayStatuses,
   getReferrals,
   getWorkSlots,
-  getUserNickname,
-  addApprovalRequest,
 } from '@/services/firestoreService'
 import {
   getWeekRange,
@@ -23,23 +21,15 @@ import {
 import { calculateRating, getRatingBreakdown } from '@/utils/ratingUtils'
 import { RatingData, Earnings, DayStatus, WorkSlot } from '@/types'
 import {
-  User,
   LogOut,
-  Eye,
-  EyeOff,
   TrendingUp,
   Shield,
-  Copy,
-  Check,
   Info,
   DollarSign,
   BookOpen,
   Zap,
   Wallet,
   PiggyBank,
-  Calendar,
-  Heart,
-  Plane,
   Clock,
   Users,
   AlertTriangle,
@@ -47,8 +37,7 @@ import {
 } from 'lucide-react'
 import { useNavigate, Link } from 'react-router-dom'
 import { TEAM_MEMBERS } from '@/types'
-import { useUserNickname, useUserAvatar } from '@/utils/userUtils'
-import { UserNickname } from '@/components/UserNickname'
+import { useUserAvatar } from '@/utils/userUtils'
 
 export const Profile = () => {
   const { theme } = useThemeStore()
@@ -61,8 +50,6 @@ export const Profile = () => {
   // Use effective user ID (viewed user or current user)
   const targetUserId = effectiveUserId || user?.id || 'admin'
 
-  const [showPassword, setShowPassword] = useState(false)
-  const [passwordCopied, setPasswordCopied] = useState(false)
   const [rating, setRating] = useState<RatingData | null>(null)
   const [ratingBreakdown, setRatingBreakdown] = useState<ReturnType<typeof getRatingBreakdown> | null>(null)
   const [earningsSummary, setEarningsSummary] = useState<{
@@ -72,11 +59,6 @@ export const Profile = () => {
     weekly: { gross: number; pool: number; net: number }
   } | null>(null)
   const [loading, setLoading] = useState(true)
-  const [loginCopied, setLoginCopied] = useState(false)
-  const [newNickname, setNewNickname] = useState('')
-  const [isEditingNickname, setIsEditingNickname] = useState(false)
-  const [nicknameRequestPending, setNicknameRequestPending] = useState(false)
-  const nickname = useUserNickname(targetUserId || '')
 
   // Get viewed user info if viewing other user
   const viewedUserMember = effectiveUserId ? TEAM_MEMBERS.find(m => m.id === effectiveUserId) : null
@@ -112,10 +94,6 @@ export const Profile = () => {
         const monthIsoStart = monthRange.start.toISOString()
         const monthIsoEnd = monthRange.end.toISOString()
 
-        const ninetyDayRange = getLastNDaysRange(90)
-        const ninetyDayStart = formatDate(ninetyDayRange.start, 'yyyy-MM-dd')
-        const ninetyDayEnd = formatDate(ninetyDayRange.end, 'yyyy-MM-dd')
-
         const weekEarnings = await getEarnings(targetUserId, weekStart, weekEnd)
         const weeklyEarningsAmount = weekEarnings.reduce((sum: number, e: Earnings) => {
           const participantCount = e.participants && e.participants.length > 0 ? e.participants.length : 1
@@ -143,49 +121,12 @@ export const Profile = () => {
           return statusStart <= monthEnd && statusEnd >= monthStart
         })
 
-        const daysOff = monthStatuses
-          .filter((s: DayStatus) => s.type === 'dayoff')
-          .reduce((sum: number, s: DayStatus) => sum + countDaysInPeriod(s.date, s.endDate, monthStart, monthEnd), 0)
-        const sickDays = monthStatuses
-          .filter((s: DayStatus) => s.type === 'sick')
-          .reduce((sum: number, s: DayStatus) => sum + countDaysInPeriod(s.date, s.endDate, monthStart, monthEnd), 0)
-        const vacationDays = monthStatuses
-          .filter((s: DayStatus) => s.type === 'vacation')
-          .reduce((sum: number, s: DayStatus) => sum + countDaysInPeriod(s.date, s.endDate, monthStart, monthEnd), 0)
         const absenceDays = monthStatuses
           .filter((s: DayStatus) => s.type === 'absence')
           .reduce((sum: number, s: DayStatus) => sum + countDaysInPeriod(s.date, s.endDate, monthStart, monthEnd), 0)
         const truancyDays = monthStatuses
           .filter((s: DayStatus) => s.type === 'truancy')
           .reduce((sum: number, s: DayStatus) => sum + countDaysInPeriod(s.date, s.endDate, monthStart, monthEnd), 0)
-        const internshipDays = monthStatuses
-          .filter((s: DayStatus) => s.type === 'internship')
-          .reduce((sum: number, s: DayStatus) => sum + countDaysInPeriod(s.date, s.endDate, monthStart, monthEnd), 0)
-
-        // Недельные выходные и больничные
-        const weekStatuses = statuses.filter((s: any) => {
-          const statusStart = s.date
-          const statusEnd = s.endDate || s.date
-          return statusStart <= weekEnd && statusEnd >= weekStart
-        })
-
-        const weeklyDaysOff = weekStatuses
-          .filter((s: DayStatus) => s.type === 'dayoff')
-          .reduce((sum: number, s: DayStatus) => sum + countDaysInPeriod(s.date, s.endDate, weekStart, weekEnd), 0)
-        const weeklySickDays = weekStatuses
-          .filter((s: DayStatus) => s.type === 'sick')
-          .reduce((sum: number, s: DayStatus) => sum + countDaysInPeriod(s.date, s.endDate, weekStart, weekEnd), 0)
-
-        // Отпуск за 90 дней
-        const ninetyDayStatuses = statuses.filter((s: DayStatus) => {
-          const statusStart = s.date
-          const statusEnd = s.endDate || s.date
-          return statusStart <= ninetyDayEnd && statusEnd >= ninetyDayStart
-        })
-
-        const ninetyDayVacationDays = ninetyDayStatuses
-          .filter((s: any) => s.type === 'vacation')
-          .reduce((sum: number, s: any) => sum + countDaysInPeriod(s.date, s.endDate, ninetyDayStart, ninetyDayEnd), 0)
 
         const slots = await getWorkSlots(targetUserId)
         const weekSlots = slots.filter((s: WorkSlot) => s.date >= weekStart && s.date <= weekEnd)
@@ -221,12 +162,12 @@ export const Profile = () => {
           signals: ratingData.signals || 0,
           profitableSignals: ratingData.profitableSignals || 0,
           referrals: userReferrals,
-          daysOff,
-          sickDays,
-          vacationDays,
+          daysOff: 0,
+          sickDays: 0,
+          vacationDays: 0,
           absenceDays,
           truancyDays,
-          internshipDays,
+          internshipDays: 0,
           poolAmount,
           lastUpdated: new Date().toISOString(),
         }
@@ -234,9 +175,6 @@ export const Profile = () => {
         console.log('Profile.tsx calculateRating call for user:', targetUserId, {
           weeklyHours,
           weeklyEarnings: weeklyEarningsAmount,
-          weeklyDaysOff,
-          weeklySickDays,
-          ninetyDayVacationDays,
           updatedData
         })
 
@@ -244,18 +182,18 @@ export const Profile = () => {
           updatedData,
           weeklyHours,
           weeklyEarningsAmount,
-          weeklyDaysOff,
-          weeklySickDays,
-          ninetyDayVacationDays
+          0,
+          0,
+          0
         )
 
         const breakdown = getRatingBreakdown(
           updatedData,
           weeklyHours,
           weeklyEarningsAmount,
-          weeklyDaysOff,
-          weeklySickDays,
-          ninetyDayVacationDays
+          0,
+          0,
+          0
         )
 
         setRating({ ...updatedData, rating: calculatedRating })
@@ -287,61 +225,6 @@ export const Profile = () => {
     navigate('/login')
   }
 
-  const handleCopyPassword = () => {
-    if (user?.password) {
-      navigator.clipboard.writeText(user.password)
-      setPasswordCopied(true)
-      setTimeout(() => setPasswordCopied(false), 2000)
-    }
-  }
-
-  const handleCopyLogin = () => {
-    const loginToCopy = userData?.login
-    if (loginToCopy) {
-      navigator.clipboard.writeText(loginToCopy)
-      setLoginCopied(true)
-      setTimeout(() => setLoginCopied(false), 2000)
-    }
-  }
-
-  const handleRequestNicknameChange = async () => {
-    if (!targetUserId || !newNickname.trim()) return
-
-    const trimmedNickname = newNickname.trim()
-    const currentNickname = nickname || ''
-
-    // Check if nickname is different
-    if (trimmedNickname === currentNickname) {
-      setIsEditingNickname(false)
-      setNewNickname('')
-      return
-    }
-
-    setNicknameRequestPending(true)
-    try {
-      const currentUserNickname = await getUserNickname(targetUserId)
-
-      await addApprovalRequest({
-        entity: 'login',
-        action: 'update',
-        authorId: targetUserId,
-        targetUserId: targetUserId,
-        before: currentUserNickname || { id: '', userId: targetUserId, nickname: currentNickname, createdAt: '', updatedAt: '' },
-        after: { id: '', userId: targetUserId, nickname: trimmedNickname, createdAt: '', updatedAt: '' },
-        comment: `Запрос на изменение ника с "${currentNickname}" на "${trimmedNickname}"`,
-      })
-
-      setIsEditingNickname(false)
-      setNewNickname('')
-      alert('Запрос на изменение ника отправлен на согласование администратору')
-    } catch (error) {
-      console.error('Error requesting nickname change:', error)
-      alert('Ошибка при отправке запроса на изменение ника')
-    } finally {
-      setNicknameRequestPending(false)
-    }
-  }
-
   if (!userData) {
     return (
       <div className="text-center py-12">
@@ -349,6 +232,13 @@ export const Profile = () => {
       </div>
     )
   }
+
+  const weeklyNetStatus = earningsSummary?.weekly.net && earningsSummary.weekly.net >= 10000
+  const weeklyStatusText = weeklyNetStatus ? 'Вывод доступен' : 'Ожидание порога'
+  const weeklyStatusClass = weeklyNetStatus
+    ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-500'
+    : 'border-amber-500/20 bg-amber-500/10 text-amber-500'
+  const weeklyStatusBadge = weeklyNetStatus ? 'Доступно к выводу' : 'Перенос суммы'
 
   return (
     <div className="space-y-6">
@@ -380,9 +270,7 @@ export const Profile = () => {
                   </span>
                 )}
               </div>
-              <h1 className={`text-2xl md:text-4xl font-black tracking-tight ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                {isViewingOtherUser() ? viewedUserMember?.name || 'Пользователь' : userData.name}
-              </h1>
+              <h1 className={`text-2xl md:text-4xl font-black tracking-tight ${headingColor}`}>{isViewingOtherUser() ? viewedUserMember?.name || 'Пользователь' : userData.name}</h1>
               <p className={`text-sm font-medium ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
                 AVA - Team — Личный кабинет. Ваши данные и показатели.
               </p>
@@ -413,9 +301,9 @@ export const Profile = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {[
             {
-              label: 'Рейтинг (КПД)',
-              value: rating ? `${rating.rating.toFixed(1)}%` : '—',
-              note: rating?.rating && rating.rating >= 70 ? 'Высокая эффективность' : 'Требуется рост',
+              label: 'Рейтинг',
+              value: rating ? `${rating.rating.toFixed(1)}` : '—',
+              note: rating?.rating && rating.rating >= 50 ? 'В команде' : rating?.rating && rating.rating >= 30 ? 'Риск исключения' : 'Не в команде',
               icon: <Zap className="w-5 h-5 text-amber-400" />,
               bgClass: 'bg-amber-500/5',
               borderClass: 'border-amber-500/10'
@@ -477,266 +365,152 @@ export const Profile = () => {
         <div className={`rounded-xl p-8 text-center ${theme === 'dark' ? 'bg-white/5 text-white' : 'bg-white text-gray-800'} shadow`}>Загрузка...</div>
       ) : (
         <div className="space-y-5">
-          <div className="grid grid-cols-1 lg:grid-cols-[1.05fr_0.95fr] gap-4 items-stretch">
-            <div className="space-y-4 flex flex-col">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch">
+            {/* Rating Card */}
+            {rating && ratingBreakdown && (
               <div className={`rounded-2xl p-6 border ${theme === 'dark' ? 'border-white/5 bg-[#1a1a1a]' : 'border-gray-200 bg-white'} shadow`}>
-                <div className="flex items-center gap-3 mb-6">
-                  <div className={`p-2.5 rounded-xl ${theme === 'dark' ? 'bg-[#4E6E49]/10 text-[#4E6E49]' : 'bg-[#4E6E49]/5 text-[#4E6E49]'}`}>
-                    <User className="w-5 h-5" />
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-3">
+                    <div className={`p-2.5 rounded-xl ${theme === 'dark' ? 'bg-purple-500/10 text-purple-400' : 'bg-purple-50 text-purple-600'}`}>
+                      <TrendingUp className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h2 className={`text-sm font-black uppercase tracking-widest ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Рейтинг</h2>
+                      <p className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`}>Детальная оценка</p>
+                    </div>
                   </div>
-                  <div>
-                    <h2 className={`text-sm font-black uppercase tracking-widest ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Профиль</h2>
-                    <p className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`}>Доступ и учетные данные</p>
+                  <div className={`px-3 py-1.5 rounded-full text-[10px] font-black tracking-widest border border-purple-500/20 bg-purple-500/5 text-purple-500`}>
+                    {rating.rating.toFixed(1)} баллов
                   </div>
                 </div>
-                <div className="space-y-4">
-                  <div className={`p-4 rounded-xl border ${theme === 'dark' ? 'border-white/5 bg-black/20' : 'border-gray-100 bg-gray-50'} shadow-sm`}>
-                    <div className="flex items-center justify-between mb-1">
-                      <p className={`text-[10px] font-black uppercase tracking-widest ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`}>Ник</p>
-                      {!isEditingNickname && user && !isAdmin && (
-                        <button
-                          onClick={async () => {
-                            setIsEditingNickname(true)
-                            setNewNickname(nickname || '')
-                          }}
-                          className={`text-[10px] px-2 py-1 rounded-lg border transition-all font-black uppercase tracking-wider ${theme === 'dark' ? 'border-white/5 bg-white/5 hover:border-white/10 text-white' : 'border-gray-200 bg-white hover:border-gray-300 text-gray-700'}`}
-                        >
-                          Изменить
-                        </button>
-                      )}
-                    </div>
-                    {isEditingNickname ? (
-                      <div className="space-y-2 mt-1">
-                        <input
-                          type="text"
-                          value={newNickname}
-                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewNickname(e.target.value)}
-                          placeholder="Введите новый ник"
-                          className={`w-full px-3 py-2 rounded-lg border ${theme === 'dark' ? 'border-white/10 bg-white/5 text-white' : 'border-gray-200 bg-white text-gray-900'} text-sm`}
-                          disabled={nicknameRequestPending}
-                        />
-                        <div className="flex gap-2">
-                          <button
-                            onClick={handleRequestNicknameChange}
-                            disabled={nicknameRequestPending || !newNickname.trim()}
-                            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${nicknameRequestPending || !newNickname.trim()
-                              ? 'opacity-50 cursor-not-allowed'
-                              : 'bg-[#4E6E49] text-white hover:bg-[#3d5639]'
-                              }`}
-                          >
-                            {nicknameRequestPending ? 'Отправка...' : 'Отправить на согласование'}
-                          </button>
-                          <button
-                            onClick={() => {
-                              setIsEditingNickname(false)
-                              setNewNickname('')
-                            }}
-                            disabled={nicknameRequestPending}
-                            className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition ${theme === 'dark' ? 'border-white/10 bg-white/5 hover:border-white/30 text-white' : 'border-gray-200 bg-white hover:border-gray-300 text-gray-700'
-                              }`}
-                          >
-                            Отмена
-                          </button>
-                        </div>
-                        <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                          Изменение ника требует согласования администратора
-                        </p>
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-2 mt-1">
-                        <p className={`text-lg font-black ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                          {user?.id ? (
-                            <UserNickname userId={user.id} />
-                          ) : (
-                            '—'
-                          )}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <div className={`flex-1 px-4 py-3 rounded-xl border ${theme === 'dark' ? 'border-white/5 bg-black/20 text-white' : 'border-gray-200 bg-white text-gray-900'} font-mono text-sm`}>
-                        {userData.login}
-                      </div>
-                      <button
-                        onClick={handleCopyLogin}
-                        className={`p-3 rounded-xl border transition-all ${loginCopied ? 'bg-[#4E6E49] text-white border-[#4E6E49]' : theme === 'dark' ? 'border-white/5 bg-white/5 hover:border-white/10' : 'border-gray-200 bg-white hover:border-gray-300'}`}
-                        title="Скопировать логин"
-                      >
-                        {loginCopied ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
-                      </button>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className={`flex-1 px-4 py-3 rounded-xl border ${theme === 'dark' ? 'border-white/5 bg-black/20 text-white' : 'border-gray-200 bg-white text-gray-900'} font-mono text-sm`}>
-                        {showPassword ? userData.password : '•'.repeat(userData.password.length)}
-                      </div>
-                      <button
-                        onClick={() => setShowPassword(!showPassword)}
-                        className={`p-3 rounded-xl border ${theme === 'dark' ? 'border-white/5 bg-white/5 hover:border-white/10' : 'border-gray-200 bg-white hover:border-gray-300'} transition-all`}
-                        title={showPassword ? 'Скрыть пароль' : 'Показать пароль'}
-                      >
-                        {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                      </button>
-                      <button
-                        onClick={handleCopyPassword}
-                        className={`p-3 rounded-xl border transition-all ${passwordCopied ? 'bg-[#4E6E49] text-white border-[#4E6E49]' : theme === 'dark' ? 'border-white/5 bg-white/5 hover:border-white/10' : 'border-gray-200 bg-white hover:border-gray-300'}`}
-                        title="Скопировать пароль"
-                      >
-                        {passwordCopied ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
-                      </button>
-                    </div>
-                  </div>
+
+                <div className={`p-5 rounded-xl border ${theme === 'dark' ? 'border-white/5 bg-black/20' : 'border-gray-100 bg-gray-50'} mb-6`}>
+                  <div className={`text-4xl font-black ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{rating.rating.toFixed(1)}</div>
+                  <p className={`text-xs mt-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} font-medium`}>
+                    {rating.rating >= 80 ? 'Эталон' : rating.rating >= 50 ? 'В команде' : rating.rating >= 30 ? 'Риск исключения' : 'Не в команде'}
+                  </p>
+                  <p className={`text-[10px] mt-2 ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
+                    Минимум для нахождения в команде: 50 баллов
+                  </p>
                 </div>
-              </div>
 
-              {rating && ratingBreakdown && (
-                <div className={`rounded-2xl p-6 border ${theme === 'dark' ? 'border-white/5 bg-[#1a1a1a]' : 'border-gray-200 bg-white'} shadow flex-1`}>
-                  <div className="flex items-center justify-between mb-6">
-                    <div className="flex items-center gap-3">
-                      <div className={`p-2.5 rounded-xl ${theme === 'dark' ? 'bg-purple-500/10 text-purple-400' : 'bg-purple-50 text-purple-600'}`}>
-                        <TrendingUp className="w-5 h-5" />
-                      </div>
-                      <div>
-                        <h2 className={`text-sm font-black uppercase tracking-widest ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Рейтинг</h2>
-                        <p className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`}>Детальная оценка</p>
-                      </div>
-                    </div>
-                    <div className={`px-3 py-1.5 rounded-full text-[10px] font-black tracking-widest border border-purple-500/20 bg-purple-500/5 text-purple-500`}>
-                      {rating.rating.toFixed(1)}%
-                    </div>
-                  </div>
-
-                  <div className={`p-5 rounded-xl border ${theme === 'dark' ? 'border-white/5 bg-black/20' : 'border-gray-100 bg-gray-50'} mb-6`}>
-                    <div className={`text-4xl font-black ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{rating.rating.toFixed(1)}%</div>
-                    <p className={`text-xs mt-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} font-medium`}>
-                      {rating.rating >= 80 ? 'Эталон' : rating.rating >= 60 ? 'Уверенно' : rating.rating >= 40 ? 'В пути' : 'Зона роста'}
-                    </p>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3 mb-4">
-                    {[
-                      { label: 'Выходные', value: `${ratingBreakdown.daysOff} дн`, pts: ratingBreakdown.daysOffPoints, max: 5, icon: <Calendar className="w-4 h-4" />, color: theme === 'dark' ? 'bg-slate-500/5 border-slate-500/10 text-slate-400' : 'bg-slate-50 border-slate-100 text-slate-600' },
-                      { label: 'Больничные', value: `${rating.sickDays} дн`, pts: ratingBreakdown.sickDaysPoints, max: 5, icon: <Heart className="w-4 h-4" />, color: theme === 'dark' ? 'bg-amber-500/5 border-amber-500/10 text-amber-500' : 'bg-amber-50 border-amber-100 text-amber-600' },
-                      { label: 'Отпуск', value: `${rating.vacationDays} дн`, pts: ratingBreakdown.vacationDaysPoints, max: 10, icon: <Plane className="w-4 h-4" />, color: theme === 'dark' ? 'bg-orange-500/5 border-orange-500/10 text-orange-500' : 'bg-orange-50 border-orange-100 text-orange-600' },
-                      { label: 'Отсутствия', value: `${ratingBreakdown.absenceDays} дн`, pts: ratingBreakdown.absenceDaysPoints, max: 0, icon: <AlertTriangle className="w-4 h-4" />, color: theme === 'dark' ? 'bg-red-500/5 border-red-500/10 text-red-500' : 'bg-red-50 border-red-100 text-red-600' },
-                      { label: 'Прогулы', value: `${ratingBreakdown.truancyDays} дн`, pts: 0, max: 0, icon: <AlertTriangle className="w-4 h-4" />, color: theme === 'dark' ? 'bg-red-900/5 border-red-900/10 text-red-900' : 'bg-red-100 border-red-200 text-red-800' },
-                      { label: 'Часы', value: `${ratingBreakdown.weeklyHours.toFixed(1)} ч`, pts: ratingBreakdown.weeklyHoursPoints, max: 25, icon: <Clock className="w-4 h-4" />, color: theme === 'dark' ? 'bg-blue-500/5 border-blue-500/10 text-blue-400' : 'bg-blue-50 border-blue-100 text-blue-600' },
-                      { label: 'Заработок', value: `${(ratingBreakdown.weeklyEarnings / 1000).toFixed(1)}k ₽`, pts: ratingBreakdown.weeklyEarningsPoints, max: 30, icon: <DollarSign className="w-4 h-4" />, color: theme === 'dark' ? 'bg-emerald-500/5 border-emerald-500/10 text-emerald-400' : 'bg-emerald-50 border-emerald-100 text-emerald-600' },
-                      { label: 'Рефералы', value: `${rating.referrals}`, pts: ratingBreakdown.referralsPoints, max: 30, icon: <Users className="w-4 h-4" />, color: theme === 'dark' ? 'bg-purple-500/5 border-purple-500/10 text-purple-400' : 'bg-purple-50 border-purple-100 text-purple-600' },
-                      { label: 'Сигналы', value: `${ratingBreakdown.signals}`, pts: 0, max: 0, icon: <Zap className="w-4 h-4" />, color: theme === 'dark' ? 'bg-yellow-500/5 border-yellow-500/10 text-yellow-500' : 'bg-yellow-50 border-yellow-100 text-yellow-600' },
-                      { label: 'Инициативы', value: `${ratingBreakdown.initiatives}`, pts: 0, max: 0, icon: <Lightbulb className="w-4 h-4" />, color: theme === 'dark' ? 'bg-indigo-500/5 border-indigo-500/10 text-indigo-400' : 'bg-indigo-50 border-indigo-100 text-indigo-600' },
-                      { label: 'Пул', value: `${(ratingBreakdown.poolAmount / 1000).toFixed(1)}k ₽`, pts: 0, max: 0, icon: <PiggyBank className="w-4 h-4" />, color: theme === 'dark' ? 'bg-green-500/5 border-green-500/10 text-green-400' : 'bg-green-50 border-green-100 border-green-600' }
-                    ].map(item => (
-                      <div key={item.label} className={`p-3 rounded-xl border shadow-sm transition-all hover:scale-[1.02] ${item.color}`}>
-                        <div className="flex items-center justify-between mb-1">
-                          <div className="flex items-center gap-1">
-                            {item.icon}
-                            <div className="text-[8px] font-black uppercase tracking-widest opacity-80">{item.label}</div>
-                          </div>
-                          {item.max > 0 && (
-                            <div className="text-[8px] font-black opacity-60">
-                              {item.pts}/{item.max}
-                            </div>
-                          )}
+                <div className="grid grid-cols-2 gap-3 mb-4">
+                  {[
+                    { label: 'Часы', value: `${ratingBreakdown.weeklyHours.toFixed(1)} ч/нед`, pts: ratingBreakdown.weeklyHoursPoints, max: 15, icon: <Clock className="w-4 h-4" />, color: theme === 'dark' ? 'bg-blue-500/5 border-blue-500/10 text-blue-400' : 'bg-blue-50 border-blue-100 text-blue-600' },
+                    { label: 'Заработок', value: `${Math.round(ratingBreakdown.weeklyEarnings).toLocaleString()} ₽`, pts: ratingBreakdown.weeklyEarningsPoints, max: 30, icon: <DollarSign className="w-4 h-4" />, color: theme === 'dark' ? 'bg-emerald-500/5 border-emerald-500/10 text-emerald-400' : 'bg-emerald-50 border-emerald-100 text-emerald-600' },
+                    { label: 'Рефералы', value: `${ratingBreakdown.referrals}`, pts: ratingBreakdown.referralsPoints, max: 20, icon: <Users className="w-4 h-4" />, color: theme === 'dark' ? 'bg-purple-500/5 border-purple-500/10 text-purple-400' : 'bg-purple-50 border-purple-100 text-purple-600' },
+                    { label: 'Инициативы', value: `${ratingBreakdown.initiatives}`, pts: ratingBreakdown.initiativesPoints, max: 15, icon: <Lightbulb className="w-4 h-4" />, color: theme === 'dark' ? 'bg-indigo-500/5 border-indigo-500/10 text-indigo-400' : 'bg-indigo-50 border-indigo-100 text-indigo-600' },
+                    { label: 'Отсутствия', value: `${ratingBreakdown.absenceDays} дн`, pts: ratingBreakdown.absenceDaysPoints, max: 10, icon: <AlertTriangle className="w-4 h-4" />, color: ratingBreakdown.absenceDaysPoints < 0 ? (theme === 'dark' ? 'bg-red-500/5 border-red-500/10 text-red-400' : 'bg-red-50 border-red-100 text-red-600') : (theme === 'dark' ? 'bg-amber-500/5 border-amber-500/10 text-amber-500' : 'bg-amber-50 border-amber-100 text-amber-600') },
+                    { label: 'Прогулы', value: `${ratingBreakdown.truancyDays} дн`, pts: ratingBreakdown.truancyDaysPoints, max: 0, icon: <AlertTriangle className="w-4 h-4" />, color: ratingBreakdown.truancyDaysPoints < 0 ? (theme === 'dark' ? 'bg-red-900/5 border-red-900/10 text-red-900' : 'bg-red-100 border-red-200 text-red-800') : (theme === 'dark' ? 'bg-green-500/5 border-green-500/10 text-green-400' : 'bg-green-50 border-green-100 text-green-600') }
+                  ].map(item => (
+                    <div key={item.label} className={`p-3 rounded-xl border shadow-sm transition-all hover:scale-[1.02] ${item.color}`}>
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="flex items-center gap-1">
+                          {item.icon}
+                          <div className="text-[8px] font-black uppercase tracking-widest opacity-80">{item.label}</div>
                         </div>
-                        <div className={`text-sm font-black ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{item.value}</div>
                         {item.max > 0 && (
-                          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1 mt-1.5">
-                            <div
-                              className={`h-full transition-all duration-300 ${item.pts > 0 ? 'bg-[#4E6E49]' : 'bg-gray-400'}`}
-                              style={{ width: `${(item.pts / item.max) * 100}%` }}
-                            />
+                          <div className="text-[8px] font-black opacity-60">
+                            {item.pts > 0 ? '+' : ''}{item.pts}/{item.max}
                           </div>
                         )}
                       </div>
-                    ))}
+                      <div className={`text-sm font-black ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{item.value}</div>
+                      {item.max > 0 && (
+                        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1 mt-1.5">
+                          <div
+                            className={`h-full transition-all duration-300 ${item.pts > 0 ? 'bg-[#4E6E49]' : 'bg-gray-400'}`}
+                            style={{ width: `${Math.min(Math.max((item.pts / item.max) * 100, 0), 100)}%` }}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                <div className={`mt-auto p-4 rounded-xl border ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-gray-100 bg-gray-50'}`}>
+                  <h3 className={`text-sm font-bold ${headingColor} mb-2 flex items-center gap-2`}>
+                    <Info className="w-4 h-4" />
+                    Как считается рейтинг
+                  </h3>
+                  <p className={`text-xs ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                    6 параметров: часы работы (неделя), заработок (неделя), рефералы (месяц), инициативы (месяц), отсутствия (месяц), прогулы (месяц). Максимум баллов не ограничен. Минимум 50 баллов для нахождения в команде.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Earnings Card */}
+            {earningsSummary && (
+              <div className={`rounded-2xl p-6 border ${theme === 'dark' ? 'border-white/5 bg-[#1a1a1a]' : 'border-gray-200 bg-white'} shadow`}>
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-3">
+                    <div className={`p-2.5 rounded-xl ${theme === 'dark' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-emerald-50 text-emerald-600'}`}>
+                      <DollarSign className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h2 className={`text-sm font-black uppercase tracking-widest ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Мой заработок</h2>
+                      <p className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`}>Суммы с учётом долей</p>
+                    </div>
                   </div>
 
-                  <div className={`mt-auto p-4 rounded-xl border ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-gray-100 bg-gray-50'}`}>
-                    <h3 className={`text-sm font-bold ${headingColor} mb-2 flex items-center gap-2`}>
-                      <Info className="w-4 h-4" />
-                      Как считается рейтинг
-                    </h3>
-                    <p className={`text-xs ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                      11 параметров: выходные, больничные, отпуск, отсутствие, прогулы (месяц), часы, доход, рефералы, сигналы, инициативы, пул (неделя). Максимум 100%.
-                    </p>
+                  <div className={`px-3 py-1.5 rounded-full text-[10px] font-black tracking-widest border ${weeklyStatusClass}`}>
+                    {weeklyStatusText}
                   </div>
                 </div>
-              )}
-            </div>
 
-            <div className="space-y-4 flex flex-col">
-              {earningsSummary && (
-                <div className={`rounded-2xl p-6 border ${theme === 'dark' ? 'border-white/5 bg-[#1a1a1a]' : 'border-gray-200 bg-white'} shadow flex-1`}>
-                  <div className="flex items-center justify-between mb-6">
-                    <div className="flex items-center gap-3">
-                      <div className={`p-2.5 rounded-xl ${theme === 'dark' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-emerald-50 text-emerald-600'}`}>
-                        <DollarSign className="w-5 h-5" />
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                  {[
+                    { label: 'Всего заработано', value: earningsSummary.total, icon: <TrendingUp className="w-3 h-3" /> },
+                    { label: 'Отправлено в пул', value: earningsSummary.pool, icon: <PiggyBank className="w-3 h-3" /> },
+                    { label: 'Чистыми', value: earningsSummary.net, icon: <Wallet className="w-3 h-3" /> },
+                  ].map((item) => (
+                    <div
+                      key={item.label}
+                      className={`p-4 rounded-xl border shadow-sm ${theme === 'dark' ? 'border-white/5 bg-black/20' : 'border-gray-100 bg-gray-50'}`}
+                    >
+                      <div className="flex items-center gap-2 mb-2 opacity-70">
+                        {item.icon}
+                        <p className="text-[9px] font-black uppercase tracking-widest">{item.label}</p>
                       </div>
-                      <div>
-                        <h2 className={`text-sm font-black uppercase tracking-widest ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Мой заработок</h2>
-                        <p className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`}>Суммы с учётом долей</p>
-                      </div>
+                      <p className={`text-xl font-black ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{Math.round(item.value).toLocaleString('ru-RU')} ₽</p>
                     </div>
-                    <div className={`px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border ${earningsSummary.weekly.net >= 10000 ? 'border-emerald-500/20 bg-emerald-500/5 text-emerald-500' : 'border-amber-500/20 bg-amber-500/5 text-amber-500'}`}>
-                      {earningsSummary.weekly.net >= 10000 ? 'Вывод доступен' : 'Ожидание порога'}
+                  ))}
+                </div>
+
+                <div className={`p-5 rounded-xl border ${theme === 'dark' ? 'border-white/5 bg-emerald-500/5' : 'border-emerald-100 bg-emerald-50/50'} flex flex-col gap-4`}>
+                  <div className="flex items-center justify-between gap-2 flex-wrap">
+                    <div>
+                      <p className={`text-xs font-black uppercase tracking-wider ${theme === 'dark' ? 'text-emerald-500/80' : 'text-emerald-700'}`}>Активная неделя</p>
+                      <p className={`text-[10px] ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Пн, Ср, Пт, Сб — дни вывода</p>
                     </div>
+                    <span className={`text-[9px] font-black tracking-widest px-3 py-1 rounded-full border ${weeklyStatusClass}`}>
+                      {weeklyStatusBadge}
+                    </span>
                   </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     {[
-                      { label: 'Всего заработано', value: earningsSummary.total, icon: <TrendingUp className="w-3 h-3" /> },
-                      { label: 'Отправлено в пул', value: earningsSummary.pool, icon: <PiggyBank className="w-3 h-3" /> },
-                      { label: 'Чистыми', value: earningsSummary.net, icon: <Wallet className="w-3 h-3" /> },
+                      { label: 'Заработано', value: earningsSummary.weekly.gross },
+                      { label: 'В пул', value: earningsSummary.weekly.pool },
+                      { label: 'Чистыми', value: earningsSummary.weekly.net },
                     ].map((item) => (
                       <div
                         key={item.label}
-                        className={`p-4 rounded-xl border shadow-sm ${theme === 'dark' ? 'border-white/5 bg-black/20' : 'border-gray-100 bg-gray-50'}`}
+                        className={`p-3 rounded-lg border shadow-sm ${theme === 'dark' ? 'border-white/5 bg-[#151a21]' : 'border-gray-100 bg-gray-50'}`}
                       >
-                        <div className="flex items-center gap-2 mb-2 opacity-70">
-                          {item.icon}
-                          <p className="text-[9px] font-black uppercase tracking-widest">{item.label}</p>
-                        </div>
-                        <p className={`text-xl font-black ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{Math.round(item.value).toLocaleString('ru-RU')} ₽</p>
+                        <p className="text-[8px] font-black uppercase tracking-widest opacity-70">{item.label}</p>
+                        <p className={`text-base font-black ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{Math.round(item.value).toLocaleString('ru-RU')} ₽</p>
                       </div>
                     ))}
                   </div>
-
-                  <div className={`p-5 rounded-xl border ${theme === 'dark' ? 'border-white/5 bg-emerald-500/5' : 'border-emerald-100 bg-emerald-50/50'} flex flex-col gap-4`}>
-                    <div className="flex items-center justify-between gap-2 flex-wrap">
-                      <div>
-                        <p className={`text-xs font-black uppercase tracking-wider ${theme === 'dark' ? 'text-emerald-500/80' : 'text-emerald-700'}`}>Активная неделя</p>
-                        <p className={`text-[10px] ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Пн, Ср, Пт, Сб — дни вывода</p>
-                      </div>
-                      <span className={`text-[9px] font-black tracking-widest px-3 py-1 rounded-full border ${earningsSummary.weekly.net >= 10000 ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-500' : 'border-amber-500/20 bg-amber-500/10 text-amber-500'}`}>
-                        {earningsSummary.weekly.net >= 10000 ? 'Доступно к выводу' : 'Перенос суммы'}
-                      </span>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                      {[
-                        { label: 'Заработано', value: earningsSummary.weekly.gross },
-                        { label: 'В пул', value: earningsSummary.weekly.pool },
-                        { label: 'Чистыми', value: earningsSummary.weekly.net },
-                      ].map((item) => (
-                        <div
-                          key={item.label}
-                          className={`p-3 rounded-lg border shadow-sm ${theme === 'dark' ? 'border-white/5 bg-[#151a21]' : 'border-gray-100 bg-gray-50'}`}
-                        >
-                          <p className="text-[8px] font-black uppercase tracking-widest opacity-70">{item.label}</p>
-                          <p className={`text-base font-black ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{Math.round(item.value).toLocaleString('ru-RU')} ₽</p>
-                        </div>
-                      ))}
-                    </div>
-                    {earningsSummary.weekly.net < 10000 && (
-                      <p className={`text-[10px] font-medium ${theme === 'dark' ? 'text-amber-500/80' : 'text-amber-700'}`}>
-                        Менее 10 000 ₽ чистыми — вывод недоступен, сумма переносится.
-                      </p>
-                    )}
-                  </div>
+                  {earningsSummary.weekly.net < 10000 && (
+                    <p className={`text-[10px] font-medium ${theme === 'dark' ? 'text-amber-500/80' : 'text-amber-700'}`}>
+                      Менее 10 000 ₽ чистыми — вывод недоступен, сумма переносится.
+                    </p>
+                  )}
                 </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         </div>
       )}
