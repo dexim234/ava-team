@@ -1,4 +1,3 @@
-// List of all earnings with edit/delete buttons
 import { useState } from 'react'
 import { useThemeStore } from '@/store/themeStore'
 import { useAuthStore } from '@/store/authStore'
@@ -83,7 +82,8 @@ export const EarningsList = ({ earnings, onEdit, onDelete }: EarningsListProps) 
   }
 
   const getCategoryMeta = (category: EarningsCategory) => {
-    return EARNINGS_CATEGORY_META[category] || EARNINGS_CATEGORY_META.other
+    const meta = EARNINGS_CATEGORY_META[category]
+    return meta
   }
 
   const getUserName = (userId: string) => {
@@ -228,4 +228,3 @@ export const EarningsList = ({ earnings, onEdit, onDelete }: EarningsListProps) 
     </div>
   )
 }
-
