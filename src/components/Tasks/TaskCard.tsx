@@ -1,455 +1,180 @@
-// Task card component
-import { useState } from 'react'
 import { useAuthStore } from '@/store/authStore'
-import { useAdminStore } from '@/store/adminStore'
 import { useThemeStore } from '@/store/themeStore'
-import { updateTask } from '@/services/firestoreService'
-import { Task, TaskPriority, TaskStatus, TEAM_MEMBERS, TASK_CATEGORIES, TASK_STATUSES, TaskApproval } from '@/types'
+import { Task, TaskStatus } from '@/types'
 import {
-  AlertCircle,
-  Calendar,
-  Check,
-  CheckCircle2,
+  Clipboard, // Для копирования ссылки
   Edit,
   Trash2,
-  User,
-  Users,
-  X,
+  ArrowRightCircle,
+  User as UserIcon, // Изменил имя, чтобы избежать конфликта
 } from 'lucide-react'
 import { formatDate } from '@/utils/dateUtils'
 import { getUserNicknameSync } from '@/utils/userUtils'
-import { TaskDeadlineBadge } from './TaskDeadlineBadge'
 import { CATEGORY_ICONS } from './categoryIcons'
 
 interface TaskCardProps {
   task: Task
   onEdit: (task: Task) => void
   onDelete: (taskId: string) => void
-  onUpdate: () => void
+  onMove: (taskId: string, newStatus: TaskStatus) => void // Добавил TaskStatus в props
+  onViewDetails: (task: Task) => void
+  onCopyLink: (taskId: string) => void
 }
 
-export const TaskCard = ({ task, onEdit, onDelete, onUpdate }: TaskCardProps) => {
+export const TaskCard = ({ task, onEdit, onDelete, onMove, onViewDetails, onCopyLink }: TaskCardProps) => {
   const { user } = useAuthStore()
-  const { isAdmin } = useAdminStore()
   const { theme } = useThemeStore()
   
-  const [loading, setLoading] = useState(false)
-  const [showReturnDialog, setShowReturnDialog] = useState(false)
-  const [returnComment, setReturnComment] = useState('')
-
   const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
   const cardBg = theme === 'dark' ? 'bg-[#1a1a1a]' : 'bg-white'
   const borderColor = theme === 'dark' ? 'border-gray-800' : 'border-gray-300'
   
-  const categoryInfo = TASK_CATEGORIES[task.category]
-  const statusInfo = TASK_STATUSES[task.status]
-  const CategoryIcon = CATEGORY_ICONS[task.category]
-  const assignees =
-    task.assignees && task.assignees.length > 0
-      ? task.assignees
-      : task.assignedTo.map((userId) => ({ userId, priority: 'medium' as const }))
-  const assigneeIds = assignees.map((a) => a.userId)
-  const assignedUsers = assignees
-    .map((assignee) => {
-      const member = TEAM_MEMBERS.find((m) => m.id === assignee.userId)
-      if (!member) return null
-      return { ...assignee, member }
-    })
-    .filter(Boolean) as { member: (typeof TEAM_MEMBERS)[number]; priority: TaskPriority; comment?: string }[]
-  
-  const canEdit = isAdmin || user?.id === task.createdBy || task.mainExecutor === user?.id
+  const CategoryIcon = CATEGORY_ICONS[task.category] || UserIcon; // Fallback icon
 
-  const resolveExecutorApprovals = (): TaskApproval[] => {
-    const now = new Date().toISOString()
-    const current = (task.approvals || []).filter((a) => assigneeIds.includes(a.userId))
-    const normalized: TaskApproval[] = current.map((a) => ({
-      userId: a.userId,
-      status: a.status === 'approved' ? 'approved' : 'pending',
-      updatedAt: a.updatedAt || now,
-      ...(a.comment ? { comment: a.comment } : {}),
-    }))
-    const missing: TaskApproval[] = assigneeIds
-      .filter((id) => !normalized.some((a) => a.userId === id))
-      .map((id) => ({ userId: id, status: 'pending', updatedAt: now }))
+  const canEdit = user?.id === task.createdBy // Редактировать может только создатель
+  const canDelete = user?.id === task.createdBy // Удалять может только создатель
 
-    return [...normalized, ...missing]
+  const getStatusClasses = (status: TaskStatus) => {
+    if (status === 'in_progress') return theme === 'dark' ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-100 text-blue-700'
+    if (status === 'completed') return theme === 'dark' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-emerald-100 text-emerald-700'
+    if (status === 'closed') return theme === 'dark' ? 'bg-gray-500/20 text-gray-400' : 'bg-gray-100 text-gray-700'
+    return ''
   }
 
-  const isExecutor = () => !!user && assigneeIds.includes(user.id)
-  const canCloseTaskCard = () => isAdmin || user?.id === task.createdBy
-
-  const getApprovalStats = () => {
-    const approvals = resolveExecutorApprovals()
-    const approved = approvals.filter((a) => a.status === 'approved').length
-    return { approvals, approved, total: assigneeIds.length }
+  const getPriorityClasses = (priority: TaskPriority) => {
+    if (priority === 'urgent') return theme === 'dark' ? 'bg-rose-600/20 text-rose-100' : 'bg-rose-50 text-rose-700'
+    if (priority === 'high') return theme === 'dark' ? 'bg-red-500/15 text-red-100' : 'bg-red-50 text-red-700'
+    if (priority === 'medium') return theme === 'dark' ? 'bg-amber-500/15 text-amber-100' : 'bg-amber-50 text-amber-700'
+    if (priority === 'low') return theme === 'dark' ? 'bg-gray-500/15 text-gray-100' : 'bg-gray-50 text-gray-700'
+    return ''
   }
 
-  const { approvals, approved, total } = getApprovalStats()
-  const userApproval = approvals.find((a) => a.userId === user?.id)
-  const canExecutorConfirm = isExecutor() && task.status === 'in_progress' && (!userApproval || userApproval.status !== 'approved')
-  const canClose = canCloseTaskCard() && task.status === 'completed'
-
-  const handleExecutorConfirm = async () => {
-    if (!user || task.status !== 'in_progress' || !isExecutor()) return
-    setLoading(true)
-    try {
-      const now = new Date().toISOString()
-      const approvals = resolveExecutorApprovals().map((a) =>
-        a.userId === user.id ? { ...a, status: 'approved' as const, updatedAt: now } : a
-      )
-      const allApproved = assigneeIds.length > 0 && assigneeIds.every((id) => approvals.find((a) => a.userId === id && a.status === 'approved'))
-
-      const updates: Partial<Task> = {
-        approvals,
-        updatedAt: now,
-      }
-
-      if (allApproved) {
-        updates.status = 'completed'
-        updates.completedAt = now
-        updates.completedBy = user.id
-      }
-
-      await updateTask(task.id, updates)
-      onUpdate()
-    } catch (error) {
-      console.error('Error confirming task:', error)
-    } finally {
-      setLoading(false)
+  const handleMoveClick = (currentStatus: TaskStatus) => {
+    // В реальной реализации здесь будет всплывающее окно для выбора нового статуса
+    // Пока что упрощенно: круговое переключение статуса
+    let newStatus: TaskStatus;
+    if (currentStatus === 'in_progress') {
+      newStatus = 'completed';
+    } else if (currentStatus === 'completed') {
+      newStatus = 'closed';
+    } else {
+      newStatus = 'in_progress';
     }
-  }
-
-  const handleMarkClosed = async () => {
-    if (!canCloseTaskCard() || task.status !== 'completed') return
-    setLoading(true)
-    try {
-      const now = new Date().toISOString()
-      await updateTask(task.id, {
-        status: 'closed',
-        closedAt: now,
-        updatedAt: now,
-      })
-      onUpdate()
-    } catch (error) {
-      console.error('Error closing task:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handleReturnToWork = async () => {
-    if (!canCloseTaskCard()) return
-    const comment = (returnComment || '').trim()
-    if (!comment) return
-
-    setLoading(true)
-    try {
-      const now = new Date().toISOString()
-      const resetApprovals = assigneeIds.map((id) => ({
-        userId: id,
-        status: 'pending' as const,
-        updatedAt: now,
-      }))
-      const newComment = {
-        id: `c-${Date.now()}`,
-        userId: user?.id || 'system',
-        text: comment,
-        createdAt: now,
-      }
-
-      await updateTask(task.id, {
-        status: 'in_progress',
-        approvals: resetApprovals,
-        completedAt: undefined,
-        completedBy: undefined,
-        closedAt: undefined,
-        comments: [...(task.comments || []), newComment],
-        updatedAt: now,
-      })
-
-      setShowReturnDialog(false)
-      setReturnComment('')
-      onUpdate()
-    } catch (error) {
-      console.error('Error returning task:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const getStatusColor = () => {
-    const colorMap: Record<TaskStatus, string> = {
-      in_progress: theme === 'dark' ? 'bg-blue-500/20 border-blue-500/50 text-blue-400' : 'bg-blue-50 border-blue-200 text-blue-700',
-      completed: theme === 'dark' ? 'bg-[#4E6E49]/20 border-[#4E6E49]/50 text-[#4E6E49]' : 'bg-green-50 border-green-200 text-[#4E6E49]',
-      closed: theme === 'dark' ? 'bg-gray-500/20 border-gray-500/50 text-gray-400' : 'bg-gray-50 border-gray-200 text-gray-700',
-    }
-    return colorMap[task.status]
-  }
-
-  const getCategoryColor = () => {
-    const colorMap: Record<string, { bg: string; text: string }> = {
-      green: {
-        bg: theme === 'dark' ? 'bg-[#4E6E49]/20' : 'bg-green-50',
-        text: theme === 'dark' ? 'text-[#4E6E49]' : 'text-[#4E6E49]',
-      },
-      blue: {
-        bg: theme === 'dark' ? 'bg-blue-500/20' : 'bg-blue-50',
-        text: theme === 'dark' ? 'text-blue-400' : 'text-blue-700',
-      },
-      purple: {
-        bg: theme === 'dark' ? 'bg-purple-500/20' : 'bg-purple-50',
-        text: theme === 'dark' ? 'text-purple-400' : 'text-purple-700',
-      },
-      red: {
-        bg: theme === 'dark' ? 'bg-red-500/20' : 'bg-red-50',
-        text: theme === 'dark' ? 'text-red-400' : 'text-red-700',
-      },
-      yellow: {
-        bg: theme === 'dark' ? 'bg-yellow-500/20' : 'bg-yellow-50',
-        text: theme === 'dark' ? 'text-yellow-400' : 'text-yellow-700',
-      },
-      indigo: {
-        bg: theme === 'dark' ? 'bg-indigo-500/20' : 'bg-indigo-50',
-        text: theme === 'dark' ? 'text-indigo-400' : 'text-indigo-700',
-      },
-    }
-    return colorMap[categoryInfo.color] || colorMap.green
+    onMove(task.id, newStatus);
   }
 
   return (
-    <>
-      <div className={`${cardBg} rounded-xl border-2 ${borderColor} p-4 sm:p-6 shadow-lg hover:shadow-xl transition-all ${
+    <div
+      className={`${cardBg} rounded-xl border-2 ${borderColor} p-4 shadow-lg hover:shadow-xl transition-all cursor-pointer ${
         theme === 'dark' 
           ? 'hover:border-[#4E6E49]/50' 
           : 'hover:border-[#4E6E49]'
-      }`}>
-        {/* Header */}
-        <div className="flex items-start justify-between gap-3 mb-3">
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-2">
-              <h3 className={`text-lg sm:text-xl font-bold ${headingColor} truncate`}>
-                {task.title}
-              </h3>
-            </div>
-            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-              <span className={`px-2.5 py-1 rounded-lg text-xs sm:text-sm font-medium ${getCategoryColor().bg} ${getCategoryColor().text} inline-flex items-center gap-1.5`}>
-                <CategoryIcon className="w-4 h-4" />
-                {categoryInfo.label}
-              </span>
-              <span className={`px-2.5 py-1 rounded-lg text-xs sm:text-sm font-medium border ${getStatusColor()}`}>
-                {statusInfo.label}
-              </span>
-              <span className={`px-2.5 py-1 rounded-lg text-xs sm:text-sm font-medium border ${theme === 'dark' ? 'border-yellow-500/40 text-yellow-200 bg-yellow-500/10' : 'border-yellow-200 text-yellow-700 bg-yellow-50'}`}>
-                {task.priority === 'urgent'
-                  ? 'Экстренный приоритет'
-                  : task.priority === 'high'
-                    ? 'Высокий приоритет'
-                    : task.priority === 'medium'
-                      ? 'Средний приоритет'
-                      : 'Низкий приоритет'}
-              </span>
-            </div>
-          </div>
-          
-          {/* Actions */}
+      }`}
+      onClick={() => onViewDetails(task)} // Открываем полную карточку задачи по клику
+    >
+      {/* ID и кнопки действий */}
+      <div className="flex justify-between items-center mb-4">
+        <span className={`px-2 py-1 rounded-md text-xs font-semibold ${theme === 'dark' ? 'bg-gray-700 text-gray-300' : 'bg-gray-200 text-gray-700'}`}>
+          ID: {task.id.substring(0, 7)}...
+        </span>
+        <div className="flex items-center gap-1">
+          <button
+            onClick={(e) => {
+              e.stopPropagation() // Предотвращаем открытие полной карточки
+              onCopyLink(task.id)
+            }}
+            className={`p-1.5 rounded-md transition-colors ${theme === 'dark' ? 'text-gray-400 hover:bg-gray-700' : 'text-gray-600 hover:bg-gray-100'}`}
+            title="Скопировать ссылку"
+          >
+            <Clipboard className="w-4 h-4" />
+          </button>
           {canEdit && (
-            <div className="flex items-center gap-2 flex-shrink-0">
-              <button
-                onClick={() => onEdit(task)}
-                className={`p-2 rounded-lg transition-colors ${
-                  theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100'
-                }`}
-                title="Редактировать"
-              >
-                <Edit className="w-4 h-4" />
-              </button>
-              <button
-                onClick={() => onDelete(task.id)}
-                className={`p-2 rounded-lg transition-colors ${
-                  theme === 'dark' ? 'hover:bg-red-500/20 text-red-400' : 'hover:bg-red-50 text-red-600'
-                }`}
-                title="Удалить"
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* Description */}
-        {task.description && (
-          <p className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'} mb-4 line-clamp-2`}>
-            {task.description}
-          </p>
-        )}
-
-        {/* Details */}
-        <div className="space-y-2 mb-4">
-          {/* Author and Executors */}
-          <div className="flex flex-col gap-3">
-            {/* Author */}
-            <div className="flex items-center gap-2 text-xs sm:text-sm">
-              <User className={`w-4 h-4 ${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'}`} />
-              <span className={`font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                Автор:
-              </span>
-              <span className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>
-                {task.createdBy ? getUserNicknameSync(task.createdBy) : 'Неизвестно'}
-              </span>
-            </div>
-
-            {/* Executors */}
-            <div>
-              <div className="flex items-center gap-2 text-xs sm:text-sm">
-                <Users className={`w-4 h-4 ${theme === 'dark' ? 'text-[#4E6E49]' : 'text-[#4E6E49]'}`} />
-                <span className={`font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                  Исполнители:
-                </span>
-              </div>
-              {assignedUsers.length > 0 ? (
-                <div className="mt-2 space-y-1">
-                  {assignedUsers.map((assignee) => (
-                    <div key={assignee.member.id} className={`text-sm ${theme === 'dark' ? 'text-gray-100' : 'text-gray-800'}`}>
-                      {getUserNicknameSync(assignee.member.id)}
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <span className={theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}>Не назначены</span>
-              )}
-            </div>
-          </div>
-
-          {/* Due date and time */}
-          <div className="flex items-center gap-3 flex-wrap text-xs sm:text-sm">
-            <span className="inline-flex items-center gap-1">
-              <Calendar className={`w-4 h-4 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} />
-              <span className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>
-                Дедлайн: {formatDate(new Date(task.dueDate), 'dd.MM.yyyy')} {task.dueTime}
-              </span>
-            </span>
-            <TaskDeadlineBadge dueDate={task.dueDate} dueTime={task.dueTime} theme={theme} />
-          </div>
-
-          {/* Approvals status */}
-          {total > 0 && (
-            <div className="flex items-center gap-2 text-xs sm:text-sm">
-              <AlertCircle className={`w-4 h-4 ${theme === 'dark' ? 'text-yellow-400' : 'text-yellow-600'}`} />
-              <span className={theme === 'dark' ? 'text-yellow-400' : 'text-yellow-600'}>
-                Подтвердили: {approved}/{total}
-              </span>
-            </div>
-          )}
-        </div>
-
-        {/* Исполнители и комментарии */}
-        <div className={`mt-4 p-3 rounded-lg border ${borderColor} ${theme === 'dark' ? 'bg-[#1a1a1a]/70' : 'bg-gray-50'}`}>
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-semibold">Подтверждения исполнителей</span>
-            <span className="text-xs text-gray-500">
-              {approved}/{total}
-            </span>
-          </div>
-          {approvals.length > 0 && (
-            <div className="space-y-1 text-xs">
-              {approvals.map((a) => {
-                const member = TEAM_MEMBERS.find((m) => m.id === a.userId)
-                const statusText = a.status === 'approved' ? 'подтвердил' : 'ожидает'
-                return (
-                  <div key={a.userId} className="flex items-center justify-between">
-                    <span className="flex items-center gap-1">
-                      <span className="font-medium">{member?.name || a.userId}</span>
-                      <span className="text-gray-500">({statusText})</span>
-                    </span>
-                    {a.comment && <span className="text-gray-500 truncate max-w-[140px]">{a.comment}</span>}
-                  </div>
-                )
-              })}
-            </div>
-          )}
-        </div>
-
-        {/* Actions */}
-        <div className={`flex flex-wrap gap-2 pt-4 border-t ${borderColor}`}>
-          {canExecutorConfirm && (
             <button
-              onClick={handleExecutorConfirm}
-              disabled={loading}
-              className="flex-1 sm:flex-none px-4 py-2 bg-[#4E6E49] hover:bg-[#4E6E49] text-white rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+              onClick={(e) => {
+                e.stopPropagation()
+                onEdit(task)
+              }}
+              className={`p-1.5 rounded-md transition-colors ${theme === 'dark' ? 'text-gray-400 hover:bg-gray-700' : 'text-gray-600 hover:bg-gray-100'}`}
+              title="Редактировать"
             >
-              <Check className="w-4 h-4" />
-              Подтвердить
+              <Edit className="w-4 h-4" />
             </button>
           )}
-
-          {canClose && (
-            <>
-              <button
-                onClick={handleMarkClosed}
-                disabled={loading}
-                className="flex-1 sm:flex-none px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
-              >
-                <CheckCircle2 className="w-4 h-4" />
-                Закрыто
-              </button>
-              <button
-                onClick={() => setShowReturnDialog(true)}
-                disabled={loading}
-                className="flex-1 sm:flex-none px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
-              >
-                <X className="w-4 h-4" />
-                Не выполнено
-              </button>
-            </>
+          {canDelete && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                onDelete(task.id)
+              }}
+              className={`p-1.5 rounded-md transition-colors ${theme === 'dark' ? 'text-red-400 hover:bg-red-500/20' : 'text-red-600 hover:bg-red-100'}`}
+              title="Удалить"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
           )}
-
-          {task.status === 'completed' && !canClose && (
-            <span className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-              Ожидает подтверждения автора
-            </span>
-          )}
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              handleMoveClick(task.status)
+            }}
+            className={`p-1.5 rounded-md transition-colors ${theme === 'dark' ? 'text-blue-400 hover:bg-blue-500/20' : 'text-blue-600 hover:bg-blue-100'}`}
+            title="Переместить (изменить статус)"
+          >
+            <ArrowRightCircle className="w-4 h-4" />
+          </button>
         </div>
       </div>
 
-      {/* Return dialog */}
-      {showReturnDialog && (
-        <div className="fixed inset-0 bg-black/50 flex items-start sm:items-center justify-center z-[70] p-4 overflow-y-auto overscroll-contain modal-scroll">
-          <div className={`${cardBg} rounded-xl p-6 max-w-md w-full border-2 ${borderColor}`}>
-            <h3 className={`text-lg font-bold mb-4 ${headingColor}`}>Не выполнено</h3>
-            <textarea
-              value={returnComment}
-              onChange={(e) => setReturnComment(e.target.value)}
-              placeholder="Опишите, что нужно доработать"
-              rows={3}
-              className={`w-full px-4 py-2 rounded-lg border ${borderColor} ${
-                theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'
-              } ${headingColor} mb-4 focus:outline-none focus:ring-2 focus:ring-[#4E6E49]/50`}
-            />
-            <div className="flex gap-3">
-              <button
-                onClick={handleReturnToWork}
-                disabled={loading || !returnComment.trim()}
-                className="flex-1 px-4 py-2 rounded-lg font-medium transition-colors bg-red-500 hover:bg-red-600 text-white disabled:opacity-50"
-              >
-                Отправить на доработку
-              </button>
-              <button
-                onClick={() => {
-                  setShowReturnDialog(false)
-                  setReturnComment('')
-                }}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                  theme === 'dark' ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-200 hover:bg-gray-300'
-                }`}
-              >
-                Отмена
-              </button>
-            </div>
+      {/* Название задачи */}
+      <h3 className={`text-lg font-bold ${headingColor} mb-2 line-clamp-1`}>
+        {task.title}
+      </h3>
+
+      {/* Приоритет и Категория */}
+      <div className="flex justify-between items-center text-sm mb-2">
+        <span className={`px-2 py-0.5 rounded-md font-medium ${getPriorityClasses(task.priority)}`}>
+          {task.priority === 'urgent' && 'Экстренный'}
+          {task.priority === 'high' && 'Высокий'}
+          {task.priority === 'medium' && 'Средний'}
+          {task.priority === 'low' && 'Низкий'}
+        </span>
+        <span className={`px-2 py-0.5 rounded-md font-medium ${theme === 'dark' ? 'bg-gray-700 text-gray-300' : 'bg-gray-200 text-gray-700'} flex items-center gap-1`}>
+          <CategoryIcon className="w-3 h-3" />
+          {task.category === 'trading' && 'Торговля'}
+          {task.category === 'development' && 'Разработка'}
+          {task.category === 'stream' && 'Стрим'}
+          {task.category === 'education' && 'Изучение'}
+        </span>
+      </div>
+
+      {/* Исполнитель */}
+      {task.assignedTo && task.assignedTo.length > 0 && (
+        <div className="flex items-center gap-2 text-sm mb-2">
+          <div className="w-6 h-6 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center text-xs text-gray-600 dark:text-gray-300">
+            <UserIcon className="w-4 h-4" />
           </div>
+          <span className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>
+            {getUserNicknameSync(task.assignedTo[0])}
+          </span>
         </div>
       )}
 
-    </>
+      {/* Дедлайн */}
+      {(task.dueDate || task.dueTime) && (
+        <div className={`flex items-center gap-2 text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+          <span className="font-medium">Дедлайн:</span>
+          <span>{formatDate(new Date(task.dueDate), 'dd.MM.yyyy')} {task.dueTime}</span>
+        </div>
+      )}
+
+      {/* Статус задачи внизу */}
+      <div className={`mt-4 pt-4 border-t ${borderColor} flex justify-end`}>
+        <span className={`px-2.5 py-1 rounded-lg text-xs font-medium ${getStatusClasses(task.status)}`}>
+          {task.status === 'in_progress' && 'В работе'}
+          {task.status === 'completed' && 'Выполнено'}
+          {task.status === 'closed' && 'Закрыто'}
+        </span>
+      </div>
+    </div>
   )
 }
-

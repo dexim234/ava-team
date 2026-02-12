@@ -1,19 +1,15 @@
 import { TaskCategory } from '@/types'
 import {
-  BookOpen,
-  CandlestickChart,
-  ClipboardList,
-  Cpu,
-  FlaskConical,
+  GraduationCap, // Для "Изучение"
+  CandlestickChart, // Для "Торговля"
+  Code, // Для "Разработка"
+  Radio, // Для "Стрим"
   LucideIcon,
-  Radio,
 } from 'lucide-react'
 
 export const CATEGORY_ICONS: Record<TaskCategory, LucideIcon> = {
   trading: CandlestickChart,
-  learning: BookOpen,
-  technical: Cpu,
+  development: Code,
   stream: Radio,
-  research: FlaskConical,
-  organization: ClipboardList,
+  education: GraduationCap,
 }
