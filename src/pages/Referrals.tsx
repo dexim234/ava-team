@@ -486,19 +486,19 @@ export const Referrals = () => {
                                 <tbody className="divide-y divide-white/5">
                                     {referrals.map(r => (
                                         <tr key={r.id} className={`group transition-colors ${theme === 'dark' ? 'hover:bg-white/[0.02]' : 'hover:bg-gray-50/50'}`}>
-                                            <td className="px-6 py-4">
+                                            <td className="px-6 py-4 text-center">
                                                 <span className={`text-sm font-bold ${headingColor}`}>{users.find(u => u.id === r.ownerId)?.name || '—'}</span>
                                             </td>
-                                            <td className="px-6 py-4">
+                                            <td className="px-6 py-4 text-center">
                                                 <span className="text-xs font-mono font-bold text-emerald-500">{r.referralId}</span>
                                             </td>
-                                            <td className="px-6 py-4 text-sm font-medium">{r.name}</td>
-                                            <td className="px-6 py-4 text-sm font-medium">{r.phone || '—'}</td>
-                                            <td className="px-6 py-4 text-sm font-medium">{r.source || '—'}</td>
-                                            <td className="px-6 py-4">
+                                            <td className="px-6 py-4 text-center text-sm font-medium">{r.name}</td>
+                                            <td className="px-6 py-4 text-center text-sm font-medium">{r.phone || '—'}</td>
+                                            <td className="px-6 py-4 text-center text-sm font-medium">{r.source || '—'}</td>
+                                            <td className="px-6 py-4 text-center">
                                                 <span className="text-xs font-bold text-pink-500">{r.tgAccount || '—'}</span>
                                             </td>
-                                            <td className="px-6 py-4">
+                                            <td className="px-6 py-4 text-center">
                                                 <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${r.status === 'active' || !r.status ? 'bg-emerald-500/10 text-emerald-500' :
                                                     r.status === 'inactive' ? 'bg-amber-500/10 text-amber-500' :
                                                         'bg-rose-500/10 text-rose-500'
@@ -555,16 +555,16 @@ export const Referrals = () => {
                                 <tbody className="divide-y divide-white/5">
                                     {myReferrals.length > 0 ? myReferrals.map(r => (
                                         <tr key={r.id} className={`group transition-colors ${theme === 'dark' ? 'hover:bg-white/[0.02]' : 'hover:bg-gray-50/50'}`}>
-                                            <td className="px-6 py-4">
+                                            <td className="px-6 py-4 text-center">
                                                 <span className="text-xs font-mono font-bold text-emerald-500">{r.referralId}</span>
                                             </td>
-                                            <td className="px-6 py-4 text-sm font-medium">{r.name}</td>
-                                            <td className="px-6 py-4 text-sm font-medium">{r.phone || '—'}</td>
-                                            <td className="px-6 py-4 text-sm font-medium">{r.source || '—'}</td>
-                                            <td className="px-6 py-4">
+                                            <td className="px-6 py-4 text-center text-sm font-medium">{r.name}</td>
+                                            <td className="px-6 py-4 text-center text-sm font-medium">{r.phone || '—'}</td>
+                                            <td className="px-6 py-4 text-center text-sm font-medium">{r.source || '—'}</td>
+                                            <td className="px-6 py-4 text-center">
                                                 <span className="text-xs font-bold text-pink-500">{r.tgAccount || '—'}</span>
                                             </td>
-                                            <td className="px-6 py-4">
+                                            <td className="px-6 py-4 text-center">
                                                 <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${r.status === 'active' || !r.status ? 'bg-emerald-500/10 text-emerald-500' :
                                                     r.status === 'inactive' ? 'bg-amber-500/10 text-amber-500' :
                                                         'bg-rose-500/10 text-rose-500'
@@ -604,16 +604,16 @@ export const Referrals = () => {
                             <tbody className="divide-y divide-white/5">
                                 {statsTable.map(s => (
                                     <tr key={s.userId} className={`group transition-colors ${theme === 'dark' ? 'hover:bg-white/[0.02]' : 'hover:bg-gray-50/50'} ${s.userId === user?.id ? (theme === 'dark' ? 'bg-emerald-500/5' : 'bg-emerald-50/50') : ''}`}>
-                                        <td className="px-6 py-4 flex items-center gap-3">
+                                        <td className="px-6 py-4 flex items-center justify-center gap-3">
                                             <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-black text-xs ${theme === 'dark' ? 'bg-white/5 text-emerald-400' : 'bg-emerald-50 text-emerald-600'}`}>
                                                 {s.name[0]}
                                             </div>
                                             <span className={`text-sm font-bold ${headingColor}`}>{s.name}</span>
                                         </td>
-                                        <td className="px-6 py-4 font-black">{s.total}</td>
-                                        <td className="px-6 py-4 text-emerald-500 font-bold">{s.active}</td>
-                                        <td className="px-6 py-4 text-amber-500 font-bold">{s.inactive}</td>
-                                        <td className="px-6 py-4 text-rose-500 font-bold">{s.deleted}</td>
+                                        <td className="px-6 py-4 text-center font-black">{s.total}</td>
+                                        <td className="px-6 py-4 text-center text-emerald-500 font-bold">{s.active}</td>
+                                        <td className="px-6 py-4 text-center text-amber-500 font-bold">{s.inactive}</td>
+                                        <td className="px-6 py-4 text-center text-rose-500 font-bold">{s.deleted}</td>
                                     </tr>
                                 ))}
                             </tbody>
