@@ -55,11 +55,15 @@ export const RatingCard = ({ rating, place }: RatingCardProps) => {
       value: `${rating.breakdown.weeklyHours.toFixed(1)} ч/нед`,
       points: rating.breakdown.weeklyHoursPoints,
       maxPoints: 15,
-      what: `Отработано ${rating.breakdown.weeklyHours.toFixed(1)} часов за неделю.`,
-      why: 'Часы показывают твой вклад в общее время команды. Больше часов — выше вклад.',
+      what: `Отработано ${rating.breakdown.weeklyHours.toFixed(1)} часов за неделю. Шкала: <15ч = 0 баллов, 15-20ч = 5 баллов, 20-30ч = 10 баллов, ≥30ч = 15 баллов.`,
+      why: 'Часы работы показывают твой вклад в общее время команды. Это базовый показатель активности — чем больше часов, тем выше твой вклад.',
       how: rating.breakdown.weeklyHoursPoints < 15
-        ? 'Увеличивай активность, бери больше слотов или задач. Цель: 20+ часов.'
-        : 'Отличный результат! Ты активно работаешь.',
+        ? rating.breakdown.weeklyHoursPoints === 0
+          ? 'Твоя активность ниже нормы. Для получения баллов нужно минимум 15 часов в неделю. Берите больше слотов и задач.'
+          : rating.breakdown.weeklyHoursPoints === 5
+          ? 'Хороший старт! Цель: 20-30 часов в неделю для 10-15 баллов.'
+          : 'Почти у цели! Добавь ещё несколько часов для максимальных 15 баллов.'
+        : 'Отличный результат! Ты активно работаешь и вносишь максимальный вклад.',
       color: 'bg-blue-200 text-blue-900 dark:bg-blue-500/20 dark:text-blue-400'
     },
     {
@@ -68,11 +72,15 @@ export const RatingCard = ({ rating, place }: RatingCardProps) => {
       value: `${Math.round(rating.breakdown.weeklyEarnings).toLocaleString()} ₽`,
       points: rating.breakdown.weeklyEarningsPoints,
       maxPoints: 30,
-      what: `Заработано ${Math.round(rating.breakdown.weeklyEarnings).toLocaleString()} ₽ за неделю.`,
-      why: 'Недельный доход — ключевой показатель эффективности твоих действий.',
+      what: `Заработано ${Math.round(rating.breakdown.weeklyEarnings).toLocaleString()} ₽ за неделю. Шкала: <10K = 0, 10-20K = 10, 20-40K = 20, ≥40K = 30 баллов.`,
+      why: 'Недельный доход — ключевой показатель эффективности твоих действий. Это результат работы и умения находить профитные возможности.',
       how: rating.breakdown.weeklyEarningsPoints < 30
-        ? 'Анализируй рынок, ищи профитные сигналы, участвуй в активностях. Цель: 40 000+ ₽.'
-        : 'Супер! Твой доход на высоте.',
+        ? rating.breakdown.weeklyEarningsPoints === 0
+          ? 'Доход ниже порога для баллов. Минимум 10 000 ₽ для получения баллов. Анализируй рынок и ищи возможности.'
+          : rating.breakdown.weeklyEarningsPoints === 10
+          ? 'Хороший результат! Цель: 20 000+ ₽ для 20 баллов или 40 000+ ₽ для максимальных 30.'
+          : 'Отличный прогресс! До 30 баллов осталось чуть больше 20 000 ₽.'
+        : 'Супер! Твой доход на высоте — ты получаешь максимальные баллы за этот показатель.',
       color: 'bg-emerald-200 text-emerald-900 dark:bg-emerald-500/20 dark:text-emerald-400'
     },
     {
@@ -81,11 +89,15 @@ export const RatingCard = ({ rating, place }: RatingCardProps) => {
       value: `${rating.breakdown.referrals} чел.`,
       points: rating.breakdown.referralsPoints,
       maxPoints: 20,
-      what: `Привлечено ${rating.breakdown.referrals} рефералов за 30 дней.`,
-      why: 'Рост комьюнити важен для масштабирования и новых возможностей.',
+      what: `Привлечено ${rating.breakdown.referrals} рефералов за 30 дней. Шкала: <5 = 0, 5-15 = 5, 15-30 = 10, >30 = 20 баллов.`,
+      why: 'Рост комьюнити важен для масштабирования и новых возможностей. Рефералы показывают твой вклад в развитие сообщества.',
       how: rating.breakdown.referralsPoints < 20
-        ? 'Приглашай активных друзей, делись ссылкой. Цель: 30+ человек.'
-        : 'Отличная работа по расширению команды!',
+        ? rating.breakdown.referralsPoints === 0
+          ? 'Рефералов пока нет. Начни с 5 приглашённых для первых 5 баллов. Делись реферальной ссылкой.'
+          : rating.breakdown.referralsPoints === 5
+          ? 'Хорошее начало! Цель: 15-30 рефералов для 10-20 баллов.'
+          : 'Отличный прогресс! До максимальных 20 баллов осталось ещё несколько приглашений.'
+        : 'Превосходно! Ты активно помогаешь развивать комьюнити.',
       color: 'bg-pink-200 text-pink-900 dark:bg-pink-500/20 dark:text-pink-400'
     },
     {
@@ -94,11 +106,15 @@ export const RatingCard = ({ rating, place }: RatingCardProps) => {
       value: `${rating.breakdown.initiatives}`,
       points: rating.breakdown.initiativesPoints,
       maxPoints: 15,
-      what: `Предложено ${rating.breakdown.initiatives} инициатив за месяц.`,
-      why: 'Проактивность помогает развивать проект и улучшать процессы.',
+      what: `Предложено ${rating.breakdown.initiatives} инициатив за месяц. Шкала: <1 = 0, 1-5 = 5, 5-10 = 10, >10 = 15 баллов.`,
+      why: 'Проактивность помогает развивать проект и улучшать процессы. Инициативы показывают твою вовлечённость в развитие команды.',
       how: rating.breakdown.initiativesPoints < 15
-        ? 'Предлагай идеи по улучшению процессов. Цель: 10+ инициатив.'
-        : 'Отлично! Ты вносишь вклад в развитие проекта.',
+        ? rating.breakdown.initiativesPoints === 0
+          ? 'Инициатив пока нет. Предложи хотя бы 1 идею для первых 5 баллов. Это может быть улучшение процессов, новый инструмент или предложение.'
+          : rating.breakdown.initiativesPoints === 5
+          ? 'Хороший старт! Цель: 5-10 инициатив для 10-15 баллов.'
+          : 'Почти у цели! Ещё несколько инициатив для максимальных 15 баллов.'
+        : 'Отлично! Ты активно вносишь вклад в развитие проекта.',
       color: 'bg-indigo-200 text-indigo-900 dark:bg-indigo-500/20 dark:text-indigo-400'
     },
     {
@@ -107,13 +123,13 @@ export const RatingCard = ({ rating, place }: RatingCardProps) => {
       value: `${rating.breakdown.absenceDays} дн.`,
       points: rating.breakdown.absenceDaysPoints,
       maxPoints: 10,
-      what: `Отсутствий: ${rating.breakdown.absenceDays} за месяц (с согласованием).`,
-      why: 'Минимум отсутствий показывает твою ответственность. Меньше 5 — бонус.',
+      what: `Отсутствий: ${rating.breakdown.absenceDays} за месяц (с согласованием). Шкала: <5 = +10, 5-10 = 0, >10 = -20 баллов.`,
+      why: 'Минимум отсутствий показывает твою ответственность и надёжность как участника команды. Меньше 5 дней в месяц — бонус.',
       how: rating.breakdown.absenceDaysPoints < 10
-        ? rating.breakdown.absenceDays > 10
-          ? 'Слишком много отсутствий! Это влияет на рейтинг.'
-          : 'Постарайся минимизировать отсутствия.'
-        : 'Отличная посещаемость!',
+        ? rating.breakdown.absenceDaysPoints === -20
+          ? 'Слишком много отсутствий! Ты теряешь 20 баллов. Старайся минимизировать отсутствия и лучше планировать своё время.'
+          : 'Нейтральный показатель. Для получения +10 баллов постарайся держать отсутствия ниже 5 дней в месяц.'
+        : 'Отличная посещаемость! Ты получаешь бонус за стабильность.',
       color: rating.breakdown.absenceDaysPoints < 0
         ? 'bg-red-200 text-red-900 dark:bg-red-500/20 dark:text-red-400'
         : 'bg-amber-200 text-amber-900 dark:bg-amber-500/20 dark:text-amber-400'
@@ -124,11 +140,13 @@ export const RatingCard = ({ rating, place }: RatingCardProps) => {
       value: `${rating.breakdown.truancyDays} дн.`,
       points: rating.breakdown.truancyDaysPoints,
       maxPoints: 0,
-      what: `Прогулов: ${rating.breakdown.truancyDays} за месяц (без согласования).`,
-      why: 'Прогул — нарушение дисциплины. >3 прогулов — штраф, >6 — двойной штраф.',
+      what: `Прогулов: ${rating.breakdown.truancyDays} за месяц (без согласования). Шкала: >3 = -15, >6 = -30 баллов.`,
+      why: 'Прогул — серьёзное нарушение дисциплины. >3 прогулов — штраф -15 баллов, >6 — двойной штраф -30 баллов. Это влияет на возможность оставаться в команде.',
       how: rating.breakdown.truancyDaysPoints < 0
-        ? 'Прогулы недопустимы! Предупреждай об отсутствиях заранее.'
-        : 'Дисциплина в норме.',
+        ? rating.breakdown.truancyDaysPoints === -30
+          ? 'Критичная ситуация! Прогулы недопустимы. Ты теряешь 30 баллов и рискуешь быть исключённым из команды. Обязательно предупреждай об отсутствиях заранее!'
+          : 'Внимание! Прогулы влияют на рейтинг. Ты теряешь 15 баллов. Предупреждай об отсутствиях заранее через статус "Отсутствие".'
+        : 'Дисциплина в норме. Продолжай предупреждать о планах заранее.',
       color: rating.breakdown.truancyDaysPoints < 0
         ? 'bg-red-300 text-red-900 dark:bg-red-500/30 dark:text-red-400'
         : 'bg-green-200 text-green-900 dark:bg-green-500/20 dark:text-green-400'
