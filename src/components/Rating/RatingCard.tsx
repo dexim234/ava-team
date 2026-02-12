@@ -62,7 +62,7 @@ const RatingScale: React.FC<{ scale: ScaleLevel[]; currentPoints: number; theme:
   const mutedColor = theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
   
   // Находим индекс текущего уровня (ближайшего снизу или равного)
-  const currentLevelIndex = scale.findIndex((level, idx) => {
+  const currentLevelIndex = scale.findIndex((_, idx) => {
     if (idx === scale.length - 1) return true
     return currentPoints < scale[idx + 1].points
   })
