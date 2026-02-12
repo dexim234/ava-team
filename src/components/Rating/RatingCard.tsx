@@ -67,11 +67,25 @@ const RatingScale: React.FC<{ scale: ScaleLevel[]; currentPoints: number; theme:
     return currentPoints < scale[idx + 1].points
   })
   
-  // Вычисляем позицию пингвина (центр сегмента текущего уровня)
+  // Вычисляем позицию пингвина внутри сегмента
   const segmentWidth = 100 / scale.length
-  const penguinPosition = currentLevelIndex >= 0 
-    ? (currentLevelIndex * segmentWidth) + (segmentWidth / 2)
-    : 0
+  let penguinPosition = 0
+  
+  if (currentLevelIndex >= 0) {
+    const currentLevel = scale[currentLevelIndex]
+    const nextLevel = scale[currentLevelIndex + 1]
+    
+    if (nextLevel) {
+      // Если есть следующий уровень, рассчитываем прогресс внутри сегмента
+      const range = nextLevel.points - currentLevel.points
+      const progress = range > 0 ? (currentPoints - currentLevel.points) / range : 0
+      // Пингвин движется от начала сегмента к его концу
+      penguinPosition = (currentLevelIndex * segmentWidth) + (segmentWidth * Math.max(0, Math.min(1, progress)))
+    } else {
+      // Если это последний уровень, пингвин в конце шкалы
+      penguinPosition = 100
+    }
+  }
 
   return (
     <div className="mt-3 space-y-3">
@@ -102,35 +116,35 @@ const RatingScale: React.FC<{ scale: ScaleLevel[]; currentPoints: number; theme:
         </div>
       </div>
 
-      {/* Числовые значения */}
-      <div className="flex justify-between text-[10px] uppercase font-bold tracking-wide">
+      {/* Числовые значения - центрированы по сегментам */}
+      <div className="flex">
         {scale.map((level, idx) => (
-          <span
+          <div
             key={idx}
-            className={`${
+            className={`flex-1 text-center text-[10px] uppercase font-bold tracking-wide ${
               currentPoints >= level.points
                 ? level.color.replace('bg-', 'text-').replace('/20', '').replace('/30', '').replace('/10', '')
                 : mutedColor
             }`}
           >
             {level.points > 0 ? '+' : ''}{level.points}
-          </span>
+          </div>
         ))}
       </div>
 
-      {/* Полные подписи уровней */}
-      <div className="flex justify-between text-[9px] uppercase tracking-wider leading-tight">
+      {/* Полные подписи уровней - центрированы по сегментам */}
+      <div className="flex">
         {scale.map((level, idx) => (
-          <span 
-            key={idx} 
-            className={`text-center flex-1 ${
+          <div
+            key={idx}
+            className={`flex-1 text-center text-[9px] uppercase tracking-wider leading-tight ${
               currentPoints >= level.points
                 ? level.color.replace('bg-', 'text-').replace('/20', '').replace('/30', '').replace('/10', '')
                 : mutedColor
             }`}
           >
             {level.label}
-          </span>
+          </div>
         ))}
       </div>
     </div>
