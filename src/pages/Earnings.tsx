@@ -314,7 +314,7 @@ export const Earnings = () => {
       {/* Split layout: Shares vs Details */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left: Shares */}
-        <div className={`relative overflow-hidden rounded-3xl p-6 ${theme === 'dark' ? 'bg-[#0b1015] border-white/5' : 'bg-white border-gray-100'} border shadow-2xl`}>
+        <div className={`lg:col-span-3 relative overflow-hidden rounded-3xl p-6 ${theme === 'dark' ? 'bg-[#0b1015] border-white/5' : 'bg-white border-gray-100'} border shadow-2xl`}>
           <div className="absolute top-0 right-0 w-64 h-64 bg-[#4E6E49]/5 blur-3xl rounded-full -mr-32 -mt-32" />
           <div className="relative z-10">
             <div className="flex items-center gap-3 mb-8">
@@ -325,33 +325,48 @@ export const Earnings = () => {
             </div>
 
             <div className="space-y-6">
-              {categoryWithShares.filter(cat => categoryAccess[cat.key]).map((cat) => {
-                const meta = EARNINGS_CATEGORY_META[cat.key]
-                return (
-                  <div key={cat.key} className="space-y-2">
-                    <div className="flex justify-between items-center text-[11px] font-black">
-                      <div className="flex items-center gap-2">
-                        <div className={`w-2 h-2 rounded-full ${meta.accent === 'emerald' ? 'bg-emerald-500' :
-                          meta.accent === 'blue' ? 'bg-blue-500' :
-                            meta.accent === 'purple' ? 'bg-purple-500' :
-                              meta.accent === 'amber' ? 'bg-amber-500' :
-                                meta.accent === 'pink' ? 'bg-pink-500' :
-                                  meta.accent === 'indigo' ? 'bg-indigo-500' :
-                                    meta.accent === 'cyan' ? 'bg-cyan-500' : 'bg-gray-500'
-                          }`} />
-                        <span className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>{meta.label}</span>
+              <div className="space-y-6">
+                {categoryWithShares.filter(cat => categoryAccess[cat.key]).map((cat) => {
+                  const meta = EARNINGS_CATEGORY_META[cat.key]
+                  return (
+                    <div key={cat.key} className="space-y-2">
+                      <div className="flex justify-between items-center text-[11px] font-black">
+                        <div className="flex items-center gap-2">
+                          <div className={`w-2 h-2 rounded-full ${meta.accent === 'emerald' ? 'bg-emerald-500' :
+                            meta.accent === 'blue' ? 'bg-blue-500' :
+                              meta.accent === 'purple' ? 'bg-purple-500' :
+                                meta.accent === 'amber' ? 'bg-amber-500' :
+                                  meta.accent === 'pink' ? 'bg-pink-500' :
+                                    meta.accent === 'indigo' ? 'bg-indigo-500' :
+                                      meta.accent === 'cyan' ? 'bg-cyan-500' : 'bg-gray-500'
+                            }`} />
+                          <span className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>{meta.label}</span>
+                        </div>
+                        <span className={theme === 'dark' ? 'text-white' : 'text-gray-900'}>{cat.share.toFixed(0)}%</span>
                       </div>
-                      <span className={theme === 'dark' ? 'text-white' : 'text-gray-900'}>{cat.share.toFixed(0)}%</span>
+                      <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full rounded-full ${meta.accent === 'emerald' ? 'bg-emerald-500' :
+                            meta.accent === 'blue' ? 'bg-blue-500' :
+                              meta.accent === 'purple' ? 'bg-purple-500' :
+                                meta.accent === 'amber' ? 'bg-amber-500' :
+                                  meta.accent === 'pink' ? 'bg-pink-500' :
+                                    meta.accent === 'indigo' ? 'bg-indigo-500' :
+                                      meta.accent === 'cyan' ? 'bg-cyan-500' : 'bg-gray-500'
+                            }`}
+                          style={{ width: `${cat.share}%` }}
+                        />
+                      </div>
                     </div>
-                  </div>
-                )
-              })}
+                  )
+                })}
+              </div>
             </div>
           </div>
         </div>
 
         {/* Right: Category Details Grid */}
-        <div className={`relative overflow-hidden rounded-3xl p-6 ${theme === 'dark' ? 'bg-[#0b1015] border-white/5' : 'bg-white border-gray-100'} border shadow-2xl`}>
+        <div className={`lg:col-span-9 relative overflow-hidden rounded-3xl p-6 ${theme === 'dark' ? 'bg-[#0b1015] border-white/5' : 'bg-white border-gray-100'} border shadow-2xl`}>
           <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/5 blur-3xl rounded-full -mr-32 -mt-32" />
           <div className="relative z-10">
             <div className="flex items-center justify-between mb-8">
