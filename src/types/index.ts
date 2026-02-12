@@ -320,9 +320,14 @@ export interface Call {
 }
 
 // Task types
-export type TaskCategory = 'trading' | 'learning' | 'technical' | 'stream' | 'research' | 'organization'
+export type TaskCategory = 'trading' | 'development' | 'stream' | 'learning'
 export type TaskStatus = 'in_progress' | 'completed' | 'closed'
 export type TaskPriority = 'low' | 'medium' | 'high' | 'urgent'
+
+export interface TaskLink {
+  url: string
+  name: string
+}
 
 export interface StageAssignee {
   userId: string
@@ -365,19 +370,10 @@ export interface Task {
   startTime?: string // HH:mm format (необязательно)
   expectedResult?: string
   requiresApproval?: boolean
-  // Роли
-  mainExecutor?: string // главный исполнитель
-  leadExecutor?: string // ведущий исполнитель
-  deputies?: { userId: string; responsibility?: string }[]
-  coExecutors?: string[] // соисполнители
-  executors?: string[] // legacy
-  curators?: string[]
-  leads?: string[]
-  // Этапы и комментарии
-  stages?: TaskStage[]
-  currentStageId?: string
-  awaitingStageId?: string // этап, ожидающий подтверждение автора/ГИ
-  comments?: TaskComment[]
+  links?: TaskLink[] // до 10 ссылок
+  // Архив
+  archivedAt?: string
+  autoArchived?: boolean
 }
 
 export interface TaskStage {
@@ -401,6 +397,7 @@ export interface TaskComment {
   stageId?: string // если комментарий к конкретному этапу
 }
 
+// Note types
 export interface Note {
   id: string
   userId: string
@@ -421,17 +418,9 @@ export const TEAM_MEMBERS: User[] = [
 
 export const TASK_CATEGORIES: Record<TaskCategory, { label: string; icon: string; color: string }> = {
   trading: { label: 'Торговля', icon: 'candles', color: 'green' },
-  learning: { label: 'Обучение', icon: 'book', color: 'blue' },
-  technical: { label: 'ТЧ', icon: 'cpu', color: 'purple' },
+  development: { label: 'Разработка', icon: 'cpu', color: 'purple' },
   stream: { label: 'Стрим', icon: 'broadcast', color: 'red' },
-  research: { label: 'Изучение', icon: 'flask', color: 'yellow' },
-  organization: { label: 'Ресёрч', icon: 'clipboard', color: 'indigo' },
-}
-
-export const TASK_STATUSES: Record<TaskStatus, { label: string; color: string }> = {
-  in_progress: { label: 'В работе', color: 'blue' },
-  completed: { label: 'Выполнено', color: 'green' },
-  closed: { label: 'Закрыто', color: 'gray' },
+  learning: { label: 'Изучение', icon: 'book', color: 'blue' },
 }
 
 // User Activity tracking types
@@ -502,59 +491,10 @@ export type AccessFeature =
   | 'tools_kontur_spot'
   | 'tools_kontur_futures'
   | 'tools_kontur_airdrop'
+  | 'tools_kontur_prop_trading'
   | 'tools_kontur_other'
   | 'tools_strategies_view' // block viewing strategies
   | 'tools_items_view' // block viewing tool items
-  // HUB Sub-features
-  | 'hub_signals_add'
-  | 'hub_signals_view'
-  | 'hub_signals_cat_memecoins'
-  | 'hub_signals_cat_polymarket'
-  | 'hub_signals_cat_nft'
-  | 'hub_signals_cat_spot'
-  | 'hub_signals_cat_futures'
-  | 'hub_signals_cat_staking'
-  | 'hub_signals_cat_airdrop'
-  // Schedule Sub-features
-  | 'schedule_stats_view'
-  | 'schedule_view'
-  | 'schedule_add_slot'
-  | 'schedule_status_edit'
-  | 'schedule_slot_delete'
-  // Tasks Sub-features
-  | 'tasks_add'
-  | 'tasks_view'
-  // Profit Sub-features
-  | 'profit_add'
-  | 'profit_stats_view'
-  | 'profit_leaders_view'
-  | 'profit_history_view'
-  | 'profit_insights_view'
-  | 'profit_cat_memecoins'
-  | 'profit_cat_futures'
-  | 'profit_cat_nft'
-  | 'profit_cat_spot'
-  | 'profit_cat_airdrop'
-  | 'profit_cat_polymarket'
-  | 'profit_cat_staking'
-  | 'profit_cat_other'
-  | 'profit_wallet_general'
-  | 'profit_wallet_personal'
-  | 'profit_wallet_pool'
-  // Rating Sub-features
-  | 'rating_others_view'
-  | 'rating_self_view'
-  | 'rating_specific_view'
-  | 'profile' // block profile access
-  // Legacy aliases
-  | 'slots'
-  | 'earnings'
-  | 'tasks'
-  | 'rating'
-  | 'about'
-  | 'tools_meme_evaluation'
-  | 'tools_ai_ao_alerts'
-  | 'tools_signals_trigger_bot'
 
 // AI - AO Alerts types
 export interface AiAlert {
