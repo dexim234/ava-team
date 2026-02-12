@@ -1,3 +1,4 @@
+// Earnings page
 import { useState, useEffect } from 'react'
 import { useThemeStore } from '@/store/themeStore'
 import { EarningsForm } from '@/components/Earnings/EarningsForm'
@@ -37,28 +38,34 @@ export const Earnings = () => {
   const historyAccess = useAccessControl('profit_history_view')
 
   // Category Access
-  const memecoinsAccess = useAccessControl('profit_cat_memecoins')
+  const memesTradingAccess = useAccessControl('profit_cat_memes_trading')
+  const memesDevAccess = useAccessControl('profit_cat_memes_dev')
+  const propTradingAccess = useAccessControl('profit_cat_prop_trading')
   const polymarketAccess = useAccessControl('profit_cat_polymarket')
   const nftAccess = useAccessControl('profit_cat_nft')
   const spotAccess = useAccessControl('profit_cat_spot')
   const futuresAccess = useAccessControl('profit_cat_futures')
   const stakingAccess = useAccessControl('profit_cat_staking')
   const airdropAccess = useAccessControl('profit_cat_airdrop')
+  const otherAccess = useAccessControl('profit_cat_other')
 
   const categoryAccess: Record<EarningsCategory, boolean> = {
-    memecoins: memecoinsAccess.hasAccess,
+    memes_trading: memesTradingAccess.hasAccess,
+    memes_dev: memesDevAccess.hasAccess,
+    prop_trading: propTradingAccess.hasAccess,
     polymarket: polymarketAccess.hasAccess,
     nft: nftAccess.hasAccess,
     spot: spotAccess.hasAccess,
     futures: futuresAccess.hasAccess,
     staking: stakingAccess.hasAccess,
     airdrop: airdropAccess.hasAccess,
-    other: airdropAccess.hasAccess,
+    other: otherAccess.hasAccess
   }
 
   const POOL_RATE = 0.45
   const categoryKeys = Object.keys(EARNINGS_CATEGORY_META) as EarningsCategory[]
 
+  const cardBg = theme === 'dark' ? 'bg-[#1a1a1a]' : 'bg-white'
   const getPoolValue = (earning: EarningsType) => earning.poolAmount || earning.amount * POOL_RATE
   const getNetValue = (earning: EarningsType) => Math.max(earning.amount - getPoolValue(earning), 0)
   const getParticipants = (earning: EarningsType) => earning.participants?.length ? earning.participants : [earning.userId]
@@ -174,7 +181,7 @@ export const Earnings = () => {
       count: items.length,
       topParticipants,
     }
-  })
+  }).filter(cat => cat.key !== 'other' && (cat.key as string) !== 'memecoins')
 
   const totalNet = categoryBreakdown.reduce((sum, cat) => sum + cat.net, 0)
   const categoryWithShares = categoryBreakdown.map(cat => ({
@@ -299,11 +306,26 @@ export const Earnings = () => {
                   }`}
               >
                 <div className="flex justify-between items-start mb-6">
-                  <span className={`text-[10px] font-black uppercase tracking-widest text-gray-500`}>{item.label}</span>
-                  {item.icon}
+                  <span className={`text-[10px] font-black uppercase tracking-widest ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`}>
+                    {item.label}
+                  </span>
+                  {item.change && (
+                    <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 text-[10px] font-black">
+                      {item.change}
+                    </span>
+                  )}
+                  {'badgeIcon' in item && item.badgeIcon && (
+                    <div className="p-1 bg-emerald-500/10 rounded-lg">
+                      {item.badgeIcon as React.ReactNode}
+                    </div>
+                  )}
+                  {item.isTrend && <TrendingUp className="w-4 h-4 text-purple-500/40" />}
+                  {item.isCoins && <PiggyBank className="w-4 h-4 text-orange-500/40" />}
                 </div>
-                <div className="space-y-1">
-                  <p className={`text-lg font-black leading-tight ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{item.value}</p>
+                <div className="flex items-end justify-between">
+                  <div className={`text-2xl md:text-3xl font-black tracking-tight ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                    {item.value}
+                  </div>
                 </div>
               </div>
             ))}
@@ -314,76 +336,21 @@ export const Earnings = () => {
       {/* Split layout: Shares vs Details */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left: Shares */}
-        <div className={`lg:col-span-3 relative overflow-hidden rounded-3xl p-6 ${theme === 'dark' ? 'bg-[#0b1015] border-white/5' : 'bg-white border-gray-100'} border shadow-2xl`}>
-          <div className="absolute top-0 right-0 w-64 h-64 bg-[#4E6E49]/5 blur-3xl rounded-full -mr-32 -mt-32" />
-          <div className="relative z-10">
-            <div className="flex items-center gap-3 mb-8">
-              <div className="p-2 bg-[#4E6E49]/10 rounded-lg">
-                <PieChart className="w-5 h-5 text-[#4E6E49]" />
-              </div>
-              <h3 className={`text-sm font-black uppercase tracking-widest ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Доли заработка</h3>
+        <div className={`lg:col-span-3 rounded-2xl p-6 ${cardBg} border ${theme === 'dark' ? 'border-white/5' : 'border-gray-100'} shadow-xl`}>
+          <div className="flex items-center gap-3 mb-8">
+            <div className="p-2 bg-[#4E6E49]/10 rounded-lg">
+              <PieChart className="w-5 h-5 text-[#4E6E49]" />
             </div>
-
-            <div className="space-y-6">
-              <div className="space-y-6">
-                {categoryWithShares.filter(cat => categoryAccess[cat.key]).map((cat) => {
-                  const meta = EARNINGS_CATEGORY_META[cat.key]
-                  return (
-                    <div key={cat.key} className="space-y-2">
-                      <div className="flex justify-between items-center text-[11px] font-black">
-                        <div className="flex items-center gap-2">
-                          <div className={`w-2 h-2 rounded-full ${meta.accent === 'emerald' ? 'bg-emerald-500' :
-                            meta.accent === 'blue' ? 'bg-blue-500' :
-                              meta.accent === 'purple' ? 'bg-purple-500' :
-                                meta.accent === 'amber' ? 'bg-amber-500' :
-                                  meta.accent === 'pink' ? 'bg-pink-500' :
-                                    meta.accent === 'indigo' ? 'bg-indigo-500' :
-                                      meta.accent === 'cyan' ? 'bg-cyan-500' : 'bg-gray-500'
-                            }`} />
-                          <span className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>{meta.label}</span>
-                        </div>
-                        <span className={theme === 'dark' ? 'text-white' : 'text-gray-900'}>{cat.share.toFixed(0)}%</span>
-                      </div>
-                      <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
-                        <div
-                          className={`h-full rounded-full ${meta.accent === 'emerald' ? 'bg-emerald-500' :
-                            meta.accent === 'blue' ? 'bg-blue-500' :
-                              meta.accent === 'purple' ? 'bg-purple-500' :
-                                meta.accent === 'amber' ? 'bg-amber-500' :
-                                  meta.accent === 'pink' ? 'bg-pink-500' :
-                                    meta.accent === 'indigo' ? 'bg-indigo-500' :
-                                      meta.accent === 'cyan' ? 'bg-cyan-500' : 'bg-gray-500'
-                            }`}
-                          style={{ width: `${cat.share}%` }}
-                        />
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
+            <h3 className={`text-sm font-black uppercase tracking-widest ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Доли заработка</h3>
           </div>
-        </div>
 
-        {/* Right: Category Details Grid */}
-        <div className={`lg:col-span-9 relative overflow-hidden rounded-3xl p-6 ${theme === 'dark' ? 'bg-[#0b1015] border-white/5' : 'bg-white border-gray-100'} border shadow-2xl`}>
-          <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/5 blur-3xl rounded-full -mr-32 -mt-32" />
-          <div className="relative z-10">
-            <div className="flex items-center justify-between mb-8">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-500/10 rounded-lg">
-                  <BarChart3 className="w-5 h-5 text-blue-400" />
-                </div>
-                <h3 className={`text-sm font-black tracking-widest ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Детализация дохода по сферам</h3>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {categoryWithShares.filter(cat => categoryAccess[cat.key]).map((cat) => {
-                const meta = EARNINGS_CATEGORY_META[cat.key]
-                return (
-                  <div key={cat.key} className={`p-5 rounded-2xl border ${theme === 'dark' ? 'bg-white/5 border-white/5 shadow-inner' : 'bg-gray-50 border-gray-100'}`}>
-                    <div className="flex items-center gap-2 mb-4">
+          <div className="space-y-6">
+            {categoryWithShares.filter(cat => categoryAccess[cat.key]).map((cat) => {
+              const meta = EARNINGS_CATEGORY_META[cat.key]
+              return (
+                <div key={cat.key} className="space-y-2">
+                  <div className="flex justify-between items-center text-[11px] font-black uppercase">
+                    <div className="flex items-center gap-2">
                       <div className={`w-2 h-2 rounded-full ${meta.accent === 'emerald' ? 'bg-emerald-500' :
                         meta.accent === 'blue' ? 'bg-blue-500' :
                           meta.accent === 'purple' ? 'bg-purple-500' :
@@ -392,37 +359,84 @@ export const Earnings = () => {
                                 meta.accent === 'indigo' ? 'bg-indigo-500' :
                                   meta.accent === 'cyan' ? 'bg-cyan-500' : 'bg-gray-500'
                         }`} />
-                      <span className={`text-xs font-black tracking-widest ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{meta.label}</span>
+                      <span className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>{meta.label}</span>
                     </div>
-
-                    <div className="grid grid-cols-2 gap-4 mb-4">
-                      <div>
-                        <p className="text-[9px] font-black text-gray-500 uppercase mb-1">ЧИСТЫМИ</p>
-                        <p className={`text-sm font-black ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{cat.net.toLocaleString()} ₽</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-[9px] font-black text-gray-500 uppercase mb-1">В ПУЛ</p>
-                        <p className={`text-sm font-black ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{cat.pool.toLocaleString()} ₽</p>
-                      </div>
-                    </div>
-
-                    <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
-                      <div
-                        className={`h-full rounded-full transition-all duration-500 ${meta.accent === 'emerald' ? 'bg-emerald-500 focus:bg-emerald-400' :
-                          meta.accent === 'blue' ? 'bg-blue-500 focus:bg-blue-400' :
-                            meta.accent === 'purple' ? 'bg-purple-500 focus:bg-purple-400' :
-                              meta.accent === 'amber' ? 'bg-amber-500 focus:bg-amber-400' :
-                                meta.accent === 'pink' ? 'bg-pink-500 focus:bg-pink-400' :
-                                  meta.accent === 'indigo' ? 'bg-indigo-500 focus:bg-indigo-400' :
-                                    meta.accent === 'cyan' ? 'bg-cyan-500 focus:bg-cyan-400' : 'bg-gray-500'
+                    <span className={theme === 'dark' ? 'text-white' : 'text-gray-900'}>{cat.share.toFixed(0)}%</span>
+                  </div>
+                  <div className={`h-1.5 w-full ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-100'} rounded-full overflow-hidden`}>
+                    <div
+                      className={`h-full rounded-full ${meta.accent === 'emerald' ? 'bg-emerald-500' :
+                        meta.accent === 'blue' ? 'bg-blue-500' :
+                          meta.accent === 'purple' ? 'bg-purple-500' :
+                            meta.accent === 'amber' ? 'bg-amber-500' :
+                              meta.accent === 'pink' ? 'bg-pink-500' :
+                                meta.accent === 'indigo' ? 'bg-indigo-500' :
+                                  meta.accent === 'cyan' ? 'bg-cyan-500' : 'bg-gray-500'
                         }`}
-                        style={{ width: `${cat.share}%` }}
-                      />
+                      style={{ width: `${cat.share}%` }}
+                    />
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* Right: Category Details Grid */}
+        <div className={`lg:col-span-9 rounded-2xl p-6 ${cardBg} border ${theme === 'dark' ? 'border-white/5' : 'border-gray-100'} shadow-xl`}>
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-blue-500/10 rounded-lg">
+                <BarChart3 className="w-5 h-5 text-blue-400" />
+              </div>
+              <h3 className={`text-sm font-black uppercase tracking-widest ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Детализация дохода по сферам</h3>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {categoryWithShares.filter(cat => categoryAccess[cat.key]).map((cat) => {
+              const meta = EARNINGS_CATEGORY_META[cat.key]
+              return (
+                <div key={cat.key} className={`p-4 rounded-xl border ${theme === 'dark' ? 'bg-black/20 border-white/5 hover:border-white/10' : 'bg-gray-50 border-gray-200'} transition-all group`}>
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className={`w-2 h-2 rounded-full ${meta.accent === 'emerald' ? 'bg-emerald-500' :
+                      meta.accent === 'blue' ? 'bg-blue-500' :
+                        meta.accent === 'purple' ? 'bg-purple-500' :
+                          meta.accent === 'amber' ? 'bg-amber-500' :
+                            meta.accent === 'pink' ? 'bg-pink-500' :
+                              meta.accent === 'indigo' ? 'bg-indigo-500' :
+                                meta.accent === 'cyan' ? 'bg-cyan-500' : 'bg-gray-500'
+                      }`} />
+                    <span className={`text-xs font-black uppercase tracking-widest ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{meta.label}</span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                      <p className="text-[9px] font-black text-gray-500 uppercase mb-1">ЧИСТЫМИ</p>
+                      <p className={`text-sm font-black ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{cat.net.toLocaleString()} ₽</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-[9px] font-black text-gray-500 uppercase mb-1">В ПУЛ</p>
+                      <p className={`text-sm font-black ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{cat.pool.toLocaleString()} ₽</p>
                     </div>
                   </div>
-                )
-              })}
-            </div>
+
+                  <div className={`h-1 w-full ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-200'} rounded-full overflow-hidden`}>
+                    <div
+                      className={`h-full rounded-full transition-all duration-500 ${meta.accent === 'emerald' ? 'bg-emerald-500' :
+                        meta.accent === 'blue' ? 'bg-blue-500' :
+                          meta.accent === 'purple' ? 'bg-purple-500' :
+                            meta.accent === 'amber' ? 'bg-amber-500' :
+                              meta.accent === 'pink' ? 'bg-pink-500' :
+                                meta.accent === 'indigo' ? 'bg-indigo-500' :
+                                  meta.accent === 'cyan' ? 'bg-cyan-500' : 'bg-gray-500'
+                        }`}
+                      style={{ width: `${cat.share}%` }}
+                    />
+                  </div>
+                </div>
+              )
+            })}
           </div>
         </div>
       </div>
@@ -439,7 +453,7 @@ export const Earnings = () => {
         <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 blur-3xl rounded-full -mr-32 -mt-32" />
         <div className="relative z-10 space-y-8">
           <div>
-            <h3 className={`text-lg font-black tracking-tight ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Инсайты эффективности</h3>
+            <h3 className={`text-lg font-black tracking-tight ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Инсайты Эффективности</h3>
             <p className="text-xs text-gray-500">Аналитика доходности по направлениям и участникам</p>
           </div>
 
@@ -530,6 +544,7 @@ export const Earnings = () => {
                           </div>
                           <div>
                             <p className={`text-sm font-black truncate max-w-[100px] ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{member.name}</p>
+                            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">{member.login}</p>
                           </div>
                         </div>
 

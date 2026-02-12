@@ -39,7 +39,7 @@ export interface TimeSlot {
   }[]
 }
 
-export type SlotCategory = 'memecoins' | 'futures' | 'nft' | 'spot' | 'airdrop' | 'polymarket' | 'staking' | 'other'
+export type SlotCategory = 'memecoins' | 'futures' | 'nft' | 'spot' | 'airdrop' | 'polymarket' | 'staking'
 
 export const SLOT_CATEGORY_META: Record<SlotCategory, { label: string; accent: string; icon: string }> = {
   memecoins: { label: 'Мемкоины', accent: 'emerald', icon: 'rocket' },
@@ -49,7 +49,6 @@ export const SLOT_CATEGORY_META: Record<SlotCategory, { label: string; accent: s
   airdrop: { label: 'AirDrop', accent: 'cyan', icon: 'gift' },
   polymarket: { label: 'Polymarket', accent: 'pink', icon: 'barchart' },
   staking: { label: 'Стейкинг', accent: 'indigo', icon: 'shield' },
-  other: { label: 'Крипто-рынок', accent: 'gray', icon: 'sparkles' },
 }
 
 export interface WorkSlot {
@@ -113,11 +112,13 @@ export interface ApprovalRequest {
 }
 
 // Earnings types
-export type EarningsCategory = 'memecoins' | 'futures' | 'nft' | 'spot' | 'airdrop' | 'polymarket' | 'staking' | 'other'
+export type EarningsCategory = 'memes_trading' | 'memes_dev' | 'futures' | 'prop_trading' | 'nft' | 'spot' | 'airdrop' | 'polymarket' | 'staking' | 'other'
 
-export const EARNINGS_CATEGORY_META: Record<EarningsCategory, { label: string; accent: string; icon: 'rocket' | 'line' | 'image' | 'coins' | 'gift' | 'barchart' | 'shield' | 'sparkles'; gradient: string; shortName: string }> = {
-  memecoins: { label: 'Мемкоины', accent: 'emerald', icon: 'rocket', gradient: 'from-emerald-500 to-teal-600', shortName: 'Мемы' },
+export const EARNINGS_CATEGORY_META: Record<EarningsCategory, { label: string; accent: string; icon: 'rocket' | 'line' | 'image' | 'coins' | 'gift' | 'barchart' | 'shield' | 'sparkles' | 'zap' | 'briefcase'; gradient: string; shortName: string }> = {
+  memes_trading: { label: 'Мемы - торговля', accent: 'emerald', icon: 'rocket', gradient: 'from-emerald-500 to-teal-600', shortName: 'Мемы Торг' },
+  memes_dev: { label: 'Мемы - дев', accent: 'emerald', icon: 'zap', gradient: 'from-emerald-400 to-teal-500', shortName: 'Мемы Дев' },
   futures: { label: 'Фьючерсы', accent: 'blue', icon: 'line', gradient: 'from-blue-500 to-indigo-600', shortName: 'Фьюч' },
+  prop_trading: { label: 'Проп-трейдинг', accent: 'indigo', icon: 'briefcase' as any, gradient: 'from-indigo-600 to-blue-700', shortName: 'Проп' },
   nft: { label: 'NFT', accent: 'purple', icon: 'image', gradient: 'from-purple-500 to-pink-600', shortName: 'NFT' },
   spot: { label: 'Спот', accent: 'amber', icon: 'coins', gradient: 'from-amber-500 to-orange-600', shortName: 'Спот' },
   airdrop: { label: 'AirDrop', accent: 'cyan', icon: 'gift', gradient: 'from-cyan-500 to-blue-600', shortName: 'Airdrop' },
@@ -320,9 +321,9 @@ export interface Call {
 }
 
 // Task types
-export type TaskCategory = 'trading' | 'learning' | 'technical' | 'stream' | 'research' | 'organization'
-export type TaskStatus = 'in_progress' | 'completed' | 'closed'
-export type TaskPriority = 'low' | 'medium' | 'high' | 'urgent'
+export type TaskCategory = 'trading' | 'development' | 'stream' | 'learning'
+export type TaskStatus = 'in_progress' | 'completed' | 'closed' | 'archived'
+export type TaskPriority = 'urgent' | 'fast_start' | 'planned_slot' | 'background'
 
 export interface StageAssignee {
   userId: string
@@ -351,21 +352,24 @@ export interface Task {
   category: TaskCategory
   status: TaskStatus
   createdBy: string // user ID
-  assignedTo: string[] // user IDs (для быстрых фильтров)
-  assignees?: TaskAssignee[]
-  approvals: TaskApproval[] // Текущие согласования (этап по умолчанию)
+  assignedTo: string[] // user IDs (в данном случае один основной исполнитель)
   createdAt: string
   updatedAt: string
   completedAt?: string
   closedAt?: string
   completedBy?: string // user ID
-  priority?: TaskPriority
+  priority: TaskPriority
   dueDate: string // YYYY-MM-DD format (обязательно)
   dueTime: string // HH:mm format (обязательно)
-  startTime?: string // HH:mm format (необязательно)
   expectedResult?: string
-  requiresApproval?: boolean
-  // Роли
+  links?: { name: string; url: string }[]
+  // Legacy fields preserved for compatibility
+  assignees?: TaskAssignee[]
+  approvals?: TaskApproval[]
+  stages?: TaskStage[]
+  currentStageId?: string
+  awaitingStageId?: string // этап, ожидающий подтверждение автора/ГИ
+  comments?: TaskComment[]
   mainExecutor?: string // главный исполнитель
   leadExecutor?: string // ведущий исполнитель
   deputies?: { userId: string; responsibility?: string }[]
@@ -373,11 +377,6 @@ export interface Task {
   executors?: string[] // legacy
   curators?: string[]
   leads?: string[]
-  // Этапы и комментарии
-  stages?: TaskStage[]
-  currentStageId?: string
-  awaitingStageId?: string // этап, ожидающий подтверждение автора/ГИ
-  comments?: TaskComment[]
 }
 
 export interface TaskStage {
@@ -421,17 +420,16 @@ export const TEAM_MEMBERS: User[] = [
 
 export const TASK_CATEGORIES: Record<TaskCategory, { label: string; icon: string; color: string }> = {
   trading: { label: 'Торговля', icon: 'candles', color: 'green' },
-  learning: { label: 'Обучение', icon: 'book', color: 'blue' },
-  technical: { label: 'ТЧ', icon: 'cpu', color: 'purple' },
+  development: { label: 'Разработка', icon: 'cpu', color: 'blue' },
   stream: { label: 'Стрим', icon: 'broadcast', color: 'red' },
-  research: { label: 'Изучение', icon: 'flask', color: 'yellow' },
-  organization: { label: 'Ресёрч', icon: 'clipboard', color: 'indigo' },
+  learning: { label: 'Изучение', icon: 'book', color: 'blue' },
 }
 
 export const TASK_STATUSES: Record<TaskStatus, { label: string; color: string }> = {
   in_progress: { label: 'В работе', color: 'blue' },
   completed: { label: 'Выполнено', color: 'green' },
   closed: { label: 'Закрыто', color: 'gray' },
+  archived: { label: 'В архиве', color: 'orange' },
 }
 
 // User Activity tracking types
@@ -503,12 +501,14 @@ export type AccessFeature =
   | 'tools_kontur_futures'
   | 'tools_kontur_airdrop'
   | 'tools_kontur_other'
+  | 'tools_kontur_proptrading'
   | 'tools_strategies_view' // block viewing strategies
   | 'tools_items_view' // block viewing tool items
   // HUB Sub-features
   | 'hub_signals_add'
   | 'hub_signals_view'
-  | 'hub_signals_cat_memecoins'
+  | 'hub_signals_cat_memes_trading'
+  | 'hub_signals_cat_memes_dev'
   | 'hub_signals_cat_polymarket'
   | 'hub_signals_cat_nft'
   | 'hub_signals_cat_spot'
@@ -530,8 +530,10 @@ export type AccessFeature =
   | 'profit_leaders_view'
   | 'profit_history_view'
   | 'profit_insights_view'
-  | 'profit_cat_memecoins'
+  | 'profit_cat_memes_trading'
+  | 'profit_cat_memes_dev'
   | 'profit_cat_futures'
+  | 'profit_cat_prop_trading'
   | 'profit_cat_nft'
   | 'profit_cat_spot'
   | 'profit_cat_airdrop'
