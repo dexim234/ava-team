@@ -1,27 +1,19 @@
-// Rating calculation utilities
 import { RatingData } from '@/types'
 
 export interface RatingBreakdown {
-  daysOff: number
-  daysOffPoints: number
-  sickDays: number
-  sickDaysPoints: number
-  vacationDays: number
-  vacationDaysPoints: number
-  absenceDays: number
-  absenceDaysPoints: number
-  internshipDays: number
-  internshipDaysPoints: number
+  // Основные метрики
   weeklyHours: number
   weeklyHoursPoints: number
   weeklyEarnings: number
   weeklyEarningsPoints: number
   referrals: number
   referralsPoints: number
-  signals: number
   initiatives: number
-  poolAmount: number
+  initiativesPoints: number
+  absenceDays: number
+  absenceDaysPoints: number
   truancyDays: number
+  truancyDaysPoints: number
   totalRating: number
 }
 
@@ -29,185 +21,202 @@ export const calculateRating = (
   data: Omit<RatingData, 'rating'>,
   weeklyHours: number = 0,
   weeklyEarnings: number = 0,
-  weeklyDaysOff: number = 0,
-  weeklySickDays: number = 0,
-  ninetyDayVacationDays: number = 0
+  _weeklyDaysOff: number = 0,
+  _weeklySickDays: number = 0,
+  _ninetyDayVacationDays: number = 0
 ): number => {
   console.log('calculateRating input:', {
     userId: data.userId,
-    weeklyDaysOff,
-    weeklySickDays,
-    data_sickDays: data.sickDays,
-    data_vacationDays: data.vacationDays,
-    ninetyDayVacationDays,
-    data_absenceDays: data.absenceDays,
     weeklyHours,
-    weeklyEarnings
+    weeklyEarnings,
+    data_referrals: data.referrals,
+    data_initiatives: data.initiatives,
+    data_absenceDays: data.absenceDays,
+    data_truancyDays: data.truancyDays
   })
+
   let rating = 0
 
-  // Выходные: <2 дней в неделю = +5%, >3 дней в неделю = -15%
-  let daysOffPoints = 0
-  if (weeklyDaysOff < 2) {
-    daysOffPoints = 5
-    rating += 5
-  } else if (weeklyDaysOff > 3) {
-    daysOffPoints = -15
-    rating -= 15
-  }
-  console.log('DaysOff calculation:', { weeklyDaysOff, daysOffPoints, currentRating: rating })
-
-  // Больничные: <3 дней в неделю И <=9 дней в месяц = +5%, >4 дней в неделю ИЛИ >10 дней в месяц = -15%
-  let sickDaysPoints = 0
-  if (weeklySickDays < 3 && data.sickDays <= 9) {
-    sickDaysPoints = 5
-    rating += 5
-  } else if (weeklySickDays > 4 || data.sickDays > 10) {
-    sickDaysPoints = -15
-    rating -= 15
-  }
-  console.log('SickDays calculation:', { weeklySickDays, monthlySickDays: data.sickDays, sickDaysPoints, currentRating: rating })
-
-  // Отпуск: <12 дней в месяц И <=30 дней за 90 дней = +10%, >12 дней в месяц ИЛИ >30 дней за 90 дней = -10%
-  let vacationDaysPoints = 0
-  if (data.vacationDays < 12 && ninetyDayVacationDays <= 30) {
-    vacationDaysPoints = 10
-    rating += 10
-  } else if (data.vacationDays > 12 || ninetyDayVacationDays > 30) {
-    vacationDaysPoints = -10
-    rating -= 10
-  }
-  console.log('Vacation calculation:', { monthlyVacationDays: data.vacationDays, ninetyDayVacationDays, vacationDaysPoints, currentRating: rating })
-
-  // Прогулы: >2 в неделю = рейтинг -30%
-  let absencePenalty = 0
-  if (data.absenceDays > 2) {
-    absencePenalty = 30
-  }
-  console.log('Absence penalty:', { absenceDays: data.absenceDays, absencePenalty, currentRating: rating })
-
-  // Стажировка: без влияния на рейтинг (0%)
-  const internshipDaysPoints = 0
-  console.log('Internship calculation:', { internshipDays: data.internshipDays, internshipDaysPoints, currentRating: rating })
-
-  // Часы работы в неделю: <15 = 0%, >=15 = 15%, >=20 = 25%
-  if (weeklyHours >= 20) {
-    rating += 25
+  // Часы работы в неделю:
+  // < 15 часов = 0 баллов
+  // 15-20 часов = 5 баллов
+  // 20-30 часов = 10 баллов
+  // > 30 часов = 15 баллов
+  let weeklyHoursPoints = 0
+  if (weeklyHours >= 30) {
+    weeklyHoursPoints = 15
+  } else if (weeklyHours >= 20) {
+    weeklyHoursPoints = 10
   } else if (weeklyHours >= 15) {
-    rating += 15
+    weeklyHoursPoints = 5
   }
+  rating += weeklyHoursPoints
+  console.log('Hours calculation:', { weeklyHours, weeklyHoursPoints, currentRating: rating })
 
-  // Заработок за неделю: >=6000 = 30%, >=3000 = 15%, <3000 = 0%
-  if (weeklyEarnings >= 6000) {
-    rating += 30
-  } else if (weeklyEarnings >= 3000) {
-    rating += 15
+  // Заработок за неделю:
+  // < 10.000 ₽ = 0 баллов
+  // 10.000-20.000 ₽ = 10 баллов
+  // 20.000-40.000 ₽ = 20 баллов
+  // > 40.000 ₽ = 30 баллов
+  let weeklyEarningsPoints = 0
+  if (weeklyEarnings >= 40000) {
+    weeklyEarningsPoints = 30
+  } else if (weeklyEarnings >= 20000) {
+    weeklyEarningsPoints = 20
+  } else if (weeklyEarnings >= 10000) {
+    weeklyEarningsPoints = 10
   }
+  rating += weeklyEarningsPoints
+  console.log('Earnings calculation:', { weeklyEarnings, weeklyEarningsPoints, currentRating: rating })
 
-  // Рефералы: 5% за каждого, но не более 30% (макс 6 рефералов)
-  const referralsPoints = Math.min(data.referrals * 5, 30)
+  // Рефералы за месяц:
+  // < 5 = 0 баллов
+  // 5-15 = 5 баллов
+  // 15-30 = 10 баллов
+  // > 30 = 20 баллов
+  let referralsPoints = 0
+  if (data.referrals > 30) {
+    referralsPoints = 20
+  } else if (data.referrals > 15) {
+    referralsPoints = 10
+  } else if (data.referrals >= 5) {
+    referralsPoints = 5
+  }
   rating += referralsPoints
+  console.log('Referrals calculation:', { referrals: data.referrals, referralsPoints, currentRating: rating })
 
-  // Применяем штраф за прогулы
-  rating = Math.max(0, rating - absencePenalty)
+  // Инициативы за месяц:
+  // < 1 = 0 баллов
+  // 1-5 = 5 баллов
+  // 5-10 = 10 баллов
+  // > 10 = 15 баллов
+  let initiativesPoints = 0
+  if (data.initiatives > 10) {
+    initiativesPoints = 15
+  } else if (data.initiatives >= 5) {
+    initiativesPoints = 10
+  } else if (data.initiatives >= 1) {
+    initiativesPoints = 5
+  }
+  rating += initiativesPoints
+  console.log('Initiatives calculation:', { initiatives: data.initiatives, initiativesPoints, currentRating: rating })
+
+  // Отсутствия за месяц:
+  // < 5 = 10 баллов
+  // > 10 = -20 баллов
+  // 5-10 = 0 баллов
+  let absenceDaysPoints = 0
+  if (data.absenceDays < 5) {
+    absenceDaysPoints = 10
+  } else if (data.absenceDays > 10) {
+    absenceDaysPoints = -20
+  }
+  rating += absenceDaysPoints
+  console.log('Absence calculation:', { absenceDays: data.absenceDays, absenceDaysPoints, currentRating: rating })
+
+  // Прогулы за месяц:
+  // > 3 = -15 баллов
+  // > 6 = -30 баллов
+  let truancyDaysPoints = 0
+  if (data.truancyDays > 6) {
+    truancyDaysPoints = -30
+  } else if (data.truancyDays > 3) {
+    truancyDaysPoints = -15
+  }
+  rating += truancyDaysPoints
+  console.log('Truancy calculation:', { truancyDays: data.truancyDays, truancyDaysPoints, currentRating: rating })
 
   console.log('Final rating calculation:', {
-    ratingAfterAbsencePenalty: rating,
-    finalRating: Math.min(rating, 100)
+    finalRating: rating
   })
 
-  return Math.min(rating, 100)
+  return rating
 }
 
 export const getRatingBreakdown = (
   data: Omit<RatingData, 'rating'>,
   weeklyHours: number = 0,
   weeklyEarnings: number = 0,
-  weeklyDaysOff: number = 0,
-  weeklySickDays: number = 0,
-  ninetyDayVacationDays: number = 0
+  _weeklyDaysOff: number = 0,
+  _weeklySickDays: number = 0,
+  _ninetyDayVacationDays: number = 0
 ): RatingBreakdown => {
-  // Выходные: <2 дней в неделю = +5%, >3 дней в неделю = -15%
-  let daysOffPoints = 0
-  if (weeklyDaysOff < 2) {
-    daysOffPoints = 5
-  } else if (weeklyDaysOff > 3) {
-    daysOffPoints = -15
-  }
-
-  // Больничные: <3 дней в неделю И <=9 дней в месяц = +5%, >4 дней в неделю ИЛИ >10 дней в месяц = -15%
-  let sickDaysPoints = 0
-  if (weeklySickDays < 3 && data.sickDays <= 9) {
-    sickDaysPoints = 5
-  } else if (weeklySickDays > 4 || data.sickDays > 10) {
-    sickDaysPoints = -15
-  }
-
-  // Отпуск: <12 дней в месяц И <=30 дней за 90 дней = +10%, >12 дней в месяц ИЛИ >30 дней за 90 дней = -10%
-  let vacationDaysPoints = 0
-  if (data.vacationDays < 12 && ninetyDayVacationDays <= 30) {
-    vacationDaysPoints = 10
-  } else if (data.vacationDays > 12 || ninetyDayVacationDays > 30) {
-    vacationDaysPoints = -10
-  }
-
-  // Прогулы: >2 в неделю = -30%
-  let absenceDaysPoints = 0
-  if (data.absenceDays > 2) {
-    absenceDaysPoints = -30
-  }
-
-  // Стажировка: без влияния на рейтинг
-  const internshipDaysPoints = 0
-
+  // Часы работы в неделю
   let weeklyHoursPoints = 0
-  if (weeklyHours >= 20) {
-    weeklyHoursPoints = 25
-  } else if (weeklyHours >= 15) {
+  if (weeklyHours >= 30) {
     weeklyHoursPoints = 15
+  } else if (weeklyHours >= 20) {
+    weeklyHoursPoints = 10
+  } else if (weeklyHours >= 15) {
+    weeklyHoursPoints = 5
   }
 
+  // Заработок за неделю
   let weeklyEarningsPoints = 0
-  if (weeklyEarnings >= 6000) {
+  if (weeklyEarnings >= 40000) {
     weeklyEarningsPoints = 30
-  } else if (weeklyEarnings >= 3000) {
-    weeklyEarningsPoints = 15
+  } else if (weeklyEarnings >= 20000) {
+    weeklyEarningsPoints = 20
+  } else if (weeklyEarnings >= 10000) {
+    weeklyEarningsPoints = 10
   }
 
-  const referralsPoints = Math.min(data.referrals * 5, 30)
+  // Рефералы за месяц
+  let referralsPoints = 0
+  if (data.referrals > 30) {
+    referralsPoints = 20
+  } else if (data.referrals > 15) {
+    referralsPoints = 10
+  } else if (data.referrals >= 5) {
+    referralsPoints = 5
+  }
 
-  // Базовый рейтинг без учета прогулов
-  const baseRating = daysOffPoints +
-    sickDaysPoints +
-    vacationDaysPoints +
-    weeklyHoursPoints +
+  // Инициативы за месяц
+  let initiativesPoints = 0
+  if (data.initiatives > 10) {
+    initiativesPoints = 15
+  } else if (data.initiatives >= 5) {
+    initiativesPoints = 10
+  } else if (data.initiatives >= 1) {
+    initiativesPoints = 5
+  }
+
+  // Отсутствия за месяц
+  let absenceDaysPoints = 0
+  if (data.absenceDays < 5) {
+    absenceDaysPoints = 10
+  } else if (data.absenceDays > 10) {
+    absenceDaysPoints = -20
+  }
+
+  // Прогулы за месяц
+  let truancyDaysPoints = 0
+  if (data.truancyDays > 6) {
+    truancyDaysPoints = -30
+  } else if (data.truancyDays > 3) {
+    truancyDaysPoints = -15
+  }
+
+  const totalRating = weeklyHoursPoints +
     weeklyEarningsPoints +
-    referralsPoints
-
-  // Применяем штраф за прогулы
-  const totalRating = Math.min(Math.max(0, baseRating + absenceDaysPoints), 100)
+    referralsPoints +
+    initiativesPoints +
+    absenceDaysPoints +
+    truancyDaysPoints
 
   return {
-    daysOff: weeklyDaysOff, // Теперь показываем недельные выходные
-    daysOffPoints,
-    sickDays: data.sickDays, // Оставляем месячные больничные для отображения
-    sickDaysPoints,
-    vacationDays: data.vacationDays, // Оставляем месячные отпуска для отображения
-    vacationDaysPoints,
-    absenceDays: data.absenceDays,
-    absenceDaysPoints,
-    internshipDays: data.internshipDays,
-    internshipDaysPoints,
     weeklyHours,
     weeklyHoursPoints,
     weeklyEarnings,
     weeklyEarningsPoints,
     referrals: data.referrals,
     referralsPoints,
-    signals: data.signals,
     initiatives: data.initiatives,
-    poolAmount: data.poolAmount,
+    initiativesPoints,
+    absenceDays: data.absenceDays,
+    absenceDaysPoints,
     truancyDays: data.truancyDays,
+    truancyDaysPoints,
     totalRating,
   }
 }
@@ -227,29 +236,26 @@ export interface ExclusionStatus {
 }
 
 export const getExclusionStatus = (rating: number): ExclusionStatus => {
-  if (rating < 20) {
+  if (rating < 50) {
     return {
       status: 'excluded',
-      label: 'Исключен',
-      description: 'Участник исключается из сообщества',
+      label: 'Не в команде',
+      description: 'Для нахождения в команде необходимо минимум 50 баллов',
       color: '#dc2626' // красный
     }
-  } else if (rating >= 21 && rating <= 45) {
+  } else if (rating >= 50 && rating < 70) {
     return {
       status: 'warning',
-      label: 'Исправиться',
-      description: 'Необходимо улучшить показатели',
+      label: 'Риск исключения',
+      description: 'Показатели ниже рекомендуемых, требуется улучшение',
       color: '#f59e0b' // янтарный
     }
   } else {
     return {
       status: 'ok',
       label: 'В команде',
-      description: 'Участник в команде',
+      description: 'Участник соответствует требованиям команды',
       color: '#10b981' // зеленый
     }
   }
 }
-
-
-
