@@ -30,22 +30,79 @@ interface MetricInfo {
   scale: ScaleLevel[]
 }
 
+const PenguinIcon: React.FC<{ className?: string }> = ({ className = '' }) => (
+  <svg 
+    viewBox="0 0 64 64" 
+    className={className}
+    fill="currentColor"
+  >
+    {/* Тело пингвина */}
+    <ellipse cx="32" cy="38" rx="18" ry="22" fill="currentColor"/>
+    {/* Живот */}
+    <ellipse cx="32" cy="40" rx="10" ry="16" fill="white"/>
+    {/* Голова */}
+    <circle cx="32" cy="20" r="12" fill="currentColor"/>
+    {/* Глаза */}
+    <circle cx="28" cy="18" r="2.5" fill="white"/>
+    <circle cx="36" cy="18" r="2.5" fill="white"/>
+    <circle cx="28" cy="18" r="1.2" fill="black"/>
+    <circle cx="36" cy="18" r="1.2" fill="black"/>
+    {/* Клюв */}
+    <path d="M32 22 L28 26 L32 28 L36 26 Z" fill="#FFA500"/>
+    {/* Лапки */}
+    <ellipse cx="22" cy="58" rx="6" ry="3" fill="#FFA500"/>
+    <ellipse cx="42" cy="58" rx="6" ry="3" fill="#FFA500"/>
+    {/* Крылья */}
+    <ellipse cx="14" cy="38" rx="4" ry="12" fill="currentColor" transform="rotate(-20 14 38)"/>
+    <ellipse cx="50" cy="38" rx="4" ry="12" fill="currentColor" transform="rotate(20 50 38)"/>
+  </svg>
+)
+
 const RatingScale: React.FC<{ scale: ScaleLevel[]; currentPoints: number; theme: string }> = ({ scale, currentPoints, theme }) => {
   const mutedColor = theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
   
+  // Находим индекс текущего уровня (ближайшего снизу или равного)
+  const currentLevelIndex = scale.findIndex((level, idx) => {
+    if (idx === scale.length - 1) return true
+    return currentPoints < scale[idx + 1].points
+  })
+  
+  // Вычисляем позицию пингвина (центр сегмента текущего уровня)
+  const segmentWidth = 100 / scale.length
+  const penguinPosition = currentLevelIndex >= 0 
+    ? (currentLevelIndex * segmentWidth) + (segmentWidth / 2)
+    : 0
+
   return (
-    <div className="mt-3 space-y-2">
-      <div className="flex gap-1 h-3 rounded-full overflow-hidden">
-        {scale.map((level, idx) => (
-          <div
-            key={idx}
-            className={`flex-1 transition-all duration-300 ${level.color} ${
-              currentPoints >= level.points ? 'opacity-100' : 'opacity-30'
-            }`}
-            title={`${level.label}: ${level.points} баллов`}
-          />
-        ))}
+    <div className="mt-3 space-y-3">
+      {/* Шкала с пингвином */}
+      <div className="relative">
+        <div className="flex gap-1 h-4 rounded-full overflow-hidden">
+          {scale.map((level, idx) => (
+            <div
+              key={idx}
+              className={`flex-1 transition-all duration-300 ${level.color} ${
+                currentPoints >= level.points ? 'opacity-100' : 'opacity-30'
+              }`}
+              title={`${level.label}: ${level.points} баллов`}
+            />
+          ))}
+        </div>
+        
+        {/* Маркер с пингвином */}
+        <div 
+          className="absolute -top-2 transform -translate-x-1/2 transition-all duration-500 ease-out"
+          style={{ left: `${penguinPosition}%` }}
+        >
+          <div className="relative">
+            <PenguinIcon className="w-7 h-7 text-gray-800 drop-shadow-lg" />
+            {/* Тень */}
+            <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-5 h-1.5 bg-black/20 rounded-full blur-sm"/>
+          </div>
+        </div>
       </div>
+
+      {/* Числовые значения */}
       <div className="flex justify-between text-[10px] uppercase font-bold tracking-wide">
         {scale.map((level, idx) => (
           <span
@@ -56,13 +113,22 @@ const RatingScale: React.FC<{ scale: ScaleLevel[]; currentPoints: number; theme:
                 : mutedColor
             }`}
           >
-            {level.points}
+            {level.points > 0 ? '+' : ''}{level.points}
           </span>
         ))}
       </div>
-      <div className="flex justify-between text-[9px] uppercase tracking-wider opacity-60">
+
+      {/* Полные подписи уровней */}
+      <div className="flex justify-between text-[9px] uppercase tracking-wider leading-tight">
         {scale.map((level, idx) => (
-          <span key={idx} className={mutedColor}>
+          <span 
+            key={idx} 
+            className={`text-center flex-1 ${
+              currentPoints >= level.points
+                ? level.color.replace('bg-', 'text-').replace('/20', '').replace('/30', '').replace('/10', '')
+                : mutedColor
+            }`}
+          >
             {level.label}
           </span>
         ))}
@@ -114,10 +180,10 @@ export const RatingCard = ({ rating, place }: RatingCardProps) => {
         : 'Отличный результат! Ты активно работаешь и вносишь максимальный вклад.',
       color: 'bg-blue-200 text-blue-900 dark:bg-blue-500/20 dark:text-blue-400',
       scale: [
-        { label: 'Мин', points: 0, color: 'bg-gray-400' },
-        { label: 'Баз', points: 5, color: 'bg-blue-300' },
-        { label: 'Хор', points: 10, color: 'bg-blue-500' },
-        { label: 'Макс', points: 15, color: 'bg-blue-600' }
+        { label: 'Минимальный', points: 0, color: 'bg-gray-400' },
+        { label: 'Базовый', points: 5, color: 'bg-blue-300' },
+        { label: 'Хороший', points: 10, color: 'bg-blue-500' },
+        { label: 'Максимальный', points: 15, color: 'bg-blue-600' }
       ]
     },
     {
@@ -137,10 +203,10 @@ export const RatingCard = ({ rating, place }: RatingCardProps) => {
         : 'Супер! Твой доход на высоте — ты получаешь максимальные баллы за этот показатель.',
       color: 'bg-emerald-200 text-emerald-900 dark:bg-emerald-500/20 dark:text-emerald-400',
       scale: [
-        { label: 'Мин', points: 0, color: 'bg-gray-400' },
-        { label: 'Баз', points: 10, color: 'bg-emerald-300' },
-        { label: 'Хор', points: 20, color: 'bg-emerald-500' },
-        { label: 'Макс', points: 30, color: 'bg-emerald-600' }
+        { label: 'Минимальный', points: 0, color: 'bg-gray-400' },
+        { label: 'Базовый', points: 10, color: 'bg-emerald-300' },
+        { label: 'Хороший', points: 20, color: 'bg-emerald-500' },
+        { label: 'Максимальный', points: 30, color: 'bg-emerald-600' }
       ]
     },
     {
@@ -160,10 +226,10 @@ export const RatingCard = ({ rating, place }: RatingCardProps) => {
         : 'Превосходно! Ты активно помогаешь развивать комьюнити.',
       color: 'bg-pink-200 text-pink-900 dark:bg-pink-500/20 dark:text-pink-400',
       scale: [
-        { label: 'Мин', points: 0, color: 'bg-gray-400' },
-        { label: 'Баз', points: 5, color: 'bg-pink-300' },
-        { label: 'Хор', points: 10, color: 'bg-pink-500' },
-        { label: 'Макс', points: 20, color: 'bg-pink-600' }
+        { label: 'Минимальный', points: 0, color: 'bg-gray-400' },
+        { label: 'Базовый', points: 5, color: 'bg-pink-300' },
+        { label: 'Хороший', points: 10, color: 'bg-pink-500' },
+        { label: 'Максимальный', points: 20, color: 'bg-pink-600' }
       ]
     },
     {
@@ -183,10 +249,10 @@ export const RatingCard = ({ rating, place }: RatingCardProps) => {
         : 'Отлично! Ты активно вносишь вклад в развитие проекта.',
       color: 'bg-indigo-200 text-indigo-900 dark:bg-indigo-500/20 dark:text-indigo-400',
       scale: [
-        { label: 'Мин', points: 0, color: 'bg-gray-400' },
-        { label: 'Баз', points: 5, color: 'bg-indigo-300' },
-        { label: 'Хор', points: 10, color: 'bg-indigo-500' },
-        { label: 'Макс', points: 15, color: 'bg-indigo-600' }
+        { label: 'Минимальный', points: 0, color: 'bg-gray-400' },
+        { label: 'Базовый', points: 5, color: 'bg-indigo-300' },
+        { label: 'Хороший', points: 10, color: 'bg-indigo-500' },
+        { label: 'Максимальный', points: 15, color: 'bg-indigo-600' }
       ]
     },
     {
@@ -206,8 +272,8 @@ export const RatingCard = ({ rating, place }: RatingCardProps) => {
         ? 'bg-red-200 text-red-900 dark:bg-red-500/20 dark:text-red-400'
         : 'bg-amber-200 text-amber-900 dark:bg-amber-500/20 dark:text-amber-400',
       scale: [
-        { label: 'Штр', points: -20, color: 'bg-red-500' },
-        { label: 'Нейт', points: 0, color: 'bg-gray-400' },
+        { label: 'Штраф', points: -20, color: 'bg-red-500' },
+        { label: 'Нейтральный', points: 0, color: 'bg-gray-400' },
         { label: 'Бонус', points: 10, color: 'bg-amber-500' }
       ]
     },
@@ -228,9 +294,9 @@ export const RatingCard = ({ rating, place }: RatingCardProps) => {
         ? 'bg-red-300 text-red-900 dark:bg-red-500/30 dark:text-red-400'
         : 'bg-green-200 text-green-900 dark:bg-green-500/20 dark:text-green-400',
       scale: [
-        { label: 'Норм', points: 0, color: 'bg-green-500' },
-        { label: 'Штр', points: -15, color: 'bg-orange-500' },
-        { label: 'Крит', points: -30, color: 'bg-red-600' }
+        { label: 'Норма', points: 0, color: 'bg-green-500' },
+        { label: 'Штраф', points: -15, color: 'bg-orange-500' },
+        { label: 'Критичный', points: -30, color: 'bg-red-600' }
       ]
     },
   ] : []
@@ -385,7 +451,7 @@ export const RatingCard = ({ rating, place }: RatingCardProps) => {
                 {isExpanded && (
                   <div className={`px-4 pb-4 pt-2 border-t ${borderColor} ${softSurface}`}>
                     <div className="space-y-3 mt-1">
-                      {/* Визуальная шкала */}
+                      {/* Визуальная шкала с пингвином */}
                       <div>
                         <span className={`text-[10px] uppercase font-bold tracking-wider opacity-60 ${headingColor}`}>Шкала баллов</span>
                         <RatingScale scale={metric.scale} currentPoints={metric.points} theme={theme} />
