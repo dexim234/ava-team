@@ -51,7 +51,6 @@ const FEATURE_GROUPS: FeatureGroup[] = [
       { value: 'tools_kontur_spot', label: 'Вкладка Спот', description: 'Заблокировать вкладку в Контуре' },
       { value: 'tools_kontur_futures', label: 'Вкладка Фьючерсы', description: 'Заблокировать вкладку в Контуре' },
       { value: 'tools_kontur_airdrop', label: 'Вкладка AirDrop', description: 'Заблокировать вкладка в Контуре' },
-      { value: 'tools_kontur_prop_trading', label: 'Вкладка Проп-трейдинг', description: 'Заблокировать вкладку в Контуре' },
       { value: 'tools_kontur_other', label: 'Вкладка Прочее', description: 'Заблокировать вкладку в Контуре' },
       { value: 'tools_strategies_view', label: 'Просмотр стратегий', description: 'Скрыть блок стратегий на страницах' },
       { value: 'tools_items_view', label: 'Просмотр инструментов', description: 'Скрыть ссылки на инструменты' },
