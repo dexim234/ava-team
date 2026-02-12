@@ -4,12 +4,53 @@ import { RatingCard } from '@/components/Rating/RatingCard'
 import { getRatingData, getEarnings, getDayStatuses, getReferrals, getWorkSlots } from '@/services/firestoreService'
 import { getLastNDaysRange, getWeekRange, formatDate, calculateHours, countDaysInPeriod } from '@/utils/dateUtils'
 import { calculateRating, getRatingBreakdown } from '@/utils/ratingUtils'
-import { getUserNicknameAsync, clearAllNicknameCache, getUserNicknameSync } from '@/utils/userUtils'
+import { getUserNicknameAsync, clearAllNicknameCache, getUserNicknameSync, useUserAvatar } from '@/utils/userUtils'
 import { RatingData, Referral, Earnings, DayStatus } from '@/types'
 import { useUsers } from '@/hooks/useUsers'
 import { TrendingUp, Award, Target, UserPlus, BarChart3, Lock } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
 import { useAccessControl } from '@/hooks/useAccessControl'
+
+// Компонент для отображения трёх лидеров
+const TopThreeLeaders = ({ leaders, theme }: { leaders: Array<{ userId: string; rating: number }>, theme: string }) => {
+  const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
+  const mutedColor = theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+
+  if (leaders.length === 0) {
+    return (
+      <div className={`text-sm ${mutedColor}`}>
+        Нет участников с 50+ баллов
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-2">
+      {leaders.map((leader) => {
+        const avatarUrl = useUserAvatar(leader.userId)
+        const nickname = getUserNicknameSync(leader.userId)
+        
+        return (
+          <div key={leader.userId} className="flex items-center gap-2">
+            {avatarUrl ? (
+              <img src={avatarUrl} alt="Avatar" className="w-6 h-6 rounded-full object-cover flex-shrink-0" />
+            ) : (
+              <div className={`w-6 h-6 rounded-full flex items-center justify-center bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs font-bold flex-shrink-0`}>
+                {nickname ? nickname.charAt(0).toUpperCase() : '-'}
+              </div>
+            )}
+            <span className={`text-sm font-semibold ${headingColor} truncate flex-1`}>
+              {nickname || '—'}
+            </span>
+            <span className={`text-xs font-bold ${theme === 'dark' ? 'text-amber-400' : 'text-amber-600'} flex-shrink-0`}>
+              {leader.rating.toFixed(1)}
+            </span>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
 
 export const Rating = () => {
   const { user } = useAuthStore()
@@ -24,7 +65,6 @@ export const Rating = () => {
   const pageAccess = useAccessControl('ava_rating')
   const othersAccess = useAccessControl('rating_others_view')
   const selfAccess = useAccessControl('rating_self_view')
-
 
   useEffect(() => {
     if (!usersLoading) {
@@ -45,10 +85,6 @@ export const Rating = () => {
       const monthEnd = formatDate(monthRange.end, 'yyyy-MM-dd')
       const monthIsoStart = monthRange.start.toISOString()
       const monthIsoEnd = monthRange.end.toISOString()
-
-      const ninetyDayRange = getLastNDaysRange(90)
-      const ninetyDayStart = formatDate(ninetyDayRange.start, 'yyyy-MM-dd')
-      const ninetyDayEnd = formatDate(ninetyDayRange.end, 'yyyy-MM-dd')
 
       // 1. Bulk Fetch Data
       const [
@@ -115,37 +151,8 @@ export const Rating = () => {
             .filter(s => s.type === type)
             .reduce((sum: number, s: DayStatus) => sum + countDaysInPeriod(s.date, s.endDate, monthStart, monthEnd), 0)
 
-          const daysOff = countStatusDays('dayoff')
-          const sickDays = countStatusDays('sick')
-          const vacationDays = countStatusDays('vacation')
           const absenceDays = countStatusDays('absence')
           const truancyDays = countStatusDays('truancy')
-          const internshipDays = countStatusDays('internship')
-
-          // Недельные выходные и больничные
-          const weekStatuses = statuses.filter(s => {
-            const statusStart = s.date
-            const statusEnd = s.endDate || s.date
-            return statusStart <= weekEnd && statusEnd >= weekStart
-          })
-
-          const weeklyDaysOff = weekStatuses
-            .filter(s => s.type === 'dayoff')
-            .reduce((sum: number, s: DayStatus) => sum + countDaysInPeriod(s.date, s.endDate, weekStart, weekEnd), 0)
-          const weeklySickDays = weekStatuses
-            .filter(s => s.type === 'sick')
-            .reduce((sum: number, s: DayStatus) => sum + countDaysInPeriod(s.date, s.endDate, weekStart, weekEnd), 0)
-
-          // Отпуск за 90 дней
-          const ninetyDayStatuses = statuses.filter(s => {
-            const statusStart = s.date
-            const statusEnd = s.endDate || s.date
-            return statusStart <= ninetyDayEnd && statusEnd >= ninetyDayStart
-          })
-
-          const ninetyDayVacationDays = ninetyDayStatuses
-            .filter(s => s.type === 'vacation')
-            .reduce((sum, s) => sum + countDaysInPeriod(s.date, s.endDate, ninetyDayStart, ninetyDayEnd), 0)
 
           const weekSlots = slots.filter(s => s.date >= weekStart && s.date <= weekEnd)
           const weeklyHours = weekSlots.reduce((sum, slot) => sum + calculateHours(slot.slots), 0)
@@ -180,18 +187,18 @@ export const Rating = () => {
             signals: ratingData.signals || 0,
             profitableSignals: ratingData.profitableSignals || 0,
             referrals: userReferrals,
-            daysOff,
-            sickDays,
-            vacationDays,
+            daysOff: 0,
+            sickDays: 0,
+            vacationDays: 0,
             absenceDays,
             truancyDays,
-            internshipDays,
+            internshipDays: 0,
             poolAmount,
             lastUpdated: new Date().toISOString(),
           }
 
-          const rating = calculateRating(updatedData, weeklyHours, weeklyEarnings, weeklyDaysOff, weeklySickDays, ninetyDayVacationDays)
-          const breakdown = getRatingBreakdown(updatedData, weeklyHours, weeklyEarnings, weeklyDaysOff, weeklySickDays, ninetyDayVacationDays)
+          const rating = calculateRating(updatedData, weeklyHours, weeklyEarnings, 0, 0, 0)
+          const breakdown = getRatingBreakdown(updatedData, weeklyHours, weeklyEarnings, 0, 0, 0)
 
           return {
             ...updatedData,
@@ -243,8 +250,13 @@ export const Rating = () => {
     return { top, median, count: sortedRatings.length, high }
   }, [sortedRatings])
 
-  const topMember = sortedRatings[0]
-  const topMemberName = topMember ? getUserNicknameSync(topMember.userId) : '—'
+  // Три лидера с рейтингом >= 50
+  const topThreeLeaders = useMemo(() => {
+    return sortedRatings
+      .filter(r => r.rating >= 50)
+      .slice(0, 3)
+      .map(r => ({ userId: r.userId, rating: r.rating }))
+  }, [sortedRatings])
 
   // Load custom nicknames on mount
   useEffect(() => {
@@ -305,23 +317,23 @@ export const Rating = () => {
 
   const statCards = [
     {
-      label: 'Средний КПД команды',
-      value: `${teamKPD.toFixed(1)}%`,
+      label: 'Средний рейтинг',
+      value: `${teamKPD.toFixed(1)}`,
       note: 'за текущую неделю',
       icon: <TrendingUp className="w-5 h-5 text-emerald-400" />,
       bgClass: 'bg-emerald-500/5',
       borderClass: 'border-emerald-500/20'
     },
     {
-      label: 'Лидер недели',
-      value: topMemberName,
-      note: topMember ? `${topMember.rating.toFixed(1)}%` : '—',
+      label: 'Три лидера',
+      value: <TopThreeLeaders leaders={topThreeLeaders} theme={theme} />,
+      note: 'минимум 50 баллов',
       icon: <Award className="w-5 h-5 text-amber-400" />,
       bgClass: 'bg-amber-500/5',
       borderClass: 'border-amber-500/20'
     },
     {
-      label: 'Участников 80%+',
+      label: 'Участников 80+',
       value: `${ratingOverview.high}`,
       note: 'высокий уровень',
       icon: <Target className="w-5 h-5 text-blue-400" />,
@@ -349,7 +361,7 @@ export const Rating = () => {
             </div>
             <div>
               <h1 className={`text-2xl md:text-3xl font-black tracking-tight ${headingColor}`}>
-                Rating
+                Рейтинг
               </h1>
               <p className={`text-sm font-medium ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
                 Рейтинг эффективности команды AVA - Team
@@ -378,7 +390,7 @@ export const Rating = () => {
               </div>
               <div className="space-y-1">
                 <div className={`text-2xl font-black tracking-tight ${headingColor}`}>
-                  {item.value}
+                  {typeof item.value === 'string' ? item.value : item.value}
                 </div>
                 <div className={`text-[11px] font-medium ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
                   {item.note}
@@ -412,9 +424,9 @@ export const Rating = () => {
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
               {[
-                { label: 'Топ-1', value: sortedRatings[0]?.rating ? `${sortedRatings[0].rating.toFixed(1)}%` : '—' },
-                { label: 'Средний рейтинг', value: `${teamKPD.toFixed(1)}%` },
-                { label: 'Медиана', value: `${ratingOverview.median.toFixed(1)}%` },
+                { label: 'Топ-1', value: sortedRatings[0]?.rating ? `${sortedRatings[0].rating.toFixed(1)}` : '—' },
+                { label: 'Средний рейтинг', value: `${teamKPD.toFixed(1)}` },
+                { label: 'Медиана', value: `${ratingOverview.median.toFixed(1)}` },
                 { label: 'Участников', value: sortedRatings.length },
               ].map((item) => (
                 <div

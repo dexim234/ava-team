@@ -1,27 +1,30 @@
 import { useState, useEffect } from 'react'
 import { AnalyticsModal } from '@/components/Analytics/AnalyticsModal'
 import { AnalyticsViewModal } from '@/components/Analytics/AnalyticsViewModal'
-import { AnalyticsReview, subscribeToAnalyticsReviews, getAnalyticsReviewById } from '@/services/analyticsService'
+import { AnalyticsReview, subscribeToAnalyticsReviews, getAnalyticsReviewById, deleteAnalyticsReview } from '@/services/analyticsService'
 import { useThemeStore } from '@/store/themeStore'
-import { Plus, BarChart3 } from 'lucide-react'
-import { SLOT_CATEGORY_META, SlotCategory } from '@/types'
+import { Plus, Search, Archive } from 'lucide-react'
+import { SLOT_CATEGORY_META, SlotCategory, TEAM_MEMBERS } from '@/types'
 import { DeadlineFilter } from '@/components/Analytics/DeadlineFilter'
 import { AnalyticsCards } from '@/components/Analytics/AnalyticsCards'
+import { AnalyticsStatsCards } from '@/components/Analytics/AnalyticsStatsCards'
+import { MemberSelector } from '@/components/Management/MemberSelector'
 import { CATEGORY_ICONS } from '@/constants/common.tsx'
-import { MultiSelect } from '@/components/Call/MultiSelect'
 import { useAuthStore } from '@/store/authStore'
 import { useLocation, useNavigate } from 'react-router-dom'
+import { getUserNicknameAsync, getUserNicknameSync } from '@/utils/userUtils'
 
-type SphereType = 'all' | SlotCategory
 type DeadlineFilterType = 'all' | '<24h' | '<48h' | '<72h'
 
 export const Analytics = () => {
     const { theme } = useThemeStore()
     const { user } = useAuthStore()
-    const [activeSphere, setActiveSphere] = useState<SphereType[]>(['all'])
     const [activeDeadlineFilter, setActiveDeadlineFilter] = useState<DeadlineFilterType>('all')
+    const [searchQuery, setSearchQuery] = useState('')
+    const [selectedTraderId, setSelectedTraderId] = useState<string | null>(null)
     const [reviews, setReviews] = useState<AnalyticsReview[]>([])
     const [isModalOpen, setIsModalOpen] = useState(false)
+    const [showArchive, setShowArchive] = useState(false)
     const [isViewMode, setIsViewMode] = useState(false)
     const [editingReview, setEditingReview] = useState<AnalyticsReview | null>(null)
     const location = useLocation()
@@ -55,12 +58,10 @@ export const Analytics = () => {
         navigate(`${location.pathname}?reviewId=${review.id}`, { replace: true })
     }
 
-    // Функция для обработки успешного сохранения оценки
     const handleRatingSuccess = async (reviewId: string) => {
-        // Переполучаем обновленный обзор с сервера
         const updatedReview = await getAnalyticsReviewById(reviewId)
         if (updatedReview) {
-            setEditingReview(updatedReview) // Обновляем editingReview, чтобы модалка показывала актуальные данные
+            setEditingReview(updatedReview)
         }
     }
 
@@ -79,23 +80,26 @@ export const Analytics = () => {
 
         if (reviewId && !isModalOpen) {
             fetchAndOpenReview(reviewId)
-        } else if (!reviewId && isModalOpen) {
+        } else if (!reviewId && isModalOpen && editingReview) {
             setIsModalOpen(false)
             setEditingReview(null)
             setIsViewMode(false)
         }
-    }, [location.search, isModalOpen])
+    }, [location.search, isModalOpen, editingReview])
 
     useEffect(() => {
         if (!user?.id) return
-        const unsubscribe = subscribeToAnalyticsReviews(setReviews, activeSphere);
+        const unsubscribe = subscribeToAnalyticsReviews(setReviews);
         return () => unsubscribe();
-    }, [user, activeSphere])
+    }, [user])
 
-    const handleSetActiveSphere = (ids: string[]) => {
-        setActiveSphere(ids as SphereType[])
-        navigate(location.pathname, { replace: true })
-    }
+    // Load nicknames for all authors when reviews change
+    useEffect(() => {
+        const authorIds = [...new Set(reviews.map(r => r.createdBy))]
+        authorIds.forEach(userId => {
+            getUserNicknameAsync(userId)
+        })
+    }, [reviews])
 
     const closeAnalyticsModal = () => {
         setIsModalOpen(false)
@@ -106,7 +110,6 @@ export const Analytics = () => {
 
     const sphereOptions = [
         { id: 'all', name: 'Все', icon: CATEGORY_ICONS.all },
-        { id: 'other', name: 'Крипто-рынок', icon: CATEGORY_ICONS.other },
         ...Object.keys(SLOT_CATEGORY_META).map(key => ({
             id: key as SlotCategory,
             name: SLOT_CATEGORY_META[key as SlotCategory].label,
@@ -142,17 +145,111 @@ export const Analytics = () => {
             if (!review.deadline || activeDeadlineFilter === 'all') return true
 
             const deadlineTime = new Date(review.deadline).getTime()
-            const diff = deadlineTime - now
+            const diff = deadlineTime - now // Разница в миллисекундах
 
-            if (activeDeadlineFilter === '<24h') return diff < 24 * 60 * 60 * 1000
-            if (activeDeadlineFilter === '<48h') return diff < 48 * 60 * 60 * 1000
-            if (activeDeadlineFilter === '<72h') return diff < 72 * 60 * 60 * 1000
+            const diffHours = diff / (1000 * 60 * 60)
+
+            if (activeDeadlineFilter === '<24h') {
+                return diffHours < 24 // Меньше 24 часов
+            } else if (activeDeadlineFilter === '<48h') {
+                return diffHours >= 24 && diffHours < 48 // От 24 до 48 часов
+            } else if (activeDeadlineFilter === '<72h') {
+                return diffHours >= 48 && diffHours < 72 // От 48 до 72 часов
+            }
 
             return true
         })
     }
 
-    const filteredReviews = filterReviewsByDeadline(reviews)
+    const filterReviewsBySearchQuery = (allReviews: AnalyticsReview[]) => {
+        if (!searchQuery) return allReviews
+        const queryTerm = searchQuery.toLowerCase()
+
+        return allReviews.filter(review => {
+            // Поиск по номеру карточки
+            const reviewNumber = review.number?.toString()
+            if (reviewNumber && (`#${reviewNumber}`.includes(queryTerm) || `№${reviewNumber}`.includes(queryTerm) || reviewNumber.includes(queryTerm))) return true
+
+            // Поиск по имени пользователя из TEAM_MEMBERS
+            const authorMember = TEAM_MEMBERS.find(member => member.id === review.createdBy)
+            if (authorMember && authorMember.name.toLowerCase().includes(queryTerm)) return true
+
+            // Поиск по никнейму пользователя
+            const authorNickname = getUserNicknameSync(review.createdBy)
+            if (authorNickname && authorNickname.toLowerCase().includes(queryTerm)) return true
+
+            // Поиск по ID автора
+            if (review.createdBy.toLowerCase().includes(queryTerm)) return true
+
+            // Поиск по активу
+            if (review.asset && review.asset.toLowerCase().includes(queryTerm)) return true
+
+            // Поиск по комментарию эксперта
+            if (review.expertComment && review.expertComment.toLowerCase().includes(queryTerm)) return true
+
+            // Поиск по ссылкам
+            if (review.links && review.links.some(link => link.toLowerCase().includes(queryTerm))) return true
+
+            // Поиск по сфере
+            if (review.sphere && review.sphere.some(s =>
+                s.toLowerCase().includes(queryTerm) ||
+                (SLOT_CATEGORY_META[s as SlotCategory]?.label || '').toLowerCase().includes(queryTerm)
+            )) return true
+            
+            return false
+        })
+    }
+
+    const filterReviewsByTrader = (allReviews: AnalyticsReview[]) => {
+        if (!selectedTraderId) return allReviews
+        return allReviews.filter(review => review.createdBy === selectedTraderId)
+    }
+
+    // Проверка, является ли карточка архивной (дедлайн истёк)
+    const isArchivedReview = (review: AnalyticsReview): boolean => {
+        if (!review.deadline) return false
+        const now = new Date().getTime()
+        const deadlineTime = new Date(review.deadline).getTime()
+        return deadlineTime <= now
+    }
+
+    // Проверка, истек ли срок хранения в архиве (7 дней после дедлайна)
+    const isArchiveExpired = (review: AnalyticsReview): boolean => {
+        if (!review.deadline) return false
+        const now = new Date().getTime()
+        const deadlineTime = new Date(review.deadline).getTime()
+        const sevenDaysInMs = 7 * 24 * 60 * 60 * 1000
+        return (now - deadlineTime) > sevenDaysInMs
+    }
+
+    // Автоматическое удаление архивных карточек, которые хранятся более 7 дней
+    useEffect(() => {
+        const cleanupExpiredReviews = async () => {
+            const expiredReviews = reviews.filter(review =>
+                isArchivedReview(review) && isArchiveExpired(review)
+            )
+
+            for (const review of expiredReviews) {
+                try {
+                    await deleteAnalyticsReview(review.id)
+                    console.log(`Автоматически удалён архивный обзор: ${review.id}`)
+                } catch (error) {
+                    console.error(`Ошибка при удалении архивного обзора ${review.id}:`, error)
+                }
+            }
+        }
+
+        cleanupExpiredReviews()
+    }, [reviews])
+
+    let filteredReviews = filterReviewsByDeadline(reviews)
+    filteredReviews = filterReviewsBySearchQuery(filteredReviews)
+    filteredReviews = filterReviewsByTrader(filteredReviews)
+
+    // Разделяем на активные и архивные карточки
+    const activeReviews = filteredReviews.filter(review => !isArchivedReview(review))
+    const archivedReviews = filteredReviews.filter(review => isArchivedReview(review))
+
 
     return (
         <div className="flex min-h-screen">
@@ -160,20 +257,30 @@ export const Analytics = () => {
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                     <div className="flex-1">
                         <h1 className={`flex items-center gap-2 text-2xl md:text-3xl font-black tracking-tight ${headingColor}`}>
-                            {CATEGORY_ICONS.all}
+                            <span className={theme === 'dark' ? 'text-emerald-400' : 'text-emerald-500'}>
+                                {CATEGORY_ICONS.all}
+                            </span>
                             Analytics
                         </h1>
                     </div>
                     <div className="flex items-center gap-2">
-                        <div className="w-[180px]">
-                            <MultiSelect
-                                value={activeSphere as string[]}
-                                onChange={(val) => handleSetActiveSphere(val)}
-                                options={sphereOptions.map(sphere => ({ value: sphere.id || '', label: sphere.name, icon: sphere.icon }))}
-                                placeholder="Все сферы"
-                                searchable={true}
-                                icon={<BarChart3 size={16} />}
+                        {/* Селектор трейдеров */}
+                        <div className="w-full md:w-48">
+                            <MemberSelector
+                                selectedUserId={selectedTraderId}
+                                onSelect={setSelectedTraderId}
                             />
+                        </div>
+                        {/* Поиск */}
+                        <div className="relative w-48">
+                            <input
+                                type="text"
+                                placeholder="Поиск"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className={`w-full pl-9 pr-3 py-2 rounded-xl border outline-none transition-all ${theme === 'dark' ? 'bg-white/5 border-white/10 text-white focus:border-emerald-500/50' : 'bg-gray-50 border-gray-200 text-gray-900 focus:border-emerald-500/30'}`}
+                            />
+                            <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} />
                         </div>
                         <button
                             onClick={openModal}
@@ -188,20 +295,59 @@ export const Analytics = () => {
                     </div>
                 </div>
 
-                <div className="flex flex-col space-y-4 md:flex-row md:space-y-0 md:space-x-4">
+                {/* Фильтр дедлайна слева, кнопка Архив справа */}
+                <div className="flex items-center justify-between">
                     <DeadlineFilter activeFilter={activeDeadlineFilter} setActiveFilter={setActiveDeadlineFilter} />
+                    <button
+                        onClick={() => setShowArchive(!showArchive)}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-all ${
+                            showArchive
+                                ? theme === 'dark'
+                                    ? 'bg-amber-600 hover:bg-amber-500 text-white'
+                                    : 'bg-amber-500 hover:bg-amber-600 text-white'
+                                : theme === 'dark'
+                                    ? 'bg-white/10 hover:bg-white/20 text-gray-300'
+                                    : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                        }`}
+                        title="Показать/скрыть архив"
+                    >
+                        <Archive size={18} />
+                        <span>Архив</span>
+                    </button>
                 </div>
 
-                <AnalyticsCards
-                    reviews={filteredReviews}
-                    onEdit={(review) => {
-                        setEditingReview(review)
-                        setIsViewMode(false)
-                        setIsModalOpen(true)
-                        navigate(`${location.pathname}?reviewId=${review.id}`, { replace: true })
-                    }}
-                    onView={openViewModalFromCard}
-                />
+                <AnalyticsStatsCards reviews={showArchive ? archivedReviews : activeReviews} />
+
+                {showArchive ? (
+                    <>
+                        <h2 className={`text-xl font-bold ${headingColor} mt-6`}>
+                            Архив - Analytics
+                        </h2>
+                        <AnalyticsCards
+                            reviews={archivedReviews}
+                            isArchive={true}
+                            onEdit={(review) => {
+                                setEditingReview(review)
+                                setIsViewMode(false)
+                                setIsModalOpen(true)
+                                navigate(`${location.pathname}?reviewId=${review.id}`, { replace: true })
+                            }}
+                            onView={openViewModalFromCard}
+                        />
+                    </>
+                ) : (
+                    <AnalyticsCards
+                        reviews={activeReviews}
+                        isArchive={false}
+                        onEdit={(review) => {
+                            setEditingReview(review)
+                            setIsViewMode(false)
+                            setIsModalOpen(true)
+                            navigate(`${location.pathname}?reviewId=${review.id}`, { replace: true })
+                        }}
+                        onView={openViewModalFromCard}
+                    />
+                )}
 
                 {isViewMode ? (
                     <AnalyticsViewModal
@@ -209,7 +355,7 @@ export const Analytics = () => {
                         onClose={closeAnalyticsModal}
                         review={editingReview}
                         onEditFromView={handleEditFromView}
-                        onRatingSuccess={handleRatingSuccess} // НОВАЯ ПРОПС: передаем функцию
+                        onRatingSuccess={handleRatingSuccess}
                     />
                 ) : (
                     <AnalyticsModal

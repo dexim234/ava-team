@@ -3,17 +3,10 @@ import { useThemeStore } from '@/store/themeStore'
 import { useAuthStore } from '@/store/authStore'
 import { TaskForm } from '@/components/Tasks/TaskForm'
 import { TaskFilters } from '@/components/Tasks/TaskFilters'
-import { TaskCard } from '@/components/Tasks/TaskCard'
-import { getTasks, deleteTask, updateTask } from '@/services/firestoreService'
+import { TaskTable } from '@/components/Tasks/TaskTable'
+import { getTasks, deleteTask } from '@/services/firestoreService'
 import { Task, TaskCategory, TaskStatus } from '@/types'
-import {
-  CheckSquare,
-  LayoutGrid,
-  Calendar,
-  Zap,
-  Timer,
-  Package,
-} from 'lucide-react'
+import { CheckSquare, LayoutGrid, Calendar, Zap, Layers, CheckCircle2, Archive, Timer } from 'lucide-react'
 import { formatDate } from '@/utils/dateUtils'
 import { useAccessControl } from '@/hooks/useAccessControl'
 import { Lock } from 'lucide-react'
@@ -22,7 +15,6 @@ export const Tasks = () => {
   const { theme } = useThemeStore()
   const { user } = useAuthStore()
 
-  const [activeTab, setActiveTab] = useState<'tasks' | 'archive'>('tasks')
   const [showForm, setShowForm] = useState(false)
   const [editingTask, setEditingTask] = useState<Task | null>(null)
   const [tasks, setTasks] = useState<Task[]>([])
@@ -47,60 +39,19 @@ export const Tasks = () => {
   const loadTasks = async () => {
     setLoading(true)
     try {
-      const allTasks = await getTasks({})
-
-      // Auto-archiving logic
-      const now = new Date()
-      const updatedTasks = [...allTasks]
-      let needsRefresh = false
-
-      for (const t of updatedTasks) {
-        if (t.status === 'archived') {
-          // Check for auto-deletion (7 days)
-          if (t.updatedAt) {
-            const archivedDate = new Date(t.updatedAt)
-            const diffDays = (now.getTime() - archivedDate.getTime()) / (1000 * 3600 * 24)
-            if (diffDays > 7) {
-              await deleteTask(t.id)
-              needsRefresh = true
-            }
-          }
-          continue
-        }
-
-        const dueDate = new Date(`${t.dueDate}T${t.dueTime}`)
-        const diffHours = (now.getTime() - dueDate.getTime()) / (1000 * 3600)
-        const diffDays = diffHours / 24
-
-        let shouldArchive = false
-        // 1. Deadlines older than 3 days (if not Closed)
-        if (t.status !== 'closed' && diffDays > 3) {
-          shouldArchive = true
-        }
-        // 2. Closed older than 12 hours
-        if (t.status === 'closed' && t.closedAt) {
-          const closedDate = new Date(t.closedAt)
-          const closedDiffHours = (now.getTime() - closedDate.getTime()) / (1000 * 3600)
-          if (closedDiffHours > 12) {
-            shouldArchive = true
-          }
-        }
-
-        if (shouldArchive) {
-          await updateTask(t.id, {
-            status: 'archived',
-            updatedAt: now.toISOString()
-          })
-          needsRefresh = true
-        }
+      const filters: any = {}
+      if (selectedCategory !== 'all') {
+        filters.category = selectedCategory
+      }
+      if (selectedStatus !== 'all') {
+        filters.status = selectedStatus
+      }
+      if (selectedUsers.length > 0) {
+        filters.assignedTo = selectedUsers
       }
 
-      if (needsRefresh) {
-        const refreshedTasks = await getTasks({})
-        setTasks(refreshedTasks)
-      } else {
-        setTasks(allTasks)
-      }
+      const allTasks = await getTasks(filters)
+      setTasks(allTasks)
     } catch (error) {
       console.error('Error loading tasks:', error)
     } finally {
@@ -136,11 +87,6 @@ export const Tasks = () => {
   }
 
   const filteredTasks = tasks.filter(task => {
-    // Tab filtering
-    if (activeTab === 'tasks' && task.status === 'archived') return false
-    if (activeTab === 'archive' && task.status !== 'archived') return false
-
-    // Other filters
     if (selectedCategory !== 'all' && task.category !== selectedCategory) return false
     if (selectedStatus !== 'all' && task.status !== selectedStatus) return false
     if (selectedUsers.length > 0 && !selectedUsers.some((userId) => task.assignedTo.includes(userId))) return false
@@ -153,26 +99,24 @@ export const Tasks = () => {
   const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
   const oneMonthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
 
-  const activeTasks = tasks.filter(t => t.status !== 'archived')
-
   const stats = {
-    totalToday: activeTasks.filter(t => t.createdAt.startsWith(todayStr)).length,
-    totalWeek: activeTasks.filter(t => new Date(t.createdAt) >= oneWeekAgo).length,
-    totalMonth: activeTasks.filter(t => new Date(t.createdAt) >= oneMonthAgo).length,
-    inProgress: activeTasks.filter(t => t.status === 'in_progress').length,
-    completedToday: activeTasks.filter(t => t.status === 'completed' && t.completedAt?.startsWith(todayStr)).length,
-    completedWeek: activeTasks.filter(t => t.status === 'completed' && t.completedAt && new Date(t.completedAt) >= oneWeekAgo).length,
-    closedMonth: activeTasks.filter(t => t.status === 'closed' && new Date(t.createdAt) >= oneMonthAgo).length
+    totalToday: tasks.filter(t => t.createdAt.startsWith(todayStr)).length,
+    totalWeek: tasks.filter(t => new Date(t.createdAt) >= oneWeekAgo).length,
+    totalMonth: tasks.filter(t => new Date(t.createdAt) >= oneMonthAgo).length,
+    inProgress: tasks.filter(t => t.status === 'in_progress').length,
+    completedToday: tasks.filter(t => t.status === 'completed' && t.completedAt?.startsWith(todayStr)).length,
+    completedWeek: tasks.filter(t => t.status === 'completed' && t.completedAt && new Date(t.completedAt) >= oneWeekAgo).length,
+    closedMonth: tasks.filter(t => t.status === 'closed' && new Date(t.createdAt) >= oneMonthAgo).length // Using createdAt as proxy if closedAt missing
   }
 
-  const upcomingTask = activeTasks
-    .filter(t => t.status === 'in_progress' && t.dueDate)
+  const upcomingTask = tasks
+    .filter(t => t.status !== 'completed' && t.status !== 'closed' && t.dueDate)
     .sort((a, b) => new Date(`${a.dueDate}T${a.dueTime}`).getTime() - new Date(`${b.dueDate}T${b.dueTime}`).getTime())[0]
 
   if (pageAccess.loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <div className="animate-spin rounded-full h-8 w-8 border-4 border-[#4E6E49] border-t-transparent"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-4 border-emerald-500 border-t-transparent"></div>
       </div>
     )
   }
@@ -192,8 +136,8 @@ export const Tasks = () => {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-          <div className="p-3 rounded-2xl bg-[#4E6E49]/10 border border-[#4E6E49]/20">
-            <CheckSquare className="w-8 h-8 text-[#4E6E49]" />
+          <div className="p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/20">
+            <CheckSquare className="w-8 h-8 text-emerald-500" />
           </div>
           <div>
             <h1 className={`text-3xl font-black ${headingColor} flex items-center gap-3`}>
@@ -204,73 +148,200 @@ export const Tasks = () => {
             </p>
           </div>
         </div>
+        <div className="ml-auto flex items-center gap-4">
+          {/* User profile removed as requested */}
+        </div>
       </div>
 
-      {/* Tabs */}
-      <div className="flex items-center gap-4 border-b border-gray-500/20">
-        <button
-          onClick={() => setActiveTab('tasks')}
-          className={`px-6 py-3 text-sm font-bold transition-all relative ${activeTab === 'tasks' ? 'text-[#4E6E49]' : 'text-gray-500 hover:text-gray-400'
+      {/* Stats Grid - Schedule Card Style */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Row 1 */}
+        <div
+          className={`relative overflow-hidden rounded-2xl p-5 border transition-all duration-300 hover:shadow-lg group ${theme === 'dark'
+            ? 'bg-emerald-500/5 border-emerald-500/20 hover:border-emerald-500/50'
+            : 'bg-white border-gray-100 hover:border-emerald-500/20'
             }`}
         >
-          Задачи
-          {activeTab === 'tasks' && (
-            <div className="absolute bottom-0 left-0 right-0 h-1 bg-[#4E6E49] rounded-t-full shadow-[0_0_10px_#4E6E49]" />
-          )}
-        </button>
-        <button
-          onClick={() => setActiveTab('archive')}
-          className={`px-6 py-3 text-sm font-bold transition-all relative flex items-center gap-2 ${activeTab === 'archive' ? 'text-amber-500' : 'text-gray-500 hover:text-gray-400'
-            }`}
-        >
-          <Package className="w-4 h-4" />
-          Архив
-          {activeTab === 'archive' && (
-            <div className="absolute bottom-0 left-0 right-0 h-1 bg-amber-500 rounded-t-full shadow-[0_0_10px_#fbbf24]" />
-          )}
-        </button>
-      </div>
-
-      {activeTab === 'tasks' && (
-        <>
-          {/* Stats Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className={`rounded-2xl p-5 border ${theme === 'dark' ? 'bg-[#4E6E49]/5 border-[#4E6E49]/20' : 'bg-white border-gray-100'}`}>
-              <div className="flex justify-between items-start mb-4">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500">Всего сегодня</span>
-                <Calendar className="w-5 h-5 text-[#4E6E49]" />
-              </div>
-              <div className={`text-2xl font-black ${headingColor}`}>{stats.totalToday}</div>
-            </div>
-
-            <div className={`rounded-2xl p-5 border ${theme === 'dark' ? 'bg-blue-500/5 border-blue-500/20' : 'bg-white border-gray-100'}`}>
-              <div className="flex justify-between items-start mb-4">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500">За неделю</span>
-                <LayoutGrid className="w-5 h-5 text-blue-400" />
-              </div>
-              <div className={`text-2xl font-black ${headingColor}`}>{stats.totalWeek}</div>
-            </div>
-
-            <div className={`rounded-2xl p-5 border ${theme === 'dark' ? 'bg-amber-500/5 border-amber-500/20' : 'bg-white border-gray-100'}`}>
-              <div className="flex justify-between items-start mb-4">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500">В работе</span>
-                <Zap className="w-5 h-5 text-amber-400" />
-              </div>
-              <div className={`text-2xl font-black ${headingColor}`}>{stats.inProgress}</div>
-            </div>
-
-            <div className={`rounded-2xl p-5 border ${theme === 'dark' ? 'bg-rose-500/5 border-rose-500/20' : 'bg-white border-gray-100'}`}>
-              <div className="flex justify-between items-start mb-4">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500">Дедлайн</span>
-                <Timer className="w-5 h-5 text-rose-400" />
-              </div>
-              <div className={`text-sm font-bold truncate ${headingColor}`}>
-                {upcomingTask ? `${upcomingTask.title} (${upcomingTask.dueDate})` : 'Нет'}
-              </div>
+          <div className="flex justify-between items-start mb-4">
+            <span className={`text-[10px] font-bold uppercase tracking-wider ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+              Всего задач сегодня
+            </span>
+            <div className={`p-2 rounded-xl transition-colors ${theme === 'dark' ? 'bg-white/5 group-hover:bg-white/10' : 'bg-gray-100 group-hover:bg-gray-200'}`}>
+              <Calendar className="w-5 h-5 text-emerald-400" />
             </div>
           </div>
+          <div className="space-y-1">
+            <div className={`text-2xl font-black tracking-tight ${headingColor}`}>{stats.totalToday}</div>
+            <div className="text-[11px] font-medium text-emerald-400 bg-emerald-500/10 w-fit px-2 py-0.5 rounded-full border border-emerald-500/20">
+              ↗ Активность ↑
+            </div>
+          </div>
+        </div>
 
-          <div className="space-y-6">
+        <div
+          className={`relative overflow-hidden rounded-2xl p-5 border transition-all duration-300 hover:shadow-lg group ${theme === 'dark'
+            ? 'bg-blue-500/5 border-blue-500/20 hover:border-blue-500/50'
+            : 'bg-white border-gray-100 hover:border-blue-500/20'
+            }`}
+        >
+          <div className="flex justify-between items-start mb-4">
+            <span className={`text-[10px] font-bold uppercase tracking-wider ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+              Всего на неделе
+            </span>
+            <div className={`p-2 rounded-xl transition-colors ${theme === 'dark' ? 'bg-white/5 group-hover:bg-white/10' : 'bg-gray-100 group-hover:bg-gray-200'}`}>
+              <LayoutGrid className="w-5 h-5 text-blue-400" />
+            </div>
+          </div>
+          <div className="space-y-1">
+            <div className={`text-2xl font-black tracking-tight ${headingColor}`}>{stats.totalWeek}</div>
+            <div className={`text-[11px] font-medium ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
+              Общий объем
+            </div>
+          </div>
+        </div>
+
+        <div
+          className={`relative overflow-hidden rounded-2xl p-5 border transition-all duration-300 hover:shadow-lg group ${theme === 'dark'
+            ? 'bg-indigo-500/5 border-indigo-500/20 hover:border-indigo-500/50'
+            : 'bg-white border-gray-100 hover:border-indigo-500/20'
+            }`}
+        >
+          <div className="flex justify-between items-start mb-4">
+            <span className={`text-[10px] font-bold uppercase tracking-wider ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+              Всего в месяце
+            </span>
+            <div className={`p-2 rounded-xl transition-colors ${theme === 'dark' ? 'bg-white/5 group-hover:bg-white/10' : 'bg-gray-100 group-hover:bg-gray-200'}`}>
+              <Layers className="w-5 h-5 text-indigo-400" />
+            </div>
+          </div>
+          <div className="space-y-1">
+            <div className={`text-2xl font-black tracking-tight ${headingColor}`}>{stats.totalMonth}</div>
+            <div className={`text-[11px] font-medium ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
+              Накопительный итог
+            </div>
+          </div>
+        </div>
+
+        <div
+          className={`relative overflow-hidden rounded-2xl p-5 border transition-all duration-300 hover:shadow-lg group ${theme === 'dark'
+            ? 'bg-amber-500/5 border-amber-500/20 hover:border-amber-500/50'
+            : 'bg-white border-gray-100 hover:border-amber-500/20'
+            }`}
+        >
+          <div className="flex justify-between items-start mb-4">
+            <span className={`text-[10px] font-bold uppercase tracking-wider ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+              Задач в работе
+            </span>
+            <div className={`p-2 rounded-xl transition-colors ${theme === 'dark' ? 'bg-white/5 group-hover:bg-white/10' : 'bg-gray-100 group-hover:bg-gray-200'}`}>
+              <Zap className="w-5 h-5 text-amber-400" />
+            </div>
+          </div>
+          <div className="space-y-1">
+            <div className={`text-2xl font-black tracking-tight ${headingColor}`}>{stats.inProgress}</div>
+            <div className="text-[11px] font-medium text-amber-400 bg-amber-500/10 w-fit px-2 py-0.5 rounded-full border border-amber-500/20">
+              Требуют внимания
+            </div>
+          </div>
+        </div>
+
+        {/* Row 2 */}
+        <div
+          className={`relative overflow-hidden rounded-2xl p-5 border transition-all duration-300 hover:shadow-lg group ${theme === 'dark'
+            ? 'bg-teal-500/5 border-teal-500/20 hover:border-teal-500/50'
+            : 'bg-white border-gray-100 hover:border-teal-500/20'
+            }`}
+        >
+          <div className="flex justify-between items-start mb-4">
+            <span className={`text-[10px] font-bold uppercase tracking-wider ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+              Закрыто сегодня
+            </span>
+            <div className={`p-2 rounded-xl transition-colors ${theme === 'dark' ? 'bg-white/5 group-hover:bg-white/10' : 'bg-gray-100 group-hover:bg-gray-200'}`}>
+              <CheckCircle2 className="w-5 h-5 text-teal-400" />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <div className={`text-2xl font-black tracking-tight ${headingColor}`}>{stats.completedToday}</div>
+          </div>
+        </div>
+
+        <div
+          className={`relative overflow-hidden rounded-2xl p-5 border transition-all duration-300 hover:shadow-lg group ${theme === 'dark'
+            ? 'bg-cyan-500/5 border-cyan-500/20 hover:border-cyan-500/50'
+            : 'bg-white border-gray-100 hover:border-cyan-500/20'
+            }`}
+        >
+          <div className="flex justify-between items-start mb-4">
+            <span className={`text-[10px] font-bold uppercase tracking-wider ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+              Закрыто на неделе
+            </span>
+            <div className={`p-2 rounded-xl transition-colors ${theme === 'dark' ? 'bg-white/5 group-hover:bg-white/10' : 'bg-gray-100 group-hover:bg-gray-200'}`}>
+              <CheckCircle2 className="w-5 h-5 text-cyan-400" />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <div className={`text-2xl font-black tracking-tight ${headingColor}`}>{stats.completedWeek}</div>
+          </div>
+        </div>
+
+        <div
+          className={`relative overflow-hidden rounded-2xl p-5 border transition-all duration-300 hover:shadow-lg group ${theme === 'dark'
+            ? 'bg-sky-500/5 border-sky-500/20 hover:border-sky-500/50'
+            : 'bg-white border-gray-100 hover:border-sky-500/20'
+            }`}
+        >
+          <div className="flex justify-between items-start mb-4">
+            <span className={`text-[10px] font-bold uppercase tracking-wider ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+              Закрыто в месяце
+            </span>
+            <div className={`p-2 rounded-xl transition-colors ${theme === 'dark' ? 'bg-white/5 group-hover:bg-white/10' : 'bg-gray-100 group-hover:bg-gray-200'}`}>
+              <Archive className="w-5 h-5 text-sky-400" />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <div className={`text-2xl font-black tracking-tight ${headingColor}`}>{stats.closedMonth}</div>
+          </div>
+        </div>
+
+        <div
+          className={`relative overflow-hidden rounded-2xl p-5 border transition-all duration-300 hover:shadow-lg group ${theme === 'dark'
+            ? 'bg-rose-500/5 border-rose-500/20 hover:border-rose-500/50'
+            : 'bg-white border-gray-100 hover:border-rose-500/20'
+            }`}
+        >
+          <div className="flex justify-between items-start mb-4">
+            <span className={`text-[10px] font-bold uppercase tracking-wider ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+              Ближайший дедлайн
+            </span>
+            <div className={`p-2 rounded-xl transition-colors ${theme === 'dark' ? 'bg-white/5 group-hover:bg-white/10' : 'bg-gray-100 group-hover:bg-gray-200'}`}>
+              <Timer className="w-5 h-5 text-rose-400" />
+            </div>
+          </div>
+          <div className="space-y-1">
+            <div className={`text-2xl font-black tracking-tight ${headingColor}`}>
+              {upcomingTask ? (
+                <>
+                  {upcomingTask.dueDate === todayStr ? 'Сегодня' : formatDate(new Date(upcomingTask.dueDate), 'd MMM')}
+                  {upcomingTask.dueTime && `, ${upcomingTask.dueTime}`}
+                </>
+              ) : 'Нет'}
+            </div>
+            <div className={`text-[11px] font-medium truncate ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
+              {upcomingTask ? upcomingTask.title : 'Все сроки соблюдены'}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content Area */}
+      <div className="space-y-6">
+        <div className="flex items-center gap-3">
+          <h2 className={`text-2xl font-black ${headingColor}`}>Мои задачи</h2>
+          <span className="px-2.5 py-1 rounded-md bg-gray-800/80 text-gray-400 text-xs font-medium border border-white/5 shadow-sm">{stats.inProgress} активных</span>
+        </div>
+
+        <div className={`rounded-3xl border p-4 sm:p-6 ${theme === 'dark' ? 'bg-[#0f1216] border-white/5' : 'bg-gray-50 border-gray-200'}`}>
+          {/* Filters & Action Bar */}
+          <div className="mb-6">
             <TaskFilters
               selectedCategory={selectedCategory}
               selectedStatus={selectedStatus}
@@ -280,59 +351,20 @@ export const Tasks = () => {
               onUsersChange={setSelectedUsers}
               onAddTask={addTaskAccess.hasAccess ? () => setShowForm(true) : undefined}
             />
-
-            {loading ? (
-              <div className="py-20 text-center text-gray-500 animate-pulse">Загрузка задач...</div>
-            ) : filteredTasks.length === 0 ? (
-              <div className="py-20 text-center text-gray-500">Задачи не найдены</div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                {filteredTasks.map(task => (
-                  <TaskCard
-                    key={task.id}
-                    task={task}
-                    onEdit={handleEdit}
-                    onDelete={handleDelete}
-                    onUpdate={loadTasks}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-        </>
-      )}
-
-      {activeTab === 'archive' && (
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <h2 className={`text-xl font-bold ${headingColor} flex items-center gap-2`}>
-              <Package className="w-5 h-5 text-amber-500" />
-              Архив - Tasks
-            </h2>
-            <span className="text-xs text-gray-500 font-medium bg-gray-500/10 px-2 py-1 rounded">
-              Удаление через 7 дней
-            </span>
           </div>
 
+          {/* Table */}
           {loading ? (
-            <div className="py-20 text-center text-gray-500 animate-pulse">Загрузка архива...</div>
-          ) : filteredTasks.length === 0 ? (
-            <div className="py-20 text-center text-gray-500">Архив пуст</div>
+            <div className="py-20 text-center text-gray-500 animate-pulse">Загрузка задач...</div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {filteredTasks.map(task => (
-                <TaskCard
-                  key={task.id}
-                  task={task}
-                  onEdit={handleEdit}
-                  onDelete={handleDelete}
-                  onUpdate={loadTasks}
-                />
-              ))}
-            </div>
+            <TaskTable
+              tasks={filteredTasks}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+            />
           )}
         </div>
-      )}
+      </div>
 
       {showForm && (
         <TaskForm
