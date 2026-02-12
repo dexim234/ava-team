@@ -349,7 +349,7 @@ export const Rating = () => {
             </div>
             <div>
               <h1 className={`text-2xl md:text-3xl font-black tracking-tight ${headingColor}`}>
-                Rating
+                Score
               </h1>
               <p className={`text-sm font-medium ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
                 Рейтинг эффективности команды AVA - Team
