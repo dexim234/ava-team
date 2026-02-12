@@ -1,4 +1,3 @@
-// Referrals page
 import { useState, useEffect, useMemo } from 'react'
 import { useThemeStore } from '@/store/themeStore'
 import { useAuthStore } from '@/store/authStore'
@@ -384,8 +383,9 @@ export const Referrals = () => {
         if (!isAdmin) return
         const header = "Кто пригласил\tID\tИмя\tТелефон\tИсточник\tTG\tСтатус\n"
         const rows = referrals.map(r => {
-            const owner = users.find(u => u.id === r.ownerId)?.name || '—'
-            return `${owner}\t${r.referralId}\t${r.name}\t${r.phone || '—'}\t${r.source || '—'}\t${r.tgAccount || '—'}\t${r.status || 'active'}`
+            const owner = users.find(u => u.id === r.ownerId)
+            const ownerNickname = owner ? getUserNicknameSync(owner.id) : '—'
+            return `${ownerNickname}\t${r.referralId}\t${r.name}\t${r.phone || '—'}\t${r.source || '—'}\t${r.tgAccount || '—'}\t${r.status || 'active'}`
         }).join('\n')
 
         navigator.clipboard.writeText(header + rows)
@@ -492,6 +492,9 @@ export const Referrals = () => {
                                     {referrals.map(r => {
                                         const owner = users.find(u => u.id === r.ownerId)
                                         const ownerNickname = owner ? getUserNicknameSync(owner.id) : '—'
+                                        const statusClass = r.status === 'active' || !r.status ? 'bg-emerald-500/10 text-emerald-500' :
+                                            r.status === 'inactive' ? 'bg-amber-500/10 text-amber-500' :
+                                                'bg-rose-500/10 text-rose-500';
                                         return (
                                             <tr key={r.id} className={`group transition-colors ${theme === 'dark' ? 'hover:bg-white/[0.02]' : 'hover:bg-gray-50/50'}`}>
                                                 <td className="px-6 py-4 flex items-center justify-center gap-3">
@@ -521,10 +524,7 @@ export const Referrals = () => {
                                                     <span className="text-xs font-bold text-pink-500">{r.tgAccount || '—'}</span>
                                                 </td>
                                                 <td className="px-6 py-4 text-center">
-                                                    <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${r.status === 'active' || !r.status ? 'bg-emerald-500/10 text-emerald-500' :
-                                                        r.status === 'inactive' ? 'bg-amber-500/10 text-amber-500' :
-                                                            'bg-rose-500/10 text-rose-500'
-                                                        }`}>
+                                                    <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${statusClass}`}>
                                                         {r.status || 'active'}
                                                     </span>
                                                 </td>
@@ -549,7 +549,7 @@ export const Referrals = () => {
                                                 </div>
                                             </td>
                                         </tr>
-                                    ))}
+                                    )})}
                                 </tbody>
                             </table>
                         </div>
@@ -575,27 +575,28 @@ export const Referrals = () => {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-white/5">
-                                    {myReferrals.length > 0 ? myReferrals.map(r => (
-                                        <tr key={r.id} className={`group transition-colors ${theme === 'dark' ? 'hover:bg-white/[0.02]' : 'hover:bg-gray-50/50'}`}>
-                                            <td className="px-6 py-4 text-center">
-                                                <span className="text-xs font-mono font-bold text-emerald-500">{r.referralId}</span>
-                                            </td>
-                                            <td className="px-6 py-4 text-center text-sm font-medium">{r.name}</td>
-                                            <td className="px-6 py-4 text-center text-sm font-medium">{r.phone || '—'}</td>
-                                            <td className="px-6 py-4 text-center text-sm font-medium">{r.source || '—'}</td>
-                                            <td className="px-6 py-4 text-center">
-                                                <span className="text-xs font-bold text-pink-500">{r.tgAccount || '—'}</span>
-                                            </td>
-                                            <td className="px-6 py-4 text-center">
-                                                <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${r.status === 'active' || !r.status ? 'bg-emerald-500/10 text-emerald-500' :
-                                                    r.status === 'inactive' ? 'bg-amber-500/10 text-amber-500' :
-                                                        'bg-rose-500/10 text-rose-500'
-                                                    }`}>
-                                                    {r.status || 'active'}
-                                                </span>
-                                            </td>
-                                        </tr>
-                                    )) : (
+                                    {myReferrals.length > 0 ? myReferrals.map((r) => {
+                                        const statusClass = r.status === 'active' || !r.status ? 'bg-emerald-500/10 text-emerald-500' :
+                                            r.status === 'inactive' ? 'bg-amber-500/10 text-amber-500' : 'bg-rose-500/10 text-rose-500';
+                                        return (
+                                            <tr key={r.id} className={`group transition-colors ${theme === 'dark' ? 'hover:bg-white/[0.02]' : 'hover:bg-gray-50/50'}`}>
+                                                <td className="px-6 py-4 text-center">
+                                                    <span className="text-xs font-mono font-bold text-emerald-500">{r.referralId}</span>
+                                                </td>
+                                                <td className="px-6 py-4 text-center text-sm font-medium">{r.name}</td>
+                                                <td className="px-6 py-4 text-center text-sm font-medium">{r.phone || '—'}</td>
+                                                <td className="px-6 py-4 text-center text-sm font-medium">{r.source || '—'}</td>
+                                                <td className="px-6 py-4 text-center">
+                                                    <span className="text-xs font-bold text-pink-500">{r.tgAccount || '—'}</span>
+                                                </td>
+                                                <td className="px-6 py-4 text-center">
+                                                    <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${statusClass}`}>
+                                                        {r.status || 'active'}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        )
+                                    }) : (
                                         <tr>
                                             <td colSpan={6} className="px-6 py-12 text-center text-gray-500 font-bold uppercase tracking-widest text-xs">Рефералов пока нет</td>
                                         </tr>
@@ -676,4 +677,3 @@ export const Referrals = () => {
         </div>
     )
 }
-
