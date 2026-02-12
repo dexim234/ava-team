@@ -549,7 +549,7 @@ export const Referrals = () => {
                                                 </div>
                                             </td>
                                         </tr>
-                                    ))}
+                                    ))
                                 </tbody>
                             </table>
                         </div>
