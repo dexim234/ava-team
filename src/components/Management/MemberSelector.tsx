@@ -63,9 +63,8 @@ export const MemberSelector: React.FC<MemberSelectorProps> = ({ selectedUserId, 
 
     const filteredMembers = allUsers.filter(m => {
         const name = m.name.toLowerCase()
-        const login = m.login.toLowerCase()
         const query = search.toLowerCase()
-        return name.includes(query) || login.includes(query)
+        return name.includes(query)
     })
 
     return (
@@ -90,7 +89,7 @@ export const MemberSelector: React.FC<MemberSelectorProps> = ({ selectedUserId, 
                             <div className={`w-5 h-5 rounded-full flex items-center justify-center border border-dashed border-gray-500 flex-shrink-0`}>
                                 <User size={12} className="text-gray-500" />
                             </div>
-                            <span className="text-sm font-semibold text-gray-500">Все участники...</span>
+                            <span className="text-sm font-semibold text-gray-500">Трейдеры</span>
                         </>
                     )}
                 </div>
@@ -141,7 +140,7 @@ export const MemberSelector: React.FC<MemberSelectorProps> = ({ selectedUserId, 
                             <div className={`w-6 h-6 rounded-full flex items-center justify-center border border-dashed border-gray-500 text-[10px]`}>
                                 <User size={12} />
                             </div>
-                            <span className="text-xs font-bold">Все участники</span>
+                            <span className="text-xs font-bold">Трейдеры</span>
                         </button>
 
                         {filteredMembers.map(member => (
@@ -188,10 +187,7 @@ const MemberItem: React.FC<{
             <div className="relative">
                 <Avatar user={member} size="sm" className="w-6 h-6" />
             </div>
-            <div className="flex flex-col min-w-0">
-                <span className="text-xs font-bold truncate">{nickname || member.name}</span>
-                <span className="text-[9px] opacity-50 truncate">{member.login}</span>
-            </div>
+            <span className="text-xs font-bold truncate">{nickname || member.name}</span>
         </button>
     )
 }

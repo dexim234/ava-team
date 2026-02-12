@@ -1,4 +1,3 @@
-// Week view for management
 import { useState, useEffect } from 'react'
 import { parseISO } from 'date-fns'
 import { useThemeStore } from '@/store/themeStore'
@@ -7,11 +6,10 @@ import { useAdminStore } from '@/store/adminStore'
 import { getWorkSlots, getDayStatuses, addApprovalRequest, deleteWorkSlot, updateDayStatus, addDayStatus, deleteDayStatus } from '@/services/firestoreService'
 import { formatDate, getWeekDays, isSameDate, getMoscowTime } from '@/utils/dateUtils'
 import { getUserNicknameSync } from '@/utils/userUtils'
-import { WorkSlot, DayStatus, SLOT_CATEGORY_META, SlotCategory, DayStatusType, User as UserType } from '@/types'
+import { TEAM_MEMBERS, WorkSlot, DayStatus, SLOT_CATEGORY_META, SlotCategory, DayStatusType, User as UserType } from '@/types' // Добавляем TEAM_MEMBERS
 import { Edit, Trash2, CheckCircle2, Calendar as CalendarIcon, ChevronDown, ChevronUp, Info, ChevronLeft, ChevronRight, RotateCcw } from 'lucide-react'
 import { startOfWeek } from 'date-fns'
 import { useUsers } from '@/hooks/useUsers'
-import Avatar from '@/components/Avatar'
 
 type SlotFilter = 'all' | 'upcoming' | 'completed'
 
@@ -53,10 +51,14 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
   }
 
   const resolveUser = (userId: string) => {
-    const member = allMembers.find((u: UserType) => u.id === userId) || allMembers.find((u: UserType) => legacyIdMap[userId] === u.id)
+    const memberFromAllMembers = allMembers.find((u: UserType) => u.id === userId) // Использование allMembers
+    const memberFromTeamMembers = TEAM_MEMBERS.find((u: UserType) => u.id === userId) || TEAM_MEMBERS.find((u: UserType) => legacyIdMap[userId] === u.id)
+
+    const member = memberFromAllMembers || memberFromTeamMembers
     return {
       member,
       displayName: getUserNicknameSync(member?.id || userId),
+      avatar: member?.avatar,
     }
   }
 
@@ -470,6 +472,7 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
     airdrop: { bg: 'bg-cyan-100 dark:bg-cyan-900/40', text: 'text-cyan-700 dark:text-cyan-300', border: 'border-cyan-300 dark:border-cyan-700' },
     polymarket: { bg: 'bg-pink-100 dark:bg-pink-900/40', text: 'text-pink-700 dark:text-pink-300', border: 'border-pink-300 dark:border-pink-700' },
     staking: { bg: 'bg-indigo-100 dark:bg-indigo-900/40', text: 'text-indigo-700 dark:text-indigo-300', border: 'border-indigo-300 dark:border-indigo-700' },
+    other: { bg: 'bg-gray-100 dark:bg-gray-900/40', text: 'text-gray-700 dark:text-gray-300', border: 'border-gray-300 dark:border-gray-700' },
   }
 
   return (
@@ -553,13 +556,20 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
               <div className="space-y-3 sm:space-y-4">
                 {/* Statuses */}
                 {dayStatuses.map((status) => {
-                  const { displayName } = resolveUser(status.userId)
+                  const { displayName, avatar } = resolveUser(status.userId)
                   return (
                     <div
                       key={status.id}
                       className={`relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 rounded-2xl border-2 transition-all duration-300 hover:shadow-xl backdrop-blur text-center sm:text-left ring-1 ring-inset ring-black/5 dark:ring-white/5 ${statusMeta[status.type]?.tone || ''}`}
                     >
                       <div className="flex flex-col sm:flex-row sm:items-center gap-2 justify-center sm:justify-start w-full">
+                        {avatar && (
+                          <img
+                            src={avatar}
+                            alt="Avatar"
+                            className="w-8 h-8 rounded-full object-cover mr-2" // Стили для аватара
+                          />
+                        )}
                         <span className="font-semibold text-base sm:text-lg">{displayName}</span>
                         <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/70 dark:bg-white/10 text-xs sm:text-sm font-semibold">
                           {statusMeta[status.type]?.label || status.type}
@@ -575,7 +585,7 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
                         </span>
                       </div>
                       <div className="flex gap-2 justify-center sm:justify-end w-full">
-                        {isAdmin && adminOnlyTypes.includes(status.type) ? (
+                        {(isAdmin || user?.id === status.userId) ? (
                           <>
                             <button
                               onClick={() => onEditStatus(status)}
@@ -588,21 +598,6 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
                               onClick={() => handleDeleteStatus(status, dateStr)}
                               className={`p-1 rounded transition-colors ${theme === 'dark' ? 'bg-white/10 hover:bg-white/20 text-white' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-100'}`}
                               title="Удалить (только для админа)"
-                            >
-                              <Trash2 className="w-4 h-4 text-current" />
-                            </button>
-                          </>
-                        ) : isAdmin || user?.id === status.userId ? (
-                          <>
-                            <button
-                              onClick={() => onEditStatus(status)}
-                              className={`p-1 rounded transition-colors ${theme === 'dark' ? 'bg-white/10 hover:bg-white/20 text-white' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-100'}`}
-                            >
-                              <Edit className="w-4 h-4 text-white" />
-                            </button>
-                            <button
-                              onClick={() => handleDeleteStatus(status, dateStr)}
-                              className={`p-1 rounded transition-colors ${theme === 'dark' ? 'bg-white/10 hover:bg-white/20 text-white' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-100'}`}
                             >
                               <Trash2 className="w-4 h-4 text-current" />
                             </button>
@@ -632,7 +627,7 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
 
                 {/* Slots */}
                 {daySlots.map((slot) => {
-                  const { member: slotUser, displayName } = resolveUser(slot.userId)
+                  const { displayName, avatar } = resolveUser(slot.userId)
                   const isUpcoming = isSlotUpcoming(slot)
                   const slotBg = isUpcoming
                     ? 'bg-gradient-to-r from-emerald-500 to-teal-600 border-emerald-300/40'
@@ -649,9 +644,13 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
                     >
                       <div className="flex items-center justify-center sm:justify-start border-b border-white/20 pb-2 sm:pb-3">
                         <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
-                          <div className="relative flex-shrink-0">
-                            <Avatar user={slotUser} userId={slot.userId} size="sm" className="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 lg:w-11 lg:h-11" />
-                          </div>
+                          {avatar && (
+                            <img
+                              src={avatar}
+                              alt="Avatar"
+                              className="w-8 h-8 rounded-full object-cover" // Стили для аватара
+                            />
+                          )}
                           <span className="text-white font-bold text-sm sm:text-base group-hover:scale-105 transition-transform duration-300 truncate text-center sm:text-left w-full sm:w-auto">{displayName}</span>
                         </div>
                         <div className="flex gap-2">
@@ -716,10 +715,7 @@ export const ManagementWeekView = ({ selectedUserId, slotFilter, onEditSlot, onE
                                 {slot.comment && (
                                   <div className="relative group">
                                     <Info className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white/60 hover:text-white cursor-help flex-shrink-0" />
-                                    <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg max-w-xs whitespace-normal break-words opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 shadow-lg border border-white/10">
-                                      {slot.comment}
-                                      <div className="absolute left-1/2 -translate-x-1/2 top-full border-4 border-transparent border-t-gray-900"></div>
-                                    </div>
+                                    <div className="absolute left-1/2 -translate-x-1/2 top-full border-4 border-transparent border-t-gray-900"></div>
                                   </div>
                                 )}
                               </div>
