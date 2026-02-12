@@ -6,6 +6,7 @@ import { useAdminStore } from '@/store/adminStore'
 import { getReferrals, addApprovalRequest, updateReferral, addReferral, deleteReferral } from '@/services/firestoreService'
 import { Referral } from '@/types'
 import { useUsers } from '@/hooks/useUsers'
+import { getUserNicknameSync } from '@/utils/userUtils'
 import {
     UserPlus,
     Users,
@@ -359,7 +360,7 @@ export const Referrals = () => {
             const userRefs = referrals.filter(r => r.ownerId === u.id)
             return {
                 userId: u.id,
-                name: u.name,
+                user: u,
                 total: userRefs.length,
                 active: userRefs.filter(r => r.status === 'active' || !r.status).length,
                 inactive: userRefs.filter(r => r.status === 'inactive').length,
@@ -479,34 +480,51 @@ export const Referrals = () => {
                                 <thead>
                                     <tr className={theme === 'dark' ? 'bg-white/[0.02]' : 'bg-gray-50'}>
                                         {['Кто пригласил', 'ID', 'Имя', 'Телефон', 'Источник', 'TG', 'Статус', ''].map(h => (
-                                            <th key={h} className="px-6 py-5 text-center text-[10px] font-black uppercase tracking-widest text-gray-500">{h}</th>
+                                            <th key={h} className="px-6 py-5 text-center text-[10px] font-black text-gray-500">{h}</th>
                                         ))}
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-white/5">
-                                    {referrals.map(r => (
-                                        <tr key={r.id} className={`group transition-colors ${theme === 'dark' ? 'hover:bg-white/[0.02]' : 'hover:bg-gray-50/50'}`}>
-                                            <td className="px-6 py-4 text-center">
-                                                <span className={`text-sm font-bold ${headingColor}`}>{users.find(u => u.id === r.ownerId)?.name || '—'}</span>
-                                            </td>
-                                            <td className="px-6 py-4 text-center">
-                                                <span className="text-xs font-mono font-bold text-emerald-500">{r.referralId}</span>
-                                            </td>
-                                            <td className="px-6 py-4 text-center text-sm font-medium">{r.name}</td>
-                                            <td className="px-6 py-4 text-center text-sm font-medium">{r.phone || '—'}</td>
-                                            <td className="px-6 py-4 text-center text-sm font-medium">{r.source || '—'}</td>
-                                            <td className="px-6 py-4 text-center">
-                                                <span className="text-xs font-bold text-pink-500">{r.tgAccount || '—'}</span>
-                                            </td>
-                                            <td className="px-6 py-4 text-center">
-                                                <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${r.status === 'active' || !r.status ? 'bg-emerald-500/10 text-emerald-500' :
-                                                    r.status === 'inactive' ? 'bg-amber-500/10 text-amber-500' :
-                                                        'bg-rose-500/10 text-rose-500'
-                                                    }`}>
-                                                    {r.status || 'active'}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4 text-right">
+                                    {referrals.map(r => {
+                                        const owner = users.find(u => u.id === r.ownerId)
+                                        const ownerNickname = owner ? getUserNicknameSync(owner.id) : '—'
+                                        return (
+                                            <tr key={r.id} className={`group transition-colors ${theme === 'dark' ? 'hover:bg-white/[0.02]' : 'hover:bg-gray-50/50'}`}>
+                                                <td className="px-6 py-4 flex items-center justify-center gap-3">
+                                                    {owner?.avatar ? (
+                                                        <img
+                                                            src={owner.avatar}
+                                                            alt={ownerNickname}
+                                                            className="w-8 h-8 rounded-lg object-cover"
+                                                            onError={(e) => {
+                                                                e.currentTarget.style.display = 'none'
+                                                                e.currentTarget.nextElementSibling?.classList.remove('hidden')
+                                                            }}
+                                                        />
+                                                    ) : null}
+                                                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-black text-xs ${theme === 'dark' ? 'bg-white/5 text-emerald-400' : 'bg-emerald-50 text-emerald-600'} ${owner?.avatar ? 'hidden' : ''}`}>
+                                                        {ownerNickname[0]?.toUpperCase()}
+                                                    </div>
+                                                    <span className={`text-sm font-bold ${headingColor}`}>{ownerNickname}</span>
+                                                </td>
+                                                <td className="px-6 py-4 text-center">
+                                                    <span className="text-xs font-mono font-bold text-emerald-500">{r.referralId}</span>
+                                                </td>
+                                                <td className="px-6 py-4 text-center text-sm font-medium">{r.name}</td>
+                                                <td className="px-6 py-4 text-center text-sm font-medium">{r.phone || '—'}</td>
+                                                <td className="px-6 py-4 text-center text-sm font-medium">{r.source || '—'}</td>
+                                                <td className="px-6 py-4 text-center">
+                                                    <span className="text-xs font-bold text-pink-500">{r.tgAccount || '—'}</span>
+                                                </td>
+                                                <td className="px-6 py-4 text-center">
+                                                    <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${r.status === 'active' || !r.status ? 'bg-emerald-500/10 text-emerald-500' :
+                                                        r.status === 'inactive' ? 'bg-amber-500/10 text-amber-500' :
+                                                            'bg-rose-500/10 text-rose-500'
+                                                        }`}>
+                                                        {r.status || 'active'}
+                                                    </span>
+                                                </td>
+                                                <td className="px-6 py-4 text-right">
                                                 <div className="flex items-center justify-end gap-2">
                                                     <button
                                                         onClick={() => {
@@ -548,7 +566,7 @@ export const Referrals = () => {
                                 <thead>
                                     <tr className={theme === 'dark' ? 'bg-white/[0.02]' : 'bg-gray-50'}>
                                         {['ID', 'Имя', 'Телефон', 'Источник', 'TG', 'Статус'].map(h => (
-                                            <th key={h} className="px-6 py-5 text-center text-[10px] font-black uppercase tracking-widest text-gray-500">{h}</th>
+                                            <th key={h} className="px-6 py-5 text-center text-[10px] font-black text-gray-500">{h}</th>
                                         ))}
                                     </tr>
                                 </thead>
@@ -597,25 +615,39 @@ export const Referrals = () => {
                             <thead>
                                 <tr className={theme === 'dark' ? 'bg-white/[0.02]' : 'bg-gray-50'}>
                                     {['Участник', 'Всего', 'Активные', 'Неактивные', 'Удаленные'].map(h => (
-                                        <th key={h} className="px-6 py-5 text-center text-[10px] font-black uppercase tracking-widest text-gray-500">{h}</th>
+                                        <th key={h} className="px-6 py-5 text-center text-[10px] font-black text-gray-500">{h}</th>
                                     ))}
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-white/5">
-                                {statsTable.map(s => (
-                                    <tr key={s.userId} className={`group transition-colors ${theme === 'dark' ? 'hover:bg-white/[0.02]' : 'hover:bg-gray-50/50'} ${s.userId === user?.id ? (theme === 'dark' ? 'bg-emerald-500/5' : 'bg-emerald-50/50') : ''}`}>
-                                        <td className="px-6 py-4 flex items-center justify-center gap-3">
-                                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-black text-xs ${theme === 'dark' ? 'bg-white/5 text-emerald-400' : 'bg-emerald-50 text-emerald-600'}`}>
-                                                {s.name[0]}
-                                            </div>
-                                            <span className={`text-sm font-bold ${headingColor}`}>{s.name}</span>
-                                        </td>
-                                        <td className="px-6 py-4 text-center font-black">{s.total}</td>
-                                        <td className="px-6 py-4 text-center text-emerald-500 font-bold">{s.active}</td>
-                                        <td className="px-6 py-4 text-center text-amber-500 font-bold">{s.inactive}</td>
-                                        <td className="px-6 py-4 text-center text-rose-500 font-bold">{s.deleted}</td>
-                                    </tr>
-                                ))}
+                                {statsTable.map(s => {
+                                    const nickname = getUserNicknameSync(s.userId)
+                                    return (
+                                        <tr key={s.userId} className={`group transition-colors ${theme === 'dark' ? 'hover:bg-white/[0.02]' : 'hover:bg-gray-50/50'} ${s.userId === user?.id ? (theme === 'dark' ? 'bg-emerald-500/5' : 'bg-emerald-50/50') : ''}`}>
+                                            <td className="px-6 py-4 flex items-center justify-center gap-3">
+                                                {s.user.avatar ? (
+                                                    <img
+                                                        src={s.user.avatar}
+                                                        alt={nickname}
+                                                        className="w-8 h-8 rounded-lg object-cover"
+                                                        onError={(e) => {
+                                                            e.currentTarget.style.display = 'none'
+                                                            e.currentTarget.nextElementSibling?.classList.remove('hidden')
+                                                        }}
+                                                    />
+                                                ) : null}
+                                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-black text-xs ${theme === 'dark' ? 'bg-white/5 text-emerald-400' : 'bg-emerald-50 text-emerald-600'} ${s.user.avatar ? 'hidden' : ''}`}>
+                                                    {nickname[0]?.toUpperCase()}
+                                                </div>
+                                                <span className={`text-sm font-bold ${headingColor}`}>{nickname}</span>
+                                            </td>
+                                            <td className="px-6 py-4 text-center font-black">{s.total}</td>
+                                            <td className="px-6 py-4 text-center text-emerald-500 font-bold">{s.active}</td>
+                                            <td className="px-6 py-4 text-center text-amber-500 font-bold">{s.inactive}</td>
+                                            <td className="px-6 py-4 text-center text-rose-500 font-bold">{s.deleted}</td>
+                                        </tr>
+                                    )
+                                })}
                             </tbody>
                         </table>
                     </div>
