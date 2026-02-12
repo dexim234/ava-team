@@ -3,8 +3,9 @@ import { useThemeStore } from '@/store/themeStore'
 import { useAuthStore } from '@/store/authStore'
 import { TaskForm } from '@/components/Tasks/TaskForm'
 import { TaskFilters } from '@/components/Tasks/TaskFilters'
-import { TaskTable } from '@/components/Tasks/TaskTable'
-import { getTasks, deleteTask } from '@/services/firestoreService'
+import { TaskCard } from '@/components/Tasks/TaskCard'
+import { TaskDetails } from '@/components/Tasks/TaskDetails' // Импортируем TaskDetails
+import { getTasks, deleteTask, updateTask } from '@/services/firestoreService' // Добавляем updateTask
 import { Task, TaskCategory, TaskStatus } from '@/types'
 import { CheckSquare, LayoutGrid, Calendar, Zap, Layers, CheckCircle2, Archive, Timer } from 'lucide-react'
 import { formatDate } from '@/utils/dateUtils'
@@ -17,6 +18,7 @@ export const Tasks = () => {
 
   const [showForm, setShowForm] = useState(false)
   const [editingTask, setEditingTask] = useState<Task | null>(null)
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null) // State для выбранной задачи
   const [tasks, setTasks] = useState<Task[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedCategory, setSelectedCategory] = useState<TaskCategory | 'all'>('all')
@@ -62,6 +64,7 @@ export const Tasks = () => {
   const handleEdit = (task: Task) => {
     setEditingTask(task)
     setShowForm(true)
+    setSelectedTask(null) // Закрываем детали при редактировании
   }
 
   const handleDelete = async (taskId: string) => {
@@ -70,9 +73,30 @@ export const Tasks = () => {
     try {
       await deleteTask(taskId)
       loadTasks()
+      setSelectedTask(null) // Закрываем детали после удаления
     } catch (error) {
       console.error('Error deleting task:', error)
     }
+  }
+
+  const handleMove = async (taskId: string, newStatus: TaskStatus) => {
+    try {
+      await updateTask(taskId, { status: newStatus })
+      loadTasks()
+      setSelectedTask(prev => prev && prev.id === taskId ? { ...prev, status: newStatus } : null) // Обновляем выбранную задачу
+    } catch (error) {
+      console.error('Error moving task:', error)
+    }
+  }
+
+  const handleCopyLink = (taskId: string) => {
+    // В реальной реализации здесь будет копирование ссылки в буфер обмена
+    navigator.clipboard.writeText(`${window.location.origin}/tasks/${taskId}`)
+    alert(`Ссылка скопирована: ${window.location.origin}/tasks/${taskId}`)
+  }
+
+  const handleViewDetails = (task: Task) => {
+    setSelectedTask(task)
   }
 
   const handleCloseForm = () => {
@@ -86,6 +110,11 @@ export const Tasks = () => {
     loadTasks()
   }
 
+  const handleArchive = () => {
+    alert('Переход в архив задач (функциональность будет реализована позже)')
+    // Здесь будет логика для перехода в раздел архива
+  }
+
   const filteredTasks = tasks.filter(task => {
     if (selectedCategory !== 'all' && task.category !== selectedCategory) return false
     if (selectedStatus !== 'all' && task.status !== selectedStatus) return false
@@ -93,7 +122,7 @@ export const Tasks = () => {
     return true
   })
 
-  // Stats derivation
+  // ... Stats derivation (без изменений)
   const now = new Date()
   const todayStr = formatDate(now, 'yyyy-MM-dd')
   const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
@@ -149,7 +178,18 @@ export const Tasks = () => {
           </div>
         </div>
         <div className="ml-auto flex items-center gap-4">
-          {/* User profile removed as requested */}
+          {/* Кнопка Архив */}
+          <button
+            onClick={handleArchive}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border font-medium transition-all${
+              theme === 'dark' 
+                ? 'bg-gray-700 hover:bg-gray-600 text-gray-300 border-gray-600' 
+                : 'bg-gray-200 hover:bg-gray-300 text-gray-700 border-gray-300'
+            }`}
+          >
+            <Archive className="w-4 h-4" />
+            <span>Архив</span>
+          </button>
         </div>
       </div>
 
@@ -280,6 +320,9 @@ export const Tasks = () => {
           </div>
           <div className="space-y-2">
             <div className={`text-2xl font-black tracking-tight ${headingColor}`}>{stats.completedWeek}</div>
+            <div className={`text-[11px] font-medium ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
+              Всего закрыто: {stats.closedMonth}
+            </div>
           </div>
         </div>
 
@@ -291,7 +334,7 @@ export const Tasks = () => {
         >
           <div className="flex justify-between items-start mb-4">
             <span className={`text-[10px] font-bold uppercase tracking-wider ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-              Закрыто в месяце
+              Всего закрыто
             </span>
             <div className={`p-2 rounded-xl transition-colors ${theme === 'dark' ? 'bg-white/5 group-hover:bg-white/10' : 'bg-gray-100 group-hover:bg-gray-200'}`}>
               <Archive className="w-5 h-5 text-sky-400" />
@@ -299,6 +342,9 @@ export const Tasks = () => {
           </div>
           <div className="space-y-2">
             <div className={`text-2xl font-black tracking-tight ${headingColor}`}>{stats.closedMonth}</div>
+            <div className={`text-[11px] font-medium ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
+              За месяц
+            </div>
           </div>
         </div>
 
@@ -353,15 +399,23 @@ export const Tasks = () => {
             />
           </div>
 
-          {/* Table */}
+          {/* TaskCards */}
           {loading ? (
             <div className="py-20 text-center text-gray-500 animate-pulse">Загрузка задач...</div>
           ) : (
-            <TaskTable
-              tasks={filteredTasks}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-            />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredTasks.map(task => (
+                <TaskCard
+                  key={task.id}
+                  task={task}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+                  onMove={handleMove}
+                  onViewDetails={handleViewDetails}
+                  onCopyLink={handleCopyLink}
+                />
+              ))}
+            </div>
           )}
         </div>
       </div>
@@ -371,6 +425,17 @@ export const Tasks = () => {
           onClose={handleCloseForm}
           onSave={handleSave}
           editingTask={editingTask}
+        />
+      )}
+
+      {selectedTask && (
+        <TaskDetails
+          task={selectedTask}
+          onClose={() => setSelectedTask(null)}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          onMove={handleMove}
+          onCopyLink={handleCopyLink}
         />
       )}
     </div>
