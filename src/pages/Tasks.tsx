@@ -331,6 +331,7 @@ export const Tasks = () => {
                   placeholder="Все исполнители"
                   searchable={true}
                   icon={<Users size={16} />}
+                  max={1}
                 />
               )
             })()}
@@ -355,6 +356,7 @@ export const Tasks = () => {
                   placeholder="Все категории"
                   searchable={false}
                   icon={<Tag size={16} />}
+                  max={1}
                 />
               )
             })()}
@@ -377,6 +379,7 @@ export const Tasks = () => {
                   placeholder="Все статусы"
                   searchable={false}
                   icon={<CheckCircle size={16} />}
+                  max={1}
                 />
               )
             })()}
@@ -401,6 +404,7 @@ export const Tasks = () => {
                   placeholder="Все приоритеты"
                   searchable={false}
                   icon={<AlertTriangle size={16} />}
+                  max={1}
                 />
               )
             })()}
