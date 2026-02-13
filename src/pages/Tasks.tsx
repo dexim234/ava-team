@@ -5,10 +5,11 @@ import { TaskDetails } from '@/components/Tasks/TaskDetails'
 import { TaskArchive } from '@/components/Tasks/TaskArchive'
 import { getTasks, updateTask, deleteTask } from '@/services/firestoreService'
 import { useThemeStore } from '@/store/themeStore'
-import { Plus, Archive, Filter, X } from 'lucide-react'
+import { Plus, Archive, Filter, X, ChevronDown } from 'lucide-react'
 import { Task, TaskStatus, TaskCategory, TaskPriority, TASK_CATEGORIES, TEAM_MEMBERS } from '@/types'
 import { CATEGORY_ICONS } from '@/constants/common'
 import { TaskCard } from '@/components/Tasks/TaskCard'
+import { useUserNickname } from '@/utils/userUtils'
 
 export const Tasks = () => {
   const { theme } = useThemeStore()
@@ -118,8 +119,27 @@ export const Tasks = () => {
 
   const handleMoveTask = async (taskId: string, newStatus: TaskStatus) => {
     try {
-      await updateTask(taskId, { status: newStatus, updatedAt: new Date().toISOString() })
-      setTasks(tasks.map(t => t.id === taskId ? { ...t, status: newStatus } : t))
+      const updates: Partial<Task> = {
+        status: newStatus,
+        updatedAt: new Date().toISOString()
+      }
+      
+      // Устанавливаем completedAt или closedAt в зависимости от статуса
+      if (newStatus === 'completed') {
+        updates.completedAt = new Date().toISOString()
+      } else if (newStatus === 'closed') {
+        updates.closedAt = new Date().toISOString()
+      }
+      
+      // Если статус меняется с completed/closed на другой, сбрасываем поля
+      const task = tasks.find(t => t.id === taskId)
+      if (task && (task.status === 'completed' || task.status === 'closed') && newStatus === 'in_progress') {
+        updates.completedAt = undefined
+        updates.closedAt = undefined
+      }
+      
+      await updateTask(taskId, updates)
+      setTasks(tasks.map(t => t.id === taskId ? { ...t, ...updates } : t))
     } catch (error) {
       console.error('Error moving task:', error)
     }
@@ -292,52 +312,67 @@ export const Tasks = () => {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             {/* Фильтр по исполнителю */}
-            <select
-              value={filters.assignee}
-              onChange={(e) => setFilters({ ...filters, assignee: e.target.value })}
-              className={`px-4 py-2.5 rounded-xl border focus:ring-2 focus:ring-emerald-500 outline-none transition-all text-sm ${theme === 'dark' ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'}`}
-            >
-              <option value="">Все исполнители</option>
-              {TEAM_MEMBERS.map(member => (
-                <option key={member.id} value={member.id}>{member.name}</option>
-              ))}
-            </select>
+            <div className="relative group">
+              <select
+                value={filters.assignee}
+                onChange={(e) => setFilters({ ...filters, assignee: e.target.value })}
+                className={`w-full px-4 py-2.5 pr-10 rounded-xl border appearance-none focus:ring-2 focus:ring-emerald-500 outline-none transition-all text-sm cursor-pointer ${theme === 'dark' ? 'bg-white/5 border-white/10 text-white hover:border-emerald-500/50' : 'bg-white border-gray-200 text-gray-900 hover:border-emerald-500'}`}
+              >
+                <option value="">Все исполнители</option>
+                {TEAM_MEMBERS.map(member => {
+                  const nickname = useUserNickname(member.id)
+                  return (
+                    <option key={member.id} value={member.id}>{nickname}</option>
+                  )
+                })}
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none group-focus-within:text-emerald-500 transition-colors" />
+            </div>
 
             {/* Фильтр по категории */}
-            <select
-              value={filters.category}
-              onChange={(e) => setFilters({ ...filters, category: e.target.value as TaskCategory })}
-              className={`px-4 py-2.5 rounded-xl border focus:ring-2 focus:ring-emerald-500 outline-none transition-all text-sm ${theme === 'dark' ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'}`}
-            >
-              <option value="">Все категории</option>
-              {Object.entries(TASK_CATEGORIES).map(([key, value]) => (
-                <option key={key} value={key}>{value.label}</option>
-              ))}
-            </select>
+            <div className="relative group">
+              <select
+                value={filters.category}
+                onChange={(e) => setFilters({ ...filters, category: e.target.value as TaskCategory })}
+                className={`w-full px-4 py-2.5 pr-10 rounded-xl border appearance-none focus:ring-2 focus:ring-emerald-500 outline-none transition-all text-sm cursor-pointer ${theme === 'dark' ? 'bg-white/5 border-white/10 text-white hover:border-emerald-500/50' : 'bg-white border-gray-200 text-gray-900 hover:border-emerald-500'}`}
+              >
+                <option value="">Все категории</option>
+                {Object.entries(TASK_CATEGORIES).map(([key, value]) => (
+                  <option key={key} value={key}>{value.label}</option>
+                ))}
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none group-focus-within:text-emerald-500 transition-colors" />
+            </div>
 
             {/* Фильтр по статусу */}
-            <select
-              value={filters.status}
-              onChange={(e) => setFilters({ ...filters, status: e.target.value as TaskStatus })}
-              className={`px-4 py-2.5 rounded-xl border focus:ring-2 focus:ring-emerald-500 outline-none transition-all text-sm ${theme === 'dark' ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'}`}
-            >
-              <option value="">Все статусы</option>
-              {Object.entries(statusLabels).map(([key, value]) => (
-                <option key={key} value={key}>{value}</option>
-              ))}
-            </select>
+            <div className="relative group">
+              <select
+                value={filters.status}
+                onChange={(e) => setFilters({ ...filters, status: e.target.value as TaskStatus })}
+                className={`w-full px-4 py-2.5 pr-10 rounded-xl border appearance-none focus:ring-2 focus:ring-emerald-500 outline-none transition-all text-sm cursor-pointer ${theme === 'dark' ? 'bg-white/5 border-white/10 text-white hover:border-emerald-500/50' : 'bg-white border-gray-200 text-gray-900 hover:border-emerald-500'}`}
+              >
+                <option value="">Все статусы</option>
+                {Object.entries(statusLabels).map(([key, value]) => (
+                  <option key={key} value={key}>{value}</option>
+                ))}
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none group-focus-within:text-emerald-500 transition-colors" />
+            </div>
 
             {/* Фильтр по приоритету */}
-            <select
-              value={filters.priority}
-              onChange={(e) => setFilters({ ...filters, priority: e.target.value as TaskPriority })}
-              className={`px-4 py-2.5 rounded-xl border focus:ring-2 focus:ring-emerald-500 outline-none transition-all text-sm ${theme === 'dark' ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'}`}
-            >
-              <option value="">Все приоритеты</option>
-              {Object.entries(priorityLabels).map(([key, value]) => (
-                <option key={key} value={key}>{value}</option>
-              ))}
-            </select>
+            <div className="relative group">
+              <select
+                value={filters.priority}
+                onChange={(e) => setFilters({ ...filters, priority: e.target.value as TaskPriority })}
+                className={`w-full px-4 py-2.5 pr-10 rounded-xl border appearance-none focus:ring-2 focus:ring-emerald-500 outline-none transition-all text-sm cursor-pointer ${theme === 'dark' ? 'bg-white/5 border-white/10 text-white hover:border-emerald-500/50' : 'bg-white border-gray-200 text-gray-900 hover:border-emerald-500'}`}
+              >
+                <option value="">Все приоритеты</option>
+                {Object.entries(priorityLabels).map(([key, value]) => (
+                  <option key={key} value={key}>{value}</option>
+                ))}
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none group-focus-within:text-emerald-500 transition-colors" />
+            </div>
           </div>
         </div>
 
@@ -375,6 +410,7 @@ export const Tasks = () => {
                     onEdit={handleEditTask}
                     onDelete={handleDeleteTask}
                     onCopyLink={handleCopyLink}
+                    onMove={handleMoveTask}
                   />
                 ))}
               </div>
