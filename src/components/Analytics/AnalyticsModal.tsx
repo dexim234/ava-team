@@ -233,9 +233,9 @@ export const AnalyticsModal = ({ isOpen, onClose, review, sphereOptions }: Analy
     const userRating = formData.ratings?.find(r => r.userId === user?.id)?.value || null;
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
-            <div className={`${bgColor} w-full max-w-2xl rounded-3xl overflow-hidden shadow-2xl border ${theme === 'dark' ? 'border-white/10' : 'border-gray-100'}`}>
-                <div className="flex items-center justify-between p-6 border-b border-white/5">
+        <div className="fixed inset-0 z-[100] flex items-start justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300 overflow-y-auto">
+            <div className={`${bgColor} w-full max-w-2xl max-h-[calc(100vh-32px)] rounded-3xl overflow-hidden shadow-2xl border mt-4 mb-8 ${theme === 'dark' ? 'border-white/10' : 'border-gray-100'}`}>
+                <div className="flex items-center justify-between p-6 border-b border-white/5 sticky top-0 bg-inherit z-10">
                     <h2 className={`text-xl font-black tracking-tight ${textColor}`}>
                         {review ? 'Редактировать обзор' : 'Добавить аналитический обзор'}
                     </h2>
@@ -244,7 +244,7 @@ export const AnalyticsModal = ({ isOpen, onClose, review, sphereOptions }: Analy
                     </button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="p-6 space-y-4">
+                <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[calc(100vh-180px)] overflow-y-auto custom-scrollbar">
                     {review && (
                         <div className="flex items-center justify-between p-3 rounded-xl border border-white/5 bg-white/5">
                             <div className="flex items-center gap-3">
