@@ -1,17 +1,21 @@
 import { Task, TaskStatus, TaskPriority, TaskCategory } from '@/types'
 import { useThemeStore } from '@/store/themeStore'
-import { Calendar, Clock, AlertTriangle } from 'lucide-react'
+import { Calendar, Clock, AlertTriangle, Share2, Edit, Trash2 } from 'lucide-react'
 import { formatDate } from '@/utils/dateUtils'
 import { CountdownTimer } from '@/components/Analytics/AnalyticsTable'
 import Avatar from '@/components/Avatar'
 import { UserNickname } from '@/components/UserNickname'
+import { TASK_CATEGORIES } from '@/types'
 
 interface TaskCardProps {
   task: Task
   onClick: () => void
+  onEdit: (task: Task) => void
+  onDelete: (taskId: string) => void
+  onCopyLink: (taskId: string) => void
 }
 
-export const TaskCard = ({ task, onClick }: TaskCardProps) => {
+export const TaskCard = ({ task, onClick, onEdit, onDelete, onCopyLink }: TaskCardProps) => {
   const { theme } = useThemeStore()
   
   const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
@@ -27,14 +31,18 @@ export const TaskCard = ({ task, onClick }: TaskCardProps) => {
     }
   }
 
-  const getCategoryIcon = (category: TaskCategory) => {
-    switch (category) {
-      case 'trading': return '📈'
-      case 'development': return '💻'
-      case 'stream': return '🎥'
-      case 'learning': return '📚'
-      default: return '📋'
+  const getPriorityLabel = (priority?: TaskPriority) => {
+    switch (priority) {
+      case 'low': return 'Низкий'
+      case 'medium': return 'Средний'
+      case 'high': return 'Высокий'
+      case 'urgent': return 'Срочный'
+      default: return 'Средний'
     }
+  }
+
+  const getCategoryLabel = (category: TaskCategory) => {
+    return TASK_CATEGORIES[category]?.label || category
   }
 
   const getStatusInfo = (status: TaskStatus) => {
@@ -61,65 +69,58 @@ export const TaskCard = ({ task, onClick }: TaskCardProps) => {
   // Get primary assignee (first from assignedTo array)
   const primaryAssignee = task.assignedTo?.[0]
 
+  const handleAction = (e: React.MouseEvent, action: () => void) => {
+    e.stopPropagation()
+    action()
+  }
+
   return (
     <div
       onClick={onClick}
-      className={`${theme === 'dark' ? 'bg-[#0b1015]' : 'bg-white'} rounded-2xl p-5 border ${theme === 'dark' ? 'border-white/5' : 'border-gray-100'} cursor-pointer transition-all duration-300 hover:shadow-lg hover:border-emerald-500/30 group`}
+      className={`${theme === 'dark' ? 'bg-[#0b1015]' : 'bg-white'} rounded-2xl p-6 border ${theme === 'dark' ? 'border-white/5' : 'border-gray-100'} cursor-pointer transition-all duration-300 hover:shadow-lg hover:border-emerald-500/30 group`}
     >
       {/* Header */}
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-2">
-          <span className={`text-2xl`}>{getCategoryIcon(task.category)}</span>
-          <div>
-            <p className={`text-[10px] font-bold uppercase tracking-wider ${subTextColor}`}>
-              #{task.id?.slice(0, 6) || 'NEW'}
-            </p>
-            <span className={`text-xs px-2 py-0.5 rounded-full border ${statusInfo.bg} ${statusInfo.border} ${statusInfo.text} font-bold`}>
-              {statusInfo.label}
-            </span>
-          </div>
+          <p className={`text-[10px] font-bold uppercase tracking-wider ${subTextColor}`}>
+            #{task.id?.slice(0, 6) || 'NEW'}
+          </p>
+          <span className={`text-xs px-2 py-0.5 rounded-full border ${statusInfo.bg} ${statusInfo.border} ${statusInfo.text} font-bold`}>
+            {statusInfo.label}
+          </span>
         </div>
         <span className={`text-[10px] px-2 py-1 rounded-lg border font-bold uppercase ${getPriorityColor(task.priority)}`}>
-          {task.priority === 'urgent' ? '🔴' : task.priority === 'high' ? '🟠' : task.priority === 'medium' ? '🟡' : '⚪'} {task.priority || 'medium'}
+          {getPriorityLabel(task.priority)}
+        </span>
+      </div>
+
+      {/* Category */}
+      <div className="mb-3">
+        <span className={`text-xs font-bold uppercase tracking-wider ${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-500'}`}>
+          {getCategoryLabel(task.category)}
         </span>
       </div>
 
       {/* Title */}
-      <h3 className={`text-base font-bold mb-3 line-clamp-2 ${headingColor} group-hover:text-emerald-500 transition-colors`}>
+      <h3 className={`text-lg font-bold mb-4 line-clamp-2 ${headingColor} group-hover:text-emerald-500 transition-colors`}>
         {task.title}
       </h3>
 
-      {/* Description preview */}
-      {task.description && (
-        <p className={`text-sm mb-4 line-clamp-2 ${subTextColor}`}>
-          {task.description}
-        </p>
-      )}
-
       {/* Footer */}
       <div className="space-y-3">
-        {/* Author and Assignee */}
-        <div className="flex items-center justify-between">
+        {/* Assignee */}
+        {primaryAssignee && (
           <div className="flex items-center gap-2">
-            <Avatar userId={task.createdBy} size="sm" />
+            <Avatar userId={primaryAssignee} size="sm" />
             <div className="flex flex-col">
-              <span className={`text-[10px] uppercase font-bold tracking-wider ${subTextColor}`}>Автор</span>
-              <UserNickname userId={task.createdBy} className={`text-xs font-medium ${headingColor}`} />
+              <span className={`text-[10px] uppercase font-bold tracking-wider ${subTextColor}`}>Исполнитель</span>
+              <UserNickname userId={primaryAssignee} className={`text-xs font-medium ${headingColor}`} />
             </div>
           </div>
-          {primaryAssignee && (
-            <div className="flex items-center gap-2">
-              <Avatar userId={primaryAssignee} size="sm" />
-              <div className="flex flex-col">
-                <span className={`text-[10px] uppercase font-bold tracking-wider ${subTextColor}`}>Исполнитель</span>
-                <UserNickname userId={primaryAssignee} className={`text-xs font-medium ${headingColor}`} />
-              </div>
-            </div>
-          )}
-        </div>
+        )}
 
         {/* Deadline */}
-        <div className={`flex items-center justify-between p-2 rounded-xl ${overdue ? 'bg-red-500/10 border border-red-500/20' : 'bg-white/5 border border-white/5'}`}>
+        <div className={`flex items-center justify-between p-2.5 rounded-xl ${overdue ? 'bg-red-500/10 border border-red-500/20' : 'bg-white/5 border border-white/5'}`}>
           <div className="flex items-center gap-2">
             <Calendar size={14} className={overdue ? 'text-red-500' : subTextColor} />
             <span className={`text-xs font-bold ${overdue ? 'text-red-500' : headingColor}`}>
@@ -138,7 +139,7 @@ export const TaskCard = ({ task, onClick }: TaskCardProps) => {
 
         {/* Timer */}
         {task.dueDate && task.dueTime && (
-          <div className={`flex items-center justify-between p-2 rounded-xl ${overdue ? 'bg-red-500/10' : 'bg-emerald-500/5'} border ${overdue ? 'border-red-500/20' : 'border-emerald-500/20'}`}>
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${overdue ? 'bg-red-500/10' : 'bg-emerald-500/5'} border ${overdue ? 'border-red-500/20' : 'border-emerald-500/20'}`}>
             <div className="flex items-center gap-2">
               {overdue ? <AlertTriangle size={14} className="text-red-500" /> : <Clock size={14} className="text-emerald-400" />}
               <span className={`text-[10px] uppercase font-bold tracking-wider ${overdue ? 'text-red-500' : 'text-emerald-400'}`}>
@@ -150,6 +151,34 @@ export const TaskCard = ({ task, onClick }: TaskCardProps) => {
             </span>
           </div>
         )}
+
+        {/* Quick Actions */}
+        <div className="flex items-center gap-2 pt-2 border-t border-white/5">
+          <button
+            onClick={(e) => handleAction(e, () => onCopyLink(task.id!))}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all hover:bg-emerald-500/10 hover:text-emerald-500"
+            title="Поделиться"
+          >
+            <Share2 size={14} />
+            <span>Поделиться</span>
+          </button>
+          <button
+            onClick={(e) => handleAction(e, () => onEdit(task))}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all hover:bg-blue-500/10 hover:text-blue-500"
+            title="Редактировать"
+          >
+            <Edit size={14} />
+            <span>Редактировать</span>
+          </button>
+          <button
+            onClick={(e) => handleAction(e, () => onDelete(task.id!))}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all hover:bg-red-500/10 hover:text-red-500"
+            title="Удалить"
+          >
+            <Trash2 size={14} />
+            <span>Удалить</span>
+          </button>
+        </div>
       </div>
     </div>
   )

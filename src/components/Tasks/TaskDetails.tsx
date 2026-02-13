@@ -5,6 +5,7 @@ import { formatDate } from '@/utils/dateUtils'
 import { CountdownTimer } from '@/components/Analytics/AnalyticsTable'
 import Avatar from '@/components/Avatar'
 import { UserNickname } from '@/components/UserNickname'
+import { TASK_CATEGORIES } from '@/types'
 
 interface TaskDetailsProps {
   task: Task
@@ -31,6 +32,16 @@ export const TaskDetails = ({ task, onClose, onEdit, onDelete, onMove, onCopyLin
     }
   }
 
+  const getPriorityLabel = (priority?: TaskPriority) => {
+    switch (priority) {
+      case 'low': return 'Низкий'
+      case 'medium': return 'Средний'
+      case 'high': return 'Высокий'
+      case 'urgent': return 'Срочный'
+      default: return 'Средний'
+    }
+  }
+
   const getCategoryIcon = (category: TaskCategory) => {
     switch (category) {
       case 'trading': return '📈'
@@ -39,6 +50,10 @@ export const TaskDetails = ({ task, onClose, onEdit, onDelete, onMove, onCopyLin
       case 'learning': return '📚'
       default: return '📋'
     }
+  }
+
+  const getCategoryLabel = (category: TaskCategory) => {
+    return TASK_CATEGORIES[category]?.label || category
   }
 
   const getStatusInfo = (status: TaskStatus) => {
@@ -101,40 +116,26 @@ export const TaskDetails = ({ task, onClose, onEdit, onDelete, onMove, onCopyLin
               {statusInfo.label}
             </span>
             <span className={`text-xs px-3 py-1.5 rounded-lg border font-bold uppercase ${getPriorityColor(task.priority)}`}>
-              {task.priority === 'urgent' ? '🔴' : task.priority === 'high' ? '🟠' : task.priority === 'medium' ? '🟡' : '⚪'} {task.priority || 'medium'}
+              {getPriorityLabel(task.priority)}
+            </span>
+            <span className={`text-xs px-3 py-1.5 rounded-lg border font-bold uppercase ${theme === 'dark' ? 'bg-white/5 border-white/10 text-gray-400' : 'bg-gray-100 border-gray-200 text-gray-600'}`}>
+              {getCategoryLabel(task.category)}
             </span>
           </div>
 
-          {/* Author and Assignee */}
-          <div className="grid grid-cols-2 gap-4">
+          {/* Assignee */}
+          {primaryAssignee && (
             <div className={`p-4 rounded-xl border border-white/5 bg-white/5`}>
               <div className="flex items-center gap-2 mb-2">
                 <User size={14} className={subTextColor} />
-                <span className={`text-[10px] uppercase font-bold tracking-wider ${subTextColor}`}>Автор</span>
+                <span className={`text-[10px] uppercase font-bold tracking-wider ${subTextColor}`}>Исполнитель</span>
               </div>
               <div className="flex items-center gap-2">
-                <Avatar userId={task.createdBy} size="md" />
-                <div>
-                  <UserNickname userId={task.createdBy} className={`text-sm font-bold ${headingColor}`} />
-                  <p className={`text-[10px] ${subTextColor}`}>
-                    {task.createdAt ? formatDate(new Date(task.createdAt), 'dd.MM.yyyy HH:mm') : '—'}
-                  </p>
-                </div>
+                <Avatar userId={primaryAssignee} size="md" />
+                <UserNickname userId={primaryAssignee} className={`text-sm font-bold ${headingColor}`} />
               </div>
             </div>
-            {primaryAssignee && (
-              <div className={`p-4 rounded-xl border border-white/5 bg-white/5`}>
-                <div className="flex items-center gap-2 mb-2">
-                  <User size={14} className={subTextColor} />
-                  <span className={`text-[10px] uppercase font-bold tracking-wider ${subTextColor}`}>Исполнитель</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Avatar userId={primaryAssignee} size="md" />
-                  <UserNickname userId={primaryAssignee} className={`text-sm font-bold ${headingColor}`} />
-                </div>
-              </div>
-            )}
-          </div>
+          )}
 
           {/* Deadline */}
           <div className={`p-4 rounded-xl border ${overdue ? 'border-red-500/20 bg-red-500/5' : 'border-white/5 bg-white/5'}`}>
