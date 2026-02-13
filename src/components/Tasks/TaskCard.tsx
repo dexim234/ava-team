@@ -85,12 +85,16 @@ export const TaskCard = ({ task, onClick, onEdit, onDelete, onCopyLink, onMove }
     }
   }
 
-  const getNextStatusIcon = (status: TaskStatus) => {
+  const getCurrentStatusIcon = (status: TaskStatus, isActive: boolean) => {
     switch (status) {
-      case 'in_progress': return <Circle size={16} className="fill-blue-500 text-blue-500" />
-      case 'completed': return <CheckCircle2 size={16} className="text-emerald-500" />
-      case 'closed': return <XCircle size={16} className="text-gray-500" />
-      default: return <Circle size={16} className="fill-blue-500 text-blue-500" />
+      case 'in_progress':
+        return <Circle size={16} className={isActive ? 'fill-blue-500 text-blue-500' : 'text-blue-500/50'} />
+      case 'completed':
+        return <CheckCircle2 size={16} className={isActive ? 'text-emerald-500' : 'text-emerald-500/50'} />
+      case 'closed':
+        return <XCircle size={16} className={isActive ? 'text-gray-500' : 'text-gray-500/50'} />
+      default:
+        return <Circle size={16} className={isActive ? 'fill-blue-500 text-blue-500' : 'text-blue-500/50'} />
     }
   }
 
@@ -193,10 +197,14 @@ export const TaskCard = ({ task, onClick, onEdit, onDelete, onCopyLink, onMove }
           {onMove && (
             <button
               onClick={(e) => handleAction(e, () => onMove(task.id!, nextStatus))}
-              className="p-2 rounded-lg transition-all hover:bg-blue-500/10 hover:text-blue-500"
-              title={`Сменить статус на: ${statusInfo.label}`}
+              className={`p-2 rounded-lg transition-all border ${
+                task.status === 'in_progress' ? 'bg-blue-500/10 border-blue-500/20' :
+                task.status === 'completed' ? 'bg-emerald-500/10 border-emerald-500/20' :
+                'bg-gray-500/10 border-gray-500/20'
+              }`}
+              title={`Сменить статус на: ${getStatusInfo(nextStatus).label}`}
             >
-              {getNextStatusIcon(nextStatus)}
+              {getCurrentStatusIcon(task.status, true)}
             </button>
           )}
           <button

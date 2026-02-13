@@ -208,6 +208,7 @@ export const TaskForm = ({ task, onClose, onSave }: TaskFormProps) => {
                     placeholder="Категория"
                     searchable={false}
                     icon={<Tag size={16} />}
+                    max={1}
                   />
                 )
               })()}
@@ -231,6 +232,7 @@ export const TaskForm = ({ task, onClose, onSave }: TaskFormProps) => {
                     placeholder="Приоритет"
                     searchable={false}
                     icon={<AlertTriangle size={16} />}
+                    max={1}
                   />
                 )
               })()}
@@ -253,6 +255,7 @@ export const TaskForm = ({ task, onClose, onSave }: TaskFormProps) => {
                     placeholder="Статус"
                     searchable={false}
                     icon={<CheckCircle size={16} />}
+                    max={1}
                   />
                 )
               })()}
