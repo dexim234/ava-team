@@ -65,7 +65,7 @@ export const AnalyticsViewModal = ({ isOpen, onClose, review, onEditFromView, on
     }) || []
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-start justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300 overflow-y-auto">
+        <div className="fixed inset-0 z-[100] flex items-start justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
             <div className={`${bgColor} w-full max-w-2xl max-h-[calc(100vh-32px)] rounded-3xl overflow-hidden shadow-2xl border mt-4 mb-8 ${theme === 'dark' ? 'border-white/10' : 'border-gray-100'}`}>
                 <div className="flex items-center justify-between p-6 border-b border-white/5 sticky top-0 bg-inherit z-10">
                     <div className="flex items-center gap-3">
@@ -94,7 +94,7 @@ export const AnalyticsViewModal = ({ isOpen, onClose, review, onEditFromView, on
                     </div>
                 </div>
 
-                <div className="p-6 space-y-4">
+                <div className="p-6 space-y-4 max-h-[calc(100vh-200px)] overflow-y-auto custom-scrollbar">
                     {/* Скриншот */}
                     {review.screenshot && (
                         <div className="space-y-1.5">
