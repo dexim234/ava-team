@@ -3,16 +3,20 @@ import { useSearchParams } from 'react-router-dom'
 import { TaskForm } from '@/components/Tasks/TaskForm'
 import { TaskDetails } from '@/components/Tasks/TaskDetails'
 import { TaskArchive } from '@/components/Tasks/TaskArchive'
-import { getTasks, updateTask, deleteTask } from '@/services/firestoreService'
+import { getTasks, updateTask, deleteTask, addTask } from '@/services/firestoreService'
 import { useThemeStore } from '@/store/themeStore'
-import { Plus, Archive, Filter, X, ChevronDown } from 'lucide-react'
+import { useAuthStore } from '@/store/authStore'
+import { Plus, Archive, Filter, X, Users, Tag, CheckCircle, AlertTriangle } from 'lucide-react'
 import { Task, TaskStatus, TaskCategory, TaskPriority, TASK_CATEGORIES, TEAM_MEMBERS } from '@/types'
 import { CATEGORY_ICONS } from '@/constants/common'
 import { TaskCard } from '@/components/Tasks/TaskCard'
 import { useUserNickname } from '@/utils/userUtils'
+import { MultiSelect, SelectOption } from '@/components/Call/MultiSelect'
+import Avatar from '@/components/Avatar'
 
 export const Tasks = () => {
   const { theme } = useThemeStore()
+  const { user } = useAuthStore()
   const [searchParams] = useSearchParams()
   
   const [tasks, setTasks] = useState<Task[]>([])
@@ -311,68 +315,92 @@ export const Tasks = () => {
             )}
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-            {/* Фильтр по исполнителю */}
-            <div className="relative group">
-              <select
-                value={filters.assignee}
-                onChange={(e) => setFilters({ ...filters, assignee: e.target.value })}
-                className={`w-full px-4 py-2.5 pr-10 rounded-xl border appearance-none focus:ring-2 focus:ring-emerald-500 outline-none transition-all text-sm cursor-pointer ${theme === 'dark' ? 'bg-white/5 border-white/10 text-white hover:border-emerald-500/50' : 'bg-white border-gray-200 text-gray-900 hover:border-emerald-500'}`}
-              >
-                <option value="">Все исполнители</option>
-                {TEAM_MEMBERS.map(member => {
-                  const nickname = useUserNickname(member.id)
-                  return (
-                    <option key={member.id} value={member.id}>{nickname}</option>
-                  )
-                })}
-              </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none group-focus-within:text-emerald-500 transition-colors" />
-            </div>
+            {/* Фильтр по исполнителю - MultiSelect как в Analytics */}
+            {(() => {
+              const assigneeOptions: SelectOption[] = TEAM_MEMBERS.map(member => ({
+                value: member.id,
+                label: useUserNickname(member.id),
+                icon: <Avatar user={member} size="sm" className="w-4 h-4" />
+              }))
+
+              return (
+                <MultiSelect
+                  value={filters.assignee ? [filters.assignee] : []}
+                  onChange={(values) => setFilters({ ...filters, assignee: values[0] || '' })}
+                  options={assigneeOptions}
+                  placeholder="Все исполнители"
+                  searchable={true}
+                  icon={<Users size={16} />}
+                />
+              )
+            })()}
 
             {/* Фильтр по категории */}
-            <div className="relative group">
-              <select
-                value={filters.category}
-                onChange={(e) => setFilters({ ...filters, category: e.target.value as TaskCategory })}
-                className={`w-full px-4 py-2.5 pr-10 rounded-xl border appearance-none focus:ring-2 focus:ring-emerald-500 outline-none transition-all text-sm cursor-pointer ${theme === 'dark' ? 'bg-white/5 border-white/10 text-white hover:border-emerald-500/50' : 'bg-white border-gray-200 text-gray-900 hover:border-emerald-500'}`}
-              >
-                <option value="">Все категории</option>
-                {Object.entries(TASK_CATEGORIES).map(([key, value]) => (
-                  <option key={key} value={key}>{value.label}</option>
-                ))}
-              </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none group-focus-within:text-emerald-500 transition-colors" />
-            </div>
+            {(() => {
+              const categoryOptions: SelectOption[] = Object.entries(TASK_CATEGORIES).map(([key, value]) => ({
+                value: key,
+                label: value.label,
+                icon: <span className="text-sm">{value.icon || '📁'}</span>,
+                chip: value.color
+              }))
+
+              return (
+                <MultiSelect
+                  value={filters.category ? [filters.category] : []}
+                  onChange={(values) => setFilters({ ...filters, category: values[0] as TaskCategory || '' })}
+                  options={categoryOptions}
+                  placeholder="Все категории"
+                  searchable={false}
+                  icon={<Tag size={16} />}
+                />
+              )
+            })()}
 
             {/* Фильтр по статусу */}
-            <div className="relative group">
-              <select
-                value={filters.status}
-                onChange={(e) => setFilters({ ...filters, status: e.target.value as TaskStatus })}
-                className={`w-full px-4 py-2.5 pr-10 rounded-xl border appearance-none focus:ring-2 focus:ring-emerald-500 outline-none transition-all text-sm cursor-pointer ${theme === 'dark' ? 'bg-white/5 border-white/10 text-white hover:border-emerald-500/50' : 'bg-white border-gray-200 text-gray-900 hover:border-emerald-500'}`}
-              >
-                <option value="">Все статусы</option>
-                {Object.entries(statusLabels).map(([key, value]) => (
-                  <option key={key} value={key}>{value}</option>
-                ))}
-              </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none group-focus-within:text-emerald-500 transition-colors" />
-            </div>
+            {(() => {
+              const statusOptions: SelectOption[] = Object.entries(statusLabels).map(([key, value]) => ({
+                value: key,
+                label: value,
+                icon: key === 'in_progress' ? <div className="w-4 h-4 rounded-full bg-blue-500 animate-pulse" /> :
+                      key === 'completed' ? <div className="w-4 h-4 rounded-full bg-emerald-500" /> :
+                      key === 'closed' ? <div className="w-4 h-4 rounded-full bg-gray-500" /> : null
+              }))
+
+              return (
+                <MultiSelect
+                  value={filters.status ? [filters.status] : []}
+                  onChange={(values) => setFilters({ ...filters, status: values[0] as TaskStatus || '' })}
+                  options={statusOptions}
+                  placeholder="Все статусы"
+                  searchable={false}
+                  icon={<CheckCircle size={16} />}
+                />
+              )
+            })()}
 
             {/* Фильтр по приоритету */}
-            <div className="relative group">
-              <select
-                value={filters.priority}
-                onChange={(e) => setFilters({ ...filters, priority: e.target.value as TaskPriority })}
-                className={`w-full px-4 py-2.5 pr-10 rounded-xl border appearance-none focus:ring-2 focus:ring-emerald-500 outline-none transition-all text-sm cursor-pointer ${theme === 'dark' ? 'bg-white/5 border-white/10 text-white hover:border-emerald-500/50' : 'bg-white border-gray-200 text-gray-900 hover:border-emerald-500'}`}
-              >
-                <option value="">Все приоритеты</option>
-                {Object.entries(priorityLabels).map(([key, value]) => (
-                  <option key={key} value={key}>{value}</option>
-                ))}
-              </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none group-focus-within:text-emerald-500 transition-colors" />
-            </div>
+            {(() => {
+              const priorityOptions: SelectOption[] = Object.entries(priorityLabels).map(([key, value]) => ({
+                value: key,
+                label: value,
+                icon: key === 'low' ? <span className="text-gray-400">●</span> :
+                      key === 'medium' ? <span className="text-yellow-500">●</span> :
+                      key === 'high' ? <span className="text-orange-500">●</span> :
+                      <span className="text-red-500">●</span>,
+                chip: key
+              }))
+
+              return (
+                <MultiSelect
+                  value={filters.priority ? [filters.priority] : []}
+                  onChange={(values) => setFilters({ ...filters, priority: values[0] as TaskPriority || '' })}
+                  options={priorityOptions}
+                  placeholder="Все приоритеты"
+                  searchable={false}
+                  icon={<AlertTriangle size={16} />}
+                />
+              )
+            })()}
           </div>
         </div>
 
@@ -428,8 +456,21 @@ export const Tasks = () => {
                 await updateTask(editingTask.id, taskData)
                 setTasks(tasks.map(t => t.id === editingTask.id ? { ...t, ...taskData } : t))
               } else {
-                const newTask = await getTasks().then(tasks => tasks[tasks.length - 1])
-                if (newTask) setTasks([...tasks, newTask])
+                // Добавляем createdBy если не существует
+                const taskWithCreator = {
+                  ...taskData,
+                  createdBy: taskData.createdBy || user?.id || ''
+                }
+                const newTaskId = await addTask(taskWithCreator as Omit<Task, 'id'>)
+                // Добавляем новую задачу в локальный стейт
+                const newTask: Task = {
+                  id: newTaskId,
+                  ...taskWithCreator,
+                  createdAt: new Date().toISOString(),
+                  updatedAt: new Date().toISOString(),
+                  archivedAt: undefined
+                } as Task
+                setTasks([newTask, ...tasks])
               }
               closeModal()
             }}
