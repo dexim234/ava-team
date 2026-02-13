@@ -18,6 +18,7 @@ interface MultiSelectProps {
     placeholder?: string
     searchable?: boolean
     icon?: React.ReactNode
+    singleSelect?: boolean
 }
 
 export const MultiSelect: React.FC<MultiSelectProps> = ({
@@ -26,7 +27,8 @@ export const MultiSelect: React.FC<MultiSelectProps> = ({
     options,
     placeholder = 'Select...',
     searchable = false,
-    icon
+    icon,
+    singleSelect = false
 }) => {
     const { theme } = useThemeStore()
     const [isOpen, setIsOpen] = useState(false)
@@ -49,12 +51,18 @@ export const MultiSelect: React.FC<MultiSelectProps> = ({
     )
 
     const handleSelectOption = (optionValue: string) => {
-        if (value.includes(optionValue)) {
-            // Remove if already selected
-            onChange(value.filter(val => val !== optionValue))
+        if (singleSelect) {
+            // For single select, just set the value and close dropdown
+            onChange([optionValue])
+            setIsOpen(false)
         } else {
-            // Add if not selected
-            onChange([...value, optionValue])
+            if (value.includes(optionValue)) {
+                // Remove if already selected
+                onChange(value.filter(val => val !== optionValue))
+            } else {
+                // Add if not selected
+                onChange([...value, optionValue])
+            }
         }
     }
 

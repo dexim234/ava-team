@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import { Task, TaskStatus, TaskPriority, TaskCategory } from '@/types'
 import { useThemeStore } from '@/store/themeStore'
 import { X, Edit, Trash2, Share, Calendar, Clock, Target, User, Link2, ExternalLink, AlertTriangle, CheckCircle2, Circle, XCircle } from 'lucide-react'
@@ -18,9 +19,15 @@ interface TaskDetailsProps {
 
 export const TaskDetails = ({ task, onClose, onEdit, onDelete, onMove, onCopyLink }: TaskDetailsProps) => {
   const { theme } = useThemeStore()
+  const [localTask, setLocalTask] = useState<Task>(task)
 
   const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
   const subTextColor = theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+
+  // Обновляем локальное состояние когда task меняется извне
+  useEffect(() => {
+    setLocalTask(task)
+  }, [task])
 
   const getPriorityColor = (priority?: TaskPriority) => {
     switch (priority) {
@@ -55,13 +62,13 @@ export const TaskDetails = ({ task, onClose, onEdit, onDelete, onMove, onCopyLin
     }
   }
 
-  const statusInfo = getStatusInfo(task.status)
+  const statusInfo = getStatusInfo(localTask.status)
 
   const isOverdue = () => {
-    if (!task.dueDate || !task.dueTime) return false
-    if (task.status === 'completed' || task.status === 'closed') return false
+    if (!localTask.dueDate || !localTask.dueTime) return false
+    if (localTask.status === 'completed' || localTask.status === 'closed') return false
     const now = new Date().getTime()
-    const deadline = new Date(`${task.dueDate}T${task.dueTime}`).getTime()
+    const deadline = new Date(`${localTask.dueDate}T${localTask.dueTime}`).getTime()
     return deadline < now
   }
 
@@ -74,10 +81,29 @@ export const TaskDetails = ({ task, onClose, onEdit, onDelete, onMove, onCopyLin
   ]
 
   // Get primary assignee (first from assignedTo array)
-  const primaryAssignee = task.assignedTo?.[0]
+  const primaryAssignee = localTask.assignedTo?.[0]
 
-  const isTaskCompleted = task.status === 'completed' || task.status === 'closed'
-  const completionDate = task.completedAt || task.closedAt
+  const isTaskCompleted = localTask.status === 'completed' || localTask.status === 'closed'
+  const completionDate = localTask.completedAt || localTask.closedAt
+
+  const handleStatusChange = (newStatus: TaskStatus) => {
+    // Update local state immediately
+    const updates: Partial<Task> = {
+      status: newStatus,
+      updatedAt: new Date().toISOString()
+    }
+    if (newStatus === 'completed') {
+      updates.completedAt = new Date().toISOString()
+    } else if (newStatus === 'closed') {
+      updates.closedAt = new Date().toISOString()
+    } else if (newStatus === 'in_progress') {
+      updates.completedAt = undefined
+      updates.closedAt = undefined
+    }
+    setLocalTask(prev => ({ ...prev, ...updates }))
+    // Call parent handler
+    onMove(localTask.id!, newStatus)
+  }
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
@@ -87,10 +113,10 @@ export const TaskDetails = ({ task, onClose, onEdit, onDelete, onMove, onCopyLin
           <div className="flex items-center gap-3">
             <div>
               <p className={`text-[10px] font-bold uppercase tracking-wider ${subTextColor}`}>
-                #{task.id?.slice(0, 6) || 'NEW'}
+                #{localTask.id?.slice(0, 6) || 'NEW'}
               </p>
               <h2 className={`text-xl font-black tracking-tight ${headingColor}`}>
-                {task.title}
+                {localTask.title}
               </h2>
             </div>
           </div>
@@ -107,13 +133,22 @@ export const TaskDetails = ({ task, onClose, onEdit, onDelete, onMove, onCopyLin
               {statusInfo.icon}
               {statusInfo.label}
             </span>
-            <span className={`text-xs px-3 py-1.5 rounded-lg border font-bold uppercase ${getPriorityColor(task.priority)}`}>
-              {getPriorityLabel(task.priority)}
+            <span className={`text-xs px-3 py-1.5 rounded-lg border font-bold uppercase ${getPriorityColor(localTask.priority)}`}>
+              {getPriorityLabel(localTask.priority)}
             </span>
             <span className={`text-xs px-3 py-1.5 rounded-lg border font-bold uppercase ${theme === 'dark' ? 'bg-white/5 border-white/10 text-gray-400' : 'bg-gray-100 border-gray-200 text-gray-600'}`}>
-              {getCategoryLabel(task.category)}
+              {getCategoryLabel(localTask.category)}
             </span>
           </div>
+          {/* Completed Badge */}
+          {isTaskCompleted && completionDate && (
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+              <CheckCircle2 size={14} className="text-emerald-500" />
+              <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider">
+                Завершено {formatDate(new Date(completionDate), 'dd.MM.yyyy HH:mm')}
+              </span>
+            </div>
+          )}
 
           {/* Author */}
           <div className={`p-4 rounded-xl border border-white/5 bg-white/5`}>
@@ -122,13 +157,13 @@ export const TaskDetails = ({ task, onClose, onEdit, onDelete, onMove, onCopyLin
               <span className={`text-[10px] uppercase font-bold tracking-wider ${subTextColor}`}>Автор</span>
             </div>
             <div className="flex items-center gap-2">
-              <Avatar userId={task.createdBy} size="md" />
-              <UserNickname userId={task.createdBy} className={`text-sm font-bold ${headingColor}`} />
+              <Avatar userId={localTask.createdBy} size="md" />
+              <UserNickname userId={localTask.createdBy} className={`text-sm font-bold ${headingColor}`} />
             </div>
           </div>
 
           {/* Assignee */}
-          {primaryAssignee && primaryAssignee !== task.createdBy && (
+          {primaryAssignee && primaryAssignee !== localTask.createdBy && (
             <div className={`p-4 rounded-xl border border-white/5 bg-white/5`}>
               <div className="flex items-center gap-2 mb-2">
                 <User size={14} className={subTextColor} />
@@ -158,69 +193,55 @@ export const TaskDetails = ({ task, onClose, onEdit, onDelete, onMove, onCopyLin
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <span className={`text-lg font-bold ${overdue ? 'text-red-500' : headingColor}`}>
-                  {task.dueDate ? formatDate(new Date(task.dueDate), 'dd.MM.yyyy') : '—'}
+                  {localTask.dueDate ? formatDate(new Date(localTask.dueDate), 'dd.MM.yyyy') : '—'}
                 </span>
-                {task.dueTime && (
+                {localTask.dueTime && (
                   <span className={`text-lg font-bold ${overdue ? 'text-red-500' : headingColor}`}>
-                    {task.dueTime}
+                    {localTask.dueTime}
                   </span>
                 )}
               </div>
-              {!isTaskCompleted && task.dueDate && task.dueTime && (
+              {!isTaskCompleted && localTask.dueDate && localTask.dueTime && (
                 <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg ${overdue ? 'bg-red-500/10' : 'bg-emerald-500/10'} border ${overdue ? 'border-red-500/20' : 'border-emerald-500/20'}`}>
                   <Clock size={14} className={overdue ? 'text-red-500' : 'text-emerald-400'} />
                   <span className={`text-xs font-mono font-bold ${overdue ? 'text-red-500' : 'text-emerald-400'}`}>
-                    <CountdownTimer deadline={`${task.dueDate}T${task.dueTime}`} />
+                    <CountdownTimer deadline={`${localTask.dueDate}T${localTask.dueTime}`} />
                   </span>
                 </div>
               )}
             </div>
-            {/* Completion Info */}
-            {isTaskCompleted && completionDate && (
-              <div className="mt-3 pt-3 border-t border-white/5 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 size={14} className="text-emerald-500" />
-                  <span className={`text-[10px] uppercase font-bold tracking-wider text-emerald-400`}>
-                    Завершено
-                  </span>
-                </div>
-                <span className={`text-xs font-mono font-bold text-emerald-400`}>
-                  {formatDate(new Date(completionDate), 'dd.MM.yyyy HH:mm')}
-                </span>
-              </div>
-            )}
           </div>
 
           {/* Description */}
-          {task.description && (
+          {localTask.description && (
             <div>
               <h3 className={`text-[10px] uppercase font-bold tracking-wider ${subTextColor} mb-2`}>Описание</h3>
               <p className={`text-sm leading-relaxed ${headingColor} whitespace-pre-wrap`}>
-                {task.description}
+                {localTask.description}
               </p>
             </div>
           )}
 
           {/* Expected Result */}
-          {task.expectedResult && (
+          {localTask.expectedResult && (
             <div>
               <h3 className={`text-[10px] uppercase font-bold tracking-wider ${subTextColor} mb-2 flex items-center gap-2`}>
                 <Target size={14} /> Ожидаемый результат
               </h3>
               <p className={`text-sm leading-relaxed ${headingColor} whitespace-pre-wrap`}>
-                {task.expectedResult}
+                {localTask.expectedResult}
               </p>
             </div>
           )}
 
           {/* Links */}
-          {task.links && task.links.length > 0 && (
+          {localTask.links && localTask.links.length > 0 && (
             <div>
               <h3 className={`text-[10px] uppercase font-bold tracking-wider ${subTextColor} mb-2 flex items-center gap-2`}>
                 <Link2 size={14} /> Ссылки
               </h3>
               <div className="space-y-2">
-                {task.links.map((link) => (
+                {localTask.links.map((link) => (
                   <a
                     key={link.id}
                     href={link.url}
@@ -245,9 +266,9 @@ export const TaskDetails = ({ task, onClose, onEdit, onDelete, onMove, onCopyLin
               {statusOptions.map((option) => (
                 <button
                   key={option.status}
-                  onClick={() => onMove(task.id!, option.status)}
+                  onClick={() => handleStatusChange(option.status)}
                   className={`flex items-center gap-2 px-4 py-2 rounded-xl border font-bold text-sm transition-all ${
-                    task.status === option.status
+                    localTask.status === option.status
                       ? theme === 'dark'
                         ? 'bg-blue-500/20 border-blue-500 text-blue-400 ring-2 ring-blue-500/50'
                         : 'bg-blue-100 border-blue-400 text-blue-600 ring-2 ring-blue-400/50'
@@ -267,21 +288,21 @@ export const TaskDetails = ({ task, onClose, onEdit, onDelete, onMove, onCopyLin
         {/* Footer Actions */}
         <div className="flex items-center justify-end gap-2 p-6 border-t border-white/5">
           <button
-            onClick={() => onCopyLink(task.id!)}
+            onClick={() => onCopyLink(localTask.id!)}
             className="flex items-center gap-2 px-4 py-2 rounded-xl border font-bold text-sm transition-all hover:bg-emerald-500/10 hover:border-emerald-500/20 hover:text-emerald-500"
           >
             <Share size={16} />
             <span>Копировать ссылку</span>
           </button>
           <button
-            onClick={() => onEdit(task)}
+            onClick={() => onEdit(localTask)}
             className="flex items-center gap-2 px-4 py-2 rounded-xl border font-bold text-sm transition-all hover:bg-blue-500/10 hover:border-blue-500/20 hover:text-blue-500"
           >
             <Edit size={16} />
             <span>Редактировать</span>
           </button>
           <button
-            onClick={() => onDelete(task.id!)}
+            onClick={() => onDelete(localTask.id!)}
             className="flex items-center gap-2 px-4 py-2 rounded-xl border border-red-500/20 text-red-500 font-bold text-sm transition-all hover:bg-red-500/10"
           >
             <Trash2 size={16} />

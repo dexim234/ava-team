@@ -187,7 +187,7 @@ export const TaskForm = ({ task, onClose, onSave }: TaskFormProps) => {
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Категория */}
             <div className="space-y-1.5">
               <label className="text-[10px] font-black uppercase tracking-widest text-emerald-500">Категория</label>
@@ -208,7 +208,7 @@ export const TaskForm = ({ task, onClose, onSave }: TaskFormProps) => {
                     placeholder="Категория"
                     searchable={false}
                     icon={<Tag size={16} />}
-                    max={1}
+                    singleSelect={true}
                   />
                 )
               })()}
@@ -232,35 +232,39 @@ export const TaskForm = ({ task, onClose, onSave }: TaskFormProps) => {
                     placeholder="Приоритет"
                     searchable={false}
                     icon={<AlertTriangle size={16} />}
-                    max={1}
-                  />
-                )
-              })()}
-            </div>
-
-            {/* Статус */}
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-black uppercase tracking-widest text-emerald-500">Статус</label>
-              {(() => {
-                const statusOpts: SelectOption[] = [
-                  { value: 'in_progress', label: 'В работе', icon: <div className="w-4 h-4 rounded-full bg-blue-500 animate-pulse" /> },
-                  { value: 'completed', label: 'Выполнено', icon: <div className="w-4 h-4 rounded-full bg-emerald-500" /> },
-                  { value: 'closed', label: 'Закрыто', icon: <div className="w-4 h-4 rounded-full bg-gray-500" /> }
-                ]
-                return (
-                  <MultiSelect
-                    value={formData.status ? [formData.status] : []}
-                    onChange={(values) => setFormData({ ...formData, status: (values[0] || 'in_progress') as TaskStatus })}
-                    options={statusOpts}
-                    placeholder="Статус"
-                    searchable={false}
-                    icon={<CheckCircle size={16} />}
-                    max={1}
+                    singleSelect={true}
                   />
                 )
               })()}
             </div>
           </div>
+
+          {/* Статус показывается только при редактировании существующей задачи */}
+          {task && (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black uppercase tracking-widest text-emerald-500">Статус</label>
+                {(() => {
+                  const statusOpts: SelectOption[] = [
+                    { value: 'in_progress', label: 'В работе', icon: <div className="w-4 h-4 rounded-full bg-blue-500 animate-pulse" /> },
+                    { value: 'completed', label: 'Выполнено', icon: <div className="w-4 h-4 rounded-full bg-emerald-500" /> },
+                    { value: 'closed', label: 'Закрыто', icon: <div className="w-4 h-4 rounded-full bg-gray-500" /> }
+                  ]
+                  return (
+                    <MultiSelect
+                      value={formData.status ? [formData.status] : []}
+                      onChange={(values) => setFormData({ ...formData, status: (values[0] || 'in_progress') as TaskStatus })}
+                      options={statusOpts}
+                      placeholder="Статус"
+                      searchable={false}
+                      icon={<CheckCircle size={16} />}
+                      singleSelect={true}
+                    />
+                  )
+                })()}
+              </div>
+            </div>
+          )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1.5">
