@@ -1,11 +1,14 @@
 import { useState, useEffect } from 'react'
 import { useThemeStore } from '@/store/themeStore'
 import { useAuthStore } from '@/store/authStore'
-import { Task, TaskStatus, TaskPriority, TaskCategory, TASK_CATEGORIES, TaskLink } from '@/types'
-import { X, Save, Plus, Trash2, Calendar, Clock, Target, User, Link2 } from 'lucide-react'
+import { Task, TaskStatus, TaskPriority, TaskCategory, TASK_CATEGORIES, TaskLink, TEAM_MEMBERS } from '@/types'
+import { X, Save, Plus, Trash2, Calendar, Clock, Target, User, Link2, Users, Tag, AlertTriangle, CheckCircle } from 'lucide-react'
 import { format, addHours, addDays } from 'date-fns'
 import Avatar from '@/components/Avatar'
 import { UserNickname } from '@/components/UserNickname'
+import { useUserNickname } from '@/utils/userUtils'
+import { MultiSelect, SelectOption } from '@/components/Call/MultiSelect'
+import { CATEGORY_ICONS } from './categoryIcons'
 
 interface TaskFormProps {
   task: Task | null
@@ -141,25 +144,6 @@ export const TaskForm = ({ task, onClose, onSave }: TaskFormProps) => {
   const inputBg = theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'
   const subTextColor = theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
 
-  const categoryOptions = Object.entries(TASK_CATEGORIES).map(([key, value]) => ({
-    value: key,
-    label: value.label,
-    icon: key === 'trading' ? '📈' : key === 'development' ? '💻' : key === 'stream' ? '🎥' : '📚'
-  }))
-
-  const priorityOptions = [
-    { value: 'low', label: 'Низкий', color: 'text-gray-500' },
-    { value: 'medium', label: 'Средний', color: 'text-yellow-500' },
-    { value: 'high', label: 'Высокий', color: 'text-orange-500' },
-    { value: 'urgent', label: 'Срочный', color: 'text-red-500' }
-  ]
-
-  const statusOptions = [
-    { value: 'in_progress', label: 'В работе', color: 'bg-blue-500' },
-    { value: 'completed', label: 'Выполнено', color: 'bg-emerald-500' },
-    { value: 'closed', label: 'Закрыто', color: 'bg-gray-500' }
-  ]
-
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
       <div className={`${bgColor} w-full max-w-2xl rounded-3xl overflow-hidden shadow-2xl border ${theme === 'dark' ? 'border-white/10' : 'border-gray-100'}`}>
@@ -204,43 +188,74 @@ export const TaskForm = ({ task, onClose, onSave }: TaskFormProps) => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Категория */}
             <div className="space-y-1.5">
               <label className="text-[10px] font-black uppercase tracking-widest text-emerald-500">Категория</label>
-              <select
-                value={formData.category}
-                onChange={(e) => setFormData({ ...formData, category: e.target.value as TaskCategory })}
-                className={`w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-emerald-500 outline-none transition-all ${inputBg} ${textColor}`}
-              >
-                {categoryOptions.map(opt => (
-                  <option key={opt.value} value={opt.value}>{opt.icon} {opt.label}</option>
-                ))}
-              </select>
+              {(() => {
+                const catOptions: SelectOption[] = Object.entries(TASK_CATEGORIES).map(([key, value]) => {
+                  const IconComponent = CATEGORY_ICONS[key as TaskCategory]
+                  return {
+                    value: key,
+                    label: value.label,
+                    icon: IconComponent ? <IconComponent className="w-4 h-4" /> : <Tag className="w-4 h-4" />
+                  }
+                })
+                return (
+                  <MultiSelect
+                    value={formData.category ? [formData.category] : []}
+                    onChange={(values) => setFormData({ ...formData, category: (values[0] || 'trading') as TaskCategory })}
+                    options={catOptions}
+                    placeholder="Категория"
+                    searchable={false}
+                    icon={<Tag size={16} />}
+                  />
+                )
+              })()}
             </div>
 
+            {/* Приоритет */}
             <div className="space-y-1.5">
               <label className="text-[10px] font-black uppercase tracking-widest text-emerald-500">Приоритет</label>
-              <select
-                value={formData.priority}
-                onChange={(e) => setFormData({ ...formData, priority: e.target.value as TaskPriority })}
-                className={`w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-emerald-500 outline-none transition-all ${inputBg} ${textColor}`}
-              >
-                {priorityOptions.map(opt => (
-                  <option key={opt.value} value={opt.value}>{opt.label}</option>
-                ))}
-              </select>
+              {(() => {
+                const prioOptions: SelectOption[] = [
+                  { value: 'low', label: 'Низкий', icon: <span className="text-gray-400">●</span> },
+                  { value: 'medium', label: 'Средний', icon: <span className="text-yellow-500">●</span> },
+                  { value: 'high', label: 'Высокий', icon: <span className="text-orange-500">●</span> },
+                  { value: 'urgent', label: 'Срочный', icon: <span className="text-red-500">●</span> }
+                ]
+                return (
+                  <MultiSelect
+                    value={formData.priority ? [formData.priority] : []}
+                    onChange={(values) => setFormData({ ...formData, priority: (values[0] || 'medium') as TaskPriority })}
+                    options={prioOptions}
+                    placeholder="Приоритет"
+                    searchable={false}
+                    icon={<AlertTriangle size={16} />}
+                  />
+                )
+              })()}
             </div>
 
+            {/* Статус */}
             <div className="space-y-1.5">
               <label className="text-[10px] font-black uppercase tracking-widest text-emerald-500">Статус</label>
-              <select
-                value={formData.status}
-                onChange={(e) => setFormData({ ...formData, status: e.target.value as TaskStatus })}
-                className={`w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-emerald-500 outline-none transition-all ${inputBg} ${textColor}`}
-              >
-                {statusOptions.map(opt => (
-                  <option key={opt.value} value={opt.value}>{opt.label}</option>
-                ))}
-              </select>
+              {(() => {
+                const statusOpts: SelectOption[] = [
+                  { value: 'in_progress', label: 'В работе', icon: <div className="w-4 h-4 rounded-full bg-blue-500 animate-pulse" /> },
+                  { value: 'completed', label: 'Выполнено', icon: <div className="w-4 h-4 rounded-full bg-emerald-500" /> },
+                  { value: 'closed', label: 'Закрыто', icon: <div className="w-4 h-4 rounded-full bg-gray-500" /> }
+                ]
+                return (
+                  <MultiSelect
+                    value={formData.status ? [formData.status] : []}
+                    onChange={(values) => setFormData({ ...formData, status: (values[0] || 'in_progress') as TaskStatus })}
+                    options={statusOpts}
+                    placeholder="Статус"
+                    searchable={false}
+                    icon={<CheckCircle size={16} />}
+                  />
+                )
+              })()}
             </div>
           </div>
 
@@ -312,22 +327,24 @@ export const TaskForm = ({ task, onClose, onSave }: TaskFormProps) => {
             <label className="text-[10px] font-black uppercase tracking-widest text-emerald-500 flex items-center gap-2">
               <User size={14} /> Исполнитель
             </label>
-            <select
-              value={formData.assignedTo?.[0] || ''}
-              onChange={(e) => setFormData({ ...formData, assignedTo: e.target.value ? [e.target.value] : [] })}
-              className={`w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-emerald-500 outline-none transition-all ${inputBg} ${textColor}`}
-            >
-              <option value="">Не назначен</option>
-              {[
-                { id: 'admin', name: 'Администратор' },
-                { id: 'trader1', name: 'Трейдер 1' },
-                { id: 'trader2', name: 'Трейдер 2' },
-                { id: 'analyst1', name: 'Аналитик 1' },
-                { id: 'dev1', name: 'Разработчик 1' }
-              ].map(member => (
-                <option key={member.id} value={member.id}>{member.name}</option>
-              ))}
-            </select>
+            {(() => {
+              const assigneeOptions: SelectOption[] = TEAM_MEMBERS.map(member => ({
+                value: member.id,
+                label: useUserNickname(member.id),
+                icon: <Avatar userId={member.id} size="sm" className="w-5 h-5" />
+              }))
+
+              return (
+                <MultiSelect
+                  value={formData.assignedTo || []}
+                  onChange={(values) => setFormData({ ...formData, assignedTo: values })}
+                  options={assigneeOptions}
+                  placeholder="Не назначен"
+                  searchable={true}
+                  icon={<Users size={16} />}
+                />
+              )
+            })()}
           </div>
 
           <div className="space-y-1.5">
