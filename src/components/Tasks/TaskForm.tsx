@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useAuthStore } from '@/store/authStore'
 import { useThemeStore } from '@/store/themeStore'
 import { addTask, updateTask } from '@/services/firestoreService'
@@ -6,11 +6,14 @@ import {
   Task,
   TaskCategory,
   TaskPriority,
+  TEAM_MEMBERS,
+  TASK_CATEGORIES,
   TaskLink,
 } from '@/types'
-import { X, FileText, Tag, Sparkles, Target, Calendar, Clock, Plus, MessageCircle, Link as LinkIcon } from 'lucide-react'
+import { X, FileText, Tag, Sparkles, Target, Calendar, Clock, Users, Plus, Trash2, Link2 } from 'lucide-react'
 import { CATEGORY_ICONS } from './categoryIcons'
 import { formatDate } from '@/utils/dateUtils'
+import { getUserNicknameSync } from '@/utils/userUtils'
 import { useScrollLock } from '@/hooks/useScrollLock'
 
 interface TaskFormProps {
@@ -36,8 +39,12 @@ export const TaskForm = ({ onClose, onSave, editingTask }: TaskFormProps) => {
   const [expectedResult, setExpectedResult] = useState(editingTask?.expectedResult || '')
   const [dueDate, setDueDate] = useState(editingTask?.dueDate || formatDate(new Date(), 'yyyy-MM-dd'))
   const [dueTime, setDueTime] = useState(editingTask?.dueTime || '12:00')
-  const [links, setLinks] = useState<TaskLink[]>(editingTask?.links || [])
-
+  const [links, setLinks] = useState<TaskLink[]>(
+    editingTask?.links || []
+  )
+  const [assignedTo, setAssignedTo] = useState<string[]>(
+    editingTask?.assignedTo || []
+  )
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -51,26 +58,31 @@ export const TaskForm = ({ onClose, onSave, editingTask }: TaskFormProps) => {
   ]
 
   const handleAddLink = () => {
-    if (links.length < 10) {
-      setLinks([...links, { name: '', url: '' }])
+    if (links.length >= 10) return
+    setLinks([...links, { id: `link-${Date.now()}`, url: '', name: '' }])
+  }
+
+  const handleRemoveLink = (linkId: string) => {
+    setLinks(links.filter(l => l.id !== linkId))
+  }
+
+  const handleLinkChange = (linkId: string, field: 'url' | 'name', value: string) => {
+    setLinks(links.map(l => l.id === linkId ? { ...l, [field]: value } : l))
+  }
+
+  const handleAssigneeToggle = (userId: string) => {
+    if (assignedTo.includes(userId)) {
+      setAssignedTo(assignedTo.filter(id => id !== userId))
+    } else {
+      if (assignedTo.length >= 10) return
+      setAssignedTo([...assignedTo, userId])
     }
-  }
-
-  const handleUpdateLink = (index: number, field: 'name' | 'url', value: string) => {
-    const newLinks = [...links]
-    newLinks[index] = { ...newLinks[index], [field]: value }
-    setLinks(newLinks)
-  }
-
-  const handleRemoveLink = (index: number) => {
-    const newLinks = links.filter((_, i) => i !== index)
-    setLinks(newLinks)
   }
 
   const validate = () => {
     if (!title.trim()) return 'Введите название задачи'
     if (!dueDate || !dueTime) return 'Укажите дедлайн (дата и время)'
-    if (links.some(link => link.name.trim() === '' || link.url.trim() === '')) return 'Все поля ссылок должны быть заполнены'
+    if (assignedTo.length === 0) return 'Добавьте хотя бы одного исполнителя'
     return ''
   }
 
@@ -90,16 +102,26 @@ export const TaskForm = ({ onClose, onSave, editingTask }: TaskFormProps) => {
     const now = new Date().toISOString()
 
     try {
+      const validLinks = links.filter(l => l.url.trim())
+
+      const approvals = assignedTo.map(id => ({
+        userId: id,
+        status: 'pending' as const,
+        updatedAt: now,
+      }))
+
       const baseTask: Partial<Task> = {
         title: title.trim(),
         description: description.trim() || undefined,
         category,
         priority,
-        expectedResult: expectedResult.trim() || undefined,
-        links: links.filter(link => link.name.trim() !== '' && link.url.trim() !== ''),
+        assignedTo,
+        assignees: assignedTo.map(id => ({ userId: id, priority: 'medium' })),
+        approvals,
         dueDate,
         dueTime,
-        assignedTo: [],
+        expectedResult: expectedResult.trim() || undefined,
+        links: validLinks,
         updatedAt: now,
       }
 
@@ -124,250 +146,277 @@ export const TaskForm = ({ onClose, onSave, editingTask }: TaskFormProps) => {
     }
   }
 
-  useEffect(() => {
-    setError('')
-  }, [links])
-
   return (
     <>
       <div className="fixed inset-0 bg-black/50 flex items-start sm:items-center justify-center z-[70] p-4 overflow-y-auto overscroll-contain modal-scroll touch-pan-y">
-        <div
-          className={`${cardBg} rounded-xl sm:rounded-2xl shadow-2xl w-full max-w-2xl max-h-[calc(100vh-48px)] sm:max-h-[calc(100vh-64px)] overflow-y-auto border-2 touch-pan-y ${
-            theme === 'dark'
-              ? 'border-[#4E6E49]/30 bg-gradient-to-br from-[#1a1a1a] via-[#1a1a1a] to-[#0A0A0A]'
-              : 'border-green-200 bg-gradient-to-br from-white via-green-50/30 to-white'
-          } relative`}
-        >
-          <div className="flex flex-col h-full min-h-0">
-            <div className={`sticky top-0 ${cardBg} border-b ${borderColor} p-4 sm:p-6 flex items-center justify-between z-10`}>
-              <h2 className={`text-xl sm:text-2xl font-bold ${headingColor} flex items-center gap-2`}>
-                <FileText className="w-5 h-5 sm:w-6 sm:h-6" />
-                {isEditing ? 'Редактировать задачу' : 'Новая задача'}
-              </h2>
-              <button
-                onClick={onClose}
-                className={`p-2 rounded-lg transition-colors ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
-              >
-                <X className="w-5 h-5" />
-              </button>
+      <div
+        className={`${cardBg} rounded-xl sm:rounded-2xl shadow-2xl w-full max-w-2xl max-h-[calc(100vh-48px)] sm:max-h-[calc(100vh-64px)] overflow-y-auto border-2 touch-pan-y ${
+          theme === 'dark'
+            ? 'border-[#4E6E49]/30 bg-gradient-to-br from-[#1a1a1a] via-[#1a1a1a] to-[#0A0A0A]'
+            : 'border-green-200 bg-gradient-to-br from-white via-green-50/30 to-white'
+        } relative`}
+      >
+        <div className="flex flex-col h-full min-h-0">
+          <div className={`sticky top-0 ${cardBg} border-b ${borderColor} p-4 sm:p-6 flex items-center justify-between z-10`}>
+            <h2 className={`text-xl sm:text-2xl font-bold ${headingColor} flex items-center gap-2`}>
+              <FileText className="w-5 h-5 sm:w-6 sm:h-6" />
+              {isEditing ? 'Редактировать задачу' : 'Новая задача'}
+            </h2>
+            <button
+              onClick={onClose}
+              className={`p-2 rounded-lg transition-colors ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          <div className="p-4 sm:p-6 space-y-4 sm:space-y-5 flex-1 min-h-0 overflow-y-auto overscroll-contain modal-scroll touch-pan-y pb-10">
+            {error && (
+              <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/30 flex items-center gap-2 text-red-500">
+                <X className="w-5 h-5 flex-shrink-0" />
+                <span className="text-sm">{error}</span>
+              </div>
+            )}
+
+            {/* Название задачи */}
+            <div>
+              <label className={`block text-sm font-medium mb-2 ${headingColor}`}>Название задачи *</label>
+              <input
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                className={`w-full px-4 py-2.5 rounded-lg border ${borderColor} ${inputBg} ${headingColor} focus:outline-none focus:ring-2 focus:ring-[#4E6E49]/50`}
+                placeholder="Введите название задачи"
+              />
             </div>
 
-            <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 flex-1 min-h-0 overflow-y-auto overscroll-contain modal-scroll touch-pan-y pb-10">
-              {error && (
-                <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/30 flex items-center gap-2 text-red-500">
-                  <MessageCircle className="w-5 h-5 flex-shrink-0" />
-                  <span className="text-sm">{error}</span>
+            {/* Описание задачи */}
+            <div>
+              <label className={`block text-sm font-medium mb-2 ${headingColor}`}>Описание задачи</label>
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                rows={4}
+                className={`w-full px-4 py-2.5 rounded-lg border ${borderColor} ${inputBg} ${headingColor} focus:outline-none focus:ring-2 focus:ring-[#4E6E49]/50`}
+                placeholder="Кратко опишите задачу"
+              />
+            </div>
+
+            {/* Категория и Приоритет */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-3">
+                <label className={`block text-sm font-medium ${headingColor} flex items-center gap-2`}>
+                  <Tag className="w-4 h-4" />
+                  Категория
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
+                  {Object.entries(TASK_CATEGORIES).map(([key, { label }]) => {
+                    const Icon = CATEGORY_ICONS[key as TaskCategory]
+                    const isActive = category === key
+                    return (
+                      <button
+                        key={key}
+                        type="button"
+                        onClick={() => setCategory(key as TaskCategory)}
+                        className={`p-3 rounded-lg border-2 text-sm font-semibold transition-all text-center ${isActive ? theme === 'dark' ? 'border-[#4E6E49] bg-[#4E6E49]/15 text-[#4E6E49]' : 'border-[#4E6E49] bg-green-50 text-[#4E6E49]' : theme === 'dark' ? 'border-gray-800 bg-gray-900 text-gray-200 hover:border-[#4E6E49]/40' : 'border-gray-200 bg-white text-gray-800 hover:border-[#4E6E49]/40'} flex items-center justify-center gap-2`}
+                      >
+                        <Icon className="w-4 h-4" />
+                        <span>{label}</span>
+                      </button>
+                    )
+                  })}
                 </div>
+              </div>
+
+              <div className="space-y-3">
+                <label className={`block text-sm font-medium ${headingColor} flex items-center gap-2`}>
+                  <Sparkles className="w-4 h-4" />
+                  Приоритет
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {priorityOptions.map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => setPriority(option.value)}
+                      className={`p-3 rounded-lg border-2 text-left transition-all ${option.tone} ${priority === option.value ? 'ring-2 ring-offset-2 ring-[#4E6E49] dark:ring-offset-[#1a1a1a]' : ''}`}
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="font-semibold text-sm">{option.label}</span>
+                        {priority === option.value && <span className="text-xs font-semibold">✓</span>}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Исполнители */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <label className={`block text-sm font-medium ${headingColor} flex items-center gap-2`}>
+                  <Users className="w-4 h-4" />
+                  Исполнители
+                </label>
+                <span className="text-[11px] text-gray-500">{assignedTo.length}/10</span>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {TEAM_MEMBERS.map((member) => {
+                  const isSelected = assignedTo.includes(member.id)
+                  return (
+                    <button
+                      key={member.id}
+                      type="button"
+                      onClick={() => handleAssigneeToggle(member.id)}
+                      className={`p-2 rounded-lg border text-left text-sm transition-all ${isSelected ? theme === 'dark' ? 'border-[#4E6E49] bg-[#4E6E49]/20' : 'border-[#4E6E49] bg-green-50' : `${borderColor} ${inputBg}`}`}
+                    >
+                      <span className={isSelected ? 'text-[#4E6E49]' : headingColor}>{getUserNicknameSync(member.id)}</span>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+
+            {/* Ожидаемый результат */}
+            <div>
+              <label className={`block text-sm font-medium mb-2 ${headingColor} flex items-center gap-2`}>
+                <Target className="w-4 h-4" />
+                Ожидаемый результат
+              </label>
+              <textarea
+                value={expectedResult}
+                onChange={(e) => setExpectedResult(e.target.value)}
+                rows={3}
+                className={`w-full px-4 py-2.5 rounded-lg border ${borderColor} ${inputBg} ${headingColor} focus:outline-none focus:ring-2 focus:ring-[#4E6E49]/50`}
+                placeholder="Опишите ожидаемый итог"
+              />
+            </div>
+
+            {/* Ссылки */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <label className={`block text-sm font-medium ${headingColor} flex items-center gap-2`}>
+                  <Link2 className="w-4 h-4" />
+                  Ссылки
+                </label>
+                <span className="text-[11px] text-gray-500">{links.length}/10</span>
+              </div>
+              
+              {links.length === 0 && (
+                <button
+                  type="button"
+                  onClick={handleAddLink}
+                  className={`w-full p-4 rounded-lg border-2 border-dashed ${borderColor} ${inputBg} text-sm ${headingColor} hover:border-[#4E6E49]/50 transition-colors flex items-center justify-center gap-2`}
+                >
+                  <Plus className="w-4 h-4" />
+                  Добавить ссылку
+                </button>
               )}
 
-              <div className="space-y-4">
-                {/* Title */}
-                <div>
-                  <label className={`block text-sm font-medium mb-2 ${headingColor}`}>Название задачи *</label>
-                  <input
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    className={`w-full px-4 py-2.5 rounded-lg border ${borderColor} ${inputBg} ${headingColor} focus:outline-none focus:ring-2 focus:ring-[#4E6E49]/50`}
-                    placeholder="Введите название задачи"
-                  />
-                </div>
-
-                {/* Description */}
-                <div>
-                  <label className={`block text-sm font-medium mb-2 ${headingColor}`}>Описание задачи</label>
-                  <textarea
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    rows={4}
-                    className={`w-full px-4 py-2.5 rounded-lg border ${borderColor} ${inputBg} ${headingColor} focus:outline-none focus:ring-2 focus:ring-[#4E6E49]/50`}
-                    placeholder="Краткое описание задачи"
-                  />
-                </div>
-
-                {/* Category */}
-                <div>
-                  <label className={`block text-sm font-medium mb-2 ${headingColor} flex items-center gap-2`}>
-                    <Tag className="w-4 h-4" />
-                    Категория *
-                  </label>
-                  <div className="grid grid-cols-2 gap-2 sm:gap-3">
-                    {[
-                      { value: 'trading', label: 'Торговля' },
-                      { value: 'development', label: 'Разработка' },
-                      { value: 'stream', label: 'Стрим' },
-                      { value: 'education', label: 'Изучение' },
-                    ].map((option) => {
-                      const Icon = CATEGORY_ICONS[option.value as TaskCategory]
-                      const isActive = category === option.value
-                      return (
-                        <button
-                          key={option.value}
-                          type="button"
-                          onClick={() => setCategory(option.value as TaskCategory)}
-                          className={`p-3 rounded-lg border-2 text-sm font-semibold transition-all text-center ${isActive ? theme === 'dark' ? 'border-[#4E6E49] bg-[#4E6E49]/15 text-[#4E6E49]' : 'border-[#4E6E49] bg-green-50 text-[#4E6E49]' : theme === 'dark' ? 'border-gray-800 bg-gray-900 text-gray-200 hover:border-[#4E6E49]/40' : 'border-gray-200 bg-white text-gray-800 hover:border-[#4E6E49]/40'} flex items-center justify-center gap-2`}
-                        >
-                          <Icon className="w-4 h-4" />
-                          <span>{option.label}</span>
-                        </button>
-                      )
-                    })}
-                  </div>
-                </div>
-
-                {/* Priority */}
-                <div>
-                  <label className={`block text-sm font-medium mb-2 ${headingColor} flex items-center gap-2`}>
-                    <Sparkles className="w-4 h-4" />
-                    Приоритет *
-                  </label>
-                  <div className="grid grid-cols-2 gap-2">
-                    {priorityOptions.map((option) => (
-                      <button
-                        key={option.value}
-                        type="button"
-                        onClick={() => setPriority(option.value)}
-                        className={`p-3 rounded-lg border-2 text-left transition-all ${option.tone} ${priority === option.value ? 'ring-2 ring-offset-2 ring-[#4E6E49] dark:ring-offset-[#1a1a1a]' : ''}`}
-                      >
-                        <div className="flex items-center justify-between gap-2">
-                          <span className="font-semibold text-sm">{option.label}</span>
-                          {priority === option.value && <span className="text-xs font-semibold">выбрано</span>}
-                        </div>
-                        <p className="text-xs mt-1 opacity-80">{option.desc}</p>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Expected Result */}
-                <div>
-                  <label className={`block text-sm font-medium mb-2 ${headingColor} flex items-center gap-2`}>
-                    <Target className="w-4 h-4" />
-                    Ожидаемый результат
-                  </label>
-                  <textarea
-                    value={expectedResult}
-                    onChange={(e) => setExpectedResult(e.target.value)}
-                    rows={3}
-                    className={`w-full px-4 py-2.5 rounded-lg border ${borderColor} ${inputBg} ${headingColor} focus:outline-none focus:ring-2 focus:ring-[#4E6E49]/50`}
-                    placeholder="Опишите ожидаемый итог"
-                  />
-                </div>
-
-                {/* Links */}
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <label className={`block text-sm font-medium ${headingColor} flex items-center gap-2`}>
-                      <LinkIcon className="w-4 h-4" />
-                      Ссылки {links.length > 0 && `(${links.length}/10)`}
-                    </label>
-                    {links.length < 10 && (
+              {links.map((link, index) => (
+                <div key={link.id} className={`p-3 rounded-lg border ${borderColor} ${inputBg} space-y-2`}>
+                  <div className="flex items-center gap-2">
+                    <span className={`text-xs font-medium ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`}>#{index + 1}</span>
+                    {links.length > 1 && (
                       <button
                         type="button"
-                        onClick={handleAddLink}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold ${theme === 'dark' ? 'bg-gray-700 hover:bg-gray-600 text-gray-200' : 'bg-gray-200 hover:bg-gray-300 text-gray-800'}`}
+                        onClick={() => handleRemoveLink(link.id)}
+                        className={`ml-auto p-1 rounded ${theme === 'dark' ? 'hover:bg-red-500/20 text-red-400' : 'hover:bg-red-50 text-red-600'}`}
                       >
-                        <Plus className="w-4 h-4 inline" /> Добавить ссылку
+                        <Trash2 className="w-4 h-4" />
                       </button>
                     )}
                   </div>
-                  <div className="space-y-4">
-                    {links.map((link, index) => (
-                      <div key={index} className="flex flex-col sm:flex-row gap-2 relative bg-gray-50 dark:bg-gray-800 p-3 rounded-lg border border-gray-200 dark:border-gray-700">
-                        <div className="flex-1">
-                          <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Название</label>
-                          <input
-                            value={link.name}
-                            onChange={(e) => handleUpdateLink(index, 'name', e.target.value)}
-                            className={`w-full px-3 py-2 rounded-lg border ${borderColor} ${inputBg} ${headingColor} text-sm focus:outline-none focus:ring-2 focus:ring-[#4E6E49]/50`}
-                            placeholder="Например: Документация API"
-                          />
-                        </div>
-                        <div className="flex-1">
-                          <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">URL</label>
-                          <input
-                            value={link.url}
-                            onChange={(e) => handleUpdateLink(index, 'url', e.target.value)}
-                            className={`w-full px-3 py-2 rounded-lg border ${borderColor} ${inputBg} ${headingColor} text-sm focus:outline-none focus:ring-2 focus:ring-[#4E6E49]/50`}
-                            placeholder="Например: https://example.com/api-docs"
-                          />
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveLink(index)}
-                          className="absolute top-1 right-1 p-1 rounded-full text-red-500 hover:bg-red-500/10 transition-colors"
-                          aria-label="Удалить ссылку"
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
+                  <input
+                    value={link.name}
+                    onChange={(e) => handleLinkChange(link.id, 'name', e.target.value)}
+                    className={`w-full px-3 py-2 rounded-lg border ${borderColor} ${theme === 'dark' ? 'bg-[#0f0f0f] text-gray-100' : 'bg-white text-gray-800'} text-sm`}
+                    placeholder="Название ссылки"
+                  />
+                  <input
+                    value={link.url}
+                    onChange={(e) => handleLinkChange(link.id, 'url', e.target.value)}
+                    className={`w-full px-3 py-2 rounded-lg border ${borderColor} ${theme === 'dark' ? 'bg-[#0f0f0f] text-gray-100' : 'bg-white text-gray-800'} text-sm`}
+                    placeholder="https://..."
+                  />
                 </div>
+              ))}
 
-                {/* Due Date & Time */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <label className={`block text-sm font-medium ${headingColor} flex items-center gap-2`}>
-                      <Calendar className="w-4 h-4" />
-                      Дата дедлайна *
-                    </label>
-                    <input
-                      type="date"
-                      value={dueDate}
-                      onChange={(e) => setDueDate(e.target.value)}
-                      min={formatDate(new Date(), 'yyyy-MM-dd')}
-                      className={`w-full px-4 py-2.5 rounded-lg border ${borderColor} ${inputBg} ${headingColor} focus:outline-none focus:ring-2 focus:ring-[#4E6E49]/50`}
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className={`block text-sm font-medium ${headingColor} flex items-center gap-2`}>
-                      <Clock className="w-4 h-4" />
-                      Время дедлайна *
-                    </label>
-                    <input
-                      type="time"
-                      value={dueTime}
-                      onChange={(e) => setDueTime(e.target.value)}
-                      className={`w-full px-4 py-2.5 rounded-lg border ${borderColor} ${inputBg} ${headingColor} focus:outline-none focus:ring-2 focus:ring-[#4E6E49]/50`}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className={`flex flex-col sm:flex-row gap-3 pt-4 border-t ${borderColor}`}>
+              {links.length > 0 && links.length < 10 && (
                 <button
-                  onClick={handleSave}
-                  disabled={loading}
-                  className={`flex-1 px-6 py-3 rounded-lg font-semibold transition-all relative overflow-hidden ${
-                    loading
-                      ? 'bg-gray-400 cursor-not-allowed'
-                      : 'bg-gradient-to-r from-[#4E6E49] to-emerald-700 hover:from-[#4E6E49] hover:to-emerald-700 text-white shadow-lg hover:shadow-xl'
-                  }`}
+                  type="button"
+                  onClick={handleAddLink}
+                  className={`w-full p-3 rounded-lg border-2 border-dashed ${borderColor} ${inputBg} text-sm ${headingColor} hover:border-[#4E6E49]/50 transition-colors flex items-center justify-center gap-2`}
                 >
-                  <span className={`relative z-10 flex items-center justify-center gap-2 ${loading ? 'invisible' : ''}`}>
-                    {isEditing ? 'Сохранить' : 'Создать задачу'}
-                  </span>
-                  {loading && (
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="flex items-center gap-2 text-white">
-                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                        <span>Сохранение...</span>
-                      </div>
+                  <Plus className="w-4 h-4" />
+                  Добавить ещё ссылку
+                </button>
+              )}
+            </div>
+
+            {/* Дедлайн */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <label className={`block text-sm font-medium ${headingColor} flex items-center gap-2`}>
+                  <Calendar className="w-4 h-4" />
+                  Дата дедлайна *
+                </label>
+                <input
+                  type="date"
+                  value={dueDate}
+                  onChange={(e) => setDueDate(e.target.value)}
+                  min={formatDate(new Date(), 'yyyy-MM-dd')}
+                  className={`w-full px-4 py-2.5 rounded-lg border ${borderColor} ${inputBg} ${headingColor} focus:outline-none focus:ring-2 focus:ring-[#4E6E49]/50`}
+                />
+              </div>
+              <div className="space-y-1">
+                <label className={`block text-sm font-medium ${headingColor} flex items-center gap-2`}>
+                  <Clock className="w-4 h-4" />
+                  Время дедлайна *
+                </label>
+                <input
+                  type="time"
+                  value={dueTime}
+                  onChange={(e) => setDueTime(e.target.value)}
+                  className={`w-full px-4 py-2.5 rounded-lg border ${borderColor} ${inputBg} ${headingColor} focus:outline-none focus:ring-2 focus:ring-[#4E6E49]/50`}
+                />
+              </div>
+            </div>
+
+            {/* Кнопки */}
+            <div className={`flex flex-col sm:flex-row gap-3 pt-4 border-t ${borderColor}`}>
+              <button
+                onClick={handleSave}
+                disabled={loading}
+                className={`flex-1 px-6 py-3 rounded-lg font-semibold transition-all relative overflow-hidden ${
+                  loading
+                    ? 'bg-gray-400 cursor-not-allowed'
+                    : 'bg-gradient-to-r from-[#4E6E49] to-emerald-700 hover:from-[#4E6E49] hover:to-emerald-700 text-white shadow-lg hover:shadow-xl'
+                }`}
+              >
+                <span className={`relative z-10 flex items-center justify-center gap-2 ${loading ? 'invisible' : ''}`}>
+                  {isEditing ? 'Сохранить' : 'Создать задачу'}
+                </span>
+                {loading && (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="flex items-center gap-2 text-white">
+                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <span>Сохранение...</span>
                     </div>
-                  )}
-                </button>
-                <button
-                  onClick={onClose}
-                  className={`px-6 py-3 rounded-lg font-semibold transition-colors ${
-                    theme === 'dark' ? 'bg-gray-700 hover:bg-gray-600 text-gray-300' : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
-                  }`}
-                >
-                  Отмена
-                </button>
-              </div>
+                  </div>
+                )}
+              </button>
+              <button
+                onClick={onClose}
+                className={`px-6 py-3 rounded-lg font-semibold transition-colors ${
+                  theme === 'dark' ? 'bg-gray-700 hover:bg-gray-600 text-gray-300' : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
+                }`}
+              >
+                Отмена
+              </button>
             </div>
           </div>
         </div>
+      </div>
       </div>
     </>
   )

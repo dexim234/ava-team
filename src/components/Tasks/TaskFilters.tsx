@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useThemeStore } from '@/store/themeStore'
-import { TaskCategory, TaskStatus } from '@/types' // Удаляем TASK_CATEGORIES
+import { TaskCategory, TaskStatus, TASK_CATEGORIES } from '@/types'
 import { MemberSelector } from '@/components/Management/MemberSelector'
 import { Filter, ChevronDown, X, Plus, Tag } from 'lucide-react'
 import { CATEGORY_ICONS } from './categoryIcons'
@@ -43,17 +43,14 @@ export const TaskFilters = ({
     { value: 'closed', label: 'Закрыто' }
   ]
 
-  // Используем новые категории напрямую
-  const categories = [
-    { key: 'trading' as TaskCategory, label: 'Торговля' },
-    { key: 'development' as TaskCategory, label: 'Разработка' },
-    { key: 'stream' as TaskCategory, label: 'Стрим' },
-    { key: 'education' as TaskCategory, label: 'Изучение' },
-  ]
+  const categories = Object.entries(TASK_CATEGORIES).map(([key, { label }]) => ({
+    key: key as TaskCategory,
+    label
+  }))
 
   const selectedCategoryLabel = selectedCategory === 'all' 
     ? 'Все' 
-    : categories.find(cat => cat.key === selectedCategory)?.label || 'Категория'
+    : TASK_CATEGORIES[selectedCategory]?.label || 'Категория'
 
   const SelectedCategoryIcon = selectedCategory === 'all' ? Tag : CATEGORY_ICONS[selectedCategory]
 
@@ -120,7 +117,7 @@ export const TaskFilters = ({
           <div className="relative flex-1">
             <button
               onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
-              className={`w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-sm font-medium border ${borderColor} ${inputBg} ${headingColor} cursor:pointer focus:outline-none focus:ring-2 focus:ring-emerald-500/50`}
+              className={`w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-sm font-medium border ${borderColor} ${inputBg} ${headingColor} cursor-pointer focus:outline-none focus:ring-2 focus:ring-emerald-500/50`}
             >
               <span className="flex items-center gap-2">
                 <SelectedCategoryIcon className="w-4 h-4 text-emerald-400" />
