@@ -126,7 +126,7 @@ export const TaskDetails = ({ task, onClose, onEdit, onDelete, onMove, onCopyLin
         </div>
 
         {/* Content */}
-        <div className="p-6 space-y-5 max-h-[calc(100vh-220px)] overflow-y-auto custom-scrollbar">
+        <div className="p-6 space-y-5 max-h-[calc(100vh-180px)] overflow-y-auto custom-scrollbar">
           {/* Status and Priority */}
           <div className="flex items-center gap-3">
             <span className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border ${statusInfo.bg} ${statusInfo.border} ${statusInfo.color} font-bold text-sm`}>
