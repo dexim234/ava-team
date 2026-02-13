@@ -106,8 +106,8 @@ export const TaskDetails = ({ task, onClose, onEdit, onDelete, onMove, onCopyLin
   }
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
-      <div className={`${theme === 'dark' ? 'bg-[#0f141a]' : 'bg-white'} w-full max-w-2xl rounded-3xl overflow-hidden shadow-2xl border ${theme === 'dark' ? 'border-white/10' : 'border-gray-100'}`}>
+    <div className="fixed inset-0 z-[100] flex items-start justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300 overflow-y-auto">
+      <div className={`${theme === 'dark' ? 'bg-[#0f141a]' : 'bg-white'} w-full max-w-2xl max-h-[calc(100vh-32px)] rounded-3xl overflow-hidden shadow-2xl border mt-4 ${theme === 'dark' ? 'border-white/10' : 'border-gray-100'}`}>
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-white/5">
           <div className="flex items-center gap-3">
@@ -126,7 +126,7 @@ export const TaskDetails = ({ task, onClose, onEdit, onDelete, onMove, onCopyLin
         </div>
 
         {/* Content */}
-        <div className="p-6 space-y-5">
+        <div className="p-6 space-y-5 max-h-[calc(100vh-220px)] overflow-y-auto custom-scrollbar">
           {/* Status and Priority */}
           <div className="flex items-center gap-3">
             <span className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border ${statusInfo.bg} ${statusInfo.border} ${statusInfo.color} font-bold text-sm`}>
