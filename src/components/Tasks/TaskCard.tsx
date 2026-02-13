@@ -1,6 +1,6 @@
 import { Task, TaskStatus, TaskPriority, TaskCategory } from '@/types'
 import { useThemeStore } from '@/store/themeStore'
-import { Calendar, Clock, AlertTriangle, Share2, Edit, Trash2 } from 'lucide-react'
+import { Calendar, Clock, AlertTriangle, Share2, Edit, Trash2, CheckCircle2, Circle, XCircle } from 'lucide-react'
 import { formatDate } from '@/utils/dateUtils'
 import { CountdownTimer } from '@/components/Analytics/AnalyticsTable'
 import Avatar from '@/components/Avatar'
@@ -13,9 +13,10 @@ interface TaskCardProps {
   onEdit: (task: Task) => void
   onDelete: (taskId: string) => void
   onCopyLink: (taskId: string) => void
+  onMove?: (taskId: string, newStatus: TaskStatus) => void
 }
 
-export const TaskCard = ({ task, onClick, onEdit, onDelete, onCopyLink }: TaskCardProps) => {
+export const TaskCard = ({ task, onClick, onEdit, onDelete, onCopyLink, onMove }: TaskCardProps) => {
   const { theme } = useThemeStore()
   
   const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
@@ -74,6 +75,29 @@ export const TaskCard = ({ task, onClick, onEdit, onDelete, onCopyLink }: TaskCa
     action()
   }
 
+  // Status change options for quick action
+  const getNextStatus = (currentStatus: TaskStatus): TaskStatus => {
+    switch (currentStatus) {
+      case 'in_progress': return 'completed'
+      case 'completed': return 'closed'
+      case 'closed': return 'in_progress'
+      default: return 'completed'
+    }
+  }
+
+  const getNextStatusIcon = (status: TaskStatus) => {
+    switch (status) {
+      case 'in_progress': return <Circle size={16} className="fill-blue-500 text-blue-500" />
+      case 'completed': return <CheckCircle2 size={16} className="text-emerald-500" />
+      case 'closed': return <XCircle size={16} className="text-gray-500" />
+      default: return <Circle size={16} className="fill-blue-500 text-blue-500" />
+    }
+  }
+
+  const nextStatus = getNextStatus(task.status)
+  const isTaskCompleted = task.status === 'completed' || task.status === 'closed'
+  const completionDate = task.completedAt || task.closedAt
+
   return (
     <div
       onClick={onClick}
@@ -110,11 +134,11 @@ export const TaskCard = ({ task, onClick, onEdit, onDelete, onCopyLink }: TaskCa
       <div className="space-y-3">
         {/* Assignee */}
         {primaryAssignee && (
-          <div className="flex items-center gap-2">
-            <Avatar userId={primaryAssignee} size="sm" />
-            <div className="flex flex-col">
+          <div className={`flex items-center gap-3 p-2.5 rounded-xl ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'}`}>
+            <Avatar userId={primaryAssignee} size="sm" className="ring-2 ring-emerald-500/20" />
+            <div className="flex flex-col min-w-0">
               <span className={`text-[10px] uppercase font-bold tracking-wider ${subTextColor}`}>Исполнитель</span>
-              <UserNickname userId={primaryAssignee} className={`text-xs font-medium ${headingColor}`} />
+              <UserNickname userId={primaryAssignee} className={`text-xs font-medium truncate ${headingColor}`} />
             </div>
           </div>
         )}
@@ -137,8 +161,8 @@ export const TaskCard = ({ task, onClick, onEdit, onDelete, onCopyLink }: TaskCa
           )}
         </div>
 
-        {/* Timer */}
-        {task.dueDate && task.dueTime && (
+        {/* Timer or Completion Info */}
+        {!isTaskCompleted && task.dueDate && task.dueTime ? (
           <div className={`flex items-center justify-between p-2.5 rounded-xl ${overdue ? 'bg-red-500/10' : 'bg-emerald-500/5'} border ${overdue ? 'border-red-500/20' : 'border-emerald-500/20'}`}>
             <div className="flex items-center gap-2">
               {overdue ? <AlertTriangle size={14} className="text-red-500" /> : <Clock size={14} className="text-emerald-400" />}
@@ -150,33 +174,51 @@ export const TaskCard = ({ task, onClick, onEdit, onDelete, onCopyLink }: TaskCa
               <CountdownTimer deadline={`${task.dueDate}T${task.dueTime}`} />
             </span>
           </div>
-        )}
+        ) : isTaskCompleted && completionDate ? (
+          <div className="flex items-center justify-between p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
+            <div className="flex items-center gap-2">
+              <CheckCircle2 size={14} className="text-emerald-500" />
+              <span className={`text-[10px] uppercase font-bold tracking-wider text-emerald-400`}>
+                Завершено
+              </span>
+            </div>
+            <span className={`text-xs font-mono font-bold text-emerald-400`}>
+              {formatDate(new Date(completionDate), 'dd.MM.yyyy HH:mm')}
+            </span>
+          </div>
+        ) : null}
 
         {/* Quick Actions */}
         <div className="flex items-center gap-2 pt-2 border-t border-white/5">
+          {onMove && (
+            <button
+              onClick={(e) => handleAction(e, () => onMove(task.id!, nextStatus))}
+              className="p-2 rounded-lg transition-all hover:bg-blue-500/10 hover:text-blue-500"
+              title={`Сменить статус на: ${statusInfo.label}`}
+            >
+              {getNextStatusIcon(nextStatus)}
+            </button>
+          )}
           <button
             onClick={(e) => handleAction(e, () => onCopyLink(task.id!))}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all hover:bg-emerald-500/10 hover:text-emerald-500"
+            className="p-2 rounded-lg transition-all hover:bg-emerald-500/10 hover:text-emerald-500"
             title="Поделиться"
           >
-            <Share2 size={14} />
-            <span>Поделиться</span>
+            <Share2 size={16} />
           </button>
           <button
             onClick={(e) => handleAction(e, () => onEdit(task))}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all hover:bg-blue-500/10 hover:text-blue-500"
+            className="p-2 rounded-lg transition-all hover:bg-blue-500/10 hover:text-blue-500"
             title="Редактировать"
           >
-            <Edit size={14} />
-            <span>Редактировать</span>
+            <Edit size={16} />
           </button>
           <button
             onClick={(e) => handleAction(e, () => onDelete(task.id!))}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all hover:bg-red-500/10 hover:text-red-500"
+            className="p-2 rounded-lg transition-all hover:bg-red-500/10 hover:text-red-500"
             title="Удалить"
           >
-            <Trash2 size={14} />
-            <span>Удалить</span>
+            <Trash2 size={16} />
           </button>
         </div>
       </div>

@@ -42,16 +42,6 @@ export const TaskDetails = ({ task, onClose, onEdit, onDelete, onMove, onCopyLin
     }
   }
 
-  const getCategoryIcon = (category: TaskCategory) => {
-    switch (category) {
-      case 'trading': return '📈'
-      case 'development': return '💻'
-      case 'stream': return '🎥'
-      case 'learning': return '📚'
-      default: return '📋'
-    }
-  }
-
   const getCategoryLabel = (category: TaskCategory) => {
     return TASK_CATEGORIES[category]?.label || category
   }
@@ -86,13 +76,15 @@ export const TaskDetails = ({ task, onClose, onEdit, onDelete, onMove, onCopyLin
   // Get primary assignee (first from assignedTo array)
   const primaryAssignee = task.assignedTo?.[0]
 
+  const isTaskCompleted = task.status === 'completed' || task.status === 'closed'
+  const completionDate = task.completedAt || task.closedAt
+
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
       <div className={`${theme === 'dark' ? 'bg-[#0f141a]' : 'bg-white'} w-full max-w-2xl rounded-3xl overflow-hidden shadow-2xl border ${theme === 'dark' ? 'border-white/10' : 'border-gray-100'}`}>
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-white/5">
           <div className="flex items-center gap-3">
-            <span className="text-3xl">{getCategoryIcon(task.category)}</span>
             <div>
               <p className={`text-[10px] font-bold uppercase tracking-wider ${subTextColor}`}>
                 #{task.id?.slice(0, 6) || 'NEW'}
@@ -123,8 +115,20 @@ export const TaskDetails = ({ task, onClose, onEdit, onDelete, onMove, onCopyLin
             </span>
           </div>
 
+          {/* Author */}
+          <div className={`p-4 rounded-xl border border-white/5 bg-white/5`}>
+            <div className="flex items-center gap-2 mb-2">
+              <User size={14} className={subTextColor} />
+              <span className={`text-[10px] uppercase font-bold tracking-wider ${subTextColor}`}>Автор</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Avatar userId={task.createdBy} size="md" />
+              <UserNickname userId={task.createdBy} className={`text-sm font-bold ${headingColor}`} />
+            </div>
+          </div>
+
           {/* Assignee */}
-          {primaryAssignee && (
+          {primaryAssignee && primaryAssignee !== task.createdBy && (
             <div className={`p-4 rounded-xl border border-white/5 bg-white/5`}>
               <div className="flex items-center gap-2 mb-2">
                 <User size={14} className={subTextColor} />
@@ -162,7 +166,7 @@ export const TaskDetails = ({ task, onClose, onEdit, onDelete, onMove, onCopyLin
                   </span>
                 )}
               </div>
-              {task.dueDate && task.dueTime && (
+              {!isTaskCompleted && task.dueDate && task.dueTime && (
                 <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg ${overdue ? 'bg-red-500/10' : 'bg-emerald-500/10'} border ${overdue ? 'border-red-500/20' : 'border-emerald-500/20'}`}>
                   <Clock size={14} className={overdue ? 'text-red-500' : 'text-emerald-400'} />
                   <span className={`text-xs font-mono font-bold ${overdue ? 'text-red-500' : 'text-emerald-400'}`}>
@@ -171,6 +175,20 @@ export const TaskDetails = ({ task, onClose, onEdit, onDelete, onMove, onCopyLin
                 </div>
               )}
             </div>
+            {/* Completion Info */}
+            {isTaskCompleted && completionDate && (
+              <div className="mt-3 pt-3 border-t border-white/5 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 size={14} className="text-emerald-500" />
+                  <span className={`text-[10px] uppercase font-bold tracking-wider text-emerald-400`}>
+                    Завершено
+                  </span>
+                </div>
+                <span className={`text-xs font-mono font-bold text-emerald-400`}>
+                  {formatDate(new Date(completionDate), 'dd.MM.yyyy HH:mm')}
+                </span>
+              </div>
+            )}
           </div>
 
           {/* Description */}
@@ -228,16 +246,15 @@ export const TaskDetails = ({ task, onClose, onEdit, onDelete, onMove, onCopyLin
                 <button
                   key={option.status}
                   onClick={() => onMove(task.id!, option.status)}
-                  disabled={task.status === option.status}
                   className={`flex items-center gap-2 px-4 py-2 rounded-xl border font-bold text-sm transition-all ${
                     task.status === option.status
                       ? theme === 'dark'
-                        ? 'bg-white/10 border-white/20 text-white'
-                        : 'bg-gray-200 border-gray-300 text-gray-900'
+                        ? 'bg-blue-500/20 border-blue-500 text-blue-400 ring-2 ring-blue-500/50'
+                        : 'bg-blue-100 border-blue-400 text-blue-600 ring-2 ring-blue-400/50'
                       : theme === 'dark'
                         ? 'bg-white/5 border-white/10 hover:bg-white/10 text-gray-400 hover:text-white'
                         : 'bg-gray-50 border-gray-200 hover:bg-gray-100 text-gray-600 hover:text-gray-900'
-                  } ${task.status === option.status ? 'cursor-default' : 'cursor-pointer'}`}
+                  }`}
                 >
                   {option.icon}
                   {option.label}
