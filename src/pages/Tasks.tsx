@@ -8,7 +8,7 @@ import { useThemeStore } from '@/store/themeStore'
 import { useAuthStore } from '@/store/authStore'
 import { Plus, Archive, Filter, X, Users, Tag, CheckCircle, AlertTriangle } from 'lucide-react'
 import { Task, TaskStatus, TaskCategory, TaskPriority, TASK_CATEGORIES, TEAM_MEMBERS } from '@/types'
-import { CATEGORY_ICONS } from '@/constants/common'
+import { CATEGORY_ICONS } from '@/components/Tasks/categoryIcons'
 import { TaskCard } from '@/components/Tasks/TaskCard'
 import { useUserNickname } from '@/utils/userUtils'
 import { MultiSelect, SelectOption } from '@/components/Call/MultiSelect'
@@ -174,7 +174,7 @@ export const Tasks = () => {
   const statCards = [
     {
       label: 'Всего задач',
-      icon: CATEGORY_ICONS.all,
+      icon: <Tag size={20} />,
       value: stats.total,
       bgClass: 'bg-emerald-500/5',
       borderClass: 'border-emerald-500/20',
@@ -233,7 +233,7 @@ export const Tasks = () => {
           <div className="flex-1">
             <h1 className={`flex items-center gap-2 text-2xl md:text-3xl font-black tracking-tight ${headingColor}`}>
               <span className={theme === 'dark' ? 'text-emerald-400' : 'text-emerald-500'}>
-                {CATEGORY_ICONS.all}
+                <Tag size={32} />
               </span>
               Tasks
             </h1>
@@ -337,12 +337,15 @@ export const Tasks = () => {
 
             {/* Фильтр по категории */}
             {(() => {
-              const categoryOptions: SelectOption[] = Object.entries(TASK_CATEGORIES).map(([key, value]) => ({
-                value: key,
-                label: value.label,
-                icon: <span className="text-sm">{value.icon || '📁'}</span>,
-                chip: value.color
-              }))
+              const categoryOptions: SelectOption[] = Object.entries(TASK_CATEGORIES).map(([key, value]) => {
+                const IconComponent = CATEGORY_ICONS[key as TaskCategory]
+                return {
+                  value: key,
+                  label: value.label,
+                  icon: IconComponent ? <IconComponent className="w-4 h-4" /> : <Tag className="w-4 h-4" />,
+                  chip: value.color
+                }
+              })
 
               return (
                 <MultiSelect
