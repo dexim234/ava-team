@@ -5,8 +5,8 @@ import { TaskDetails } from '@/components/Tasks/TaskDetails'
 import { TaskArchive } from '@/components/Tasks/TaskArchive'
 import { getTasks, updateTask, deleteTask } from '@/services/firestoreService'
 import { useThemeStore } from '@/store/themeStore'
-import { Plus, Archive } from 'lucide-react'
-import { Task, TaskStatus } from '@/types'
+import { Plus, Archive, Filter, X } from 'lucide-react'
+import { Task, TaskStatus, TaskCategory, TaskPriority, TASK_CATEGORIES, TEAM_MEMBERS } from '@/types'
 import { CATEGORY_ICONS } from '@/constants/common'
 import { TaskCard } from '@/components/Tasks/TaskCard'
 
@@ -21,6 +21,14 @@ export const Tasks = () => {
   const [selectedTask, setSelectedTask] = useState<Task | null>(null)
   const [editingTask, setEditingTask] = useState<Task | null>(null)
   const [loading, setLoading] = useState(true)
+  
+  // Фильтры
+  const [filters, setFilters] = useState({
+    assignee: '',
+    category: '',
+    status: '',
+    priority: ''
+  })
   
   const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
   const subTextColor = theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
@@ -46,16 +54,33 @@ export const Tasks = () => {
       const task = tasks.find(t => t.id === taskId)
       if (task) {
         setSelectedTask(task)
-        // Удаляем taskId из URL, чтобы не открывать снова при перезагрузке
         window.history.replaceState({}, '', '/tasks')
       }
     }
   }, [searchParams, tasks])
 
+  // Применение фильтров
   useEffect(() => {
-    const activeTasks = tasks.filter(task => !task.archivedAt)
-    setFilteredTasks(activeTasks)
-  }, [tasks])
+    let result = tasks.filter(task => !task.archivedAt)
+    
+    if (filters.assignee) {
+      result = result.filter(task => task.assignedTo?.includes(filters.assignee))
+    }
+    
+    if (filters.category) {
+      result = result.filter(task => task.category === filters.category)
+    }
+    
+    if (filters.status) {
+      result = result.filter(task => task.status === filters.status)
+    }
+    
+    if (filters.priority) {
+      result = result.filter(task => task.priority === filters.priority)
+    }
+    
+    setFilteredTasks(result)
+  }, [tasks, filters])
 
   const openModal = () => {
     setEditingTask(null)
@@ -157,6 +182,25 @@ export const Tasks = () => {
     }
   ]
 
+  const hasActiveFilters = Object.values(filters).some(value => value !== '')
+
+  const clearFilters = () => {
+    setFilters({ assignee: '', category: '', status: '', priority: '' })
+  }
+
+  const priorityLabels: Record<TaskPriority, string> = {
+    low: 'Низкий',
+    medium: 'Средний',
+    high: 'Высокий',
+    urgent: 'Срочный'
+  }
+
+  const statusLabels: Record<TaskStatus, string> = {
+    in_progress: 'В работе',
+    completed: 'Выполнено',
+    closed: 'Закрыто'
+  }
+
   return (
     <div className="flex min-h-screen">
       <div className="w-full space-y-6 p-4 md:p-6">
@@ -229,6 +273,74 @@ export const Tasks = () => {
           ))}
         </div>
 
+        {/* Фильтры */}
+        <div className={`p-4 rounded-2xl border ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-gray-50'}`}>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <Filter size={18} className={subTextColor} />
+              <h3 className={`text-sm font-black uppercase tracking-wider ${subTextColor}`}>Фильтры</h3>
+            </div>
+            {hasActiveFilters && (
+              <button
+                onClick={clearFilters}
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${theme === 'dark' ? 'bg-red-500/10 text-red-400 hover:bg-red-500/20' : 'bg-red-50 text-red-600 hover:bg-red-100'}`}
+              >
+                <X size={14} />
+                Очистить
+              </button>
+            )}
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            {/* Фильтр по исполнителю */}
+            <select
+              value={filters.assignee}
+              onChange={(e) => setFilters({ ...filters, assignee: e.target.value })}
+              className={`px-4 py-2.5 rounded-xl border focus:ring-2 focus:ring-emerald-500 outline-none transition-all text-sm ${theme === 'dark' ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'}`}
+            >
+              <option value="">Все исполнители</option>
+              {TEAM_MEMBERS.map(member => (
+                <option key={member.id} value={member.id}>{member.name}</option>
+              ))}
+            </select>
+
+            {/* Фильтр по категории */}
+            <select
+              value={filters.category}
+              onChange={(e) => setFilters({ ...filters, category: e.target.value as TaskCategory })}
+              className={`px-4 py-2.5 rounded-xl border focus:ring-2 focus:ring-emerald-500 outline-none transition-all text-sm ${theme === 'dark' ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'}`}
+            >
+              <option value="">Все категории</option>
+              {Object.entries(TASK_CATEGORIES).map(([key, value]) => (
+                <option key={key} value={key}>{value.label}</option>
+              ))}
+            </select>
+
+            {/* Фильтр по статусу */}
+            <select
+              value={filters.status}
+              onChange={(e) => setFilters({ ...filters, status: e.target.value as TaskStatus })}
+              className={`px-4 py-2.5 rounded-xl border focus:ring-2 focus:ring-emerald-500 outline-none transition-all text-sm ${theme === 'dark' ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'}`}
+            >
+              <option value="">Все статусы</option>
+              {Object.entries(statusLabels).map(([key, value]) => (
+                <option key={key} value={key}>{value}</option>
+              ))}
+            </select>
+
+            {/* Фильтр по приоритету */}
+            <select
+              value={filters.priority}
+              onChange={(e) => setFilters({ ...filters, priority: e.target.value as TaskPriority })}
+              className={`px-4 py-2.5 rounded-xl border focus:ring-2 focus:ring-emerald-500 outline-none transition-all text-sm ${theme === 'dark' ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'}`}
+            >
+              <option value="">Все приоритеты</option>
+              {Object.entries(priorityLabels).map(([key, value]) => (
+                <option key={key} value={key}>{value}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+
         {/* Список задач или архив */}
         {isArchiveOpen ? (
           <TaskArchive
@@ -251,15 +363,18 @@ export const Tasks = () => {
               </div>
             ) : filteredTasks.length === 0 ? (
               <div className={`p-10 text-center rounded-2xl border border-dashed ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-gray-50'}`}>
-                <p className={subTextColor}>Задач не найдено</p>
+                <p className={subTextColor}>{hasActiveFilters ? 'Задачи не найдены по выбранным фильтрам' : 'Задач не найдено'}</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-5">
                 {filteredTasks.map(task => (
                   <TaskCard
                     key={task.id}
                     task={task}
                     onClick={() => openTaskDetails(task)}
+                    onEdit={handleEditTask}
+                    onDelete={handleDeleteTask}
+                    onCopyLink={handleCopyLink}
                   />
                 ))}
               </div>
