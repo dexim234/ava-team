@@ -1,423 +1,420 @@
-import { useState } from 'react'
-import { useAuthStore } from '@/store/authStore'
+import { useState, useEffect } from 'react'
 import { useThemeStore } from '@/store/themeStore'
-import { addTask, updateTask } from '@/services/firestoreService'
-import {
-  Task,
-  TaskCategory,
-  TaskPriority,
-  TEAM_MEMBERS,
-  TASK_CATEGORIES,
-  TaskLink,
-} from '@/types'
-import { X, FileText, Tag, Sparkles, Target, Calendar, Clock, Users, Plus, Trash2, Link2 } from 'lucide-react'
-import { CATEGORY_ICONS } from './categoryIcons'
-import { formatDate } from '@/utils/dateUtils'
-import { getUserNicknameSync } from '@/utils/userUtils'
-import { useScrollLock } from '@/hooks/useScrollLock'
+import { useAuthStore } from '@/store/authStore'
+import { Task, TaskStatus, TaskPriority, TaskCategory, TASK_CATEGORIES, TaskLink } from '@/types'
+import { X, Save, Plus, Trash2, Calendar, Clock, Target, User, Link2 } from 'lucide-react'
+import { format, addHours, addDays } from 'date-fns'
+import Avatar from '@/components/Avatar'
+import { UserNickname } from '@/components/UserNickname'
 
 interface TaskFormProps {
+  task: Task | null
   onClose: () => void
-  onSave: () => void
-  editingTask?: Task | null
+  onSave: (task: Partial<Task>) => Promise<void>
 }
 
-export const TaskForm = ({ onClose, onSave, editingTask }: TaskFormProps) => {
-  const { user } = useAuthStore()
+interface LinkInput {
+  id: string
+  url: string
+  name: string
+}
+
+export const TaskForm = ({ task, onClose, onSave }: TaskFormProps) => {
   const { theme } = useThemeStore()
-  const isEditing = !!editingTask
-
-  const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
-  const cardBg = theme === 'dark' ? 'bg-[#1a1a1a]' : 'bg-white'
-  const inputBg = theme === 'dark' ? 'bg-gray-800' : 'bg-gray-50'
-  const borderColor = theme === 'dark' ? 'border-gray-800' : 'border-gray-300'
-
-  const [title, setTitle] = useState(editingTask?.title || '')
-  const [description, setDescription] = useState(editingTask?.description || '')
-  const [category, setCategory] = useState<TaskCategory>(editingTask?.category || 'trading')
-  const [priority, setPriority] = useState<TaskPriority>(editingTask?.priority || 'medium')
-  const [expectedResult, setExpectedResult] = useState(editingTask?.expectedResult || '')
-  const [dueDate, setDueDate] = useState(editingTask?.dueDate || formatDate(new Date(), 'yyyy-MM-dd'))
-  const [dueTime, setDueTime] = useState(editingTask?.dueTime || '12:00')
-  const [links, setLinks] = useState<TaskLink[]>(
-    editingTask?.links || []
-  )
-  const [assignedTo, setAssignedTo] = useState<string[]>(
-    editingTask?.assignedTo || []
-  )
-  const [error, setError] = useState('')
+  const { user } = useAuthStore()
   const [loading, setLoading] = useState(false)
+  const [formData, setFormData] = useState<Partial<Task>>({
+    title: '',
+    description: '',
+    category: 'trading',
+    priority: 'medium',
+    status: 'in_progress',
+    assignedTo: [],
+    dueDate: '',
+    dueTime: '',
+    expectedResult: '',
+    links: []
+  })
+  const [linkInputs, setLinkInputs] = useState<LinkInput[]>([])
 
-  useScrollLock()
+  useEffect(() => {
+    if (task) {
+      setFormData({
+        title: task.title || '',
+        description: task.description || '',
+        category: task.category || 'trading',
+        priority: task.priority || 'medium',
+        status: task.status || 'in_progress',
+        assignedTo: task.assignedTo || [],
+        dueDate: task.dueDate || '',
+        dueTime: task.dueTime || '',
+        expectedResult: task.expectedResult || '',
+        links: task.links || []
+      })
 
-  const priorityOptions: { value: TaskPriority; label: string; tone: string }[] = [
-    { value: 'urgent', label: 'Экстренный', tone: theme === 'dark' ? 'bg-rose-600/20 border-rose-500/50 text-rose-100' : 'bg-rose-50 border-rose-200 text-rose-700' },
-    { value: 'high', label: 'Высокий', tone: theme === 'dark' ? 'bg-red-500/15 border-red-500/40 text-red-100' : 'bg-red-50 border-red-200 text-red-700' },
-    { value: 'medium', label: 'Средний', tone: theme === 'dark' ? 'bg-amber-500/15 border-amber-500/40 text-amber-100' : 'bg-amber-50 border-amber-200 text-amber-700' },
-    { value: 'low', label: 'Низкий', tone: theme === 'dark' ? 'bg-gray-500/15 border-gray-500/40 text-gray-100' : 'bg-gray-50 border-gray-200 text-gray-700' },
-  ]
+      const parsedLinks = task.links?.map(link => ({
+        id: link.id || crypto.randomUUID(),
+        url: link.url || '',
+        name: link.name || ''
+      })) || []
+      setLinkInputs(parsedLinks.length > 0 ? parsedLinks : [{ id: crypto.randomUUID(), url: '', name: '' }])
 
-  const handleAddLink = () => {
-    if (links.length >= 10) return
-    setLinks([...links, { id: `link-${Date.now()}`, url: '', name: '' }])
-  }
-
-  const handleRemoveLink = (linkId: string) => {
-    setLinks(links.filter(l => l.id !== linkId))
-  }
-
-  const handleLinkChange = (linkId: string, field: 'url' | 'name', value: string) => {
-    setLinks(links.map(l => l.id === linkId ? { ...l, [field]: value } : l))
-  }
-
-  const handleAssigneeToggle = (userId: string) => {
-    if (assignedTo.includes(userId)) {
-      setAssignedTo(assignedTo.filter(id => id !== userId))
-    } else {
-      if (assignedTo.length >= 10) return
-      setAssignedTo([...assignedTo, userId])
-    }
-  }
-
-  const validate = () => {
-    if (!title.trim()) return 'Введите название задачи'
-    if (!dueDate || !dueTime) return 'Укажите дедлайн (дата и время)'
-    if (assignedTo.length === 0) return 'Добавьте хотя бы одного исполнителя'
-    return ''
-  }
-
-  const handleSave = async () => {
-    const validationError = validate()
-    if (validationError) {
-      setError(validationError)
-      return
-    }
-    if (!user) {
-      setError('Пользователь не найден')
-      return
-    }
-
-    setError('')
-    setLoading(true)
-    const now = new Date().toISOString()
-
-    try {
-      const validLinks = links.filter(l => l.url.trim())
-
-      const approvals = assignedTo.map(id => ({
-        userId: id,
-        status: 'pending' as const,
-        updatedAt: now,
-      }))
-
-      const baseTask: Partial<Task> = {
-        title: title.trim(),
-        description: description.trim() || undefined,
-        category,
-        priority,
-        assignedTo,
-        assignees: assignedTo.map(id => ({ userId: id, priority: 'medium' })),
-        approvals,
-        dueDate,
-        dueTime,
-        expectedResult: expectedResult.trim() || undefined,
-        links: validLinks,
-        updatedAt: now,
-      }
-
-      if (isEditing && editingTask) {
-        await updateTask(editingTask.id, baseTask)
+      if (task.dueDate && task.dueTime) {
+        setFormData(prev => ({
+          ...prev,
+          dueDate: task.dueDate,
+          dueTime: task.dueTime
+        }))
       } else {
-        const newTask: Omit<Task, 'id'> = {
-          ...(baseTask as Omit<Task, 'id'>),
-          status: 'in_progress',
-          createdBy: user.id,
-          createdAt: now,
-        }
-        await addTask(newTask)
+        const now = new Date()
+        setFormData(prev => ({
+          ...prev,
+          dueDate: format(now, 'yyyy-MM-dd'),
+          dueTime: format(now, 'HH:mm')
+        }))
+      }
+    } else {
+      setFormData({
+        title: '',
+        description: '',
+        category: 'trading',
+        priority: 'medium',
+        status: 'in_progress',
+        assignedTo: [],
+        dueDate: format(new Date(), 'yyyy-MM-dd'),
+        dueTime: format(new Date(), 'HH:mm'),
+        expectedResult: '',
+        links: []
+      })
+      setLinkInputs([{ id: crypto.randomUUID(), url: '', name: '' }])
+    }
+  }, [task])
+
+  if (!task && !user) return null
+
+  const handleAddLinkInput = () => {
+    if (linkInputs.length < 10) {
+      setLinkInputs([...linkInputs, { id: crypto.randomUUID(), url: '', name: '' }])
+    }
+  }
+
+  const handleRemoveLinkInput = (index: number) => {
+    const newLinkInputs = linkInputs.filter((_, i) => i !== index)
+    setLinkInputs(newLinkInputs)
+  }
+
+  const handleLinkInputChange = (index: number, field: keyof LinkInput, value: string) => {
+    const newLinkInputs = [...linkInputs]
+    newLinkInputs[index] = { ...newLinkInputs[index], [field]: value }
+    setLinkInputs(newLinkInputs)
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    try {
+      const formattedLinks: TaskLink[] = linkInputs
+        .filter(link => !(link.url.trim() === '' && link.name.trim() === ''))
+        .map(link => ({ id: link.id, url: link.url.trim(), name: link.name.trim() }))
+
+      const data = {
+        ...formData,
+        links: formattedLinks,
+        updatedAt: new Date().toISOString()
+      } as Partial<Task>
+
+      if (!task) {
+        data.createdBy = user?.id || ''
+        data.createdAt = new Date().toISOString()
       }
 
-      onSave()
+      await onSave(data)
     } catch (error) {
       console.error('Error saving task:', error)
-      setError('Ошибка при сохранении задачи')
     } finally {
       setLoading(false)
     }
   }
 
+  const bgColor = theme === 'dark' ? 'bg-[#0f141a]' : 'bg-white'
+  const textColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
+  const inputBg = theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'
+  const subTextColor = theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+
+  const categoryOptions = Object.entries(TASK_CATEGORIES).map(([key, value]) => ({
+    value: key,
+    label: value.label,
+    icon: key === 'trading' ? '📈' : key === 'development' ? '💻' : key === 'stream' ? '🎥' : '📚'
+  }))
+
+  const priorityOptions = [
+    { value: 'low', label: 'Низкий', color: 'text-gray-500' },
+    { value: 'medium', label: 'Средний', color: 'text-yellow-500' },
+    { value: 'high', label: 'Высокий', color: 'text-orange-500' },
+    { value: 'urgent', label: 'Срочный', color: 'text-red-500' }
+  ]
+
+  const statusOptions = [
+    { value: 'in_progress', label: 'В работе', color: 'bg-blue-500' },
+    { value: 'completed', label: 'Выполнено', color: 'bg-emerald-500' },
+    { value: 'closed', label: 'Закрыто', color: 'bg-gray-500' }
+  ]
+
   return (
-    <>
-      <div className="fixed inset-0 bg-black/50 flex items-start sm:items-center justify-center z-[70] p-4 overflow-y-auto overscroll-contain modal-scroll touch-pan-y">
-      <div
-        className={`${cardBg} rounded-xl sm:rounded-2xl shadow-2xl w-full max-w-2xl max-h-[calc(100vh-48px)] sm:max-h-[calc(100vh-64px)] overflow-y-auto border-2 touch-pan-y ${
-          theme === 'dark'
-            ? 'border-[#4E6E49]/30 bg-gradient-to-br from-[#1a1a1a] via-[#1a1a1a] to-[#0A0A0A]'
-            : 'border-green-200 bg-gradient-to-br from-white via-green-50/30 to-white'
-        } relative`}
-      >
-        <div className="flex flex-col h-full min-h-0">
-          <div className={`sticky top-0 ${cardBg} border-b ${borderColor} p-4 sm:p-6 flex items-center justify-between z-10`}>
-            <h2 className={`text-xl sm:text-2xl font-bold ${headingColor} flex items-center gap-2`}>
-              <FileText className="w-5 h-5 sm:w-6 sm:h-6" />
-              {isEditing ? 'Редактировать задачу' : 'Новая задача'}
-            </h2>
-            <button
-              onClick={onClose}
-              className={`p-2 rounded-lg transition-colors ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+      <div className={`${bgColor} w-full max-w-2xl rounded-3xl overflow-hidden shadow-2xl border ${theme === 'dark' ? 'border-white/10' : 'border-gray-100'}`}>
+        <div className="flex items-center justify-between p-6 border-b border-white/5">
+          <h2 className={`text-xl font-black tracking-tight ${textColor}`}>
+            {task ? 'Редактировать задачу' : 'Создать задачу'}
+          </h2>
+          <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-xl transition-colors">
+            <X className="w-5 h-5 text-gray-500" />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          {task && (
+            <div className="flex items-center justify-between p-3 rounded-xl border border-white/5 bg-white/5">
+              <div className="flex items-center gap-3">
+                <Avatar userId={task.createdBy} size="md" />
+                <div>
+                  <UserNickname userId={task.createdBy} className={`text-sm font-bold ${textColor}`} />
+                  <p className={`text-[10px] uppercase font-bold tracking-widest ${subTextColor}`}>Автор задачи</p>
+                </div>
+              </div>
+              {task.assignedTo && task.assignedTo.length > 0 && (
+                <div className="flex items-center gap-2">
+                  <Avatar userId={task.assignedTo[0]} size="sm" />
+                  <UserNickname userId={task.assignedTo[0]} className={`text-sm ${subTextColor}`} />
+                </div>
+              )}
+            </div>
+          )}
+
+          <div className="space-y-1.5">
+            <label className="text-[10px] font-black uppercase tracking-widest text-emerald-500">Название задачи</label>
+            <input
+              type="text"
+              placeholder="Введите название задачи"
+              value={formData.title}
+              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              className={`w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-emerald-500 outline-none transition-all ${inputBg} ${textColor}`}
+              required
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-black uppercase tracking-widest text-emerald-500">Категория</label>
+              <select
+                value={formData.category}
+                onChange={(e) => setFormData({ ...formData, category: e.target.value as TaskCategory })}
+                className={`w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-emerald-500 outline-none transition-all ${inputBg} ${textColor}`}
+              >
+                {categoryOptions.map(opt => (
+                  <option key={opt.value} value={opt.value}>{opt.icon} {opt.label}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-black uppercase tracking-widest text-emerald-500">Приоритет</label>
+              <select
+                value={formData.priority}
+                onChange={(e) => setFormData({ ...formData, priority: e.target.value as TaskPriority })}
+                className={`w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-emerald-500 outline-none transition-all ${inputBg} ${textColor}`}
+              >
+                {priorityOptions.map(opt => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-black uppercase tracking-widest text-emerald-500">Статус</label>
+              <select
+                value={formData.status}
+                onChange={(e) => setFormData({ ...formData, status: e.target.value as TaskStatus })}
+                className={`w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-emerald-500 outline-none transition-all ${inputBg} ${textColor}`}
+              >
+                {statusOptions.map(opt => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-black uppercase tracking-widest text-emerald-500 flex items-center gap-2">
+                <Calendar size={14} /> Дедлайн
+              </label>
+              <input
+                type="date"
+                value={formData.dueDate}
+                onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
+                className={`w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-emerald-500 outline-none transition-all ${inputBg} ${textColor}`}
+                required
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-black uppercase tracking-widest text-emerald-500 flex items-center gap-2">
+                <Clock size={14} /> Время
+              </label>
+              <input
+                type="time"
+                value={formData.dueTime}
+                onChange={(e) => setFormData({ ...formData, dueTime: e.target.value })}
+                className={`w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-emerald-500 outline-none transition-all ${inputBg} ${textColor}`}
+                required
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <div className="flex flex-wrap gap-2">
+              {[
+                { label: '1ч', value: 1, type: 'hour' },
+                { label: '3ч', value: 3, type: 'hour' },
+                { label: '6ч', value: 6, type: 'hour' },
+                { label: '12ч', value: 12, type: 'hour' },
+                { label: '1д', value: 1, type: 'day' },
+                { label: '2д', value: 2, type: 'day' },
+                { label: '3д', value: 3, type: 'day' },
+                { label: '7д', value: 7, type: 'day' },
+              ].map((option) => (
+                <button
+                  key={`${option.type}-${option.value}`}
+                  type="button"
+                  onClick={() => {
+                    const now = new Date()
+                    const newDate = option.type === 'hour'
+                      ? addHours(now, option.value)
+                      : addDays(now, option.value)
+                    setFormData({
+                      ...formData,
+                      dueDate: format(newDate, 'yyyy-MM-dd'),
+                      dueTime: format(newDate, 'HH:mm')
+                    })
+                  }}
+                  className={`px-3 py-1.5 text-xs font-bold rounded-lg border transition-all ${theme === 'dark'
+                    ? 'bg-white/5 border-white/10 hover:bg-white/10 text-gray-300'
+                    : 'bg-gray-50 border-gray-200 hover:bg-gray-100 text-gray-600'
+                  }`}
+                >
+                  +{option.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-[10px] font-black uppercase tracking-widest text-emerald-500 flex items-center gap-2">
+              <User size={14} /> Исполнитель
+            </label>
+            <select
+              value={formData.assignedTo?.[0] || ''}
+              onChange={(e) => setFormData({ ...formData, assignedTo: e.target.value ? [e.target.value] : [] })}
+              className={`w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-emerald-500 outline-none transition-all ${inputBg} ${textColor}`}
             >
-              <X className="w-5 h-5" />
+              <option value="">Не назначен</option>
+              {[
+                { id: 'admin', name: 'Администратор' },
+                { id: 'trader1', name: 'Трейдер 1' },
+                { id: 'trader2', name: 'Трейдер 2' },
+                { id: 'analyst1', name: 'Аналитик 1' },
+                { id: 'dev1', name: 'Разработчик 1' }
+              ].map(member => (
+                <option key={member.id} value={member.id}>{member.name}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-[10px] font-black uppercase tracking-widest text-emerald-500">Описание</label>
+            <textarea
+              rows={3}
+              placeholder="Опишите задачу подробнее..."
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              className={`w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-emerald-500 outline-none transition-all resize-none ${inputBg} ${textColor}`}
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-[10px] font-black uppercase tracking-widest text-emerald-500 flex items-center gap-2">
+              <Target size={14} /> Ожидаемый результат
+            </label>
+            <textarea
+              rows={2}
+              placeholder="Какой результат ожидается?"
+              value={formData.expectedResult}
+              onChange={(e) => setFormData({ ...formData, expectedResult: e.target.value })}
+              className={`w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-emerald-500 outline-none transition-all resize-none ${inputBg} ${textColor}`}
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-[10px] font-black uppercase tracking-widest text-emerald-500 flex items-center gap-2">
+              <Link2 size={14} /> Ссылки
+            </label>
+            {linkInputs.map((linkInput, index) => (
+              <div key={linkInput.id} className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="URL"
+                  value={linkInput.url}
+                  onChange={(e) => handleLinkInputChange(index, 'url', e.target.value)}
+                  className={`w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-emerald-500 outline-none transition-all ${inputBg} ${textColor}`}
+                />
+                <input
+                  type="text"
+                  placeholder="Название"
+                  value={linkInput.name}
+                  onChange={(e) => handleLinkInputChange(index, 'name', e.target.value)}
+                  className={`w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-emerald-500 outline-none transition-all ${inputBg} ${textColor}`}
+                />
+                {linkInputs.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveLinkInput(index)}
+                    className="p-3 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-all"
+                  >
+                    <Trash2 className="w-5 h-5" />
+                  </button>
+                )}
+              </div>
+            ))}
+            {linkInputs.length < 10 && (
+              <button
+                type="button"
+                onClick={handleAddLinkInput}
+                className="w-full px-4 py-3 mt-2 rounded-xl border border-dashed border-emerald-500 text-emerald-500 hover:bg-emerald-500/10 transition-all flex items-center justify-center gap-2"
+              >
+                <Plus className="w-5 h-5" /> Добавить ссылку
+              </button>
+            )}
+          </div>
+
+          <div className="pt-4 flex items-center justify-end gap-3">
+            <button
+              type="button"
+              onClick={onClose}
+              className={`px-6 py-3 rounded-xl font-bold transition-all ${theme === 'dark' ? 'bg-white/5 text-gray-400 hover:bg-white/10' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+            >
+              Отмена
+            </button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="flex items-center gap-2 px-6 py-3 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-white rounded-xl font-bold shadow-lg shadow-emerald-500/20 transition-all active:scale-95"
+            >
+              {loading ? <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full" /> : <Save className="w-4 h-4" />}
+              {task ? 'Обновить задачу' : 'Создать задачу'}
             </button>
           </div>
-
-          <div className="p-4 sm:p-6 space-y-4 sm:space-y-5 flex-1 min-h-0 overflow-y-auto overscroll-contain modal-scroll touch-pan-y pb-10">
-            {error && (
-              <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/30 flex items-center gap-2 text-red-500">
-                <X className="w-5 h-5 flex-shrink-0" />
-                <span className="text-sm">{error}</span>
-              </div>
-            )}
-
-            {/* Название задачи */}
-            <div>
-              <label className={`block text-sm font-medium mb-2 ${headingColor}`}>Название задачи *</label>
-              <input
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                className={`w-full px-4 py-2.5 rounded-lg border ${borderColor} ${inputBg} ${headingColor} focus:outline-none focus:ring-2 focus:ring-[#4E6E49]/50`}
-                placeholder="Введите название задачи"
-              />
-            </div>
-
-            {/* Описание задачи */}
-            <div>
-              <label className={`block text-sm font-medium mb-2 ${headingColor}`}>Описание задачи</label>
-              <textarea
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                rows={4}
-                className={`w-full px-4 py-2.5 rounded-lg border ${borderColor} ${inputBg} ${headingColor} focus:outline-none focus:ring-2 focus:ring-[#4E6E49]/50`}
-                placeholder="Кратко опишите задачу"
-              />
-            </div>
-
-            {/* Категория и Приоритет */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-3">
-                <label className={`block text-sm font-medium ${headingColor} flex items-center gap-2`}>
-                  <Tag className="w-4 h-4" />
-                  Категория
-                </label>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
-                  {Object.entries(TASK_CATEGORIES).map(([key, { label }]) => {
-                    const Icon = CATEGORY_ICONS[key as TaskCategory]
-                    const isActive = category === key
-                    return (
-                      <button
-                        key={key}
-                        type="button"
-                        onClick={() => setCategory(key as TaskCategory)}
-                        className={`p-3 rounded-lg border-2 text-sm font-semibold transition-all text-center ${isActive ? theme === 'dark' ? 'border-[#4E6E49] bg-[#4E6E49]/15 text-[#4E6E49]' : 'border-[#4E6E49] bg-green-50 text-[#4E6E49]' : theme === 'dark' ? 'border-gray-800 bg-gray-900 text-gray-200 hover:border-[#4E6E49]/40' : 'border-gray-200 bg-white text-gray-800 hover:border-[#4E6E49]/40'} flex items-center justify-center gap-2`}
-                      >
-                        <Icon className="w-4 h-4" />
-                        <span>{label}</span>
-                      </button>
-                    )
-                  })}
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                <label className={`block text-sm font-medium ${headingColor} flex items-center gap-2`}>
-                  <Sparkles className="w-4 h-4" />
-                  Приоритет
-                </label>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {priorityOptions.map((option) => (
-                    <button
-                      key={option.value}
-                      type="button"
-                      onClick={() => setPriority(option.value)}
-                      className={`p-3 rounded-lg border-2 text-left transition-all ${option.tone} ${priority === option.value ? 'ring-2 ring-offset-2 ring-[#4E6E49] dark:ring-offset-[#1a1a1a]' : ''}`}
-                    >
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="font-semibold text-sm">{option.label}</span>
-                        {priority === option.value && <span className="text-xs font-semibold">✓</span>}
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Исполнители */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <label className={`block text-sm font-medium ${headingColor} flex items-center gap-2`}>
-                  <Users className="w-4 h-4" />
-                  Исполнители
-                </label>
-                <span className="text-[11px] text-gray-500">{assignedTo.length}/10</span>
-              </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                {TEAM_MEMBERS.map((member) => {
-                  const isSelected = assignedTo.includes(member.id)
-                  return (
-                    <button
-                      key={member.id}
-                      type="button"
-                      onClick={() => handleAssigneeToggle(member.id)}
-                      className={`p-2 rounded-lg border text-left text-sm transition-all ${isSelected ? theme === 'dark' ? 'border-[#4E6E49] bg-[#4E6E49]/20' : 'border-[#4E6E49] bg-green-50' : `${borderColor} ${inputBg}`}`}
-                    >
-                      <span className={isSelected ? 'text-[#4E6E49]' : headingColor}>{getUserNicknameSync(member.id)}</span>
-                    </button>
-                  )
-                })}
-              </div>
-            </div>
-
-            {/* Ожидаемый результат */}
-            <div>
-              <label className={`block text-sm font-medium mb-2 ${headingColor} flex items-center gap-2`}>
-                <Target className="w-4 h-4" />
-                Ожидаемый результат
-              </label>
-              <textarea
-                value={expectedResult}
-                onChange={(e) => setExpectedResult(e.target.value)}
-                rows={3}
-                className={`w-full px-4 py-2.5 rounded-lg border ${borderColor} ${inputBg} ${headingColor} focus:outline-none focus:ring-2 focus:ring-[#4E6E49]/50`}
-                placeholder="Опишите ожидаемый итог"
-              />
-            </div>
-
-            {/* Ссылки */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <label className={`block text-sm font-medium ${headingColor} flex items-center gap-2`}>
-                  <Link2 className="w-4 h-4" />
-                  Ссылки
-                </label>
-                <span className="text-[11px] text-gray-500">{links.length}/10</span>
-              </div>
-              
-              {links.length === 0 && (
-                <button
-                  type="button"
-                  onClick={handleAddLink}
-                  className={`w-full p-4 rounded-lg border-2 border-dashed ${borderColor} ${inputBg} text-sm ${headingColor} hover:border-[#4E6E49]/50 transition-colors flex items-center justify-center gap-2`}
-                >
-                  <Plus className="w-4 h-4" />
-                  Добавить ссылку
-                </button>
-              )}
-
-              {links.map((link, index) => (
-                <div key={link.id} className={`p-3 rounded-lg border ${borderColor} ${inputBg} space-y-2`}>
-                  <div className="flex items-center gap-2">
-                    <span className={`text-xs font-medium ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`}>#{index + 1}</span>
-                    {links.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveLink(link.id)}
-                        className={`ml-auto p-1 rounded ${theme === 'dark' ? 'hover:bg-red-500/20 text-red-400' : 'hover:bg-red-50 text-red-600'}`}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    )}
-                  </div>
-                  <input
-                    value={link.name}
-                    onChange={(e) => handleLinkChange(link.id, 'name', e.target.value)}
-                    className={`w-full px-3 py-2 rounded-lg border ${borderColor} ${theme === 'dark' ? 'bg-[#0f0f0f] text-gray-100' : 'bg-white text-gray-800'} text-sm`}
-                    placeholder="Название ссылки"
-                  />
-                  <input
-                    value={link.url}
-                    onChange={(e) => handleLinkChange(link.id, 'url', e.target.value)}
-                    className={`w-full px-3 py-2 rounded-lg border ${borderColor} ${theme === 'dark' ? 'bg-[#0f0f0f] text-gray-100' : 'bg-white text-gray-800'} text-sm`}
-                    placeholder="https://..."
-                  />
-                </div>
-              ))}
-
-              {links.length > 0 && links.length < 10 && (
-                <button
-                  type="button"
-                  onClick={handleAddLink}
-                  className={`w-full p-3 rounded-lg border-2 border-dashed ${borderColor} ${inputBg} text-sm ${headingColor} hover:border-[#4E6E49]/50 transition-colors flex items-center justify-center gap-2`}
-                >
-                  <Plus className="w-4 h-4" />
-                  Добавить ещё ссылку
-                </button>
-              )}
-            </div>
-
-            {/* Дедлайн */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <label className={`block text-sm font-medium ${headingColor} flex items-center gap-2`}>
-                  <Calendar className="w-4 h-4" />
-                  Дата дедлайна *
-                </label>
-                <input
-                  type="date"
-                  value={dueDate}
-                  onChange={(e) => setDueDate(e.target.value)}
-                  min={formatDate(new Date(), 'yyyy-MM-dd')}
-                  className={`w-full px-4 py-2.5 rounded-lg border ${borderColor} ${inputBg} ${headingColor} focus:outline-none focus:ring-2 focus:ring-[#4E6E49]/50`}
-                />
-              </div>
-              <div className="space-y-1">
-                <label className={`block text-sm font-medium ${headingColor} flex items-center gap-2`}>
-                  <Clock className="w-4 h-4" />
-                  Время дедлайна *
-                </label>
-                <input
-                  type="time"
-                  value={dueTime}
-                  onChange={(e) => setDueTime(e.target.value)}
-                  className={`w-full px-4 py-2.5 rounded-lg border ${borderColor} ${inputBg} ${headingColor} focus:outline-none focus:ring-2 focus:ring-[#4E6E49]/50`}
-                />
-              </div>
-            </div>
-
-            {/* Кнопки */}
-            <div className={`flex flex-col sm:flex-row gap-3 pt-4 border-t ${borderColor}`}>
-              <button
-                onClick={handleSave}
-                disabled={loading}
-                className={`flex-1 px-6 py-3 rounded-lg font-semibold transition-all relative overflow-hidden ${
-                  loading
-                    ? 'bg-gray-400 cursor-not-allowed'
-                    : 'bg-gradient-to-r from-[#4E6E49] to-emerald-700 hover:from-[#4E6E49] hover:to-emerald-700 text-white shadow-lg hover:shadow-xl'
-                }`}
-              >
-                <span className={`relative z-10 flex items-center justify-center gap-2 ${loading ? 'invisible' : ''}`}>
-                  {isEditing ? 'Сохранить' : 'Создать задачу'}
-                </span>
-                {loading && (
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="flex items-center gap-2 text-white">
-                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      <span>Сохранение...</span>
-                    </div>
-                  </div>
-                )}
-              </button>
-              <button
-                onClick={onClose}
-                className={`px-6 py-3 rounded-lg font-semibold transition-colors ${
-                  theme === 'dark' ? 'bg-gray-700 hover:bg-gray-600 text-gray-300' : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
-                }`}
-              >
-                Отмена
-              </button>
-            </div>
-          </div>
-        </div>
+        </form>
       </div>
-      </div>
-    </>
+    </div>
   )
 }

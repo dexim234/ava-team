@@ -1,218 +1,156 @@
-import { useState } from 'react'
-import { useAuthStore } from '@/store/authStore'
-import { useAdminStore } from '@/store/adminStore'
+import { Task, TaskStatus, TaskPriority, TaskCategory } from '@/types'
 import { useThemeStore } from '@/store/themeStore'
-import { Task, TaskPriority, TaskStatus, TASK_CATEGORIES, TEAM_MEMBERS } from '@/types'
-import {
-  Calendar,
-  Copy,
-  Edit,
-  Trash2,
-  ArrowRight,
-} from 'lucide-react'
+import { Calendar, Clock, AlertTriangle } from 'lucide-react'
 import { formatDate } from '@/utils/dateUtils'
-import { getUserNicknameSync } from '@/utils/userUtils'
-import { CATEGORY_ICONS } from './categoryIcons'
+import { CountdownTimer } from '@/components/Analytics/AnalyticsTable'
+import Avatar from '@/components/Avatar'
+import { UserNickname } from '@/components/UserNickname'
 
 interface TaskCardProps {
   task: Task
-  onEdit: (task: Task) => void
-  onDelete: (taskId: string) => void
-  onMove: (taskId: string, newStatus: TaskStatus) => void
-  onCopyLink: (taskId: string) => void
-  onOpenDetails: (task: Task) => void
+  onClick: () => void
 }
 
-export const TaskCard = ({ task, onEdit, onDelete, onMove, onCopyLink, onOpenDetails }: TaskCardProps) => {
-  const { user } = useAuthStore()
-  const { isAdmin } = useAdminStore()
+export const TaskCard = ({ task, onClick }: TaskCardProps) => {
   const { theme } = useThemeStore()
   
-  const [showMoveMenu, setShowMoveMenu] = useState(false)
-  const [loading, setLoading] = useState(false)
-
   const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
-  const cardBg = theme === 'dark' ? 'bg-[#1a1a1a]' : 'bg-white'
-  const borderColor = theme === 'dark' ? 'border-gray-800' : 'border-gray-300'
-  
-  const canEdit = isAdmin || user?.id === task.createdBy
-  const canDelete = isAdmin || user?.id === task.createdBy
-  const canMove = isAdmin || user?.id === task.createdBy
+  const subTextColor = theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
 
-  const categoryInfo = TASK_CATEGORIES[task.category]
-  const CategoryIcon = CATEGORY_ICONS[task.category]
-
-  const mainExecutor = task.assignedTo[0]
-  const executorMember = TEAM_MEMBERS.find(m => m.id === mainExecutor)
-
-  const priorityColors: Record<TaskPriority, string> = {
-    urgent: theme === 'dark' ? 'bg-rose-500/20 text-rose-400 border-rose-500/30' : 'bg-rose-50 text-rose-700 border-rose-200',
-    high: theme === 'dark' ? 'bg-red-500/20 text-red-400 border-red-500/30' : 'bg-red-50 text-red-700 border-red-200',
-    medium: theme === 'dark' ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' : 'bg-amber-50 text-amber-700 border-amber-200',
-    low: theme === 'dark' ? 'bg-gray-500/20 text-gray-400 border-gray-500/30' : 'bg-gray-50 text-gray-700 border-gray-200',
-  }
-
-  const priorityLabels: Record<TaskPriority, string> = {
-    urgent: 'Экстренный',
-    high: 'Высокий',
-    medium: 'Средний',
-    low: 'Низкий',
-  }
-
-  const statusLabels: Record<TaskStatus, string> = {
-    in_progress: 'В работе',
-    completed: 'Выполнено',
-    closed: 'Закрыто',
-  }
-
-  const handleMove = async (newStatus: TaskStatus) => {
-    setShowMoveMenu(false)
-    setLoading(true)
-    try {
-      const { updateTask } = await import('@/services/firestoreService')
-      await updateTask(task.id, { status: newStatus, updatedAt: new Date().toISOString() })
-      onMove(task.id, newStatus)
-    } catch (error) {
-      console.error('Error moving task:', error)
-    } finally {
-      setLoading(false)
+  const getPriorityColor = (priority?: TaskPriority) => {
+    switch (priority) {
+      case 'low': return theme === 'dark' ? 'bg-gray-500/20 text-gray-400 border-gray-500/20' : 'bg-gray-100 text-gray-600 border-gray-200'
+      case 'medium': return theme === 'dark' ? 'bg-yellow-500/20 text-yellow-400 border-yellow-500/20' : 'bg-yellow-100 text-yellow-600 border-yellow-200'
+      case 'high': return theme === 'dark' ? 'bg-orange-500/20 text-orange-400 border-orange-500/20' : 'bg-orange-100 text-orange-600 border-orange-200'
+      case 'urgent': return theme === 'dark' ? 'bg-red-500/20 text-red-400 border-red-500/20' : 'bg-red-100 text-red-600 border-red-200'
+      default: return theme === 'dark' ? 'bg-gray-500/20 text-gray-400 border-gray-500/20' : 'bg-gray-100 text-gray-600 border-gray-200'
     }
   }
 
+  const getCategoryIcon = (category: TaskCategory) => {
+    switch (category) {
+      case 'trading': return '📈'
+      case 'development': return '💻'
+      case 'stream': return '🎥'
+      case 'learning': return '📚'
+      default: return '📋'
+    }
+  }
+
+  const getStatusInfo = (status: TaskStatus) => {
+    switch (status) {
+      case 'in_progress': return { label: 'В работе', color: 'bg-blue-500', text: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/20' }
+      case 'completed': return { label: 'Выполнено', color: 'bg-emerald-500', text: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20' }
+      case 'closed': return { label: 'Закрыто', color: 'bg-gray-500', text: 'text-gray-400', bg: 'bg-gray-500/10', border: 'border-gray-500/20' }
+      default: return { label: 'В работе', color: 'bg-blue-500', text: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/20' }
+    }
+  }
+
+  const statusInfo = getStatusInfo(task.status)
+
+  const isOverdue = () => {
+    if (!task.dueDate || !task.dueTime) return false
+    if (task.status === 'completed' || task.status === 'closed') return false
+    const now = new Date().getTime()
+    const deadline = new Date(`${task.dueDate}T${task.dueTime}`).getTime()
+    return deadline < now
+  }
+
+  const overdue = isOverdue()
+
+  // Get primary assignee (first from assignedTo array)
+  const primaryAssignee = task.assignedTo?.[0]
+
   return (
-    <>
-      <div
-        onClick={() => onOpenDetails(task)}
-        className={`${cardBg} rounded-xl border-2 ${borderColor} p-4 shadow-lg hover:shadow-xl transition-all cursor-pointer ${
-          theme === 'dark' 
-            ? 'hover:border-[#4E6E49]/50' 
-            : 'hover:border-[#4E6E49]'
-        }`}
-      >
-        {/* Header: ID and Actions */}
-        <div className="flex items-start justify-between gap-3 mb-3">
-          {/* ID Badge */}
-          <span className={`px-2 py-1 rounded-lg text-xs font-mono ${theme === 'dark' ? 'bg-gray-700 text-gray-300' : 'bg-gray-200 text-gray-700'}`}>
-            #{task.id.slice(0, 6)}
-          </span>
-
-          {/* Action Buttons */}
-          <div className="flex items-center gap-1 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
-            <button
-              onClick={() => onCopyLink(task.id)}
-              className={`p-1.5 rounded-lg transition-colors ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
-              title="Скопировать ссылку"
-            >
-              <Copy className="w-4 h-4" />
-            </button>
-            {canMove && (
-              <div className="relative">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    setShowMoveMenu(!showMoveMenu)
-                  }}
-                  disabled={loading}
-                  className={`p-1.5 rounded-lg transition-colors ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
-                  title="Переместить"
-                >
-                  <ArrowRight className="w-4 h-4" />
-                </button>
-                {showMoveMenu && (
-                  <>
-                    <div className="fixed inset-0 z-10" onClick={() => setShowMoveMenu(false)} />
-                    <div className={`absolute top-full right-0 mt-1 ${cardBg} border ${borderColor} rounded-lg shadow-xl z-20 overflow-hidden min-w-[120px]`}>
-                      {Object.entries(statusLabels).map(([status, label]) => (
-                        <button
-                          key={status}
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            handleMove(status as TaskStatus)
-                          }}
-                          disabled={loading || task.status === status}
-                          className={`w-full px-3 py-2 text-left text-sm font-medium transition-colors ${theme === 'dark' ? 'hover:bg-white/10' : 'hover:bg-gray-100'} ${task.status === status ? 'text-[#4E6E49]' : headingColor} disabled:opacity-50 disabled:cursor-not-allowed`}
-                        >
-                          {label}
-                        </button>
-                      ))}
-                    </div>
-                  </>
-                )}
-              </div>
-            )}
-            {canEdit && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation()
-                  onEdit(task)
-                }}
-                className={`p-1.5 rounded-lg transition-colors ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
-                title="Редактировать"
-              >
-                <Edit className="w-4 h-4" />
-              </button>
-            )}
-            {canDelete && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation()
-                  onDelete(task.id)
-                }}
-                className={`p-1.5 rounded-lg transition-colors ${theme === 'dark' ? 'hover:bg-red-500/20 text-red-400' : 'hover:bg-red-50 text-red-600'}`}
-                title="Удалить"
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
-            )}
+    <div
+      onClick={onClick}
+      className={`${theme === 'dark' ? 'bg-[#0b1015]' : 'bg-white'} rounded-2xl p-5 border ${theme === 'dark' ? 'border-white/5' : 'border-gray-100'} cursor-pointer transition-all duration-300 hover:shadow-lg hover:border-emerald-500/30 group`}
+    >
+      {/* Header */}
+      <div className="flex items-start justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <span className={`text-2xl`}>{getCategoryIcon(task.category)}</span>
+          <div>
+            <p className={`text-[10px] font-bold uppercase tracking-wider ${subTextColor}`}>
+              #{task.id?.slice(0, 6) || 'NEW'}
+            </p>
+            <span className={`text-xs px-2 py-0.5 rounded-full border ${statusInfo.bg} ${statusInfo.border} ${statusInfo.text} font-bold`}>
+              {statusInfo.label}
+            </span>
           </div>
         </div>
+        <span className={`text-[10px] px-2 py-1 rounded-lg border font-bold uppercase ${getPriorityColor(task.priority)}`}>
+          {task.priority === 'urgent' ? '🔴' : task.priority === 'high' ? '🟠' : task.priority === 'medium' ? '🟡' : '⚪'} {task.priority || 'medium'}
+        </span>
+      </div>
 
-        {/* Priority and Category */}
-        <div className="flex items-center justify-between gap-3 mb-3">
-          <span className={`px-2.5 py-1 rounded-lg text-xs font-medium border ${priorityColors[task.priority || 'medium']}`}>
-            {priorityLabels[task.priority || 'medium']}
-          </span>
-          <span className={`px-2.5 py-1 rounded-lg text-xs font-medium border ${theme === 'dark' ? 'bg-[#4E6E49]/20 text-[#4E6E49] border-[#4E6E49]/30' : 'bg-green-50 text-[#4E6E49] border-green-200'} flex items-center gap-1.5`}>
-            <CategoryIcon className="w-3.5 h-3.5" />
-            {categoryInfo.label}
-          </span>
-        </div>
+      {/* Title */}
+      <h3 className={`text-base font-bold mb-3 line-clamp-2 ${headingColor} group-hover:text-emerald-500 transition-colors`}>
+        {task.title}
+      </h3>
 
-        {/* Title */}
-        <h3 className={`text-base sm:text-lg font-bold ${headingColor} mb-3 line-clamp-2`}>
-          {task.title}
-        </h3>
+      {/* Description preview */}
+      {task.description && (
+        <p className={`text-sm mb-4 line-clamp-2 ${subTextColor}`}>
+          {task.description}
+        </p>
+      )}
 
-        {/* Executor */}
-        {executorMember && (
-          <div className="flex items-center gap-2 mb-3">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#4E6E49] to-[#3d5639] flex items-center justify-center text-xs text-white font-bold flex-shrink-0">
-              {executorMember.name.charAt(0)}
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className={`text-sm ${headingColor} truncate`}>
-                {getUserNicknameSync(executorMember.id)}
-              </div>
-              <div className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`}>
-                Исполнитель
-              </div>
+      {/* Footer */}
+      <div className="space-y-3">
+        {/* Author and Assignee */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Avatar userId={task.createdBy} size="sm" />
+            <div className="flex flex-col">
+              <span className={`text-[10px] uppercase font-bold tracking-wider ${subTextColor}`}>Автор</span>
+              <UserNickname userId={task.createdBy} className={`text-xs font-medium ${headingColor}`} />
             </div>
           </div>
-        )}
+          {primaryAssignee && (
+            <div className="flex items-center gap-2">
+              <Avatar userId={primaryAssignee} size="sm" />
+              <div className="flex flex-col">
+                <span className={`text-[10px] uppercase font-bold tracking-wider ${subTextColor}`}>Исполнитель</span>
+                <UserNickname userId={primaryAssignee} className={`text-xs font-medium ${headingColor}`} />
+              </div>
+            </div>
+          )}
+        </div>
 
         {/* Deadline */}
-        <div className={`flex items-center gap-2 p-2.5 rounded-lg ${theme === 'dark' ? 'bg-[#0f0f0f]' : 'bg-gray-50'}`}>
-          <Calendar className={`w-4 h-4 ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`} />
-          <div className="flex-1 min-w-0">
-            <div className={`text-sm font-medium ${headingColor} truncate`}>
-              {formatDate(new Date(task.dueDate), 'dd MMM yyyy')}
-            </div>
-            <div className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`}>
-              {task.dueTime}
-            </div>
+        <div className={`flex items-center justify-between p-2 rounded-xl ${overdue ? 'bg-red-500/10 border border-red-500/20' : 'bg-white/5 border border-white/5'}`}>
+          <div className="flex items-center gap-2">
+            <Calendar size={14} className={overdue ? 'text-red-500' : subTextColor} />
+            <span className={`text-xs font-bold ${overdue ? 'text-red-500' : headingColor}`}>
+              {task.dueDate ? formatDate(new Date(task.dueDate), 'dd.MM.yyyy') : '—'}
+            </span>
           </div>
+          {task.dueTime && (
+            <div className="flex items-center gap-2">
+              <Clock size={14} className={overdue ? 'text-red-500' : subTextColor} />
+              <span className={`text-xs font-bold ${overdue ? 'text-red-500' : headingColor}`}>
+                {task.dueTime}
+              </span>
+            </div>
+          )}
         </div>
+
+        {/* Timer */}
+        {task.dueDate && task.dueTime && (
+          <div className={`flex items-center justify-between p-2 rounded-xl ${overdue ? 'bg-red-500/10' : 'bg-emerald-500/5'} border ${overdue ? 'border-red-500/20' : 'border-emerald-500/20'}`}>
+            <div className="flex items-center gap-2">
+              {overdue ? <AlertTriangle size={14} className="text-red-500" /> : <Clock size={14} className="text-emerald-400" />}
+              <span className={`text-[10px] uppercase font-bold tracking-wider ${overdue ? 'text-red-500' : 'text-emerald-400'}`}>
+                {overdue ? 'Просрочено' : 'До дедлайна'}
+              </span>
+            </div>
+            <span className={`text-xs font-mono font-bold ${overdue ? 'text-red-500' : 'text-emerald-400'}`}>
+              <CountdownTimer deadline={`${task.dueDate}T${task.dueTime}`} />
+            </span>
+          </div>
+        )}
       </div>
-    </>
+    </div>
   )
 }
