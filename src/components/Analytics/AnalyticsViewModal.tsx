@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useThemeStore } from '@/store/themeStore'
 import { useAuthStore } from '@/store/authStore'
 import { AnalyticsReview, addOrUpdateReviewRating, updateAnalyticsReview } from '@/services/analyticsService'
-import { X, ExternalLink, Edit, Check, XCircle, Maximize2 } from 'lucide-react'
+import { X, ExternalLink, Edit, Check, XCircle, Maximize2, RotateCcw } from 'lucide-react'
 import { SlotCategory } from '@/types'
 import { format, parseISO } from 'date-fns'
 import { SLOT_CATEGORY_META } from '@/types'
@@ -19,9 +19,10 @@ interface AnalyticsViewModalProps {
     review: AnalyticsReview | null
     onEditFromView: (review: AnalyticsReview) => void
     onRatingSuccess: (reviewId: string) => void
+    onReviewUpdated: (reviewId: string) => void
 }
 
-export const AnalyticsViewModal = ({ isOpen, onClose, review, onEditFromView, onRatingSuccess }: AnalyticsViewModalProps) => {
+export const AnalyticsViewModal = ({ isOpen, onClose, review, onEditFromView, onRatingSuccess, onReviewUpdated }: AnalyticsViewModalProps) => {
     const { theme } = useThemeStore()
     const { user } = useAuthStore()
     const { isAdmin } = useAdminStore()
@@ -62,7 +63,6 @@ export const AnalyticsViewModal = ({ isOpen, onClose, review, onEditFromView, on
 
     const canReopenReview = (currentReview: AnalyticsReview) => {
         // Переоткрыть разбор может только администратор
-        console.log('canReopenReview check:', { closed: currentReview.closed, isAdmin })
         return currentReview.closed && isAdmin
     }
 
@@ -76,7 +76,7 @@ export const AnalyticsViewModal = ({ isOpen, onClose, review, onEditFromView, on
                     outcome: outcome
                 })
                 console.log('Разбор успешно закрыт!')
-                onClose()
+                onReviewUpdated(review.id)
             } catch (error) {
                 console.error('Ошибка при закрытии разбора:', error)
             }
@@ -93,7 +93,7 @@ export const AnalyticsViewModal = ({ isOpen, onClose, review, onEditFromView, on
                     outcome: undefined
                 })
                 console.log('Разбор успешно переоткрыт!')
-                onClose()
+                onReviewUpdated(review.id)
             } catch (error) {
                 console.error('Ошибка при переоткрытии разбора:', error)
             }
@@ -108,7 +108,7 @@ export const AnalyticsViewModal = ({ isOpen, onClose, review, onEditFromView, on
                     outcome: newOutcome
                 })
                 console.log('Результат успешно изменен!')
-                onClose()
+                onReviewUpdated(review.id)
             } catch (error) {
                 console.error('Ошибка при изменении результата:', error)
             }
@@ -142,7 +142,7 @@ export const AnalyticsViewModal = ({ isOpen, onClose, review, onEditFromView, on
                         )}
                         {isClosed && (
                             <span className={`text-xs font-black px-2 py-1 rounded-lg ${review.outcome === 'success' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
-                                {review.outcome === 'success' ? '✓ Удачно' : '✗ Неудачно'}
+                                {review.outcome === 'success' ? '✓ Удачный' : '✗ Неудачный'}
                             </span>
                         )}
                     </div>
@@ -186,7 +186,7 @@ export const AnalyticsViewModal = ({ isOpen, onClose, review, onEditFromView, on
                                     className="p-2 hover:bg-blue-500/20 rounded-xl transition-colors"
                                     title="Переоткрыть разбор"
                                 >
-                                    <ExternalLink className="w-5 h-5 text-blue-500" />
+                                    <RotateCcw className="w-5 h-5 text-blue-500" />
                                 </button>
                             </>
                         )}
@@ -206,14 +206,14 @@ export const AnalyticsViewModal = ({ isOpen, onClose, review, onEditFromView, on
                 </div>
 
                 <div className="p-6 space-y-4 max-h-[calc(100vh-200px)] overflow-y-auto custom-scrollbar">
-                    {/* Скриншот */}
+                    {/* Скриншот - полный, но уменьшенный */}
                     {review.screenshot && (
                         <div className="space-y-1.5">
                             <div className="relative group cursor-pointer" onClick={() => setScreenshotModalOpen(true)}>
                                 <img
                                     src={review.screenshot}
                                     alt="Screenshot"
-                                    className="w-full h-48 object-cover rounded-xl border border-white/10"
+                                    className="w-full h-64 object-contain rounded-xl border border-white/10 bg-black/20"
                                 />
                                 <div className="absolute inset-0 bg-black/50 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                                     <Maximize2 className="w-8 h-8 text-white" />
@@ -272,12 +272,12 @@ export const AnalyticsViewModal = ({ isOpen, onClose, review, onEditFromView, on
                     {/* Статус и дедлайн */}
                     {isClosed && review.closedAt ? (
                         <div className="space-y-1.5">
-                            <label className={`text-[10px] font-black uppercase tracking-widest ${review.outcome === 'success' ? 'text-green-500' : 'text-red-500'}`}>
+                            <label className={`text-[10px] uppercase font-bold tracking-widest ${review.outcome === 'success' ? 'text-green-500' : 'text-red-500'}`}>
                                 Неактуален
                             </label>
                             <div className={`px-4 py-3 rounded-xl border border-white/10 ${review.outcome === 'success' ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'}`}>
                                 <div className="font-bold">
-                                    {review.outcome === 'success' ? '✓ Удачно' : '✗ Неудачно'}
+                                    {review.outcome === 'success' ? '✓ Удачный' : '✗ Неудачный'}
                                 </div>
                                 <div className="text-sm mt-1">
                                     Закрыт: {formatDate(new Date(review.closedAt), 'dd.MM.yyyy HH:mm')}

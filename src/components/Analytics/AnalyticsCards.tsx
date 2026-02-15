@@ -4,7 +4,7 @@ import { useAdminStore } from '@/store/adminStore'
 import { useAuthStore } from '@/store/authStore'
 import { AnalyticsReview, deleteAnalyticsReview, updateAnalyticsReview } from '@/services/analyticsService'
 import { UserNickname } from '@/components/UserNickname'
-import { Edit, Trash2, Share, X, Check, XCircle, Maximize2, RotateCcw } from 'lucide-react'
+import { Edit, Trash2, Share, X, Check, XCircle, RotateCcw, Image as ImageIcon } from 'lucide-react'
 import { formatDate } from '@/utils/dateUtils'
 import { SLOT_CATEGORY_META, SlotCategory } from '@/types'
 import Avatar from '@/components/Avatar'
@@ -203,6 +203,18 @@ export const AnalyticsCards = ({ reviews, isArchive, onEdit, onView }: Analytics
                                             </button>
                                         </>
                                     )}
+                                    {review.screenshot && (
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation()
+                                                setScreenshotModal(review.screenshot!)
+                                            }}
+                                            className="p-1.5 rounded-lg text-gray-400 hover:bg-white/10 transition-all"
+                                            title="Открыть скриншот"
+                                        >
+                                            <ImageIcon className="w-4 h-4" />
+                                        </button>
+                                    )}
                                     {canEdit(review) && (
                                         <button
                                             onClick={(e) => { e.stopPropagation(); onEdit(review) }}
@@ -229,19 +241,6 @@ export const AnalyticsCards = ({ reviews, isArchive, onEdit, onView }: Analytics
                                     {review.sphere.map((s, _) => SLOT_CATEGORY_META[s as SlotCategory]?.label || s).join(', ')}
                                 </span>
                             </div>
-
-                            {review.screenshot && (
-                                <div className="mb-3 relative group cursor-pointer" onClick={() => setScreenshotModal(review.screenshot!)}>
-                                    <img
-                                        src={review.screenshot}
-                                        alt="Screenshot"
-                                        className="w-full h-32 object-cover rounded-xl border border-white/10"
-                                    />
-                                    <div className="absolute inset-0 bg-black/50 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                        <Maximize2 className="w-6 h-6 text-white" />
-                                    </div>
-                                </div>
-                            )}
 
                             {review.asset && (
                                 <div className="mb-3 flex items-center justify-between">
