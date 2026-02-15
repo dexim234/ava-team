@@ -277,7 +277,7 @@ export const Analytics = () => {
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                     <div className="flex-1">
                         <h1 className={`flex items-center gap-2 text-2xl md:text-3xl font-black tracking-tight ${headingColor}`}>
-                            <span className={theme === 'dark' ? 'text-emerald-400' : 'text-emerald-500'}>
+                            <span className="text-[#4C7F6E]">
                                 {CATEGORY_ICONS.all}
                             </span>
                             LAB
@@ -298,16 +298,13 @@ export const Analytics = () => {
                                 placeholder="Поиск"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className={`w-full pl-9 pr-3 py-2 rounded-xl border outline-none transition-all ${theme === 'dark' ? 'bg-white/5 border-white/10 text-white focus:border-emerald-500/50' : 'bg-gray-50 border-gray-200 text-gray-900 focus:border-emerald-500/30'}`}
+                                className={`w-full pl-9 pr-3 py-2 rounded-xl border outline-none transition-all ${theme === 'dark' ? 'bg-white/5 border-white/10 text-white focus:border-[#4C7F6E]/50' : 'bg-gray-50 border-gray-200 text-gray-900 focus:border-[#4C7F6E]/30'}`}
                             />
                             <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} />
                         </div>
                         <button
                             onClick={openModal}
-                            className={`flex items-center justify-center w-10 h-10 rounded-xl font-medium transition-all ${theme === 'dark'
-                                ? 'bg-emerald-600 hover:bg-emerald-500 text-white'
-                                : 'bg-emerald-500 hover:bg-emerald-600 text-white'
-                            }`}
+                            className="flex items-center justify-center w-10 h-10 rounded-xl font-medium transition-all bg-[#4C7F6E] hover:bg-[#3d6660] text-white"
                             title="Add Review"
                         >
                             <Plus size={20} />
