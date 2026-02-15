@@ -62,6 +62,17 @@ export const Analytics = () => {
         const updatedReview = await getAnalyticsReviewById(reviewId)
         if (updatedReview) {
             setEditingReview(updatedReview)
+            // Обновляем также в списке отзывов
+            setReviews(prev => prev.map(r => r.id === reviewId ? updatedReview : r))
+        }
+    }
+
+    const handleReviewUpdated = async (reviewId: string) => {
+        const updatedReview = await getAnalyticsReviewById(reviewId)
+        if (updatedReview) {
+            setEditingReview(updatedReview)
+            // Обновляем также в списке отзывов
+            setReviews(prev => prev.map(r => r.id === reviewId ? updatedReview : r))
         }
     }
 
@@ -320,8 +331,8 @@ export const Analytics = () => {
                         className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-all ${
                             showArchive
                                 ? theme === 'dark'
-                                    ? 'bg-amber-600 hover:bg-amber-500 text-white'
-                                    : 'bg-amber-500 hover:bg-amber-600 text-white'
+                                    ? 'bg-[#4C7F6E] hover:bg-[#3d6660] text-white'
+                                    : 'bg-[#4C7F6E] hover:bg-[#3d6660] text-white'
                                 : theme === 'dark'
                                     ? 'bg-white/10 hover:bg-white/20 text-gray-300'
                                     : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
@@ -329,7 +340,7 @@ export const Analytics = () => {
                         title="Показать/скрыть архив"
                     >
                         <Archive size={18} />
-                        <span>Архив</span>
+                        <span>LAB Архив</span>
                     </button>
                 </div>
 
@@ -373,6 +384,7 @@ export const Analytics = () => {
                         review={editingReview}
                         onEditFromView={handleEditFromView}
                         onRatingSuccess={handleRatingSuccess}
+                        onReviewUpdated={handleReviewUpdated}
                     />
                 ) : (
                     <AnalyticsModal

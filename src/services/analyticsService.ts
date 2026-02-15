@@ -10,7 +10,8 @@ import {
     onSnapshot,
     where,
     getDoc, // Импортируем getDoc
-    Query, DocumentData, QueryConstraint
+    Query, DocumentData, QueryConstraint,
+    deleteField // Импортируем deleteField для удаления полей
 } from 'firebase/firestore'
 import { db } from '@/firebase/config'
 
@@ -135,8 +136,17 @@ export const addAnalyticsReview = async (review: Omit<AnalyticsReview, 'id' | 'c
 
 export const updateAnalyticsReview = async (id: string, updates: Partial<AnalyticsReview>): Promise<void> => {
     const reviewRef = doc(db, COLLECTION_NAME, id)
+
+    // Фильтруем undefined значения и заменяем их на deleteField
+    const filteredUpdates: any = { ...updates }
+    for (const key in filteredUpdates) {
+        if (filteredUpdates[key] === undefined) {
+            filteredUpdates[key] = deleteField()
+        }
+    }
+
     await updateDoc(reviewRef, {
-        ...updates,
+        ...filteredUpdates,
         updatedAt: new Date().toISOString()
     })
 }
