@@ -181,12 +181,12 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
               <div className="w-10 h-10 flex items-center justify-center">
                 <img
                   src={logo}
-                  alt="AVA - Team"
+                  alt="ARCA - Team"
                   className="w-9 h-9 object-contain rounded-xl filter drop-shadow-[0_0_8px_rgba(78,110,73,0.3)]"
                 />
               </div>
               <div className="flex flex-col whitespace-nowrap">
-                <span className="text-sm font-black tracking-widest text-[#4E6E49] dark:text-white uppercase transition-opacity duration-300">AVA - Team</span>
+                <span className="text-sm font-black tracking-widest text-[#4E6E49] dark:text-white uppercase transition-opacity duration-300">ARCA - Team</span>
               </div>
             </div>
           </div>
@@ -363,7 +363,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                 <>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-bold truncate dark:text-white">{user?.name || 'Administrator'}</p>
-                    <p className="text-[10px] text-gray-500 font-medium truncate">{user?.login || 'admin@ava-apex.io'}</p>
+                    <p className="text-[10px] text-gray-500 font-medium truncate">{user?.login || 'admin@arca-apex.io'}</p>
                   </div>
                   <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-[#4E6E49] transition-colors" />
                 </>
@@ -422,11 +422,11 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
             <div className="w-8 h-8 flex items-center justify-center">
               <img
                 src={logo}
-                alt="AVA - Team"
+                alt="ARCA - Team"
                 className="w-7 h-7 object-contain rounded-xl filter drop-shadow-[0_0_8px_rgba(78,110,73,0.3)]"
               />
             </div>
-            <span className={`text-sm font-black tracking-widest uppercase ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>AVA - Team</span>
+            <span className={`text-sm font-black tracking-widest uppercase ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>ARCA - Team</span>
           </div>
           <button
             onClick={() => setIsMobileMenuOpen(true)}
@@ -447,7 +447,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                 <div className="w-8 h-8 flex items-center justify-center">
                   <img
                     src={logo}
-                    alt="AVA - Team"
+                    alt="ARCA - Team"
                     className="w-7 h-7 object-contain rounded-xl"
                   />
                 </div>

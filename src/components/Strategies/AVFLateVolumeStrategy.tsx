@@ -90,9 +90,9 @@ export const AVALateVolumeStrategy: React.FC = () => {
                         <BarChart3 className={`w-12 h-12 ${theme === 'dark' ? 'text-blue-400' : 'text-blue-500'}`} />
                     </div>
                     <div className="flex-1 space-y-4">
-                        <h2 className={`text-2xl md:text-3xl font-black ${headingColor}`}>AVA Late Volume</h2>
+                        <h2 className={`text-2xl md:text-3xl font-black ${headingColor}`}>ARCA Late Volume</h2>
                         <p className={`text-lg leading-relaxed ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
-                            AVA Late Volume — это контекстная торговая стратегия, ориентированная на инструменты, которые уже реализовали основной импульс, но сохраняют повышенное внимание рынка. Стратегия допускает и структурно предусматривает глубокую временную просадку с последующим набором при сохранении ключевых рыночных метрик.
+                            ARCA Late Volume — это контекстная торговая стратегия, ориентированная на инструменты, которые уже реализовали основной импульс, но сохраняют повышенное внимание рынка. Стратегия допускает и структурно предусматривает глубокую временную просадку с последующим набором при сохранении ключевых рыночных метрик.
                         </p>
                         <div className={`flex flex-wrap gap-4 pt-2`}>
                             <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold ${theme === 'dark' ? 'bg-white/5 text-gray-400 border border-white/10' : 'bg-gray-100 text-gray-600 border border-gray-200'

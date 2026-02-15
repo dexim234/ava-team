@@ -101,7 +101,7 @@ export const PropTradingStrategies: React.FC = () => {
             icon: <ShieldCheck className="w-5 h-5" />,
             answer: (
                 <div className="space-y-3">
-                    <p>Зависит от модели, мы в AVA используем только <strong>онлайн-проп</strong>:</p>
+                    <p>Зависит от модели, мы в ARCA используем только <strong>онлайн-проп</strong>:</p>
                     <ul className="space-y-2 list-none">
                         <li className="flex items-start gap-2">
                             <CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5" />
@@ -312,7 +312,7 @@ export const PropTradingStrategies: React.FC = () => {
                     Часто задаваемые вопросы
                 </h2>
                 <p className={`text-sm max-w-2xl mx-auto ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                    Разбираемся в особенностях проп-трейдинга, правилах управления капиталом и механике челленджа в AVA.
+                    Разбираемся в особенностях проп-трейдинга, правилах управления капиталом и механике челленджа в ARCA.
                 </p>
             </header>
 

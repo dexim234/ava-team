@@ -326,7 +326,7 @@ export const MobileBlockScreen = () => {
             Временно скрыть окно (для тестирования)
           </button>
           <div className="text-xs text-gray-500 dark:text-gray-500 text-center">
-            AVA — Team
+            ARCA — Team
           </div>
         </div>
       </div>

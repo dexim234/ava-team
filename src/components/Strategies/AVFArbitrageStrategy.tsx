@@ -91,7 +91,7 @@ export const AVAArbitrageStrategy: React.FC = () => {
                         <Calculator className={`w-12 h-12 ${theme === 'dark' ? 'text-rose-400' : 'text-rose-500'}`} />
                     </div>
                     <div className="flex-1 space-y-4">
-                        <h2 className={`text-2xl md:text-3xl font-black ${headingColor}`}>AVA — Арбитраж</h2>
+                        <h2 className={`text-2xl md:text-3xl font-black ${headingColor}`}>ARCA — Арбитраж</h2>
                         <p className={`text-lg leading-relaxed ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
                             Чистая математика на прогнозных рынках. Стратегия без прогнозов, без веры в исход и без субъективного анализа. Мы зарабатываем исключительно на ценовых дисбалансах между позициями YES и NO в одном и том же маркете.
                         </p>
@@ -459,7 +459,7 @@ export const AVAArbitrageStrategy: React.FC = () => {
                     <div className="space-y-2">
                         <h4 className={`text-lg font-black ${headingColor}`}>Итоговая логика стратегии</h4>
                         <p className={`text-sm leading-relaxed ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                            AVA Арбитраж — это не ставка на исход, а эксплуатация математической неэффективности рынка. Вы не угадываете будущее — вы фиксируете гарантированную разницу между текущей ценой и финальным результатом. Единственный риск — ошибка в исполнении.
+                            ARCA Арбитраж — это не ставка на исход, а эксплуатация математической неэффективности рынка. Вы не угадываете будущее — вы фиксируете гарантированную разницу между текущей ценой и финальным результатом. Единственный риск — ошибка в исполнении.
                         </p>
                     </div>
                 </div>

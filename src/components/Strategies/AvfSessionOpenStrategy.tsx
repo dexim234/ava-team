@@ -91,7 +91,7 @@ export const AvfSessionOpenStrategy: React.FC = () => {
                         <Sunrise className={`w-12 h-12 ${theme === 'dark' ? 'text-blue-400' : 'text-blue-500'}`} />
                     </div>
                     <div className="flex-1 space-y-4">
-                        <h2 className={`text-2xl md:text-3xl font-black ${headingColor}`}>AVA — Session Open</h2>
+                        <h2 className={`text-2xl md:text-3xl font-black ${headingColor}`}>ARCA — Session Open</h2>
                         <p className={`text-lg leading-relaxed ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
                             Торговля первых минут активной фазы рынка, когда в стакан заходят основные объёмы. Это не стратегия «весь день в рынке». Это стратегия чёткого окна, в котором мы либо зарабатываем, либо закрываем терминал.
                         </p>

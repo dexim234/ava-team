@@ -91,7 +91,7 @@ export const AvfMeanReversionStrategy: React.FC = () => {
                         <ArrowDownUp className={`w-12 h-12 ${theme === 'dark' ? 'text-blue-400' : 'text-blue-500'}`} />
                     </div>
                     <div className="flex-1 space-y-4">
-                        <h2 className={`text-2xl md:text-3xl font-black ${headingColor}`}>AVA — Mean Reversion</h2>
+                        <h2 className={`text-2xl md:text-3xl font-black ${headingColor}`}>ARCA — Mean Reversion</h2>
                         <p className={`text-lg leading-relaxed ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
                             Контртрендовая работа. Самая коварная и одновременно самая «денежная», если применять её строго по условиям. Эта стратегия не про героизм и не про угадывание разворотов. Мы используем её только там, где рынок сам зашёл слишком далеко и начинает выдыхаться.
                         </p>

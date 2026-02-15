@@ -71,12 +71,12 @@ export const MemecoinStrategies: React.FC = () => {
     }, [user, isAdmin])
 
     const strategies = [
-        { id: 'late-volume', name: 'AVA Late Volume', icon: <BarChart className="w-4 h-4" /> },
-        { id: 'intraday', name: 'AVA Intraday', icon: <Zap className="w-4 h-4" /> },
-        { id: 'flip', name: 'AVA FLIP-1S', icon: <Timer className="w-4 h-4" /> },
-        { id: 'flip-fiba', name: 'AVA FLIP + FIBA', icon: <Zap className="w-4 h-4" /> },
-        { id: 'fiba-mode', name: 'AVA - FIBA MODE', icon: <Layers className="w-4 h-4" /> },
-        { id: 'copy-trading-ao', name: 'AVA — Copy Trading AO', icon: <Users className="w-4 h-4" /> }, // Новая стратегия
+        { id: 'late-volume', name: 'ARCA Late Volume', icon: <BarChart className="w-4 h-4" /> },
+        { id: 'intraday', name: 'ARCA Intraday', icon: <Zap className="w-4 h-4" /> },
+        { id: 'flip', name: 'ARCA FLIP-1S', icon: <Timer className="w-4 h-4" /> },
+        { id: 'flip-fiba', name: 'ARCA FLIP + FIBA', icon: <Zap className="w-4 h-4" /> },
+        { id: 'fiba-mode', name: 'ARCA - FIBA MODE', icon: <Layers className="w-4 h-4" /> },
+        { id: 'copy-trading-ao', name: 'ARCA — Copy Trading AO', icon: <Users className="w-4 h-4" /> }, // Новая стратегия
     ]
 
     if (loading) {

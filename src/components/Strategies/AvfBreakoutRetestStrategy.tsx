@@ -94,7 +94,7 @@ export const AvfBreakoutRetestStrategy: React.FC = () => {
                         <RefreshCw className={`w-12 h-12 ${theme === 'dark' ? 'text-blue-400' : 'text-blue-500'}`} />
                     </div>
                     <div className="flex-1 space-y-4">
-                        <h2 className={`text-2xl md:text-3xl font-black ${headingColor}`}>AVA — Пробой с возвратом</h2>
+                        <h2 className={`text-2xl md:text-3xl font-black ${headingColor}`}>ARCA — Пробой с возвратом</h2>
                         <p className={`text-lg leading-relaxed ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
                             Работаем не на сам пробой, а на подтверждение того, что рынок действительно выбрал направление. Эта стратегия хорошо дополняет тренд-фолловинг.
                         </p>

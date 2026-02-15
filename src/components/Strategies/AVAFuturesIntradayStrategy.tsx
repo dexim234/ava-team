@@ -97,7 +97,7 @@ export const AVAFuturesIntradayStrategy: React.FC = () => {
                         <Clock className={`w-12 h-12 ${theme === 'dark' ? 'text-indigo-400' : 'text-indigo-500'}`} />
                     </div>
                     <div className="flex-1 space-y-4">
-                        <h2 className={`text-2xl md:text-3xl font-black ${headingColor}`}>AVA - Intraday</h2>
+                        <h2 className={`text-2xl md:text-3xl font-black ${headingColor}`}>ARCA - Intraday</h2>
                         <p className={`text-lg leading-relaxed ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
                             Интрадей — это стиль торговли, при котором все сделки открываются и закрываются в течение одного торгового дня. Позиции не переносятся на следующий день, чтобы избежать ночных рисков, гэпов и неожиданных новостей.
                         </p>

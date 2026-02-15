@@ -41,43 +41,43 @@ export const FuturesStrategies: React.FC = () => {
     const strategies = [
         {
             id: 'trend-following' as StrategyId,
-            name: 'AVA тренд-фолловинг',
+            name: 'ARCA тренд-фолловинг',
             icon: <TrendingUp className="w-4 h-4" />,
             desc: 'Торговля по тренду. Самая базовая логика из тех, что стабильно работают.'
         },
         {
             id: 'breakout-retest' as StrategyId,
-            name: 'AVA пробой с возвратом',
+            name: 'ARCA пробой с возвратом',
             icon: <RefreshCw className="w-4 h-4" />,
             desc: 'Работаем не на сам пробой, а на подтверждение того, что рынок действительно выбрал направление.'
         },
         {
             id: 'mean-reversion' as StrategyId,
-            name: 'AVA - Mean Reversion',
+            name: 'ARCA - Mean Reversion',
             icon: <ArrowDownUp className="w-4 h-4" />,
             desc: 'Контртрендовая работа. Самая коварная и одновременно самая «денежная», если применять её строго по условиям.'
         },
         {
             id: 'session-open' as StrategyId,
-            name: 'AVA - Session Open',
+            name: 'ARCA - Session Open',
             icon: <Sunrise className="w-4 h-4" />,
             desc: 'Торговля первых минут активной фазы рынка, когда в стакан заходят основные объёмы.'
         },
         {
             id: 'event-trading' as StrategyId,
-            name: 'AVA - Event Trading',
+            name: 'ARCA - Event Trading',
             icon: <Megaphone className="w-4 h-4" />,
             desc: 'Это стратегия для особых случаев. Мы её используем только тогда, когда есть крупный катализатор.'
         },
         {
             id: 'scalping' as StrategyId,
-            name: 'AVA - Scalping',
+            name: 'ARCA - Scalping',
             icon: <Gauge className="w-4 h-4" />,
             desc: 'Суть скальпинга — ловить микродвижения на графике 1–5 минут. Мы берём маленькие профиты много раз в течение дня.'
         },
         {
             id: 'intraday-futures' as StrategyId,
-            name: 'AVA - Intraday',
+            name: 'ARCA - Intraday',
             icon: <Zap className="w-4 h-4" />,
             desc: 'Все сделки открываются и закрываются в течение одного торгового дня, чтобы избежать ночных рисков, гэпов и неожиданных новостей.'
         },

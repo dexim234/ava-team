@@ -126,7 +126,7 @@ export const AccessBlockScreen = () => {
         </div>
 
         <div className="mt-6 text-xs text-gray-500 dark:text-gray-500">
-          AVA — Team
+          ARCA — Team
         </div>
       </div>
     </div>
