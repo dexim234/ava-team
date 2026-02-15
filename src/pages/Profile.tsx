@@ -34,6 +34,12 @@ import {
   Users,
   AlertTriangle,
   Lightbulb,
+  Copy,
+  Check,
+  User as UserIcon,
+  Key,
+  Smartphone,
+  Lock,
 } from 'lucide-react'
 import { useNavigate, Link } from 'react-router-dom'
 import { TEAM_MEMBERS } from '@/types'
@@ -46,6 +52,7 @@ export const Profile = () => {
   const { isViewingOtherUser } = useViewedUserStore()
   const effectiveUserId = useEffectiveUserId()
   const navigate = useNavigate()
+  const [copiedField, setCopiedField] = useState<string | null>(null)
 
   // Use effective user ID (viewed user or current user)
   const targetUserId = effectiveUserId || user?.id || 'admin'
@@ -68,6 +75,12 @@ export const Profile = () => {
   const profileInitial = userData?.name ? userData.name.charAt(0).toUpperCase() : 'A'
 
   const headingColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
+
+  const copyToClipboard = (text: string, field: string) => {
+    navigator.clipboard.writeText(text)
+    setCopiedField(field)
+    setTimeout(() => setCopiedField(null), 2000)
+  }
 
   useEffect(() => {
     if (user || isAdmin) {
@@ -296,6 +309,58 @@ export const Profile = () => {
             </button>
           </div>
         </div>
+
+        {/* Account Credentials Card */}
+        {userData && (userData.login || userData.password || userData.phone || userData.recoveryCode) && (
+          <div className={`rounded-2xl p-6 border ${theme === 'dark' ? 'border-white/5 bg-[#1a1a1a]' : 'border-gray-200 bg-white'} shadow`}>
+            <div className="flex items-center gap-3 mb-5">
+              <div className={`p-2.5 rounded-xl ${theme === 'dark' ? 'bg-white/5 text-white' : 'bg-gray-100 text-gray-900'}`}>
+                <Lock className="w-5 h-5" />
+              </div>
+              <div>
+                <h2 className={`text-sm font-black uppercase tracking-widest ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Учетные данные</h2>
+                <p className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`}>Ваши данные для доступа к системе</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {[
+                { label: 'Логин', value: userData.login || '—', icon: UserIcon, id: 'login' },
+                { label: 'Пароль', value: userData.password || '—', icon: Key, id: 'password' },
+                { label: 'Телефон', value: userData.phone || '—', icon: Smartphone, id: 'phone' },
+                { label: 'Код восстановления', value: userData.recoveryCode || '—', icon: Lock, id: 'code' }
+              ].map((field) => (
+                <div
+                  key={field.id}
+                  onClick={() => copyToClipboard(field.value, field.id)}
+                  className={`group relative p-4 rounded-xl border transition-all duration-300 cursor-pointer ${theme === 'dark'
+                    ? 'bg-white/[0.03] border-white/10 hover:border-white/20 hover:bg-white/[0.05]'
+                    : 'bg-white border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                    }`}
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className={`p-2 rounded-lg shrink-0 ${theme === 'dark' ? 'bg-white/5 text-gray-400' : 'bg-gray-100 text-gray-600'}`}>
+                        <field.icon className="w-4 h-4" />
+                      </div>
+                      <div className="text-left min-w-0">
+                        <span className={`text-[9px] font-black uppercase tracking-wider block mb-0.5 ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
+                          {field.label}
+                        </span>
+                        <p className={`text-sm font-bold truncate ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                          {field.value}
+                        </p>
+                      </div>
+                    </div>
+                    <div className={`p-2 rounded-lg transition-all duration-300 ${copiedField === field.id ? 'bg-gray-900 text-white' : 'bg-transparent text-gray-400 group-hover:text-gray-600'}`}>
+                      {copiedField === field.id ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
