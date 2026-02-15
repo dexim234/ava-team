@@ -39,8 +39,8 @@ export const PolymarketStrategies: React.FC = () => {
     const mutedText = theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
 
     const strategies = [
-        { id: 'value-betting', name: 'AVA Value Betting', icon: <Target className="w-4 h-4" /> },
-        { id: 'arbitrage', name: 'AVA Арбитраж', icon: <Calculator className="w-4 h-4" /> },
+        { id: 'value-betting', name: 'ARCA Value Betting', icon: <Target className="w-4 h-4" /> },
+        { id: 'arbitrage', name: 'ARCA Арбитраж', icon: <Calculator className="w-4 h-4" /> },
     ]
 
     const tools: Tool[] = [

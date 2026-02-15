@@ -39,9 +39,9 @@ export const NftStrategies: React.FC = () => {
     const [activeStrategy, setActiveStrategy] = useState<StrategyId>(null)
 
     const strategies = [
-        { id: 'nft-sniping' as StrategyId, name: 'AVA снайпинг NFT', icon: <Target className="w-4 h-4" />, desc: 'Покупка NFT ниже текущей рыночной цены (флора) с целью быстрой перепродажи.' },
-        { id: 'nft-mint-flip' as StrategyId, name: 'AVA Mint → Flip', icon: <Flame className="w-4 h-4" />, desc: 'Покупка на первичном рынке (минт) и перепродажа на хайпе запуска.' },
-        { id: 'nft-narrative' as StrategyId, name: 'AVA торговля NFT на нарративах', icon: <MessageSquare className="w-4 h-4" />, desc: 'Работа с темами, в которые рынок начинает верить. Покупка раньше, продажа на массовом внимании.' },
+        { id: 'nft-sniping' as StrategyId, name: 'ARCA снайпинг NFT', icon: <Target className="w-4 h-4" />, desc: 'Покупка NFT ниже текущей рыночной цены (флора) с целью быстрой перепродажи.' },
+        { id: 'nft-mint-flip' as StrategyId, name: 'ARCA Mint → Flip', icon: <Flame className="w-4 h-4" />, desc: 'Покупка на первичном рынке (минт) и перепродажа на хайпе запуска.' },
+        { id: 'nft-narrative' as StrategyId, name: 'ARCA торговля NFT на нарративах', icon: <MessageSquare className="w-4 h-4" />, desc: 'Работа с темами, в которые рынок начинает верить. Покупка раньше, продажа на массовом внимании.' },
         { id: 'twitter-checklist' as StrategyId, name: 'Чек-лист: Smart Twitter', icon: <Twitter className="w-4 h-4" />, desc: 'Как отличить «умный» аккаунт в Twitter (X) от маркетингового шума. 5–6 совпадений — аккаунт стоит внимания.' },
     ]
 
