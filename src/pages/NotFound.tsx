@@ -34,7 +34,7 @@ export const NotFound = () => {
                         <Home className="w-5 h-5 text-black" />
                     </div>
                     <span className="text-xl font-black tracking-tighter uppercase whitespace-nowrap">
-                        AVA <span className="text-[#10b981]">TEAM</span>
+                        ARCA <span className="text-[#10b981]">TEAM</span>
                     </span>
                 </div>
             </header>
@@ -65,7 +65,7 @@ export const NotFound = () => {
                             <div className="relative z-20 w-[85%] h-[85%] rounded-full overflow-hidden border border-[#10b981]/10 backdrop-blur-[2px]">
                                 <img
                                     src={mascotImg}
-                                    alt="AVA - Team Mascot"
+                                    alt="ARCA - Team Mascot"
                                     className="w-full h-full object-cover transition-all duration-700 hover:scale-110"
                                     style={{
                                         maskImage: 'radial-gradient(circle, black 65%, transparent 95%)',

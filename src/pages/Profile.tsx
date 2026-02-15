@@ -272,7 +272,7 @@ export const Profile = () => {
               </div>
               <h1 className={`text-2xl md:text-4xl font-black tracking-tight ${headingColor}`}>{isViewingOtherUser() ? viewedUserMember?.name || 'Пользователь' : userData.name}</h1>
               <p className={`text-sm font-medium ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                AVA - Team — Личный кабинет. Ваши данные и показатели.
+                ARCA - Team — Личный кабинет. Ваши данные и показатели.
               </p>
             </div>
           </div>

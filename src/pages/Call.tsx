@@ -132,7 +132,7 @@ export const CallPage = () => {
   const [traderFilter, setTraderFilter] = useState<'all' | string>('all')
 
   // Access Control Hooks
-  const pageAccess = useAccessControl('ava_hub')
+  const pageAccess = useAccessControl('arca_hub')
   const addSignalAccess = useAccessControl('hub_signals_add')
 
   // Category-specific access
@@ -345,7 +345,7 @@ export const CallPage = () => {
     return (
       <div className="py-20 text-center space-y-4">
         <Lock className="w-16 h-16 text-gray-700 mx-auto opacity-20" />
-        <h3 className={`text-xl font-black ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Доступ к AVA — HUB ограничен</h3>
+        <h3 className={`text-xl font-black ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Доступ к ARCA — HUB ограничен</h3>
         <p className="text-gray-500 max-w-md mx-auto">{pageAccess.reason || 'У вас нет доступа к сигналам.'}</p>
       </div>
     )

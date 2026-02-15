@@ -60,7 +60,7 @@ export const Management = () => {
   })
 
   // Access Control Hooks
-  const pageAccess = useAccessControl('ava_schedule')
+  const pageAccess = useAccessControl('arca_schedule')
   const statsAccess = useAccessControl('schedule_stats_view')
   const addSlotAccess = useAccessControl('schedule_add_slot')
   const statusEditAccess = useAccessControl('schedule_status_edit')
@@ -483,7 +483,7 @@ export const Management = () => {
                 Lead
               </h1>
               <p className={`text-sm font-medium ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                Управление сменами и активностью AVA - Team
+                Управление сменами и активностью ARCA - Team
               </p>
             </div>
           </div>
