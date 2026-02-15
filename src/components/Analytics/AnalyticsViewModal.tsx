@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { useThemeStore } from '@/store/themeStore'
 import { useAuthStore } from '@/store/authStore'
-import { AnalyticsReview, addOrUpdateReviewRating } from '@/services/analyticsService'
-import { X, ExternalLink, Edit, Camera } from 'lucide-react'
+import { AnalyticsReview, addOrUpdateReviewRating, updateAnalyticsReview } from '@/services/analyticsService'
+import { X, ExternalLink, Edit, Camera, Check, XCircle, Maximize2 } from 'lucide-react'
 import { SlotCategory } from '@/types'
 import { format, parseISO } from 'date-fns'
 import { SLOT_CATEGORY_META } from '@/types'
@@ -26,7 +26,7 @@ export const AnalyticsViewModal = ({ isOpen, onClose, review, onEditFromView, on
     const { user } = useAuthStore()
     const { isAdmin } = useAdminStore()
     const [loading, setLoading] = useState(false)
-    const [showScreenshot, setShowScreenshot] = useState(false)
+    const [screenshotModalOpen, setScreenshotModalOpen] = useState(false)
 
     if (!isOpen || !review) return null
 
@@ -45,6 +45,8 @@ export const AnalyticsViewModal = ({ isOpen, onClose, review, onEditFromView, on
     }
 
     const canEditReview = (currentReview: AnalyticsReview) => {
+        // Если разбор закрыт, редактирование запрещено
+        if (currentReview.closed) return false
         if (isAdmin) return true
         if (user?.id !== currentReview.createdBy) return false
 
@@ -53,11 +55,34 @@ export const AnalyticsViewModal = ({ isOpen, onClose, review, onEditFromView, on
         return (now - createdAt) < 30 * 60 * 1000
     }
 
+    const canCloseReview = (currentReview: AnalyticsReview) => {
+        // Закрыть разбор может автор или администратор, только если разбор еще не закрыт
+        return !currentReview.closed && (isAdmin || user?.id === currentReview.createdBy)
+    }
+
+    const handleCloseReview = async (outcome: 'success' | 'failure') => {
+        if (!review?.id) return
+        if (confirm(`Вы уверены, что хотите закрыть разбор как ${outcome === 'success' ? 'удачный' : 'неудачный'}?`)) {
+            try {
+                await updateAnalyticsReview(review.id, {
+                    closed: true,
+                    closedAt: new Date().toISOString(),
+                    outcome: outcome
+                })
+                console.log('Разбор успешно закрыт!')
+                onClose()
+            } catch (error) {
+                console.error('Ошибка при закрытии разбора:', error)
+            }
+        }
+    }
+
     const bgColor = theme === 'dark' ? 'bg-[#0f141a]' : 'bg-white'
     const textColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
     const subTextColor = theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
 
     const userRating = review.ratings?.find(r => r.userId === user?.id)?.value || null
+    const isClosed = review.closed === true
 
     const parsedLinks = review.links?.map(link => {
         const parts = link.slice(-1) === '-' ? [link.slice(0, -1).trim()] : link.split(' - ')
@@ -77,8 +102,31 @@ export const AnalyticsViewModal = ({ isOpen, onClose, review, onEditFromView, on
                                 #{review.number}
                             </span>
                         )}
+                        {isClosed && (
+                            <span className={`text-xs font-black px-2 py-1 rounded-lg ${review.outcome === 'success' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
+                                {review.outcome === 'success' ? '✓ Удачно' : '✗ Неудачно'}
+                            </span>
+                        )}
                     </div>
                     <div className="flex items-center gap-2">
+                        {canCloseReview(review) && (
+                            <>
+                                <button
+                                    onClick={() => handleCloseReview('success')}
+                                    className="p-2 hover:bg-green-500/20 rounded-xl transition-colors"
+                                    title="Закрыть как удачный"
+                                >
+                                    <Check className="w-5 h-5 text-green-500" />
+                                </button>
+                                <button
+                                    onClick={() => handleCloseReview('failure')}
+                                    className="p-2 hover:bg-red-500/20 rounded-xl transition-colors"
+                                    title="Закрыть как неудачный"
+                                >
+                                    <XCircle className="w-5 h-5 text-red-500" />
+                                </button>
+                            </>
+                        )}
                         {canEditReview(review) && (
                             <button
                                 onClick={() => onEditFromView(review)}
@@ -99,31 +147,16 @@ export const AnalyticsViewModal = ({ isOpen, onClose, review, onEditFromView, on
                     {review.screenshot && (
                         <div className="space-y-1.5">
                             <div className={`p-4 rounded-xl border border-white/10 bg-white/5 ${textColor}`}>
-                                {showScreenshot ? (
-                                    <div className="relative">
-                                        <img
-                                            src={review.screenshot}
-                                            alt="Screenshot"
-                                            className="w-full h-auto rounded-lg"
-                                        />
-                                        <button
-                                            onClick={() => setShowScreenshot(false)}
-                                            className="absolute top-2 right-2 p-2 rounded-lg bg-black/50 text-white hover:bg-black/70 transition-colors"
-                                        >
-                                            <X className="w-4 h-4" />
-                                        </button>
-                                    </div>
-                                ) : (
-                                    <div className="flex items-center justify-center gap-3 py-8">
-                                        <Camera className={`w-6 h-6 ${subTextColor}`} />
-                                        <button
-                                            onClick={() => setShowScreenshot(true)}
-                                            className={`px-4 py-2 rounded-lg font-medium transition-colors ${theme === 'dark' ? 'bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30' : 'bg-emerald-100 text-emerald-600 hover:bg-emerald-200'}`}
-                                        >
-                                            Показать скриншот
-                                        </button>
-                                    </div>
-                                )}
+                                <div className="flex items-center justify-center gap-3 py-8">
+                                    <Camera className={`w-6 h-6 ${subTextColor}`} />
+                                    <button
+                                        onClick={() => setScreenshotModalOpen(true)}
+                                        className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${theme === 'dark' ? 'bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30' : 'bg-emerald-100 text-emerald-600 hover:bg-emerald-200'}`}
+                                    >
+                                        <Maximize2 className="w-4 h-4" />
+                                        Показать скриншот
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     )}
@@ -169,15 +202,39 @@ export const AnalyticsViewModal = ({ isOpen, onClose, review, onEditFromView, on
                         </div>
                     </div>
 
-                    {/* Дедлайн */}
-                    {review.deadline && (
+                    {/* Актив */}
+                    {review.asset && (
                         <div className="space-y-1.5">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-emerald-500">Дедлайн</label>
+                            <label className="text-[10px] font-black uppercase tracking-widest text-emerald-500">Актив</label>
+                            <div className={`px-4 py-3 rounded-xl border border-white/10 bg-white/5 ${textColor} font-bold`}>
+                                {review.asset}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Статус и дедлайн */}
+                    {isClosed && review.closedAt ? (
+                        <div className="space-y-1.5">
+                            <label className={`text-[10px] font-black uppercase tracking-widest ${review.outcome === 'success' ? 'text-green-500' : 'text-red-500'}`}>
+                                Неактуален
+                            </label>
+                            <div className={`px-4 py-3 rounded-xl border border-white/10 ${review.outcome === 'success' ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'}`}>
+                                <div className="font-bold">
+                                    {review.outcome === 'success' ? '✓ Удачно' : '✗ Неудачно'}
+                                </div>
+                                <div className="text-sm mt-1">
+                                    Закрыт: {formatDate(new Date(review.closedAt), 'dd.MM.yyyy HH:mm')}
+                                </div>
+                            </div>
+                        </div>
+                    ) : review.deadline ? (
+                        <div className="space-y-1.5">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-emerald-500">Актуален</label>
                             <div className={`px-4 py-3 rounded-xl border border-white/10 bg-white/5 ${textColor}`}>
                                 {formatDate(new Date(review.deadline), 'dd.MM.yyyy HH:mm')}
                             </div>
                         </div>
-                    )}
+                    ) : null}
 
                     {/* Актуальная цена */}
                     {review.currentPrice && (
@@ -251,6 +308,31 @@ export const AnalyticsViewModal = ({ isOpen, onClose, review, onEditFromView, on
                     </div>
                 </div>
             </div>
+
+            {/* Модальное окно для просмотра скриншота */}
+            {screenshotModalOpen && review.screenshot && (
+                <div
+                    className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm animate-in fade-in duration-200"
+                    onClick={() => setScreenshotModalOpen(false)}
+                >
+                    <div
+                        className={`relative max-w-7xl w-full max-h-[90vh] flex items-center justify-center`}
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <img
+                            src={review.screenshot}
+                            alt="Screenshot"
+                            className="max-w-full max-h-[90vh] object-contain rounded-2xl shadow-2xl"
+                        />
+                        <button
+                            onClick={() => setScreenshotModalOpen(false)}
+                            className="absolute top-4 right-4 p-3 rounded-xl bg-black/50 text-white hover:bg-black/70 transition-colors"
+                        >
+                            <X className="w-6 h-6" />
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }

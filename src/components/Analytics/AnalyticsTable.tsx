@@ -1,14 +1,14 @@
 import { useThemeStore } from '@/store/themeStore'
 import { useAdminStore } from '@/store/adminStore'
 import { useAuthStore } from '@/store/authStore'
-import { AnalyticsReview, deleteAnalyticsReview } from '@/services/analyticsService'
+import { AnalyticsReview, deleteAnalyticsReview, updateAnalyticsReview } from '@/services/analyticsService'
 import { UserNickname } from '@/components/UserNickname'
-import { Edit, Trash2, ExternalLink, Share } from 'lucide-react'
+import { Edit, Trash2, ExternalLink, Share, Check, XCircle } from 'lucide-react'
 import { formatDate } from '@/utils/dateUtils'
 import { SLOT_CATEGORY_META, SlotCategory } from '@/types'
 import { useEffect, useState } from 'react'
 import Avatar from '@/components/Avatar'
-import { RatingDisplay } from './RatingDisplay' // Импортируем RatingDisplay
+import { RatingDisplay } from './RatingDisplay'
 
 interface AnalyticsTableProps {
     reviews: AnalyticsReview[]
@@ -62,10 +62,10 @@ export const getDeadlineColor = (deadline: string) => {
     const difference = +new Date(deadline) - +new Date()
     const hours = difference / (1000 * 60 * 60)
 
-    if (hours < 24) return 'text-red-500' // less than 24 hours
-    if (hours < 48) return 'text-yellow-500' // less than 48 hours
-    if (hours < 72) return 'text-emerald-500' // less than 72 hours
-    return 'text-gray-500' // more than 72 hours
+    if (hours < 24) return 'text-red-500'
+    if (hours < 48) return 'text-yellow-500'
+    if (hours < 72) return 'text-emerald-500'
+    return 'text-gray-500'
 }
 
 export const AnalyticsTable = ({ reviews, onEdit }: AnalyticsTableProps) => {
@@ -77,7 +77,7 @@ export const AnalyticsTable = ({ reviews, onEdit }: AnalyticsTableProps) => {
     const subTextColor = theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
 
     const handleCopyLink = (reviewId: string) => {
-        const link = `${window.location.origin}/analytics?reviewId=${reviewId}`
+        const link = `${window.location.origin}/lab?reviewId=${reviewId}`
         navigator.clipboard.writeText(link)
             .then(() => {
                 console.log('Ссылка скопирована!', link)
@@ -88,12 +88,29 @@ export const AnalyticsTable = ({ reviews, onEdit }: AnalyticsTableProps) => {
     }
 
     const canEdit = (review: AnalyticsReview) => {
+        // Если разбор закрыт, редактирование запрещено
+        if (review.closed) return false
         if (isAdmin) return true
         if (user?.id !== review.createdBy) return false
 
         const createdAt = new Date(review.createdAt).getTime()
         const now = new Date().getTime()
         return (now - createdAt) < 30 * 60 * 1000
+    }
+
+    const canCloseReview = (review: AnalyticsReview) => {
+        // Закрыть разбор может автор или администратор, только если разбор еще не закрыт
+        return !review.closed && (isAdmin || user?.id === review.createdBy)
+    }
+
+    const handleCloseReview = async (review: AnalyticsReview, outcome: 'success' | 'failure') => {
+        if (confirm(`Вы уверены, что хотите закрыть разбор как ${outcome === 'success' ? 'удачный' : 'неудачный'}?`)) {
+            await updateAnalyticsReview(review.id, {
+                closed: true,
+                closedAt: new Date().toISOString(),
+                outcome: outcome
+            })
+        }
     }
 
     const handleDelete = async (id: string) => {
@@ -117,100 +134,140 @@ export const AnalyticsTable = ({ reviews, onEdit }: AnalyticsTableProps) => {
                     <thead>
                         <tr className={theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'}>
                             <th className={`p-4 text-center text-[10px] font-bold uppercase tracking-wider ${subTextColor} w-32`}>Сфера</th>
+                            <th className={`p-4 text-center text-[10px] font-bold uppercase tracking-wider ${subTextColor} w-24`}>Актив</th>
                             <th className={`p-4 text-center text-[10px] font-bold uppercase tracking-wider ${subTextColor}`}>Комментарий эксперта</th>
                             <th className={`p-4 text-center text-[10px] font-bold uppercase tracking-wider ${subTextColor}`}>Важные детали</th>
-                            <th className={`p-4 text-center text-[10px] font-bold uppercase tracking-wider ${subTextColor} w-32`}>Дата</th>
-                            <th className={`p-4 text-center text-[10px] font-bold uppercase tracking-wider ${subTextColor} w-32`}>Время</th>
+                            <th className={`p-4 text-center text-[10px] font-bold uppercase tracking-wider ${subTextColor} w-32`}>Статус</th>
                             <th className={`p-4 text-center text-[10px] font-bold uppercase tracking-wider ${subTextColor} w-24`}>Ссылки</th>
                             <th className={`p-4 text-center text-[10px] font-bold uppercase tracking-wider ${subTextColor} w-32`}>Эксперт</th>
-                            <th className={`p-4 text-center text-[10px] font-bold uppercase tracking-wider ${subTextColor} w-24`}>Оценка</th> // Добавляем столбец для оценки
+                            <th className={`p-4 text-center text-[10px] font-bold uppercase tracking-wider ${subTextColor} w-24`}>Оценка</th>
                             <th className={`p-4 text-center text-[10px] font-bold uppercase tracking-wider ${subTextColor} w-24`}>Действия</th>
                         </tr>
                     </thead>
                     <tbody className={`divide-y ${theme === 'dark' ? 'divide-white/5' : 'divide-gray-100'}`}>
-                        {reviews.map((review) => (
-                            <tr key={review.id} className="hover:bg-emerald-500/5 transition-colors group">
-                                <td className="p-4 align-top text-center">
-                                    {review.sphere.map((s, index) => (
-                                        <span key={index} className={`text-[10px] px-2 py-1 rounded-full font-bold uppercase tracking-wider border ${theme === 'dark' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-emerald-50 border-emerald-100 text-emerald-600'} ${index > 0 ? 'ml-1' : ''}`}>
-                                            {SLOT_CATEGORY_META[s as SlotCategory]?.label || s}
-                                        </span>
-                                    ))}
-                                </td>
-                                <td className={`p-4 align-top text-center text-sm font-medium ${headingColor} whitespace-pre-wrap max-w-sm`}>
-                                    {review.expertComment}
-                                </td>
-                                <td className={`p-4 align-top text-center text-sm ${subTextColor} whitespace-pre-wrap max-w-sm`}>
-                                    {review.importantDetails}
-                                </td>
-                                <td className={`p-4 align-top text-center text-xs font-bold ${review.deadline ? getDeadlineColor(review.deadline) : 'text-gray-500'}`}>
-                                    {review.deadline ? formatDate(new Date(review.deadline), 'dd.MM.yyyy') : '-'}
-                                </td>
-                                <td className={`p-4 align-top text-center text-xs font-bold ${review.deadline ? getDeadlineColor(review.deadline) : 'text-gray-500'}`}>
-                                    {review.deadline && <CountdownTimer deadline={review.deadline} />}                                </td>
-                                <td className="p-4 align-top text-center">
-                                    {review.links && review.links.length > 0 && (
-                                        <div className="flex justify-center gap-1">
-                                            {review.links.map((link, idx) => {
-                                                const parts = link.split(' - ')
-                                                const url = parts[0]
-                                                const title = parts[1] || 'Ссылка'
-                                                return (
-                                                    <a
-                                                        key={idx}
-                                                        href={url}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="p-1.5 rounded-lg bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 transition-all"
-                                                        title={title}
-                                                    >
-                                                        <ExternalLink className="w-3.5 h-3.5" />
-                                                    </a>
-                                                )
-                                            })}
+                        {reviews.map((review) => {
+                            const isClosed = review.closed === true
+                            return (
+                                <tr key={review.id} className={`hover:bg-emerald-500/5 transition-colors group ${isClosed ? 'opacity-75' : ''}`}>
+                                    <td className="p-4 align-top text-center">
+                                        {review.sphere.map((s, index) => (
+                                            <span key={index} className={`text-[10px] px-2 py-1 rounded-full font-bold uppercase tracking-wider border ${theme === 'dark' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-emerald-50 border-emerald-100 text-emerald-600'} ${index > 0 ? 'ml-1' : ''}`}>
+                                                {SLOT_CATEGORY_META[s as SlotCategory]?.label || s}
+                                            </span>
+                                        ))}
+                                    </td>
+                                    <td className={`p-4 align-top text-center text-sm font-bold ${headingColor}`}>
+                                        {review.asset || '-'}
+                                    </td>
+                                    <td className={`p-4 align-top text-center text-sm font-medium ${headingColor} whitespace-pre-wrap max-w-sm`}>
+                                        {review.expertComment}
+                                    </td>
+                                    <td className={`p-4 align-top text-center text-sm ${subTextColor} whitespace-pre-wrap max-w-sm`}>
+                                        {review.importantDetails}
+                                    </td>
+                                    <td className={`p-4 align-top text-center text-xs font-bold`}>
+                                        {isClosed && review.closedAt ? (
+                                            <div className={`flex flex-col items-center gap-1 ${review.outcome === 'success' ? 'text-green-500' : 'text-red-500'}`}>
+                                                <span className="font-bold">
+                                                    {review.outcome === 'success' ? '✓ Удачно' : '✗ Неудачно'}
+                                                </span>
+                                                <span className="text-[10px] font-medium">
+                                                    {formatDate(new Date(review.closedAt), 'dd.MM HH:mm')}
+                                                </span>
+                                            </div>
+                                        ) : review.deadline ? (
+                                            <div className="flex flex-col items-center gap-1">
+                                                <span className="text-emerald-500">Актуален</span>
+                                                <span className={getDeadlineColor(review.deadline)}>
+                                                    <CountdownTimer deadline={review.deadline} />
+                                                </span>
+                                            </div>
+                                        ) : (
+                                            <span className="text-gray-500">-</span>
+                                        )}
+                                    </td>
+                                    <td className="p-4 align-top text-center">
+                                        {review.links && review.links.length > 0 && (
+                                            <div className="flex justify-center gap-1">
+                                                {review.links.map((link, idx) => {
+                                                    const parts = link.split(' - ')
+                                                    const url = parts[0]
+                                                    const title = parts[1] || 'Ссылка'
+                                                    return (
+                                                        <a
+                                                            key={idx}
+                                                            href={url}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="p-1.5 rounded-lg bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 transition-all"
+                                                            title={title}
+                                                        >
+                                                            <ExternalLink className="w-3.5 h-3.5" />
+                                                        </a>
+                                                    )
+                                                })}
+                                            </div>
+                                        )}
+                                    </td>
+                                    <td className="p-4 align-top text-center">
+                                        <div className="flex items-center gap-2 justify-center">
+                                            <Avatar userId={review.createdBy} size="sm" />
+                                            <UserNickname userId={review.createdBy} className={`text-sm font-bold ${headingColor}`} />
                                         </div>
-                                    )}
-                                </td>
-                                <td className="p-4 align-top text-center">
-                                    <div className="flex items-center gap-2 justify-center">
-                                        <Avatar userId={review.createdBy} size="sm" />
-                                        <UserNickname userId={review.createdBy} className={`text-sm font-bold ${headingColor}`} />
-                                    </div>
-                                </td>
-                                <td className="p-4 align-top text-center">
-                                    <RatingDisplay ratings={review.ratings} theme={theme} />
-                                </td>
-                                <td className="p-4 align-top text-center">
-                                    <div className="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <button
-                                            onClick={() => handleCopyLink(review.id)}
-                                            className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 transition-all"
-                                            title="Копировать ссылку"
-                                        >
-                                            <Share className="w-3.5 h-3.5" />
-                                        </button>
-                                        {canEdit(review) && (
+                                    </td>
+                                    <td className="p-4 align-top text-center">
+                                        <RatingDisplay ratings={review.ratings} theme={theme} />
+                                    </td>
+                                    <td className="p-4 align-top text-center">
+                                        <div className="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            {canCloseReview(review) && (
+                                                <>
+                                                    <button
+                                                        onClick={() => handleCloseReview(review, 'success')}
+                                                        className="p-1.5 rounded-lg bg-green-500/10 text-green-500 hover:bg-green-500/20 transition-all"
+                                                        title="Закрыть как удачный"
+                                                    >
+                                                        <Check className="w-3.5 h-3.5" />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleCloseReview(review, 'failure')}
+                                                        className="p-1.5 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-all"
+                                                        title="Закрыть как неудачный"
+                                                    >
+                                                        <XCircle className="w-3.5 h-3.5" />
+                                                    </button>
+                                                </>
+                                            )}
                                             <button
-                                                onClick={() => onEdit(review)}
-                                                className="p-1.5 rounded-lg bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 transition-all"
-                                                title="Редактировать"
+                                                onClick={() => handleCopyLink(review.id)}
+                                                className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 transition-all"
+                                                title="Копировать ссылку"
                                             >
-                                                <Edit className="w-3.5 h-3.5" />
+                                                <Share className="w-3.5 h-3.5" />
                                             </button>
-                                        )}
-                                        {(isAdmin || user?.id === review.createdBy) && (
-                                            <button
-                                                onClick={() => handleDelete(review.id)}
-                                                className="p-1.5 rounded-lg bg-rose-500/10 text-rose-500 hover:bg-rose-500/20 transition-all"
-                                                title="Удалить"
-                                            >
-                                                <Trash2 className="w-3.5 h-3.5" />
-                                            </button>
-                                        )}
-                                    </div>
-                                </td>
-                            </tr>
-                        ))}
+                                            {canEdit(review) && (
+                                                <button
+                                                    onClick={() => onEdit(review)}
+                                                    className="p-1.5 rounded-lg bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 transition-all"
+                                                    title="Редактировать"
+                                                >
+                                                    <Edit className="w-3.5 h-3.5" />
+                                                </button>
+                                            )}
+                                            {(isAdmin || user?.id === review.createdBy) && (
+                                                <button
+                                                    onClick={() => handleDelete(review.id)}
+                                                    className="p-1.5 rounded-lg bg-rose-500/10 text-rose-500 hover:bg-rose-500/20 transition-all"
+                                                    title="Удалить"
+                                                >
+                                                    <Trash2 className="w-3.5 h-3.5" />
+                                                </button>
+                                            )}
+                                        </div>
+                                    </td>
+                                </tr>
+                            )
+                        })}
                     </tbody>
                 </table>
             </div>

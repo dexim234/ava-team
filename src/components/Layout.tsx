@@ -6,11 +6,9 @@ import { useViewedUserStore, getEffectiveUserId } from '@/store/viewedUserStore'
 import { useUserActivity } from '@/hooks/useUserActivity'
 import { checkUserAccess } from '@/services/firestoreService'
 import {
-  Calendar,
   Users,
   BookOpen,
   BarChart3,
-  Clock,
   Settings,
   Shield,
   CheckCircle2,
@@ -25,11 +23,14 @@ import {
   CheckSquare,
   TrendingUp,
   Info,
-  CalendarDays,
   ChevronRight,
   ChevronDown,
   ZapOff,
-  LogOut
+  LogOut,
+  Lightbulb,
+  Brain,
+  Calendar,
+  CalendarDays
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import logo from '@/assets/logo.png'
@@ -104,12 +105,14 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
   }, [user, isAdmin, effectiveUserId])
 
   const funcsSubItems: { path: string; label: string; icon: LucideIcon; feature?: string }[] = [
-    { path: '/call', label: 'HUB', icon: Radio, feature: 'ava_hub' },
-    { path: '/management', label: 'Lead', icon: Calendar, feature: 'ava_schedule' },
-    { path: '/earnings', label: 'Profit', icon: DollarSign, feature: 'ava_profit' },
-    { path: '/tasks', label: 'Tasks', icon: CheckSquare, feature: 'ava_tasks' },
-    { path: '/rating', label: 'Score', icon: TrendingUp, feature: 'ava_rating' },
-    { path: '/referrals', label: 'Referrals', icon: Users, feature: 'ava_referrals' },
+    { path: '/hub', label: 'HUB', icon: Radio, feature: 'ava_hub' },
+    { path: '/lab', label: 'LAB', icon: BarChart3, feature: 'tools_strategies' },
+    { path: '/lead', label: 'Lead', icon: Calendar, feature: 'ava_schedule' },
+    { path: '/pnl', label: 'P&L', icon: DollarSign, feature: 'ava_profit' },
+    { path: '/operations', label: 'Operations', icon: CheckSquare, feature: 'ava_tasks' },
+    { path: '/track-record', label: 'Track Record', icon: TrendingUp, feature: 'ava_rating' },
+    { path: '/invite-earn', label: 'Invite & Earn', icon: Users, feature: 'ava_referrals' },
+    { path: '/ai-review', label: 'AI Review', icon: Brain, feature: 'tools_strategies' },
   ]
 
   const mobileFuncSubItems = funcsSubItems.filter(item =>
@@ -118,11 +121,11 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
 
   const toolsSubItems: { path: string; label: string; icon: LucideIcon; feature: string; isDev?: boolean }[] = [
     { path: '/strategies', label: 'Contour', icon: TrendingUp, feature: 'tools_strategies' },
-    { path: '/calendar-dev', label: 'Calendar', icon: Clock, feature: 'tools_events', isDev: true },
+    { path: '/initiatives', label: 'Initiatives', icon: Lightbulb, feature: 'tools_strategies' },
+    { path: '/challenges', label: 'Challenges', icon: CheckCircle2, feature: 'tools_strategies' },
     { path: '/events', label: 'Events', icon: CalendarDays, feature: 'tools_events' },
+    { path: '/docs', label: 'Docs', icon: BookOpen, feature: 'tools_events' },
     { path: '/about', label: 'INFO', icon: Info, feature: 'ava_info' },
-    { path: '/docs', label: 'Docs', icon: BookOpen, feature: 'tools_events' }, // Docs usually uses events access or similar
-    { path: '/analytics', label: 'Analytics', icon: BarChart3, feature: 'tools_strategies' },
   ]
 
   const adminSubItems: { path: string; label: string; icon: LucideIcon }[] = [

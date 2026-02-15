@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useThemeStore } from '@/store/themeStore'
 import { useAuthStore } from '@/store/authStore'
+import { useNavigate } from 'react-router-dom'
 import { AnalyticsReview, addAnalyticsReview, updateAnalyticsReview, addOrUpdateReviewRating } from '@/services/analyticsService'
 import { X, Save, Plus, Trash2, BarChart3, ImageIcon } from 'lucide-react'
 import { SlotCategory } from '@/types'
@@ -17,6 +18,7 @@ interface AnalyticsModalProps {
     onClose: () => void
     review: AnalyticsReview | null
     sphereOptions: { id: string | null; name: string; icon: React.ReactNode }[]
+    allReviews: AnalyticsReview[]
 }
 
 interface LinkInput {
@@ -24,10 +26,12 @@ interface LinkInput {
     title: string
 }
 
-export const AnalyticsModal = ({ isOpen, onClose, review, sphereOptions }: AnalyticsModalProps) => {
+export const AnalyticsModal = ({ isOpen, onClose, review, sphereOptions, allReviews }: AnalyticsModalProps) => {
     const { theme } = useThemeStore()
     const { user } = useAuthStore()
+    const navigate = useNavigate()
     const [loading, setLoading] = useState(false)
+    const [duplicateReview, setDuplicateReview] = useState<AnalyticsReview | null>(null)
     const [formData, setFormData] = useState<Partial<AnalyticsReview>>({
         sphere: [],
         expertComment: '',
@@ -43,6 +47,47 @@ export const AnalyticsModal = ({ isOpen, onClose, review, sphereOptions }: Analy
     const [linkInputs, setLinkInputs] = useState<LinkInput[]>([])
     const [deadlineDate, setDeadlineDate] = useState('')
     const [deadlineTime, setDeadlineTime] = useState('')
+
+    // Нормализация названия актива (убираем USDT, пробелы, приводим к верхнему регистру)
+    const normalizeAsset = (asset: string): string => {
+        return asset
+            .toUpperCase()
+            .replace(/USDT/g, '')
+            .replace(/\s+/g, '')
+            .trim()
+    }
+
+    // Проверка дубликата актива
+    const checkDuplicateAsset = (assetName: string) => {
+        if (!assetName || review) {
+            setDuplicateReview(null)
+            return
+        }
+
+        const normalizedInput = normalizeAsset(assetName)
+        const now = new Date().getTime()
+
+        const duplicate = allReviews.find(r => {
+            if (!r.asset) return false
+
+            const normalizedAsset = normalizeAsset(r.asset)
+
+            // Проверяем совпадение нормализованных названий
+            if (normalizedAsset !== normalizedInput) return false
+
+            // Проверяем, что разбор актуален (не закрыт и дедлайн не истек)
+            if (r.closed) return false
+
+            if (r.deadline) {
+                const deadlineTime = new Date(r.deadline).getTime()
+                return deadlineTime > now
+            }
+
+            return true
+        })
+
+        setDuplicateReview(duplicate || null)
+    }
 
     const handleScreenshotUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0]
@@ -101,6 +146,7 @@ export const AnalyticsModal = ({ isOpen, onClose, review, sphereOptions }: Analy
                 setDeadlineDate('')
                 setDeadlineTime('')
             }
+            setDuplicateReview(null)
         } else {
             setFormData({
                 sphere: [],
@@ -118,8 +164,14 @@ export const AnalyticsModal = ({ isOpen, onClose, review, sphereOptions }: Analy
             const now = new Date()
             setDeadlineDate(format(now, 'yyyy-MM-dd'))
             setDeadlineTime(format(now, 'HH:mm'))
+            setDuplicateReview(null)
         }
     }, [review, isOpen])
+
+    // Проверка дубликата при изменении актива
+    useEffect(() => {
+        checkDuplicateAsset(formData.asset || '')
+    }, [formData.asset, allReviews])
 
     if (!isOpen) return null
 
@@ -276,6 +328,34 @@ export const AnalyticsModal = ({ isOpen, onClose, review, sphereOptions }: Analy
                                 onChange={(e) => setFormData({ ...formData, asset: e.target.value })}
                                 className={`w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-emerald-500 outline-none transition-all ${inputBg} ${textColor}`}
                             />
+                            {duplicateReview && (
+                                <div className={`mt-2 p-3 rounded-xl border ${theme === 'dark' ? 'bg-amber-500/10 border-amber-500/20' : 'bg-amber-50 border-amber-200'}`}>
+                                    <div className="flex items-start gap-2">
+                                        <div className={`text-lg ${theme === 'dark' ? 'text-amber-400' : 'text-amber-600'}`}>⚠️</div>
+                                        <div className="flex-1">
+                                            <p className={`text-sm font-bold ${theme === 'dark' ? 'text-amber-400' : 'text-amber-700'}`}>
+                                                Разбор найден в LAB
+                                            </p>
+                                            <p className={`text-xs mt-1 ${theme === 'dark' ? 'text-amber-300/70' : 'text-amber-600/80'}`}>
+                                                Актуальный аналитический разбор для актива "{duplicateReview.asset}" уже существует
+                                            </p>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    onClose()
+                                                    navigate(`/lab?reviewId=${duplicateReview.id}`)
+                                                }}
+                                                className={`mt-2 px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${theme === 'dark'
+                                                    ? 'bg-amber-500 hover:bg-amber-600 text-white'
+                                                    : 'bg-amber-600 hover:bg-amber-700 text-white'
+                                                }`}
+                                            >
+                                                Просмотреть карточку
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
                         <div className="space-y-1.5">

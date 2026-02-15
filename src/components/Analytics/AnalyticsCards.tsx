@@ -2,9 +2,9 @@ import { useState } from 'react'
 import { useThemeStore } from '@/store/themeStore'
 import { useAdminStore } from '@/store/adminStore'
 import { useAuthStore } from '@/store/authStore'
-import { AnalyticsReview, deleteAnalyticsReview } from '@/services/analyticsService'
+import { AnalyticsReview, deleteAnalyticsReview, updateAnalyticsReview } from '@/services/analyticsService'
 import { UserNickname } from '@/components/UserNickname'
-import { Edit, Trash2, Share, Camera, X } from 'lucide-react'
+import { Edit, Trash2, Share, Camera, X, Check, XCircle } from 'lucide-react'
 import { formatDate } from '@/utils/dateUtils'
 import { SLOT_CATEGORY_META, SlotCategory } from '@/types'
 import Avatar from '@/components/Avatar'
@@ -30,7 +30,7 @@ export const AnalyticsCards = ({ reviews, isArchive, onEdit, onView }: Analytics
     const borderColor = theme === 'dark' ? 'border-white/10' : 'border-gray-200'
 
     const handleCopyLink = (reviewId: string) => {
-        const link = `${window.location.origin}/analytics?reviewId=${reviewId}`
+        const link = `${window.location.origin}/lab?reviewId=${reviewId}`
         navigator.clipboard.writeText(link)
             .then(() => {
                 console.log('Ссылка скопирована!', link)
@@ -43,6 +43,8 @@ export const AnalyticsCards = ({ reviews, isArchive, onEdit, onView }: Analytics
     const canEdit = (review: AnalyticsReview) => {
         // В архиве редактирование запрещено для всех
         if (isArchive) return false
+        // Если разбор закрыт, редактирование запрещено
+        if (review.closed) return false
         // Админ может редактировать всё
         if (isAdmin) return true
         // Автор может редактировать свои обзоры без ограничений по времени
@@ -57,11 +59,28 @@ export const AnalyticsCards = ({ reviews, isArchive, onEdit, onView }: Analytics
         return isAdmin || user?.id === review.createdBy
     }
 
+    const canCloseReview = (review: AnalyticsReview) => {
+        // Закрыть разбор может автор или администратор, только если разбор еще не закрыт
+        return !review.closed && (isAdmin || user?.id === review.createdBy)
+    }
+
+    const handleCloseReview = async (review: AnalyticsReview, outcome: 'success' | 'failure') => {
+        if (confirm(`Вы уверены, что хотите закрыть разбор как ${outcome === 'success' ? 'удачный' : 'неудачный'}?`)) {
+            await updateAnalyticsReview(review.id, {
+                closed: true,
+                closedAt: new Date().toISOString(),
+                outcome: outcome
+            })
+        }
+    }
+
     const handleDelete = async (id: string) => {
         if (confirm('Вы уверены, что хотите удалить этот обзор?')) {
             await deleteAnalyticsReview(id)
         }
     }
+
+    const isClosed = (review: AnalyticsReview) => review.closed === true
 
     if (reviews.length === 0) {
         return (
@@ -75,18 +94,26 @@ export const AnalyticsCards = ({ reviews, isArchive, onEdit, onView }: Analytics
         <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {reviews.map((review) => {
+                    const closed = isClosed(review)
                     return (
                         <div
                             key={review.id}
                             onClick={() => onView(review.id)}
-                            className={`${cardBg} rounded-2xl p-5 pt-12 border ${borderColor} shadow-lg transition-all hover:shadow-xl cursor-pointer relative`}
+                            className={`${cardBg} rounded-2xl p-5 pt-12 border ${borderColor} shadow-lg transition-all hover:shadow-xl cursor-pointer relative ${closed ? 'opacity-75' : ''}`}
                         >
                             <div className="absolute top-4 left-5 right-5 flex items-center justify-between bg-transparent z-10">
-                                {review.number && (
-                                    <span className={`text-xs font-black px-2 py-1 rounded-lg ${theme === 'dark' ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-100 text-blue-600'}`}>
-                                        #{review.number}
-                                    </span>
-                                )}
+                                <div className="flex items-center gap-2">
+                                    {review.number && (
+                                        <span className={`text-xs font-black px-2 py-1 rounded-lg ${theme === 'dark' ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-100 text-blue-600'}`}>
+                                            #{review.number}
+                                        </span>
+                                    )}
+                                    {closed && (
+                                        <span className={`text-xs font-black px-2 py-1 rounded-lg ${review.outcome === 'success' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
+                                            {review.outcome === 'success' ? '✓ Удачно' : '✗ Неудачно'}
+                                        </span>
+                                    )}
+                                </div>
                                 <div className="flex items-center gap-2">
                                     {review.screenshot && (
                                         <button
@@ -107,6 +134,30 @@ export const AnalyticsCards = ({ reviews, isArchive, onEdit, onView }: Analytics
                                     >
                                         <Share className="w-4 h-4" />
                                     </button>
+                                    {canCloseReview(review) && (
+                                        <>
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation()
+                                                    handleCloseReview(review, 'success')
+                                                }}
+                                                className="p-1.5 rounded-lg text-green-500 hover:bg-green-500/20 transition-all"
+                                                title="Закрыть как удачный"
+                                            >
+                                                <Check className="w-4 h-4" />
+                                            </button>
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation()
+                                                    handleCloseReview(review, 'failure')
+                                                }}
+                                                className="p-1.5 rounded-lg text-red-500 hover:bg-red-500/20 transition-all"
+                                                title="Закрыть как неудачный"
+                                            >
+                                                <XCircle className="w-4 h-4" />
+                                            </button>
+                                        </>
+                                    )}
                                     {canEdit(review) && (
                                         <button
                                             onClick={(e) => { e.stopPropagation(); onEdit(review) }}
@@ -156,8 +207,20 @@ export const AnalyticsCards = ({ reviews, isArchive, onEdit, onView }: Analytics
                                     <Avatar userId={review.createdBy} size="sm" />
                                     <UserNickname userId={review.createdBy} className={`text-sm font-bold ${textColor}`} />
                                 </div>
-                                {review.deadline && (
+                                {closed && review.closedAt ? (
+                                    <div className={`text-right ${review.outcome === 'success' ? 'text-green-500' : 'text-red-500'}`}>
+                                        <div className="text-xs font-bold">
+                                            Неактуален
+                                        </div>
+                                        <div className="text-[10px] font-medium">
+                                            {formatDate(new Date(review.closedAt), 'dd.MM.yyyy HH:mm')}
+                                        </div>
+                                    </div>
+                                ) : review.deadline ? (
                                     <div className={`text-right ${getDeadlineColor(review.deadline)}`}>
+                                        <div className="text-xs font-bold">
+                                            Актуален
+                                        </div>
                                         <div className="text-xs font-bold">
                                             {formatDate(new Date(review.deadline), 'dd.MM.yyyy HH:mm')}
                                         </div>
@@ -165,7 +228,7 @@ export const AnalyticsCards = ({ reviews, isArchive, onEdit, onView }: Analytics
                                             <CountdownTimer deadline={review.deadline} />
                                         </div>
                                     </div>
-                                )}
+                                ) : null}
                             </div>
                         </div>
                     )
@@ -175,29 +238,24 @@ export const AnalyticsCards = ({ reviews, isArchive, onEdit, onView }: Analytics
             {/* Screenshot Modal */}
             {screenshotModal && (
                 <div
-                    className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200"
+                    className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm animate-in fade-in duration-200"
                     onClick={() => setScreenshotModal(null)}
                 >
                     <div
-                        className={`relative max-w-4xl w-full rounded-3xl overflow-hidden ${cardBg} shadow-2xl animate-in zoom-in-95 duration-300`}
+                        className="relative max-w-7xl w-full max-h-[90vh] flex items-center justify-center"
                         onClick={(e) => e.stopPropagation()}
                     >
-                        <div className={`p-4 border-b ${theme === 'dark' ? 'border-white/10' : 'border-gray-100'} flex items-center justify-between`}>
-                            <span className={`font-bold ${textColor}`}>{screenshotModal.asset}</span>
-                            <button
-                                onClick={() => setScreenshotModal(null)}
-                                className={`p-2 rounded-lg hover:bg-white/10 ${subTextColor}`}
-                            >
-                                <X className="w-5 h-5" />
-                            </button>
-                        </div>
-                        <div className="p-4">
-                            <img
-                                src={screenshotModal.url}
-                                alt="Screenshot"
-                                className="w-full h-auto rounded-xl"
-                            />
-                        </div>
+                        <img
+                            src={screenshotModal.url}
+                            alt={`Скриншот: ${screenshotModal.asset}`}
+                            className="max-w-full max-h-[90vh] object-contain rounded-2xl shadow-2xl"
+                        />
+                        <button
+                            onClick={() => setScreenshotModal(null)}
+                            className="absolute top-4 right-4 p-3 rounded-xl bg-black/50 text-white hover:bg-black/70 transition-colors"
+                        >
+                            <X className="w-6 h-6" />
+                        </button>
                     </div>
                 </div>
             )}
