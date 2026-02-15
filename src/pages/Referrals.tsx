@@ -417,7 +417,7 @@ export const Referrals = () => {
                     </div>
                     <div>
                         <h1 className={`text-3xl md:text-4xl font-black tracking-tight ${headingColor}`}>
-                            Referrals
+                            Invite & Earn
                         </h1>
                         <p className={`text-sm font-medium ${subTextColor}`}>
                             Система приглашений и управления рефералами

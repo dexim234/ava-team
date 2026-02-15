@@ -35,6 +35,9 @@ export interface AnalyticsReview {
     createdAt: string // ISO date string
     updatedAt: string // ISO date string
     ratings?: Rating[] // Новое поле для оценок
+    closed?: boolean // Закрыт ли разбор
+    closedAt?: string // Когда был закрыт (ISO date string)
+    outcome?: 'success' | 'failure' // Результат закрытия: success - удачно, failure - неудачно
 }
 
 const COLLECTION_NAME = 'analytics'

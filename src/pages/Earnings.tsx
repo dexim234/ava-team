@@ -233,7 +233,7 @@ export const Earnings = () => {
             </div>
             <div>
               <h1 className={`text-2xl md:text-3xl font-black tracking-tight ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                Profit
+                P&L
               </h1>
               <p className={`text-sm font-medium ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
                 Мониторинг доходов и распределение пула

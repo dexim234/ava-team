@@ -235,7 +235,7 @@ export const Tasks = () => {
               <span className={theme === 'dark' ? 'text-emerald-400' : 'text-emerald-500'}>
                 <Tag size={32} />
               </span>
-              Tasks
+              Operations
             </h1>
           </div>
           <div className="flex items-center gap-2">

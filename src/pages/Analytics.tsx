@@ -205,20 +205,40 @@ export const Analytics = () => {
         return allReviews.filter(review => review.createdBy === selectedTraderId)
     }
 
-    // Проверка, является ли карточка архивной (дедлайн истёк)
+    // Проверка, является ли карточка архивной
     const isArchivedReview = (review: AnalyticsReview): boolean => {
+        // Если разбор закрыт, проверяем архивацию по дате закрытия
+        if (review.closed && review.closedAt) {
+            const now = new Date().getTime()
+            const closedTime = new Date(review.closedAt).getTime()
+            // Архивируем на следующие сутки (24 часа после закрытия)
+            const archiveTime = closedTime + 24 * 60 * 60 * 1000
+            return now >= archiveTime
+        }
+
+        // Если разбор не закрыт, используем обычную логику с дедлайном
         if (!review.deadline) return false
         const now = new Date().getTime()
         const deadlineTime = new Date(review.deadline).getTime()
         return deadlineTime <= now
     }
 
-    // Проверка, истек ли срок хранения в архиве (7 дней после дедлайна)
+    // Проверка, истек ли срок хранения в архиве (7 дней)
     const isArchiveExpired = (review: AnalyticsReview): boolean => {
-        if (!review.deadline) return false
         const now = new Date().getTime()
-        const deadlineTime = new Date(review.deadline).getTime()
         const sevenDaysInMs = 7 * 24 * 60 * 60 * 1000
+
+        // Если разбор закрыт, считаем от даты закрытия
+        if (review.closed && review.closedAt) {
+            const closedTime = new Date(review.closedAt).getTime()
+            // +1 сутки до попадания в архив + 7 дней хранения
+            const expirationTime = closedTime + 24 * 60 * 60 * 1000 + sevenDaysInMs
+            return now >= expirationTime
+        }
+
+        // Если разбор не закрыт, считаем от дедлайна
+        if (!review.deadline) return false
+        const deadlineTime = new Date(review.deadline).getTime()
         return (now - deadlineTime) > sevenDaysInMs
     }
 
@@ -260,7 +280,7 @@ export const Analytics = () => {
                             <span className={theme === 'dark' ? 'text-emerald-400' : 'text-emerald-500'}>
                                 {CATEGORY_ICONS.all}
                             </span>
-                            Analytics
+                            LAB
                         </h1>
                     </div>
                     <div className="flex items-center gap-2">
@@ -321,7 +341,7 @@ export const Analytics = () => {
                 {showArchive ? (
                     <>
                         <h2 className={`text-xl font-bold ${headingColor} mt-6`}>
-                            Архив - Analytics
+                            Архив - LAB
                         </h2>
                         <AnalyticsCards
                             reviews={archivedReviews}
@@ -363,6 +383,7 @@ export const Analytics = () => {
                         onClose={closeAnalyticsModal}
                         review={editingReview}
                         sphereOptions={sphereOptions}
+                        allReviews={reviews}
                     />
                 )}
             </div>
