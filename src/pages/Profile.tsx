@@ -289,7 +289,7 @@ export const Profile = () => {
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="hidden md:flex items-center gap-3">
             <Link
               to="/rules"
               className={`flex items-center gap-2 px-5 py-2.5 rounded-xl border transition-all font-bold text-sm ${theme === 'dark'
@@ -519,7 +519,7 @@ export const Profile = () => {
                     </div>
                   </div>
 
-                  <div className={`px-3 py-1.5 rounded-full text-[10px] font-black tracking-widest border ${weeklyStatusClass}`}>
+                  <div className={`px-3 py-1.5 rounded-full text-[10px] font-black tracking-widest border text-center ${weeklyStatusClass}`}>
                     {weeklyStatusText}
                   </div>
                 </div>
@@ -549,7 +549,7 @@ export const Profile = () => {
                       <p className={`text-xs font-black uppercase tracking-wider ${theme === 'dark' ? 'text-emerald-500/80' : 'text-emerald-700'}`}>Активная неделя</p>
                       <p className={`text-[10px] ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Пн, Ср, Пт, Сб — дни вывода</p>
                     </div>
-                    <span className={`text-[9px] font-black tracking-widest px-3 py-1 rounded-full border ${weeklyStatusClass}`}>
+                    <span className={`text-[9px] font-black tracking-widest px-3 py-1 rounded-full border text-center ${weeklyStatusClass}`}>
                       {weeklyStatusBadge}
                     </span>
                   </div>

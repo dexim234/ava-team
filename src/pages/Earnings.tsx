@@ -243,7 +243,7 @@ export const Earnings = () => {
           {addAccess.hasAccess && (
             <button
               onClick={() => setShowForm(true)}
-              className="flex items-center gap-2 px-6 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-sm transition-all shadow-lg shadow-emerald-500/20 hover:scale-105 active:scale-95"
+              className="mx-auto md:mx-0 flex items-center gap-2 px-6 py-3 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-bold text-sm transition-all shadow-lg shadow-blue-500/20 hover:scale-105 active:scale-95"
             >
               <Plus className="w-4 h-4" />
               <span>Добавить заработок</span>
