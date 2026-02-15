@@ -60,7 +60,7 @@ export const ForgotPasswordModal = ({ onClose, theme }: ForgotPasswordModalProps
     const bgColor = theme === 'dark' ? 'bg-[#0b0f17]' : 'bg-white'
     const borderColor = theme === 'dark' ? 'border-white/10' : 'border-gray-200'
 
-    return
+    return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
             {/* Backdrop */}
             <div
@@ -87,7 +87,6 @@ export const ForgotPasswordModal = ({ onClose, theme }: ForgotPasswordModalProps
                             <div className="text-center space-y-3">
                                 <div className="relative inline-flex mb-2">
                                     <div className="absolute inset-0 bg-[#4C7F6E]/20 blur-xl rounded-full" />
-                                    <div className="relative p-4 rounded-2xl bg-gradient-to-br from-[#4C7F6E]/10 to-emerald-500/5 text-[#4C7F6E] border border-[#4C7F6E]/20">
                                     <div className="relative p-4 rounded-2xl bg-gradient-to-br from-[#4C7F6E]/10 to-[#4C7F6E]/5 text-[#4C7F6E] border border-[#4C7F6E]/20">
                                         <Lock className="w-7 h-7" />
                                     </div>
