@@ -47,24 +47,24 @@ export const SphereSelector: React.FC<SphereSelectorProps> = ({
             <button
                 onClick={() => setIsOpen(!isOpen)}
                 className={`w-full flex items-center justify-between gap-3 px-4 py-2.5 rounded-2xl border transition-all duration-300 ${theme === 'dark'
-                    ? 'bg-[#151a21]/80 border-white/5 text-gray-300 hover:border-emerald-500/30'
-                    : 'bg-white border-gray-200 text-gray-700 hover:border-emerald-500'
+                    ? 'bg-[#151a21]/80 border-white/5 text-gray-300 hover:border-[#4C7F6E]/30'
+                    : 'bg-white border-gray-200 text-gray-700 hover:border-[#4C7F6E]'
                     } shadow-xl backdrop-blur-xl group relative overflow-hidden`}
             >
                 <div className="flex items-center gap-2.5 overflow-hidden relative z-10">
-                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${theme === 'dark' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-emerald-50 text-emerald-500'
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${theme === 'dark' ? 'bg-[#4C7F6E]/20 text-[#4C7F6E]' : 'bg-[#4C7F6E]/10 text-[#4C7F6E]'
                         } flex-shrink-0`}>
                         {selectedSphere?.icon || <BarChart3 size={20} />}
                     </div>
                     <div className="text-left min-w-0">
-                        <p className="text-[10px] uppercase tracking-widest font-bold text-emerald-500/60 leading-none mb-1">Сфера</p>
+                        <p className="text-[10px] uppercase tracking-widest font-bold text-[#4C7F6E]/60 leading-none mb-1">Сфера</p>
                         <span className="text-sm font-black tracking-tight truncate block">{selectedSphere?.name || 'Все сферы'}</span>
                     </div>
                 </div>
-                <ChevronDown size={16} className={`text-emerald-500 transition-transform duration-300 relative z-10 ${isOpen ? 'rotate-180' : ''}`} />
+                <ChevronDown size={16} className={`text-[#4C7F6E] transition-transform duration-300 relative z-10 ${isOpen ? 'rotate-180' : ''}`} />
 
                 {/* Animated background glow */}
-                <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/0 via-emerald-500/5 to-emerald-500/0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+                <div className="absolute inset-0 bg-gradient-to-r from-[#4C7F6E]/0 via-[#4C7F6E]/5 to-[#4C7F6E]/0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
             </button>
 
             {isOpen && (
@@ -104,12 +104,12 @@ export const SphereSelector: React.FC<SphereSelectorProps> = ({
                                 setIsOpen(false)
                             }}
                             className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all ${activeSphere === 'all'
-                                ? theme === 'dark' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-emerald-50 text-emerald-600'
-                                : theme === 'dark' ? 'hover:bg-white/5 text-gray-400' : 'hover:bg-gray-50 text-gray-600'
+                                ? theme === 'dark' ? 'bg-[#4C7F6E]/10 text-[#4C7F6E]' : 'bg-[#4C7F6E]/10 text-[#4C7F6E]'
+                                : theme === 'dark' ? 'hover-bg-white/5 text-gray-400' : 'hover:bg-gray-50 text-gray-600'
                                 }`}
                         >
                             <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${activeSphere === 'all'
-                                ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20'
+                                ? 'bg-[#4C7F6E] text-white shadow-lg shadow-[#4C7F6E]/20'
                                 : theme === 'dark' ? 'bg-white/5' : 'bg-gray-100'
                                 }`}>
                                 <BarChart3 size={20} />
@@ -152,19 +152,19 @@ const SphereItemComponent: React.FC<{
         <button
             onClick={() => onSelect(sphere.id)}
             className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all ${isSelected
-                ? theme === 'dark' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-emerald-50 text-emerald-600'
+                ? theme === 'dark' ? 'bg-[#4C7F6E]/10 text-[#4C7F6E]' : 'bg-[#4C7F6E]/10 text-[#4C7F6E]'
                 : theme === 'dark' ? 'hover:bg-white/5 text-gray-300' : 'hover:bg-gray-50 text-gray-700'
                 }`}
         >
             <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isSelected
-                ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20'
+                ? 'bg-[#4C7F6E] text-white shadow-lg shadow-[#4C7F6E]/20'
                 : theme === 'dark' ? 'bg-white/5' : 'bg-gray-100'
                 }`}>
                 {sphere.icon}
             </div>
             <span className="text-sm font-black tracking-tight">{sphere.name}</span>
             {isSelected && (
-                <div className="ml-auto w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                <div className="ml-auto w-1.5 h-1.5 rounded-full bg-[#4C7F6E] animate-pulse" />
             )}
         </button>
     )

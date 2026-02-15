@@ -72,8 +72,8 @@ export const MemberSelector: React.FC<MemberSelectorProps> = ({ selectedUserId, 
             <button
                 onClick={() => setIsOpen(!isOpen)}
                 className={`w-full flex items-center justify-between gap-3 px-4 py-2.5 rounded-xl border transition-all ${theme === 'dark'
-                    ? 'bg-[#151a21] border-white/5 text-gray-300 hover:border-emerald-500/30'
-                    : 'bg-gray-50 border-gray-200 text-gray-700 hover:border-emerald-500'
+                    ? 'bg-[#151a21] border-white/5 text-gray-300 hover:border-[#4C7F6E]/30'
+                    : 'bg-gray-50 border-gray-200 text-gray-700 hover:border-[#4C7F6E]'
                     }`}
             >
                 <div className="flex items-center gap-2.5 overflow-hidden">
@@ -133,7 +133,7 @@ export const MemberSelector: React.FC<MemberSelectorProps> = ({ selectedUserId, 
                                 setIsOpen(false)
                             }}
                             className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-all text-left ${!selectedUserId
-                                ? theme === 'dark' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-emerald-50 text-emerald-600'
+                                ? theme === 'dark' ? 'bg-[#4C7F6E]/10 text-[#4C7F6E]' : 'bg-[#4C7F6E]/10 text-[#4C7F6E]'
                                 : theme === 'dark' ? 'hover:bg-white/5 text-gray-400' : 'hover:bg-gray-50 text-gray-600'
                                 }`}
                         >
@@ -180,7 +180,7 @@ const MemberItem: React.FC<{
         <button
             onClick={() => onSelect(member.id)}
             className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-all text-left group ${isSelected
-                ? theme === 'dark' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-emerald-50 text-emerald-600'
+                ? theme === 'dark' ? 'bg-[#4C7F6E]/10 text-[#4C7F6E]' : 'bg-[#4C7F6E]/10 text-[#4C7F6E]'
                 : theme === 'dark' ? 'hover:bg-white/5 text-gray-300' : 'hover:bg-gray-50 text-gray-700'
                 }`}
         >

@@ -48,12 +48,13 @@ export const AnalyticsModal = ({ isOpen, onClose, review, sphereOptions, allRevi
     const [deadlineDate, setDeadlineDate] = useState('')
     const [deadlineTime, setDeadlineTime] = useState('')
 
-    // Нормализация названия актива (убираем USDT, пробелы, приводим к верхнему регистру)
+    // Нормализация названия актива (берём всё до первого дефиса, убираем пробелы)
     const normalizeAsset = (asset: string): string => {
+        if (!asset) return ''
         return asset
+            .split('-')[0] // Берём всё до первого дефиса
             .toUpperCase()
-            .replace(/USDT/g, '')
-            .replace(/\s+/g, '')
+            .replace(/\s+/g, '') // Убираем пробелы
             .trim()
     }
 
@@ -72,7 +73,7 @@ export const AnalyticsModal = ({ isOpen, onClose, review, sphereOptions, allRevi
 
             const normalizedAsset = normalizeAsset(r.asset)
 
-            // Проверяем совпадение нормализованных названий
+            // Проверяем совпадение нормализованных названий (игнорируем USDT с обеих сторон)
             if (normalizedAsset !== normalizedInput) return false
 
             // Проверяем, что разбор актуален (не закрыт и дедлайн не истек)
@@ -170,8 +171,10 @@ export const AnalyticsModal = ({ isOpen, onClose, review, sphereOptions, allRevi
 
     // Проверка дубликата при изменении актива
     useEffect(() => {
-        checkDuplicateAsset(formData.asset || '')
-    }, [formData.asset, allReviews])
+        if (isOpen && !review) {
+            checkDuplicateAsset(formData.asset || '')
+        }
+    }, [formData.asset, allReviews, isOpen, review])
 
     if (!isOpen) return null
 
@@ -318,61 +321,60 @@ export const AnalyticsModal = ({ isOpen, onClose, review, sphereOptions, allRevi
                         </div>
                     )}
 
+                    {/* Уведомление о дубликате */}
+                    {duplicateReview && (
+                        <div className="p-4 rounded-xl border" style={{ backgroundColor: '#4C7F6E', borderColor: 'rgba(255,255,255,0.1)' }}>
+                            <div className="flex items-start gap-3">
+                                <div className="text-2xl">⚠️</div>
+                                <div className="flex-1">
+                                    <p className="text-sm font-bold text-white">
+                                        Разбор найден в LAB
+                                    </p>
+                                    <p className="text-xs mt-1 text-white/90">
+                                        Актуальный аналитический разбор для актива "{duplicateReview.asset}" уже существует
+                                    </p>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            onClose()
+                                            navigate(`/lab?reviewId=${duplicateReview.id}`)
+                                        }}
+                                        className="mt-2 px-3 py-1.5 text-xs font-bold rounded-lg bg-white hover:bg-gray-100 text-gray-900 transition-all"
+                                    >
+                                        Просмотреть карточку
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-1.5">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-emerald-500">Актив</label>
+                            <label className="text-[10px] font-black uppercase tracking-widest text-[#4C7F6E]">Актив</label>
                             <input
                                 type="text"
                                 placeholder="Например: BTC, ETH, S&P 500"
                                 value={formData.asset}
                                 onChange={(e) => setFormData({ ...formData, asset: e.target.value })}
-                                className={`w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-emerald-500 outline-none transition-all ${inputBg} ${textColor}`}
+                                className={`w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-[#4C7F6E] outline-none transition-all ${inputBg} ${textColor}`}
                             />
-                            {duplicateReview && (
-                                <div className={`mt-2 p-3 rounded-xl border ${theme === 'dark' ? 'bg-amber-500/10 border-amber-500/20' : 'bg-amber-50 border-amber-200'}`}>
-                                    <div className="flex items-start gap-2">
-                                        <div className={`text-lg ${theme === 'dark' ? 'text-amber-400' : 'text-amber-600'}`}>⚠️</div>
-                                        <div className="flex-1">
-                                            <p className={`text-sm font-bold ${theme === 'dark' ? 'text-amber-400' : 'text-amber-700'}`}>
-                                                Разбор найден в LAB
-                                            </p>
-                                            <p className={`text-xs mt-1 ${theme === 'dark' ? 'text-amber-300/70' : 'text-amber-600/80'}`}>
-                                                Актуальный аналитический разбор для актива "{duplicateReview.asset}" уже существует
-                                            </p>
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    onClose()
-                                                    navigate(`/lab?reviewId=${duplicateReview.id}`)
-                                                }}
-                                                className={`mt-2 px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${theme === 'dark'
-                                                    ? 'bg-amber-500 hover:bg-amber-600 text-white'
-                                                    : 'bg-amber-600 hover:bg-amber-700 text-white'
-                                                }`}
-                                            >
-                                                Просмотреть карточку
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
                         </div>
 
                         <div className="space-y-1.5">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-emerald-500">Актуальная цена</label>
+                            <label className="text-[10px] font-black uppercase tracking-widest text-[#4C7F6E]">Актуальная цена</label>
                             <input
                                 type="text"
                                 placeholder="Например: $45,000"
                                 value={formData.currentPrice}
                                 onChange={(e) => setFormData({ ...formData, currentPrice: e.target.value })}
-                                className={`w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-emerald-500 outline-none transition-all ${inputBg} ${textColor}`}
+                                className={`w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-[#4C7F6E] outline-none transition-all ${inputBg} ${textColor}`}
                             />
                         </div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-1.5">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-emerald-500">Сфера</label>
+                            <label className="text-[10px] font-black uppercase tracking-widest text-[#4C7F6E]">Сфера</label>
                             <MultiSelect
                                 value={formData.sphere as string[]}
                                 onChange={(val) => setFormData({ ...formData, sphere: val as SlotCategory[] })}
@@ -385,21 +387,21 @@ export const AnalyticsModal = ({ isOpen, onClose, review, sphereOptions, allRevi
 
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-1.5">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-emerald-500">Дата</label>
+                                <label className="text-[10px] font-black uppercase tracking-widest text-[#4C7F6E]">Дата</label>
                                 <input
                                     type="date"
                                     value={deadlineDate}
                                     onChange={(e) => setDeadlineDate(e.target.value)}
-                                    className={`w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-emerald-500 outline-none transition-all ${inputBg} ${textColor}`}
+                                    className={`w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-[#4C7F6E] outline-none transition-all ${inputBg} ${textColor}`}
                                 />
                             </div>
                             <div className="space-y-1.5">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-emerald-500">Время</label>
+                                <label className="text-[10px] font-black uppercase tracking-widest text-[#4C7F6E]">Время</label>
                                 <input
                                     type="time"
                                     value={deadlineTime}
                                     onChange={(e) => setDeadlineTime(e.target.value)}
-                                    className={`w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-emerald-500 outline-none transition-all ${inputBg} ${textColor}`}
+                                    className={`w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-[#4C7F6E] outline-none transition-all ${inputBg} ${textColor}`}
                                 />
                             </div>
                         </div>
@@ -443,29 +445,29 @@ export const AnalyticsModal = ({ isOpen, onClose, review, sphereOptions, allRevi
                     </div>
 
                     <div className="space-y-1.5">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-emerald-500">Комментарий эксперта</label>
+                        <label className="text-[10px] font-black uppercase tracking-widest text-[#4C7F6E]">Комментарий эксперта</label>
                         <textarea
                             rows={3}
                             placeholder="Введите ваш аналитический обзор..."
                             value={formData.expertComment}
                             onChange={(e) => setFormData({ ...formData, expertComment: e.target.value })}
-                            className={`w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-emerald-500 outline-none transition-all resize-none ${inputBg} ${textColor}`}
+                            className={`w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-[#4C7F6E] outline-none transition-all resize-none ${inputBg} ${textColor}`}
                         />
                     </div>
 
                     <div className="space-y-1.5">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-emerald-500">Стратегия</label>
+                        <label className="text-[10px] font-black uppercase tracking-widest text-[#4C7F6E]">Стратегия</label>
                         <textarea
                             rows={2}
                             placeholder="Опишите стратегию трейдинга..."
                             value={formData.strategy}
                             onChange={(e) => setFormData({ ...formData, strategy: e.target.value })}
-                            className={`w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-emerald-500 outline-none transition-all resize-none ${inputBg} ${textColor}`}
+                            className={`w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-[#4C7F6E] outline-none transition-all resize-none ${inputBg} ${textColor}`}
                         />
                     </div>
 
                     <div className="space-y-1.5">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-emerald-500">Скриншот</label>
+                        <label className="text-[10px] font-black uppercase tracking-widest text-[#4C7F6E]">Скриншот</label>
                         <div className="space-y-3">
                             {formData.screenshot && (
                                 <div className="relative">
@@ -484,7 +486,7 @@ export const AnalyticsModal = ({ isOpen, onClose, review, sphereOptions, allRevi
                                 </div>
                             )}
                             <div
-                                className={`relative flex items-center justify-center gap-2 px-4 py-4 rounded-xl border border-dashed cursor-pointer transition-all ${theme === 'dark' ? 'border-white/20 hover:border-emerald-500/50 hover:bg-white/5' : 'border-gray-300 hover:border-emerald-500/50 hover:bg-gray-50'}`}
+                                className={`relative flex items-center justify-center gap-2 px-4 py-4 rounded-xl border border-dashed cursor-pointer transition-all ${theme === 'dark' ? 'border-white/20 hover:border-[#4C7F6E]/50 hover:bg-white/5' : 'border-gray-300 hover:border-[#4C7F6E]/50 hover:bg-gray-50'}`}
                                 onPaste={handleScreenshotPaste}
                                 onDrop={handleScreenshotDrop}
                                 onDragOver={(e) => e.preventDefault()}
@@ -509,7 +511,7 @@ export const AnalyticsModal = ({ isOpen, onClose, review, sphereOptions, allRevi
                     </div>
 
                     <div className="space-y-1.5">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-emerald-500">Ссылки</label>
+                        <label className="text-[10px] font-black uppercase tracking-widest text-[#4C7F6E]">Ссылки</label>
                         {linkInputs.map((linkInput, index) => (
                             <div key={index} className="flex gap-2">
                                 <input
@@ -517,14 +519,14 @@ export const AnalyticsModal = ({ isOpen, onClose, review, sphereOptions, allRevi
                                     placeholder="Ссылка"
                                     value={linkInput.url}
                                     onChange={(e) => handleLinkInputChange(index, 'url', e.target.value)}
-                                    className={`w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-emerald-500 outline-none transition-all ${inputBg} ${textColor}`}
+                                    className={`w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-[#4C7F6E] outline-none transition-all ${inputBg} ${textColor}`}
                                 />
                                 <input
                                     type="text"
                                     placeholder="Название"
                                     value={linkInput.title}
                                     onChange={(e) => handleLinkInputChange(index, 'title', e.target.value)}
-                                    className={`w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-emerald-500 outline-none transition-all ${inputBg} ${textColor}`}
+                                    className={`w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-[#4C7F6E] outline-none transition-all ${inputBg} ${textColor}`}
                                 />
                                 {linkInputs.length > 1 && (
                                     <button
@@ -541,7 +543,7 @@ export const AnalyticsModal = ({ isOpen, onClose, review, sphereOptions, allRevi
                             <button
                                 type="button"
                                 onClick={handleAddLinkInput}
-                                className="w-full px-4 py-3 mt-2 rounded-xl border border-dashed border-emerald-500 text-emerald-500 hover:bg-emerald-500/10 transition-all flex items-center justify-center gap-2"
+                                className="w-full px-4 py-3 mt-2 rounded-xl border border-dashed border-[#4C7F6E] text-[#4C7F6E] hover:bg-[#4C7F6E]/10 transition-all flex items-center justify-center gap-2"
                             >
                                 <Plus className="w-5 h-5" /> Добавить ссылку
                             </button>
@@ -559,7 +561,7 @@ export const AnalyticsModal = ({ isOpen, onClose, review, sphereOptions, allRevi
                         <button
                             type="submit"
                             disabled={loading}
-                            className="flex items-center gap-2 px-6 py-3 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-white rounded-xl font-bold shadow-lg shadow-emerald-500/20 transition-all active:scale-95"
+                            className="flex items-center gap-2 px-6 py-3 bg-[#4C7F6E] hover:bg-[#4C7F6E]/90 disabled:opacity-50 text-white rounded-xl font-bold shadow-lg shadow-[#4C7F6E]/20 transition-all active:scale-95"
                         >
                             {loading ? <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full" /> : <Save className="w-4 h-4" />}
                             {review ? 'Обновить обзор' : 'Сохранить обзор'}

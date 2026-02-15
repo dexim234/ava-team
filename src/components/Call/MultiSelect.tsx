@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react'
 import { ChevronDown, Search, X, Check } from 'lucide-react'
 import { useThemeStore } from '@/store/themeStore'
@@ -72,18 +71,18 @@ export const MultiSelect: React.FC<MultiSelectProps> = ({
                 type='button'
                 onClick={() => setIsOpen(!isOpen)}
                 className={`w-full flex items-center justify-between gap-3 px-4 py-2.5 rounded-xl border transition-all ${theme === 'dark'
-                    ? 'bg-[#151a21] border-white/5 text-gray-300 hover:border-emerald-500/30'
-                    : 'bg-white border-gray-200 text-gray-700 hover:border-emerald-500'
+                    ? 'bg-[#151a21] border-white/5 text-gray-300 hover:border-[#4C7F6E]/30'
+                    : 'bg-white border-gray-200 text-gray-700 hover:border-[#4C7F6E]'
                     }`}
             >
                 <div className="flex items-center gap-2.5 overflow-hidden flex-wrap">
-                    {icon && <div className={value.length > 0 ? "text-emerald-500" : "text-gray-500"}>{icon}</div>}
+                    {icon && <div className={value.length > 0 ? "text-[#4C7F6E]" : "text-gray-500"}>{icon}</div>}
 
                     {value.length > 0 ? (
                         value.map(val => {
                             const selectedOption = options.find(o => o.value === val)
                             return selectedOption ? (
-                                <div key={val} className="flex items-center gap-1 bg-emerald-500/10 text-emerald-400 rounded-lg pl-2 pr-1 py-1 text-xs font-bold">
+                                <div key={val} className="flex items-center gap-1 bg-[#4C7F6E]/10 text-[#4C7F6E] rounded-lg pl-2 pr-1 py-1 text-xs font-bold">
                                     {selectedOption.icon && (
                                         <div className={`flex items-center justify-center`}>
                                             {selectedOption.icon}
@@ -139,7 +138,7 @@ export const MultiSelect: React.FC<MultiSelectProps> = ({
                                 key={option.value}
                                 onClick={() => handleSelectOption(option.value)}
                                 className={`w-full flex items-center justify-between gap-3 px-3 py-2 rounded-lg transition-all text-left ${value.includes(option.value)
-                                    ? theme === 'dark' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-emerald-50 text-emerald-600'
+                                    ? theme === 'dark' ? 'bg-[#4C7F6E]/10 text-[#4C7F6E]' : 'bg-[#4C7F6E]/10 text-[#4C7F6E]'
                                     : theme === 'dark' ? 'hover:bg-white/5 text-gray-300' : 'hover:bg-gray-50 text-gray-700'
                                     }`}
                             >

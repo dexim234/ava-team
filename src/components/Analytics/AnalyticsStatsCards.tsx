@@ -104,10 +104,10 @@ export const AnalyticsStatsCards = ({ reviews }: AnalyticsStatsCardsProps) => {
         },
         {
             label: '3 самых популярных сферы',
-            icon: <TrendingUp className="w-5 h-5 text-emerald-400" />,
+            icon: <TrendingUp className="w-5 h-5 text-[#4C7F6E]" />,
             tone: 'emerald',
-            bgClass: 'bg-emerald-500/5',
-            borderClass: 'border-emerald-500/20',
+            bgClass: 'bg-[#4C7F6E]/5',
+            borderClass: 'border-[#4C7F6E]/20',
             content: (
                 <div className="space-y-2">
                     {stats.topSpheres.length > 0 ? (
@@ -115,9 +115,9 @@ export const AnalyticsStatsCards = ({ reviews }: AnalyticsStatsCardsProps) => {
                             <div key={item.sphere} className="flex items-center justify-between">
                                 <div className="flex items-center gap-2">
                                     <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
-                                        idx === 0 ? 'bg-emerald-500 text-white' :
-                                        idx === 1 ? 'bg-emerald-600 text-white' :
-                                        'bg-emerald-700 text-white'
+                                        idx === 0 ? 'bg-[#4C7F6E] text-white' :
+                                        idx === 1 ? 'bg-[#4C7F6E] text-white' :
+                                        'bg-[#4C7F6E] text-white'
                                     }`}>
                                         {idx + 1}
                                     </span>
@@ -125,7 +125,7 @@ export const AnalyticsStatsCards = ({ reviews }: AnalyticsStatsCardsProps) => {
                                         {SLOT_CATEGORY_META[item.sphere as SlotCategory]?.label || item.sphere}
                                     </span>
                                 </div>
-                                <span className={`text-xs px-2 py-0.5 rounded-full ${theme === 'dark' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-emerald-100 text-emerald-600'}`}>
+                                <span className={`text-xs px-2 py-0.5 rounded-full ${theme === 'dark' ? 'bg-[#4C7F6E]/20 text-[#4C7F6E]' : 'bg-[#4C7F6E]/20 text-[#4C7F6E]'}`}>
                                     {item.count}
                                 </span>
                             </div>

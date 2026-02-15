@@ -3,7 +3,7 @@ import { useAdminStore } from '@/store/adminStore'
 import { useAuthStore } from '@/store/authStore'
 import { AnalyticsReview, deleteAnalyticsReview, updateAnalyticsReview } from '@/services/analyticsService'
 import { UserNickname } from '@/components/UserNickname'
-import { Edit, Trash2, ExternalLink, Share, Check, XCircle } from 'lucide-react'
+import { Edit, Trash2, ExternalLink, Share, Check, XCircle, RotateCcw } from 'lucide-react'
 import { formatDate } from '@/utils/dateUtils'
 import { SLOT_CATEGORY_META, SlotCategory } from '@/types'
 import { useEffect, useState } from 'react'
@@ -64,7 +64,7 @@ export const getDeadlineColor = (deadline: string) => {
 
     if (hours < 24) return 'text-red-500'
     if (hours < 48) return 'text-yellow-500'
-    if (hours < 72) return 'text-emerald-500'
+    if (hours < 72) return 'text-[#4C7F6E]'
     return 'text-gray-500'
 }
 
@@ -103,12 +103,35 @@ export const AnalyticsTable = ({ reviews, onEdit }: AnalyticsTableProps) => {
         return !review.closed && (isAdmin || user?.id === review.createdBy)
     }
 
+    const canReopenReview = (review: AnalyticsReview) => {
+        // Переоткрыть разбор может только администратор
+        return review.closed && isAdmin
+    }
+
     const handleCloseReview = async (review: AnalyticsReview, outcome: 'success' | 'failure') => {
         if (confirm(`Вы уверены, что хотите закрыть разбор как ${outcome === 'success' ? 'удачный' : 'неудачный'}?`)) {
             await updateAnalyticsReview(review.id, {
                 closed: true,
                 closedAt: new Date().toISOString(),
                 outcome: outcome
+            })
+        }
+    }
+
+    const handleReopenReview = async (review: AnalyticsReview) => {
+        if (confirm('Вы уверены, что хотите переоткрыть этот разбор? Он снова станет актуальным с дедлайном.')) {
+            await updateAnalyticsReview(review.id, {
+                closed: false,
+                closedAt: undefined,
+                outcome: undefined
+            })
+        }
+    }
+
+    const handleChangeOutcome = async (review: AnalyticsReview, newOutcome: 'success' | 'failure') => {
+        if (confirm(`Вы уверены, что хотите изменить результат на ${newOutcome === 'success' ? 'удачный' : 'неудачный'}?`)) {
+            await updateAnalyticsReview(review.id, {
+                outcome: newOutcome
             })
         }
     }
@@ -148,10 +171,10 @@ export const AnalyticsTable = ({ reviews, onEdit }: AnalyticsTableProps) => {
                         {reviews.map((review) => {
                             const isClosed = review.closed === true
                             return (
-                                <tr key={review.id} className={`hover:bg-emerald-500/5 transition-colors group ${isClosed ? 'opacity-75' : ''}`}>
+                                <tr key={review.id} className={`hover:bg-[#4C7F6E]/5 transition-colors group ${isClosed ? 'opacity-75' : ''}`}>
                                     <td className="p-4 align-top text-center">
                                         {review.sphere.map((s, index) => (
-                                            <span key={index} className={`text-[10px] px-2 py-1 rounded-full font-bold uppercase tracking-wider border ${theme === 'dark' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-emerald-50 border-emerald-100 text-emerald-600'} ${index > 0 ? 'ml-1' : ''}`}>
+                                            <span key={index} className={`text-[10px] px-2 py-1 rounded-full font-bold uppercase tracking-wider border ${theme === 'dark' ? 'bg-[#4C7F6E]/10 border-[#4C7F6E]/20 text-[#4C7F6E]' : 'bg-[#4C7F6E]/10 border-[#4C7F6E]/20 text-[#4C7F6E]'} ${index > 0 ? 'ml-1' : ''}`}>
                                                 {SLOT_CATEGORY_META[s as SlotCategory]?.label || s}
                                             </span>
                                         ))}
@@ -177,7 +200,7 @@ export const AnalyticsTable = ({ reviews, onEdit }: AnalyticsTableProps) => {
                                             </div>
                                         ) : review.deadline ? (
                                             <div className="flex flex-col items-center gap-1">
-                                                <span className="text-emerald-500">Актуален</span>
+                                                <span className="text-[#4C7F6E]">Актуален</span>
                                                 <span className={getDeadlineColor(review.deadline)}>
                                                     <CountdownTimer deadline={review.deadline} />
                                                 </span>
@@ -238,9 +261,34 @@ export const AnalyticsTable = ({ reviews, onEdit }: AnalyticsTableProps) => {
                                                     </button>
                                                 </>
                                             )}
+                                            {canReopenReview(review) && (
+                                                <>
+                                                    <button
+                                                        onClick={() => handleChangeOutcome(review, 'success')}
+                                                        className="p-1.5 rounded-lg bg-green-500/10 text-green-500 hover:bg-green-500/20 transition-all"
+                                                        title="Изменить на удачный"
+                                                    >
+                                                        <Check className="w-3.5 h-3.5" />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleChangeOutcome(review, 'failure')}
+                                                        className="p-1.5 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-all"
+                                                        title="Изменить на неудачный"
+                                                    >
+                                                        <XCircle className="w-3.5 h-3.5" />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleReopenReview(review)}
+                                                        className="p-1.5 rounded-lg bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 transition-all"
+                                                        title="Переоткрыть разбор"
+                                                    >
+                                                        <RotateCcw className="w-3.5 h-3.5" />
+                                                    </button>
+                                                </>
+                                            )}
                                             <button
                                                 onClick={() => handleCopyLink(review.id)}
-                                                className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 transition-all"
+                                                className="p-1.5 rounded-lg bg-[#4C7F6E]/10 text-[#4C7F6E] hover:bg-[#4C7F6E]/20 transition-all"
                                                 title="Копировать ссылку"
                                             >
                                                 <Share className="w-3.5 h-3.5" />

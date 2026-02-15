@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useThemeStore } from '@/store/themeStore'
 import { useAuthStore } from '@/store/authStore'
 import { AnalyticsReview, addOrUpdateReviewRating, updateAnalyticsReview } from '@/services/analyticsService'
-import { X, ExternalLink, Edit, Camera, Check, XCircle, Maximize2 } from 'lucide-react'
+import { X, ExternalLink, Edit, Check, XCircle, Maximize2 } from 'lucide-react'
 import { SlotCategory } from '@/types'
 import { format, parseISO } from 'date-fns'
 import { SLOT_CATEGORY_META } from '@/types'
@@ -60,6 +60,12 @@ export const AnalyticsViewModal = ({ isOpen, onClose, review, onEditFromView, on
         return !currentReview.closed && (isAdmin || user?.id === currentReview.createdBy)
     }
 
+    const canReopenReview = (currentReview: AnalyticsReview) => {
+        // Переоткрыть разбор может только администратор
+        console.log('canReopenReview check:', { closed: currentReview.closed, isAdmin })
+        return currentReview.closed && isAdmin
+    }
+
     const handleCloseReview = async (outcome: 'success' | 'failure') => {
         if (!review?.id) return
         if (confirm(`Вы уверены, что хотите закрыть разбор как ${outcome === 'success' ? 'удачный' : 'неудачный'}?`)) {
@@ -73,6 +79,38 @@ export const AnalyticsViewModal = ({ isOpen, onClose, review, onEditFromView, on
                 onClose()
             } catch (error) {
                 console.error('Ошибка при закрытии разбора:', error)
+            }
+        }
+    }
+
+    const handleReopenReview = async () => {
+        if (!review?.id) return
+        if (confirm('Вы уверены, что хотите переоткрыть этот разбор? Он снова станет актуальным с дедлайном.')) {
+            try {
+                await updateAnalyticsReview(review.id, {
+                    closed: false,
+                    closedAt: undefined,
+                    outcome: undefined
+                })
+                console.log('Разбор успешно переоткрыт!')
+                onClose()
+            } catch (error) {
+                console.error('Ошибка при переоткрытии разбора:', error)
+            }
+        }
+    }
+
+    const handleChangeOutcome = async (newOutcome: 'success' | 'failure') => {
+        if (!review?.id) return
+        if (confirm(`Вы уверены, что хотите изменить результат на ${newOutcome === 'success' ? 'удачный' : 'неудачный'}?`)) {
+            try {
+                await updateAnalyticsReview(review.id, {
+                    outcome: newOutcome
+                })
+                console.log('Результат успешно изменен!')
+                onClose()
+            } catch (error) {
+                console.error('Ошибка при изменении результата:', error)
             }
         }
     }
@@ -127,6 +165,31 @@ export const AnalyticsViewModal = ({ isOpen, onClose, review, onEditFromView, on
                                 </button>
                             </>
                         )}
+                        {canReopenReview(review) && (
+                            <>
+                                <button
+                                    onClick={() => handleChangeOutcome('success')}
+                                    className="p-2 hover:bg-green-500/20 rounded-xl transition-colors"
+                                    title="Изменить на удачный"
+                                >
+                                    <Check className="w-5 h-5 text-green-500" />
+                                </button>
+                                <button
+                                    onClick={() => handleChangeOutcome('failure')}
+                                    className="p-2 hover:bg-red-500/20 rounded-xl transition-colors"
+                                    title="Изменить на неудачный"
+                                >
+                                    <XCircle className="w-5 h-5 text-red-500" />
+                                </button>
+                                <button
+                                    onClick={handleReopenReview}
+                                    className="p-2 hover:bg-blue-500/20 rounded-xl transition-colors"
+                                    title="Переоткрыть разбор"
+                                >
+                                    <ExternalLink className="w-5 h-5 text-blue-500" />
+                                </button>
+                            </>
+                        )}
                         {canEditReview(review) && (
                             <button
                                 onClick={() => onEditFromView(review)}
@@ -146,16 +209,14 @@ export const AnalyticsViewModal = ({ isOpen, onClose, review, onEditFromView, on
                     {/* Скриншот */}
                     {review.screenshot && (
                         <div className="space-y-1.5">
-                            <div className={`p-4 rounded-xl border border-white/10 bg-white/5 ${textColor}`}>
-                                <div className="flex items-center justify-center gap-3 py-8">
-                                    <Camera className={`w-6 h-6 ${subTextColor}`} />
-                                    <button
-                                        onClick={() => setScreenshotModalOpen(true)}
-                                        className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${theme === 'dark' ? 'bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30' : 'bg-emerald-100 text-emerald-600 hover:bg-emerald-200'}`}
-                                    >
-                                        <Maximize2 className="w-4 h-4" />
-                                        Показать скриншот
-                                    </button>
+                            <div className="relative group cursor-pointer" onClick={() => setScreenshotModalOpen(true)}>
+                                <img
+                                    src={review.screenshot}
+                                    alt="Screenshot"
+                                    className="w-full h-48 object-cover rounded-xl border border-white/10"
+                                />
+                                <div className="absolute inset-0 bg-black/50 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                    <Maximize2 className="w-8 h-8 text-white" />
                                 </div>
                             </div>
                         </div>
@@ -185,16 +246,12 @@ export const AnalyticsViewModal = ({ isOpen, onClose, review, onEditFromView, on
 
                     {/* Сфера */}
                     <div className="space-y-1.5">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-emerald-500">Сфера</label>
+                        <label className="text-[10px] font-black uppercase tracking-widest text-[#4C7F6E]">Сфера</label>
                         <div className="flex flex-wrap gap-2">
                             {review.sphere.map((s, idx) => (
                                 <span
                                     key={idx}
-                                    className={`px-3 py-1.5 rounded-lg text-sm font-medium ${
-                                        theme === 'dark'
-                                            ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                                            : 'bg-emerald-50 text-emerald-600 border border-emerald-100'
-                                    }`}
+                                    className="px-3 py-1.5 rounded-lg text-sm font-medium bg-[#4C7F6E]/10 border border-[#4C7F6E]/20 text-white"
                                 >
                                     {SLOT_CATEGORY_META[s as SlotCategory]?.label || s}
                                 </span>
@@ -205,7 +262,7 @@ export const AnalyticsViewModal = ({ isOpen, onClose, review, onEditFromView, on
                     {/* Актив */}
                     {review.asset && (
                         <div className="space-y-1.5">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-emerald-500">Актив</label>
+                            <label className="text-[10px] font-black uppercase tracking-widest text-[#4C7F6E]">Актив</label>
                             <div className={`px-4 py-3 rounded-xl border border-white/10 bg-white/5 ${textColor} font-bold`}>
                                 {review.asset}
                             </div>
@@ -229,7 +286,7 @@ export const AnalyticsViewModal = ({ isOpen, onClose, review, onEditFromView, on
                         </div>
                     ) : review.deadline ? (
                         <div className="space-y-1.5">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-emerald-500">Актуален</label>
+                            <label className="text-[10px] font-black uppercase tracking-widest text-[#4C7F6E]">Актуален</label>
                             <div className={`px-4 py-3 rounded-xl border border-white/10 bg-white/5 ${textColor}`}>
                                 {formatDate(new Date(review.deadline), 'dd.MM.yyyy HH:mm')}
                             </div>
@@ -239,8 +296,8 @@ export const AnalyticsViewModal = ({ isOpen, onClose, review, onEditFromView, on
                     {/* Актуальная цена */}
                     {review.currentPrice && (
                         <div className="space-y-1.5">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-emerald-500">Актуальная цена</label>
-                            <div className={`px-4 py-3 rounded-xl border border-white/10 bg-emerald-500/10 ${textColor} font-bold`}>
+                            <label className="text-[10px] font-black uppercase tracking-widest text-[#4C7F6E]">Актуальная цена</label>
+                            <div className={`px-4 py-3 rounded-xl border border-white/10 bg-[#4C7F6E]/10 ${textColor} font-bold`}>
                                 ${review.currentPrice}
                             </div>
                         </div>
@@ -248,7 +305,7 @@ export const AnalyticsViewModal = ({ isOpen, onClose, review, onEditFromView, on
 
                     {/* Комментарий эксперта */}
                     <div className="space-y-1.5">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-emerald-500">Комментарий эксперта</label>
+                        <label className="text-[10px] font-black uppercase tracking-widest text-[#4C7F6E]">Комментарий эксперта</label>
                         <div className={`px-4 py-3 rounded-xl border border-white/10 bg-white/5 ${textColor} whitespace-pre-wrap`}>
                             {review.expertComment}
                         </div>
@@ -257,7 +314,7 @@ export const AnalyticsViewModal = ({ isOpen, onClose, review, onEditFromView, on
                     {/* Стратегия */}
                     {review.strategy && (
                         <div className="space-y-1.5">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-emerald-500">Стратегия</label>
+                            <label className="text-[10px] font-black uppercase tracking-widest text-[#4C7F6E]">Стратегия</label>
                             <div className={`px-4 py-3 rounded-xl border border-white/10 bg-white/5 ${textColor} whitespace-pre-wrap`}>
                                 {review.strategy}
                             </div>
@@ -267,7 +324,7 @@ export const AnalyticsViewModal = ({ isOpen, onClose, review, onEditFromView, on
                     {/* Важные детали */}
                     {review.importantDetails && (
                         <div className="space-y-1.5">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-emerald-500">Важные детали</label>
+                            <label className="text-[10px] font-black uppercase tracking-widest text-[#4C7F6E]">Важные детали</label>
                             <div className={`px-4 py-3 rounded-xl border border-white/10 bg-white/5 ${textColor} whitespace-pre-wrap`}>
                                 {review.importantDetails}
                             </div>
@@ -277,7 +334,7 @@ export const AnalyticsViewModal = ({ isOpen, onClose, review, onEditFromView, on
                     {/* Ссылки */}
                     {parsedLinks.length > 0 && (
                         <div className="space-y-1.5">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-emerald-500">Ссылки</label>
+                            <label className="text-[10px] font-black uppercase tracking-widest text-[#4C7F6E]">Ссылки</label>
                             <div className="space-y-2">
                                 {parsedLinks.map((link, index) => (
                                     link.url && (

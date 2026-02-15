@@ -4,7 +4,7 @@ import { useAdminStore } from '@/store/adminStore'
 import { useAuthStore } from '@/store/authStore'
 import { AnalyticsReview, deleteAnalyticsReview, updateAnalyticsReview } from '@/services/analyticsService'
 import { UserNickname } from '@/components/UserNickname'
-import { Edit, Trash2, Share, Camera, X, Check, XCircle } from 'lucide-react'
+import { Edit, Trash2, Share, X, Check, XCircle, Maximize2, RotateCcw } from 'lucide-react'
 import { formatDate } from '@/utils/dateUtils'
 import { SLOT_CATEGORY_META, SlotCategory } from '@/types'
 import Avatar from '@/components/Avatar'
@@ -22,7 +22,7 @@ export const AnalyticsCards = ({ reviews, isArchive, onEdit, onView }: Analytics
     const { theme } = useThemeStore()
     const { isAdmin } = useAdminStore()
     const { user } = useAuthStore()
-    const [screenshotModal, setScreenshotModal] = useState<{ url: string; asset: string } | null>(null)
+    const [screenshotModal, setScreenshotModal] = useState<string | null>(null)
 
     const cardBg = theme === 'dark' ? 'bg-[#0f141a]' : 'bg-white'
     const textColor = theme === 'dark' ? 'text-white' : 'text-gray-900'
@@ -64,12 +64,35 @@ export const AnalyticsCards = ({ reviews, isArchive, onEdit, onView }: Analytics
         return !review.closed && (isAdmin || user?.id === review.createdBy)
     }
 
+    const canReopenReview = (review: AnalyticsReview) => {
+        // Переоткрыть разбор может только администратор
+        return review.closed && isAdmin
+    }
+
     const handleCloseReview = async (review: AnalyticsReview, outcome: 'success' | 'failure') => {
         if (confirm(`Вы уверены, что хотите закрыть разбор как ${outcome === 'success' ? 'удачный' : 'неудачный'}?`)) {
             await updateAnalyticsReview(review.id, {
                 closed: true,
                 closedAt: new Date().toISOString(),
                 outcome: outcome
+            })
+        }
+    }
+
+    const handleReopenReview = async (review: AnalyticsReview) => {
+        if (confirm('Вы уверены, что хотите переоткрыть этот разбор? Он снова станет актуальным с дедлайном.')) {
+            await updateAnalyticsReview(review.id, {
+                closed: false,
+                closedAt: undefined,
+                outcome: undefined
+            })
+        }
+    }
+
+    const handleChangeOutcome = async (review: AnalyticsReview, newOutcome: 'success' | 'failure') => {
+        if (confirm(`Вы уверены, что хотите изменить результат на ${newOutcome === 'success' ? 'удачный' : 'неудачный'}?`)) {
+            await updateAnalyticsReview(review.id, {
+                outcome: newOutcome
             })
         }
     }
@@ -115,18 +138,6 @@ export const AnalyticsCards = ({ reviews, isArchive, onEdit, onView }: Analytics
                                     )}
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    {review.screenshot && (
-                                        <button
-                                            onClick={(e) => {
-                                                e.stopPropagation()
-                                                setScreenshotModal({ url: review.screenshot!, asset: review.asset || 'Без названия' })
-                                            }}
-                                            className="p-1.5 rounded-lg text-gray-400 hover:bg-white/10 transition-all"
-                                            title="Просмотреть скриншот"
-                                        >
-                                            <Camera className="w-4 h-4" />
-                                        </button>
-                                    )}
                                     <button
                                         onClick={(e) => { e.stopPropagation(); handleCopyLink(review.id) }}
                                         className="p-1.5 rounded-lg text-gray-400 hover:bg-white/10 transition-all"
@@ -158,6 +169,40 @@ export const AnalyticsCards = ({ reviews, isArchive, onEdit, onView }: Analytics
                                             </button>
                                         </>
                                     )}
+                                    {canReopenReview(review) && (
+                                        <>
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation()
+                                                    handleChangeOutcome(review, 'success')
+                                                }}
+                                                className="p-1.5 rounded-lg text-green-500 hover:bg-green-500/20 transition-all"
+                                                title="Изменить на удачный"
+                                            >
+                                                <Check className="w-4 h-4" />
+                                            </button>
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation()
+                                                    handleChangeOutcome(review, 'failure')
+                                                }}
+                                                className="p-1.5 rounded-lg text-red-500 hover:bg-red-500/20 transition-all"
+                                                title="Изменить на неудачный"
+                                            >
+                                                <XCircle className="w-4 h-4" />
+                                            </button>
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation()
+                                                    handleReopenReview(review)
+                                                }}
+                                                className="p-1.5 rounded-lg text-blue-500 hover:bg-blue-500/20 transition-all"
+                                                title="Переоткрыть разбор"
+                                            >
+                                                <RotateCcw className="w-4 h-4" />
+                                            </button>
+                                        </>
+                                    )}
                                     {canEdit(review) && (
                                         <button
                                             onClick={(e) => { e.stopPropagation(); onEdit(review) }}
@@ -180,10 +225,23 @@ export const AnalyticsCards = ({ reviews, isArchive, onEdit, onView }: Analytics
                             </div>
 
                             <div className="flex flex-col gap-3 mb-4">
-                                <span className={`text-[10px] px-2 py-1 rounded-lg font-bold uppercase tracking-wider border ${theme === 'dark' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-emerald-50 border-emerald-100 text-emerald-600'}`}>
+                                <span className={`text-[10px] px-2 py-1 rounded-lg font-bold uppercase tracking-wider border bg-[#4C7F6E]/10 border-[#4C7F6E]/20 text-white`}>
                                     {review.sphere.map((s, _) => SLOT_CATEGORY_META[s as SlotCategory]?.label || s).join(', ')}
                                 </span>
                             </div>
+
+                            {review.screenshot && (
+                                <div className="mb-3 relative group cursor-pointer" onClick={() => setScreenshotModal(review.screenshot!)}>
+                                    <img
+                                        src={review.screenshot}
+                                        alt="Screenshot"
+                                        className="w-full h-32 object-cover rounded-xl border border-white/10"
+                                    />
+                                    <div className="absolute inset-0 bg-black/50 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                        <Maximize2 className="w-6 h-6 text-white" />
+                                    </div>
+                                </div>
+                            )}
 
                             {review.asset && (
                                 <div className="mb-3 flex items-center justify-between">
@@ -191,7 +249,7 @@ export const AnalyticsCards = ({ reviews, isArchive, onEdit, onView }: Analytics
                                         {review.asset}
                                     </span>
                                     {review.currentPrice && (
-                                        <span className={`text-sm font-bold px-2 py-1 rounded-lg ${theme === 'dark' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-emerald-100 text-emerald-600'}`}>
+                                        <span className="text-sm font-bold px-2 py-1 rounded-lg bg-[#4C7F6E]/20 text-[#4C7F6E]">
                                             ${review.currentPrice}
                                         </span>
                                     )}
@@ -246,8 +304,8 @@ export const AnalyticsCards = ({ reviews, isArchive, onEdit, onView }: Analytics
                         onClick={(e) => e.stopPropagation()}
                     >
                         <img
-                            src={screenshotModal.url}
-                            alt={`Скриншот: ${screenshotModal.asset}`}
+                            src={screenshotModal}
+                            alt="Скриншот"
                             className="max-w-full max-h-[90vh] object-contain rounded-2xl shadow-2xl"
                         />
                         <button

@@ -8,7 +8,6 @@ import { checkUserAccess } from '@/services/firestoreService'
 import {
   Users,
   BookOpen,
-  BarChart3,
   Settings,
   Shield,
   CheckCircle2,
@@ -30,7 +29,8 @@ import {
   Lightbulb,
   Brain,
   Calendar,
-  CalendarDays
+  CalendarDays,
+  FlaskConical
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import logo from '@/assets/logo.png'
@@ -106,7 +106,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
 
   const funcsSubItems: { path: string; label: string; icon: LucideIcon; feature?: string }[] = [
     { path: '/hub', label: 'HUB', icon: Radio, feature: 'ava_hub' },
-    { path: '/lab', label: 'LAB', icon: BarChart3, feature: 'tools_strategies' },
+    { path: '/lab', label: 'LAB', icon: FlaskConical, feature: 'tools_strategies' },
     { path: '/lead', label: 'Lead', icon: Calendar, feature: 'ava_schedule' },
     { path: '/pnl', label: 'P&L', icon: DollarSign, feature: 'ava_profit' },
     { path: '/operations', label: 'Operations', icon: CheckSquare, feature: 'ava_tasks' },
@@ -149,7 +149,6 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
     setIsCollapsed(newState)
     localStorage.setItem('sidebarCollapsed', String(newState))
   }
-
 
   return (
     <div className={`min-h-screen ${theme === 'dark' ? 'dark bg-[#0b0f17]' : 'bg-[#f8fafc]'}`}>
@@ -445,7 +444,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
         {/* Mobile Menu Overlay */}
         {isMobileMenuOpen && (
           <div className={`fixed inset-0 z-[100] flex flex-col animate-in slide-in-from-right duration-300 ${theme === 'dark' ? 'bg-[#0b0f17]' : 'bg-white'}`}>
-            <div className={`flex items-center justify-between px-4 py-3 border-b ${theme === 'dark' ? 'border-white/10' : 'border-gray-100'}`}>
+            <div className="flex items-center justify-between px-4 py-3 border-b ${theme === 'dark' ? 'border-white/10' : 'border-gray-100'}">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 flex items-center justify-center">
                   <img

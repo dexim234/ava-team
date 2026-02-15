@@ -55,12 +55,12 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
             <button
                 onClick={() => setIsOpen(!isOpen)}
                 className={`w-full flex items-center justify-between gap-3 px-4 py-2.5 rounded-xl border transition-all ${theme === 'dark'
-                    ? 'bg-[#151a21] border-white/5 text-gray-300 hover:border-emerald-500/30'
-                    : 'bg-white border-gray-200 text-gray-700 hover:border-emerald-500'
+                    ? 'bg-[#151a21] border-white/5 text-gray-300 hover:border-[#4C7F6E]/30'
+                    : 'bg-white border-gray-200 text-gray-700 hover:border-[#4C7F6E]'
                     }`}
             >
                 <div className="flex items-center gap-2.5 overflow-hidden">
-                    {icon && <div className={selectedOption ? "text-emerald-500" : "text-gray-500"}>{icon}</div>}
+                    {icon && <div className={selectedOption ? "text-[#4C7F6E]" : "text-gray-500"}>{icon}</div>}
 
                     {selectedOption ? (
                         <div className="flex items-center gap-2">
@@ -119,7 +119,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
                                     setIsOpen(false)
                                 }}
                                 className={`w-full flex items-center justify-between gap-3 px-3 py-2 rounded-lg transition-all text-left ${option.value === value
-                                    ? theme === 'dark' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-emerald-50 text-emerald-600'
+                                    ? theme === 'dark' ? 'bg-[#4C7F6E]/10 text-[#4C7F6E]' : 'bg-[#4C7F6E]/10 text-[#4C7F6E]'
                                     : theme === 'dark' ? 'hover:bg-white/5 text-gray-300' : 'hover:bg-gray-50 text-gray-700'
                                     }`}
                             >
