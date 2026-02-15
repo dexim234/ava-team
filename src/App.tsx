@@ -20,6 +20,10 @@ import { EventsPage } from './pages/Events'
 import { Referrals } from './pages/Referrals'
 import { Analytics } from './pages/Analytics'
 import { NotFound } from './pages/NotFound'
+import { Initiatives } from './pages/Initiatives'
+import { Challenges } from './pages/Challenges'
+import { Docs } from './pages/Docs'
+import { AIReview } from './pages/AIReview'
 
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { AccessBlockScreen } from './components/AccessBlockScreen'
@@ -63,7 +67,7 @@ function App() {
         {/* Layout wrapper for all pages with navigation */}
         <Route element={<AppLayout />}>
           <Route
-            path="/call"
+            path="/hub"
             element={
               <ProtectedRoute>
                 <CallPage />
@@ -71,7 +75,7 @@ function App() {
             }
           />
           <Route
-            path="/management"
+            path="/lead"
             element={
               <ProtectedRoute>
                 <Management />
@@ -79,7 +83,7 @@ function App() {
             }
           />
           <Route
-            path="/earnings"
+            path="/pnl"
             element={
               <ProtectedRoute>
                 <Earnings />
@@ -87,7 +91,7 @@ function App() {
             }
           />
           <Route
-            path="/rating"
+            path="/track-record"
             element={
               <ProtectedRoute>
                 <Rating />
@@ -95,7 +99,7 @@ function App() {
             }
           />
           <Route
-            path="/referrals"
+            path="/invite-earn"
             element={
               <ProtectedRoute>
                 <Referrals />
@@ -103,7 +107,7 @@ function App() {
             }
           />
           <Route
-            path="/tasks"
+            path="/operations"
             element={
               <ProtectedRoute>
                 <Tasks />
@@ -175,10 +179,42 @@ function App() {
             }
           />
           <Route
-            path="/analytics"
+            path="/lab"
             element={
               <ProtectedRoute>
                 <Analytics />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/initiatives"
+            element={
+              <ProtectedRoute>
+                <Initiatives />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/challenges"
+            element={
+              <ProtectedRoute>
+                <Challenges />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/docs"
+            element={
+              <ProtectedRoute>
+                <Docs />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/ai-review"
+            element={
+              <ProtectedRoute>
+                <AIReview />
               </ProtectedRoute>
             }
           />
@@ -186,6 +222,16 @@ function App() {
         </Route>
 
         <Route path="/" element={<Navigate to={(isAuthenticated || isAdmin) ? "/about" : "/login"} replace />} />
+
+        {/* Legacy redirects for old URLs */}
+        <Route path="/call" element={<Navigate to="/hub" replace />} />
+        <Route path="/analytics" element={<Navigate to="/lab" replace />} />
+        <Route path="/management" element={<Navigate to="/lead" replace />} />
+        <Route path="/earnings" element={<Navigate to="/pnl" replace />} />
+        <Route path="/tasks" element={<Navigate to="/operations" replace />} />
+        <Route path="/rating" element={<Navigate to="/track-record" replace />} />
+        <Route path="/referrals" element={<Navigate to="/invite-earn" replace />} />
+
         <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
