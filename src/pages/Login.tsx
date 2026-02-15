@@ -196,8 +196,8 @@ export const Login = () => {
       <div className="hidden xl:flex flex-1 relative bg-[#0b0f17] items-center justify-center p-12 overflow-hidden">
         {/* Background Gradients */}
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute -top-24 -left-24 w-[620px] h-[620px] bg-gradient-to-br from-blue-600/35 via-cyan-500/22 to-transparent blur-[110px]" />
-          <div className="absolute top-[-120px] right-[-180px] w-[780px] h-[780px] bg-gradient-to-bl from-indigo-500/24 via-blue-500/22 to-transparent blur-[140px]" />
+          <div className="absolute -top-24 -left-24 w-[620px] h-[620px] bg-gradient-to-br from-[#4C7F6E]/35 via-emerald-500/22 to-transparent blur-[110px]" />
+          <div className="absolute top-[-120px] right-[-180px] w-[780px] h-[780px] bg-gradient-to-bl from-[#4C7F6E]/24 via-emerald-500/22 to-transparent blur-[140px]" />
           <div className="floating-grid opacity-30" />
         </div>
 
@@ -206,7 +206,7 @@ export const Login = () => {
             <img
               src={logo}
               alt="ARCA - Team"
-              className="w-20 h-20 sm:w-24 sm:h-24 object-contain rounded-xl filter drop-shadow-[0_0_15px_rgba(59,130,246,0.4)]"
+              className="w-20 h-20 sm:w-24 sm:h-24 object-contain rounded-xl filter drop-shadow-[0_0_15px_rgba(76,127,110,0.4)]"
             />
           </div>
 
@@ -256,7 +256,7 @@ export const Login = () => {
               Добро пожаловать
             </h2>
             <p className={`text-gray-500 dark:text-gray-400 font-medium`}>
-              Введите данные для входа в <span className="text-blue-500 font-bold">ARCA - Team</span>
+              Введите данные для входа в <span className="text-[#4C7F6E] font-bold">ARCA - Team</span>
             </p>
           </div>
 
@@ -265,7 +265,7 @@ export const Login = () => {
             <button
               onClick={() => setUserType('member')}
               className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold transition-all ${userType === 'member'
-                ? 'bg-white dark:bg-blue-600 text-blue-600 dark:text-white shadow-sm'
+                ? 'bg-white dark:bg-[#4C7F6E] text-[#4C7F6E] dark:text-white shadow-sm'
                 : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
                 }`}
             >
@@ -275,7 +275,7 @@ export const Login = () => {
             <button
               onClick={() => setUserType('admin')}
               className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold transition-all ${userType === 'admin'
-                ? 'bg-white dark:bg-blue-600 text-blue-600 dark:text-white shadow-sm'
+                ? 'bg-white dark:bg-[#4C7F6E] text-[#4C7F6E] dark:text-white shadow-sm'
                 : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
                 }`}
             >
@@ -291,7 +291,7 @@ export const Login = () => {
                   Логин / Email
                 </label>
                 <div className="relative group">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-blue-500 transition-colors">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-[#4C7F6E] transition-colors">
                     <User className="w-5 h-5" />
                   </div>
                   <input
@@ -299,9 +299,9 @@ export const Login = () => {
                     value={login}
                     onChange={(e) => setLogin(e.target.value)}
                     placeholder="agent@arca-apex.io"
-                    className={`w-full pl-12 pr-4 py-4 rounded-2xl border transition-all focus:outline-none focus:ring-4 focus:ring-blue-500/10 ${theme === 'dark'
-                      ? 'bg-white/5 border-white/10 text-white placeholder-gray-600 focus:border-blue-500'
-                      : 'bg-gray-50 border-gray-200 text-gray-900 placeholder-gray-400 focus:border-blue-500'
+                    className={`w-full pl-12 pr-4 py-4 rounded-2xl border transition-all focus:outline-none focus:ring-4 focus:ring-[#4C7F6E]/10 ${theme === 'dark'
+                      ? 'bg-white/5 border-white/10 text-white placeholder-gray-600 focus:border-[#4C7F6E]'
+                      : 'bg-gray-50 border-gray-200 text-gray-900 placeholder-gray-400 focus:border-[#4C7F6E]'
                       }`}
                   />
                 </div>
@@ -313,7 +313,7 @@ export const Login = () => {
                 Пароль
               </label>
               <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-blue-500 transition-colors">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-[#4C7F6E] transition-colors">
                   <Lock className="w-5 h-5" />
                 </div>
                 <input
@@ -321,15 +321,15 @@ export const Login = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className={`w-full pl-12 pr-12 py-4 rounded-2xl border transition-all focus:outline-none focus:ring-4 focus:ring-blue-500/10 ${theme === 'dark'
-                    ? 'bg-white/5 border-white/10 text-white placeholder-gray-600 focus:border-blue-500'
-                    : 'bg-gray-50 border-gray-200 text-gray-900 placeholder-gray-400 focus:border-blue-500'
+                  className={`w-full pl-12 pr-12 py-4 rounded-2xl border transition-all focus:outline-none focus:ring-4 focus:ring-[#4C7F6E]/10 ${theme === 'dark'
+                    ? 'bg-white/5 border-white/10 text-white placeholder-gray-600 focus:border-[#4C7F6E]'
+                    : 'bg-gray-50 border-gray-200 text-gray-900 placeholder-gray-400 focus:border-[#4C7F6E]'
                     }`}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-blue-500 transition-colors"
+                  className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-[#4C7F6E] transition-colors"
                 >
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
@@ -346,7 +346,7 @@ export const Login = () => {
                     className="sr-only"
                   />
                   <div className={`w-5 h-5 rounded border transition-all flex items-center justify-center ${rememberMe
-                    ? 'bg-blue-500 border-blue-500'
+                    ? 'bg-[#4C7F6E] border-[#4C7F6E]'
                     : 'border-gray-300 dark:border-white/20'
                     }`}>
                     {rememberMe && <div className="w-2.5 h-2.5 bg-white rounded-sm" />}
@@ -357,7 +357,7 @@ export const Login = () => {
               <button
                 type="button"
                 onClick={() => setIsForgotModalOpen(true)}
-                className="text-sm font-bold text-blue-500 hover:text-blue-600 transition-colors"
+                className="text-sm font-bold text-[#4C7F6E] hover:text-[#4C7F6E]/80 transition-colors"
               >
                 Забыл данные?
               </button>
@@ -371,37 +371,47 @@ export const Login = () => {
 
             <button
               type="submit"
-              className="w-full py-4 px-6 rounded-2xl bg-blue-500 hover:bg-blue-600 text-white font-black text-lg transition-all shadow-lg shadow-blue-500/20 hover:scale-[1.02] active:scale-[0.98]"
+              className="w-full py-4 px-6 rounded-2xl bg-[#4C7F6E] hover:bg-[#4C7F6E]/90 text-white font-black text-lg transition-all shadow-lg shadow-[#4C7F6E]/20 hover:scale-[1.02] active:scale-[0.98]"
             >
               Войти в Систему
             </button>
           </form>
 
           <div className="mt-12 pt-8 border-t border-gray-100 dark:border-white/5">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-3">
               <a
                 href="https://t.me/artyommedoed"
                 target="_blank"
                 rel="noopener noreferrer"
-                className={`flex items-center justify-center gap-2 py-3 px-4 rounded-2xl border transition-all font-bold text-sm ${theme === 'dark'
+                className={`flex flex-col items-center justify-center gap-1.5 py-3 px-3 rounded-2xl border transition-all font-bold text-xs ${theme === 'dark'
                   ? 'border-white/10 bg-white/5 text-white hover:bg-white/10'
                   : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50 shadow-sm'
                   }`}
               >
-                <Shield className="w-4 h-4 text-blue-500" />
-                <span>Связаться с Админом</span>
+                <Shield className="w-4 h-4 text-[#4C7F6E]" />
+                <span>Помощь</span>
               </a>
               <a
                 href="/rules.pdf"
                 download
-                className={`flex items-center justify-center gap-2 py-3 px-4 rounded-2xl border transition-all font-bold text-sm ${theme === 'dark'
+                className={`flex flex-col items-center justify-center gap-1.5 py-3 px-3 rounded-2xl border transition-all font-bold text-xs ${theme === 'dark'
                   ? 'border-white/10 bg-white/5 text-white hover:bg-white/10'
                   : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50 shadow-sm'
                   }`}
               >
-                <BookOpen className="w-4 h-4 text-blue-500" />
-                <span>Правила Команды</span>
+                <BookOpen className="w-4 h-4 text-[#4C7F6E]" />
+                <span>Rules</span>
               </a>
+              <button
+                onClick={() => alert('Функция в разработке')}
+                className={`flex flex-col items-center justify-center gap-1.5 py-3 px-3 rounded-2xl border transition-all font-bold text-xs ${theme === 'dark'
+                  ? 'border-white/10 bg-white/5 text-white hover:bg-white/10'
+                  : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50 shadow-sm'
+                  }`}
+              >
+                <Users className="w-4 h-4 text-[#4C7F6E]" />
+                <span>Анкета</span>
+              </button>
             </div>
           </div>
 
