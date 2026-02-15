@@ -206,7 +206,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                 <div className="space-y-1 relative group/tools">
                   <button
                     onClick={() => !isCollapsed && setShowToolsMenu(!showToolsMenu)}
-                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 ${isToolsActive ? 'bg-[#4E6E49]/15 text-[#4E6E49]' : 'text-gray-500 hover:bg-gray-100/50 dark:hover:bg-white/5'} ${isCollapsed ? 'justify-center px-0' : ''}`}
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 ${isToolsActive ? 'bg-[#4C7F6E]/15 text-[#4C7F6E]' : 'text-gray-500 hover:bg-gray-100/50 dark:hover:bg-white/5'} ${isCollapsed ? 'justify-center px-0' : ''}`}
                   >
                     <Settings className={`w-4 h-4 transition-transform duration-500 ${isCollapsed ? 'group-hover/tools:rotate-90' : ''}`} />
                     {!isCollapsed && (
@@ -221,14 +221,14 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                     <div className="absolute left-full top-0 invisible group-hover/tools:visible opacity-0 group-hover/tools:opacity-100 transition-all duration-300 translate-x-3 group-hover/tools:translate-x-1 z-[100]">
                       <div className="ml-2 glass-panel border border-white/40 dark:border-white/10 rounded-2xl p-2 min-w-[200px] shadow-2xl backdrop-blur-2xl">
                         <div className="px-3 py-2 mb-1 border-b border-white/10">
-                          <p className="text-[10px] font-black uppercase tracking-widest text-[#4E6E49]">Tools</p>
+                          <p className="text-[10px] font-black uppercase tracking-widest text-[#4C7F6E]">Tools</p>
                         </div>
                         {accessibleToolsSubItems.map((item) => (
                           <Link
                             key={item.path}
                             to={item.isDev ? '#' : item.path}
                             onClick={(e: React.MouseEvent<HTMLAnchorElement>) => item.isDev && e.preventDefault()}
-                            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-all relative ${location.pathname === item.path ? 'bg-[#4E6E49] text-white' : 'text-gray-500 hover:bg-[#4E6E49]/10 hover:text-[#4E6E49]'} ${item.isDev ? 'cursor-not-allowed opacity-80' : ''}`}
+                            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-all relative ${location.pathname === item.path ? 'bg-[#4C7F6E] text-white' : 'text-gray-500 hover:bg-[#4C7F6E]/10 hover:text-[#4C7F6E]'} ${item.isDev ? 'cursor-not-allowed opacity-80' : ''}`}
                           >
                             <item.icon className="w-3.5 h-3.5" />
                             <span>{item.label}</span>
@@ -244,7 +244,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                   {showToolsMenu && !isCollapsed && (
                     <div className="absolute left-0 top-full mt-1 pl-4 pr-2 py-2 glass-panel border border-white/40 dark:border-white/10 rounded-xl shadow-2xl backdrop-blur-2xl z-[100] min-w-[200px] animate-in fade-in slide-in-from-top-2 duration-200">
                       <div className="px-3 py-2 mb-1 border-b border-white/10">
-                        <p className="text-[10px] font-black uppercase tracking-widest text-[#4E6E49]">Tools</p>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-[#4C7F6E]">Tools</p>
                       </div>
                       {accessibleToolsSubItems.map((item) => (
                         <Link
@@ -257,7 +257,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                               setShowToolsMenu(false)
                             }
                           }}
-                          className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-all ${location.pathname === item.path ? 'bg-[#4E6E49] text-white' : 'text-gray-500 hover:bg-[#4E6E49]/10 hover:text-[#4E6E49]'} ${item.isDev ? 'cursor-not-allowed opacity-80' : ''}`}
+                          className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-all ${location.pathname === item.path ? 'bg-[#4C7F6E] text-white' : 'text-gray-500 hover:bg-[#4C7F6E]/10 hover:text-[#4C7F6E]'} ${item.isDev ? 'cursor-not-allowed opacity-80' : ''}`}
                         >
                           <item.icon className="w-3.5 h-3.5" />
                           <span>{item.label}</span>
@@ -276,7 +276,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                 <div className="space-y-1 relative group/admin">
                   <button
                     onClick={() => !isCollapsed && setShowAdminMenu(!showAdminMenu)}
-                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 ${isAdminActive ? 'bg-[#4E6E49]/15 text-[#4E6E49]' : 'text-gray-500 hover:bg-gray-100/50 dark:hover:bg-white/5'} ${isCollapsed ? 'justify-center px-0' : ''}`}
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 ${isAdminActive ? 'bg-[#4C7F6E]/15 text-[#4C7F6E]' : 'text-gray-500 hover:bg-gray-100/50 dark:hover:bg-white/5'} ${isCollapsed ? 'justify-center px-0' : ''}`}
                   >
                     <Shield className={`w-4 h-4 transition-transform duration-500 ${isCollapsed ? 'group-hover/admin:scale-110' : ''}`} />
                     {!isCollapsed && (
@@ -291,13 +291,13 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                     <div className="absolute left-full top-0 invisible group-hover/admin:visible opacity-0 group-hover/admin:opacity-100 transition-all duration-300 translate-x-3 group-hover/admin:translate-x-1 z-[100]">
                       <div className="ml-2 glass-panel border border-white/40 dark:border-white/10 rounded-2xl p-2 min-w-[200px] shadow-2xl backdrop-blur-2xl">
                         <div className="px-3 py-2 mb-1 border-b border-white/10">
-                          <p className="text-[10px] font-black uppercase tracking-widest text-[#4E6E49]">Admin Panel</p>
+                          <p className="text-[10px] font-black uppercase tracking-widest text-[#4C7F6E]">Admin Panel</p>
                         </div>
                         {adminSubItems.map((item) => (
                           <Link
                             key={item.path}
                             to={item.path}
-                            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-all ${location.pathname === item.path ? 'bg-[#4E6E49] text-white' : 'text-gray-500 hover:bg-[#4E6E49]/10 hover:text-[#4E6E49]'}`}
+                            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-all ${location.pathname === item.path ? 'bg-[#4C7F6E] text-white' : 'text-gray-500 hover:bg-[#4C7F6E]/10 hover:text-[#4C7F6E]'}`}
                           >
                             <item.icon className="w-3.5 h-3.5" />
                             <span>{item.label}</span>
@@ -310,14 +310,14 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                   {showAdminMenu && !isCollapsed && (
                     <div className="absolute left-0 top-full mt-1 pl-4 pr-2 py-2 glass-panel border border-white/40 dark:border-white/10 rounded-xl shadow-2xl backdrop-blur-2xl z-[100] min-w-[200px] animate-in fade-in slide-in-from-top-2 duration-200">
                       <div className="px-3 py-2 mb-1 border-b border-white/10">
-                        <p className="text-[10px] font-black uppercase tracking-widest text-[#4E6E49]">Панель управления</p>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-[#4C7F6E]">Панель управления</p>
                       </div>
                       {adminSubItems.map((item) => (
                         <Link
                           key={item.path}
                           to={item.path}
                           onClick={() => setIsMobileMenuOpen(false)}
-                          className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-all ${location.pathname === item.path ? 'bg-[#4E6E49] text-white' : 'text-gray-500 hover:bg-[#4E6E49]/10 hover:text-[#4E6E49]'}`}
+                          className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-all ${location.pathname === item.path ? 'bg-[#4C7F6E] text-white' : 'text-gray-500 hover:bg-[#4C7F6E]/10 hover:text-[#4C7F6E]'}`}
                         >
                           <item.icon className="w-3.5 h-3.5" />
                           <span>{item.label}</span>
@@ -342,7 +342,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                   <Link
                     key={item.path}
                     to={item.path}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 ${location.pathname === item.path ? 'bg-[#4E6E49] text-white shadow-lg shadow-[#4E6E49]/30' : 'text-gray-500 hover:bg-gray-100/50 dark:hover:bg-white/5 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'} ${isCollapsed ? 'justify-center px-0' : ''}`}
+                    className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 ${location.pathname === item.path ? 'bg-[#4C7F6E] text-white shadow-lg shadow-[#4C7F6E]/30' : 'text-gray-500 hover:bg-gray-100/50 dark:hover:bg-white/5 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'} ${isCollapsed ? 'justify-center px-0' : ''}`}
                   >
                     <item.icon className="w-4 h-4" />
                     {!isCollapsed && <span className="font-bold text-sm tracking-tight">{item.label}</span>}
@@ -354,7 +354,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
           <div className={`relative z-10 m-4 space-y-2 transition-all duration-500 ${isCollapsed ? 'm-2 space-y-4' : ''}`}>
             <Link
               to="/profile"
-              className={`p-4 rounded-2xl flex items-center gap-3 transition-all group ${location.pathname === '/profile' ? 'bg-[#4E6E49]/10 border border-[#4E6E49]/30' : 'border border-gray-200/50 dark:border-white/5 hover:bg-gray-100/50 dark:hover:bg-white/5'} ${isCollapsed ? 'p-0 h-12 w-12 items-center justify-center mx-auto border-0' : ''}`}
+              className={`p-4 rounded-2xl flex items-center gap-3 transition-all group ${location.pathname === '/profile' ? 'bg-[#4C7F6E]/10 border border-[#4C7F6E]/30' : 'border border-gray-200/50 dark:border-white/5 hover:bg-gray-100/50 dark:hover:bg-white/5'} ${isCollapsed ? 'p-0 h-12 w-12 items-center justify-center mx-auto border-0' : ''}`}
             >
               <div className={`w-10 h-10 shrink-0`}>
                 <Avatar userId={user?.id} user={user || undefined} size="sm" />
@@ -365,7 +365,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                     <p className="text-sm font-bold truncate dark:text-white">{user?.name || 'Administrator'}</p>
                     <p className="text-[10px] text-gray-500 font-medium truncate">{user?.login || 'admin@arca-apex.io'}</p>
                   </div>
-                  <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-[#4E6E49] transition-colors" />
+                  <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-[#4C7F6E] transition-colors" />
                 </>
               )}
             </Link>
@@ -386,7 +386,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
               {user?.name === 'Артём' && !isAdmin && (
                 <button
                   onClick={() => activateAdmin(ADMIN_PASSWORD)}
-                  className={`flex items-center justify-center gap-2 py-2.5 rounded-xl border border-[#4E6E49]/20 bg-[#4E6E49]/5 text-[#4E6E49] hover:bg-[#4E6E49]/10 transition-colors text-xs font-bold ${isCollapsed ? 'w-10 h-10 px-0 border-0' : 'w-full'}`}
+                  className={`flex items-center justify-center gap-2 py-2.5 rounded-xl border border-[#4C7F6E]/20 bg-[#4C7F6E]/5 text-[#4C7F6E] hover:bg-[#4C7F6E]/10 transition-colors text-xs font-bold ${isCollapsed ? 'w-10 h-10 px-0 border-0' : 'w-full'}`}
                 >
                   <Shield className="w-4 h-4" />
                   {!isCollapsed && <span>Админ</span>}
@@ -431,8 +431,8 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
           <button
             onClick={() => setIsMobileMenuOpen(true)}
             className={`p-2 rounded-xl transition-colors ${theme === 'dark'
-              ? 'bg-[#4E6E49]/10 text-white hover:bg-[#4E6E49]/20'
-              : 'bg-[#4E6E49]/10 text-[#4E6E49] hover:bg-[#4E6E49]/20'
+              ? 'bg-[#4C7F6E]/10 text-white hover:bg-[#4C7F6E]/20'
+              : 'bg-[#4C7F6E]/10 text-[#4C7F6E] hover:bg-[#4C7F6E]/20'
               }`}
           >
             <Menu className="w-6 h-6" />
@@ -469,7 +469,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-bold truncate dark:text-white">{user?.name || 'Guest'}</p>
-                  <Link to="/profile" onClick={() => setIsMobileMenuOpen(false)} className="text-xs text-[#4E6E49] hover:underline">
+                  <Link to="/profile" onClick={() => setIsMobileMenuOpen(false)} className="text-xs text-[#4C7F6E] hover:underline">
                     Перейти в профиль
                   </Link>
                 </div>
@@ -485,7 +485,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                         if (isAdmin) deactivateAdmin()
                       }}
                       className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold transition-all ${!isAdmin
-                        ? 'bg-white dark:bg-[#4E6E49] text-[#4E6E49] dark:text-white shadow-sm'
+                        ? 'bg-white dark:bg-[#4C7F6E] text-[#4C7F6E] dark:text-white shadow-sm'
                         : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
                         }`}
                     >
@@ -497,7 +497,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                         if (!isAdmin) activateAdmin(ADMIN_PASSWORD)
                       }}
                       className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold transition-all ${isAdmin
-                        ? 'bg-white dark:bg-[#4E6E49] text-[#4E6E49] dark:text-white shadow-sm'
+                        ? 'bg-white dark:bg-[#4C7F6E] text-[#4C7F6E] dark:text-white shadow-sm'
                         : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
                         }`}
                     >
@@ -524,9 +524,9 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                             setIsMobileMenuOpen(false)
                           }
                         }}
-                        className={`flex flex-col items-center justify-center gap-2 p-3 rounded-xl border transition-all ${location.pathname === item.path ? 'border-[#4E6E49]/50 bg-[#4E6E49]/10' : theme === 'dark' ? 'border-white/10 bg-white/5 hover:bg-white/10' : 'border-gray-100 bg-gray-50 hover:bg-gray-100'} ${item.isDev ? 'opacity-70 grayscale' : ''}`}
+                        className={`flex flex-col items-center justify-center gap-2 p-3 rounded-xl border transition-all ${location.pathname === item.path ? 'border-[#4C7F6E]/50 bg-[#4C7F6E]/10' : theme === 'dark' ? 'border-white/10 bg-white/5 hover:bg-white/10' : 'border-gray-100 bg-gray-50 hover:bg-gray-100'} ${item.isDev ? 'opacity-70 grayscale' : ''}`}
                       >
-                        <item.icon className={`w-6 h-6 ${location.pathname === item.path ? 'text-[#4E6E49]' : 'text-gray-400'}`} />
+                        <item.icon className={`w-6 h-6 ${location.pathname === item.path ? 'text-[#4C7F6E]' : 'text-gray-400'}`} />
                         <span className={`text-xs font-medium text-center ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>{item.label}</span>
                         {item.isDev && (
                           <span className="absolute top-1 right-1 px-1.5 py-0.5 rounded-full bg-amber-500 text-[8px] text-white font-black">DEV</span>
@@ -547,9 +547,9 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                         key={item.path}
                         to={item.path}
                         onClick={() => setIsMobileMenuOpen(false)}
-                        className={`flex flex-col items-center justify-center gap-2 p-3 rounded-xl border transition-all ${location.pathname === item.path ? 'border-[#4E6E49]/50 bg-[#4E6E49]/10' : theme === 'dark' ? 'border-white/10 bg-white/5 hover:bg-white/10' : 'border-gray-100 bg-gray-50 hover:bg-gray-100'}`}
+                        className={`flex flex-col items-center justify-center gap-2 p-3 rounded-xl border transition-all ${location.pathname === item.path ? 'border-[#4C7F6E]/50 bg-[#4C7F6E]/10' : theme === 'dark' ? 'border-white/10 bg-white/5 hover:bg-white/10' : 'border-gray-100 bg-gray-50 hover:bg-gray-100'}`}
                       >
-                        <item.icon className={`w-6 h-6 ${location.pathname === item.path ? 'text-[#4E6E49]' : 'text-gray-400'}`} />
+                        <item.icon className={`w-6 h-6 ${location.pathname === item.path ? 'text-[#4C7F6E]' : 'text-gray-400'}`} />
                         <span className={`text-xs font-medium text-center ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>{item.label}</span>
                       </Link>
                     ))}
@@ -566,7 +566,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                       key={item.path}
                       to={item.path}
                       onClick={() => setIsMobileMenuOpen(false)}
-                      className={`flex items-center gap-3 p-3 rounded-xl transition-all ${location.pathname === item.path ? 'bg-[#4E6E49] text-white shadow-lg' : theme === 'dark' ? 'text-gray-400 hover:bg-white/5 hover:text-white' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'}`}
+                      className={`flex items-center gap-3 p-3 rounded-xl transition-all ${location.pathname === item.path ? 'bg-[#4C7F6E] text-white shadow-lg' : theme === 'dark' ? 'text-gray-400 hover:bg-white/5 hover:text-white' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'}`}
                     >
                       <item.icon className="w-5 h-5" />
                       <span className="font-bold text-sm">{item.label}</span>
