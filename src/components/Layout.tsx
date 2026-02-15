@@ -182,7 +182,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                 <img
                   src={logo}
                   alt="ARCA - Team"
-                  className="w-9 h-9 object-contain rounded-xl filter drop-shadow-[0_0_8px_rgba(78,110,73,0.3)]"
+                  className="w-9 h-9 object-contain rounded-xl filter drop-shadow-[0_0_8px_rgba(59,130,246,0.3)]"
                 />
               </div>
               <div className="flex flex-col whitespace-nowrap">
@@ -257,7 +257,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                               setShowToolsMenu(false)
                             }
                           }}
-                          className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-all relative ${location.pathname === item.path ? 'bg-[#4E6E49] text-white' : 'text-gray-500 hover:bg-[#4E6E49]/10 hover:text-[#4E6E49]'} ${item.isDev ? 'cursor-not-allowed opacity-80' : ''}`}
+                          className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-all ${location.pathname === item.path ? 'bg-[#4E6E49] text-white' : 'text-gray-500 hover:bg-[#4E6E49]/10 hover:text-[#4E6E49]'} ${item.isDev ? 'cursor-not-allowed opacity-80' : ''}`}
                         >
                           <item.icon className="w-3.5 h-3.5" />
                           <span>{item.label}</span>
@@ -423,7 +423,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
               <img
                 src={logo}
                 alt="ARCA - Team"
-                className="w-7 h-7 object-contain rounded-xl filter drop-shadow-[0_0_8px_rgba(78,110,73,0.3)]"
+                className="w-7 h-7 object-contain rounded-xl filter drop-shadow-[0_0_8px_rgba(59,130,246,0.3)]"
               />
             </div>
             <span className={`text-sm font-black tracking-widest uppercase ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>ARCA - Team</span>
@@ -448,7 +448,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                   <img
                     src={logo}
                     alt="ARCA - Team"
-                    className="w-7 h-7 object-contain rounded-xl"
+                    className="w-7 h-7 object-contain rounded-xl filter drop-shadow-[0_0_8px_rgba(59,130,246,0.3)]"
                   />
                 </div>
                 <span className={`text-sm font-black tracking-widest uppercase ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Menu</span>
